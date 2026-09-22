@@ -1,0 +1,3269 @@
+{
+  "year": 2026,
+  "asOf": "2026-09-21",
+  "sourceType": "user-supplied-screenshots",
+  "source": "https://1point02.jp/op/gnav/leaders/pl/pfs_advanced.aspx",
+  "scope": "提供画像のUZR列を転記。1〜220位（181位は画像外）・561〜660位。ダッシュボードの防御列は使用しない。守備位置は画像が「-」のため選手合計として扱う。",
+  "sources": [
+    {
+      "file": "スクリーンショット 2026-09-21 230758.png",
+      "sha256": "b694564bda6de897a8218e9fae6bdae5c26cbf2f0a39dc438435cc4e99d6c3bd"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230806.png",
+      "sha256": "b33894c4783f09d82709326e49247aa70122e3ab9a636c48fa51098e97717c47"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230811.png",
+      "sha256": "10d5c9087663406c43885791563bdb862e20c8ba2fe2971f368871eb8ef37af6"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230816.png",
+      "sha256": "010d2be0cdb76dab40a7f9ac0e295282fde24cd978423ac1fb8db546ed09c624"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230821.png",
+      "sha256": "a712aaf1936d8fc0bd9b18facc026d415003b4d0b417b641623e52005b11eb11"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230825.png",
+      "sha256": "9aa5b7f846c57b22f7ac4059f93343ff6d636f610af43ac684180b9685eceefd"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230829.png",
+      "sha256": "f19e43a2d18db46cf1ae9eec98df382c89d2c726d338ba50ee90bf10244cb442"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230833.png",
+      "sha256": "e1b4ea76c134cb29f8b1a7d796bd90a9cc79da5a0c4c817b6b3da987ca2f2ae0"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230837.png",
+      "sha256": "db3122f0a0c60c71b93770ecdb0b6a70270c7c280b91ed3e1c1bc79af9fc377a"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230842.png",
+      "sha256": "c3b4184ace5fda74bb55a366bf31c1cda03a55f4d7c7d1f8745d4230bbaee4cc"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230847.png",
+      "sha256": "9c73786ad0c2d2c835b4477933818ed892253d3edd6a2315609a31b4a6a8e6aa"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230850.png",
+      "sha256": "1870fd14607327a9a1a00b6af3e87ca7a0f122995cbbe19e787d0beb5eb83504"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230917.png",
+      "sha256": "12771eb31255a0847184b2b98358b573a896a608b3890d36b3b9e82bb74d3187"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230911.png",
+      "sha256": "88c15e15bf4f73c078ce14b70c330bcc31c00c6fa6e7b1ae4de04618ffea0858"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230907.png",
+      "sha256": "1a6aa273c682bb4455126d01a8c7e0d214d14ac8c4ff8b41a9dbe6486abbae72"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230903.png",
+      "sha256": "e64acad6ca672bd1be5d4a5289c49047eef04b3eba0d40248ebafc91e735400b"
+    },
+    {
+      "file": "スクリーンショット 2026-09-21 230859.png",
+      "sha256": "189c5501121390ad2832d54044a850a2729393027fb8556881f3e4f0707f03e2"
+    }
+  ],
+  "entries": [
+    {
+      "rank": 1,
+      "team": "m",
+      "name": "小川龍成",
+      "outs": 3142,
+      "uzr": 17.8,
+      "per1200": 20.4,
+      "playerId": "m-小川龍成",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 2,
+      "team": "h",
+      "name": "周東佑京",
+      "outs": 3127,
+      "uzr": 13.9,
+      "per1200": 16,
+      "playerId": "h-周東佑京",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 3,
+      "team": "l",
+      "name": "源田壮亮",
+      "outs": 2249,
+      "uzr": 11.6,
+      "per1200": 18.5,
+      "playerId": "l-源田壮亮",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 4,
+      "team": "l",
+      "name": "平沢大河",
+      "outs": 1753,
+      "uzr": 9.6,
+      "per1200": 19.7,
+      "playerId": "l-平沢大河",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 5,
+      "team": "h",
+      "name": "川瀬晃",
+      "outs": 1205,
+      "uzr": 9.5,
+      "per1200": 28.3,
+      "playerId": "h-川瀬晃",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 6,
+      "team": "l",
+      "name": "滝澤夏央",
+      "outs": 2904,
+      "uzr": 8.3,
+      "per1200": 10.3,
+      "playerId": "l-滝澤夏央",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 7,
+      "team": "f",
+      "name": "五十幡亮汰",
+      "outs": 1047,
+      "uzr": 8.2,
+      "per1200": 28.2,
+      "playerId": "f-五十幡亮汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 8,
+      "team": "m",
+      "name": "西川史礁",
+      "outs": 3138,
+      "uzr": 8.2,
+      "per1200": 9.4,
+      "playerId": "m-西川史礁",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 9,
+      "team": "m",
+      "name": "友杉篤輝",
+      "outs": 1970,
+      "uzr": 7.5,
+      "per1200": 13.7,
+      "playerId": "m-友杉篤輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 10,
+      "team": "b",
+      "name": "渡部遼人",
+      "outs": 1713,
+      "uzr": 7.4,
+      "per1200": 15.5,
+      "playerId": "b-渡部遼人",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 11,
+      "team": "e",
+      "name": "中島大輔",
+      "outs": 2574,
+      "uzr": 7.3,
+      "per1200": 10.2,
+      "playerId": "e-中島大輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 12,
+      "team": "l",
+      "name": "渡部聖弥",
+      "outs": 2495,
+      "uzr": 7.2,
+      "per1200": 10.4,
+      "playerId": "l-渡部聖弥",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 13,
+      "team": "db",
+      "name": "度会隆輝",
+      "outs": 2749,
+      "uzr": 7.1,
+      "per1200": 9.3,
+      "playerId": "db-度会隆輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 14,
+      "team": "h",
+      "name": "柳町達",
+      "outs": 1607,
+      "uzr": 6.3,
+      "per1200": 14.2,
+      "playerId": "h-柳町達",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 15,
+      "team": "h",
+      "name": "栗原陵矢",
+      "outs": 3566,
+      "uzr": 6.2,
+      "per1200": 6.3,
+      "playerId": "h-栗原陵矢",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 16,
+      "team": "db",
+      "name": "佐野恵太",
+      "outs": 2909,
+      "uzr": 6.2,
+      "per1200": 7.7,
+      "playerId": "db-佐野恵太",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 17,
+      "team": "f",
+      "name": "野村佑希",
+      "outs": 2358,
+      "uzr": 6.1,
+      "per1200": 9.3,
+      "playerId": "f-野村佑希",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 18,
+      "team": "b",
+      "name": "紅林弘太郎",
+      "outs": 3294,
+      "uzr": 6,
+      "per1200": 6.6,
+      "playerId": "b-紅林弘太郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 19,
+      "team": "d",
+      "name": "田中幹也",
+      "outs": 1709,
+      "uzr": 5.9,
+      "per1200": 12.5,
+      "playerId": "d-田中幹也",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 20,
+      "team": "g",
+      "name": "門脇誠",
+      "outs": 568,
+      "uzr": 5.6,
+      "per1200": 35.8,
+      "playerId": "g-門脇誠",
+      "sourceFile": "スクリーンショット 2026-09-21 230806.png"
+    },
+    {
+      "rank": 21,
+      "team": "h",
+      "name": "近藤健介",
+      "outs": 2315,
+      "uzr": 5.6,
+      "per1200": 8.7,
+      "playerId": "h-近藤健介",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 22,
+      "team": "e",
+      "name": "佐藤直樹",
+      "outs": 1428,
+      "uzr": 5.5,
+      "per1200": 13.8,
+      "playerId": "e-佐藤直樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 23,
+      "team": "e",
+      "name": "辰己涼介",
+      "outs": 3238,
+      "uzr": 5,
+      "per1200": 5.6,
+      "playerId": "e-辰己涼介",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 24,
+      "team": "s",
+      "name": "岩田幸宏",
+      "outs": 2737,
+      "uzr": 4.9,
+      "per1200": 6.5,
+      "playerId": "s-岩田幸宏",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 25,
+      "team": "s",
+      "name": "赤羽由紘",
+      "outs": 2039,
+      "uzr": 4.8,
+      "per1200": 8.5,
+      "playerId": "s-赤羽由紘",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 26,
+      "team": "h",
+      "name": "庄子雄大",
+      "outs": 2025,
+      "uzr": 4.8,
+      "per1200": 8.5,
+      "playerId": "h-庄子雄大",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 27,
+      "team": "t",
+      "name": "髙寺望夢",
+      "outs": 2010,
+      "uzr": 4.3,
+      "per1200": 7.8,
+      "playerId": "t-髙寺望夢",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 28,
+      "team": "s",
+      "name": "J・オスナ",
+      "outs": 1704,
+      "uzr": 4.2,
+      "per1200": 8.9,
+      "playerId": "s-オスナ",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 29,
+      "team": "f",
+      "name": "山縣秀",
+      "outs": 796,
+      "uzr": 4.2,
+      "per1200": 18.8,
+      "playerId": "f-山縣秀",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 30,
+      "team": "c",
+      "name": "大盛穂",
+      "outs": 2205,
+      "uzr": 3.9,
+      "per1200": 6.4,
+      "playerId": "c-大盛穂",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 31,
+      "team": "b",
+      "name": "宜保翔",
+      "outs": 324,
+      "uzr": 3.8,
+      "per1200": 42.7,
+      "playerId": "b-宜保翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 32,
+      "team": "h",
+      "name": "正木智也",
+      "outs": 2426,
+      "uzr": 3.8,
+      "per1200": 5.6,
+      "playerId": "h-正木智也",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 33,
+      "team": "e",
+      "name": "黒川史陽",
+      "outs": 2867,
+      "uzr": 3.8,
+      "per1200": 4.7,
+      "playerId": "e-黒川史陽",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 34,
+      "team": "d",
+      "name": "村松開人",
+      "outs": 3094,
+      "uzr": 3.7,
+      "per1200": 4.3,
+      "playerId": "d-村松開人",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 35,
+      "team": "s",
+      "name": "丸山和郁",
+      "outs": 781,
+      "uzr": 3.6,
+      "per1200": 16.7,
+      "playerId": "s-丸山和郁",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 36,
+      "team": "d",
+      "name": "M・サノー",
+      "outs": 1893,
+      "uzr": 3.6,
+      "per1200": 6.8,
+      "playerId": "d-サノー",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 37,
+      "team": "l",
+      "name": "T・ネビン",
+      "outs": 1967,
+      "uzr": 3.5,
+      "per1200": 6.4,
+      "playerId": "l-ネビン",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 38,
+      "team": "m",
+      "name": "髙部瑛斗",
+      "outs": 868,
+      "uzr": 3.5,
+      "per1200": 14.3,
+      "playerId": "m-髙部瑛斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 39,
+      "team": "d",
+      "name": "板山祐太郎",
+      "outs": 1189,
+      "uzr": 3.4,
+      "per1200": 10.4,
+      "playerId": "d-板山祐太郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 40,
+      "team": "h",
+      "name": "川村友斗",
+      "outs": 602,
+      "uzr": 3.3,
+      "per1200": 19.9,
+      "playerId": "h-川村友斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230811.png"
+    },
+    {
+      "rank": 41,
+      "team": "h",
+      "name": "廣瀨隆太",
+      "outs": 638,
+      "uzr": 3.2,
+      "per1200": 18,
+      "playerId": "h-廣瀨隆太",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 42,
+      "team": "g",
+      "name": "小濱佑斗",
+      "outs": 441,
+      "uzr": 3.2,
+      "per1200": 26,
+      "playerId": "g-小濱佑斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 43,
+      "team": "d",
+      "name": "石川昂弥",
+      "outs": 2422,
+      "uzr": 3.2,
+      "per1200": 4.7,
+      "playerId": "d-石川昂弥",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 44,
+      "team": "t",
+      "name": "坂本誠志郎",
+      "outs": 2052,
+      "uzr": 3.2,
+      "per1200": 5.5,
+      "playerId": "t-坂本誠志郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 45,
+      "team": "f",
+      "name": "有薗直輝",
+      "outs": 661,
+      "uzr": 2.9,
+      "per1200": 15.8,
+      "playerId": "f-有薗直輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 46,
+      "team": "e",
+      "name": "浅村栄斗",
+      "outs": 1224,
+      "uzr": 2.9,
+      "per1200": 8.5,
+      "playerId": "e-浅村栄斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 47,
+      "team": "h",
+      "name": "笹川吉康",
+      "outs": 177,
+      "uzr": 2.7,
+      "per1200": 55.7,
+      "playerId": "h-笹川吉康",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 48,
+      "team": "l",
+      "name": "仲田慶介",
+      "outs": 237,
+      "uzr": 2.6,
+      "per1200": 39.9,
+      "playerId": "l-仲田慶介",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 49,
+      "team": "g",
+      "name": "泉口友汰",
+      "outs": 3041,
+      "uzr": 2.6,
+      "per1200": 3.1,
+      "playerId": "g-泉口友汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 50,
+      "team": "l",
+      "name": "古賀悠斗",
+      "outs": 1365,
+      "uzr": 2.4,
+      "per1200": 6.4,
+      "playerId": "l-古賀悠斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 51,
+      "team": "m",
+      "name": "山﨑剛",
+      "outs": 1097,
+      "uzr": 2.4,
+      "per1200": 7.9,
+      "playerId": "m-山﨑剛",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 52,
+      "team": "h",
+      "name": "柳田悠岐",
+      "outs": 513,
+      "uzr": 2.4,
+      "per1200": 16.8,
+      "playerId": "h-柳田悠岐",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 53,
+      "team": "m",
+      "name": "愛斗",
+      "outs": 692,
+      "uzr": 2.4,
+      "per1200": 12.4,
+      "playerId": "m-愛斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 54,
+      "team": "db",
+      "name": "梶原昂希",
+      "outs": 435,
+      "uzr": 2.3,
+      "per1200": 19,
+      "playerId": "db-梶原昂希",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 55,
+      "team": "t",
+      "name": "近本光司",
+      "outs": 2110,
+      "uzr": 2.3,
+      "per1200": 3.9,
+      "playerId": "t-近本光司",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 56,
+      "team": "f",
+      "name": "F・レイエス",
+      "outs": 195,
+      "uzr": 2.3,
+      "per1200": 41.7,
+      "playerId": "f-レイエス",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 57,
+      "team": "d",
+      "name": "上林誠知",
+      "outs": 435,
+      "uzr": 2.2,
+      "per1200": 18,
+      "playerId": "d-上林誠知",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 58,
+      "team": "s",
+      "name": "内山壮真",
+      "outs": 2140,
+      "uzr": 2.1,
+      "per1200": 3.6,
+      "playerId": "s-内山壮真",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 59,
+      "team": "g",
+      "name": "松本剛",
+      "outs": 2637,
+      "uzr": 2.1,
+      "per1200": 2.9,
+      "playerId": "g-松本剛",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 60,
+      "team": "e",
+      "name": "宗山塁",
+      "outs": 1425,
+      "uzr": 2.1,
+      "per1200": 5.2,
+      "playerId": "e-宗山塁",
+      "sourceFile": "スクリーンショット 2026-09-21 230816.png"
+    },
+    {
+      "rank": 61,
+      "team": "l",
+      "name": "長谷川信哉",
+      "outs": 1779,
+      "uzr": 2,
+      "per1200": 4.1,
+      "playerId": "l-長谷川信哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 62,
+      "team": "l",
+      "name": "外崎修汰",
+      "outs": 384,
+      "uzr": 2,
+      "per1200": 18.8,
+      "playerId": "l-外崎修汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 63,
+      "team": "db",
+      "name": "柴田竜拓",
+      "outs": 204,
+      "uzr": 2,
+      "per1200": 35,
+      "playerId": "db-柴田竜拓",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 64,
+      "team": "s",
+      "name": "澤井廉",
+      "outs": 240,
+      "uzr": 2,
+      "per1200": 29.7,
+      "playerId": "s-澤井廉",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 65,
+      "team": "l",
+      "name": "山村崇嘉",
+      "outs": 558,
+      "uzr": 1.9,
+      "per1200": 12.4,
+      "playerId": "l-山村崇嘉",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 66,
+      "team": "f",
+      "name": "矢澤宏太",
+      "outs": 807,
+      "uzr": 1.9,
+      "per1200": 8.4,
+      "playerId": "f-矢澤宏太",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 67,
+      "team": "c",
+      "name": "平川蓮",
+      "outs": 680,
+      "uzr": 1.9,
+      "per1200": 10,
+      "playerId": "c-平川蓮",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 68,
+      "team": "m",
+      "name": "上田希由翔",
+      "outs": 1048,
+      "uzr": 1.9,
+      "per1200": 6.4,
+      "playerId": "m-上田希由翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 69,
+      "team": "b",
+      "name": "野口智哉",
+      "outs": 1152,
+      "uzr": 1.8,
+      "per1200": 5.7,
+      "playerId": "b-野口智哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 70,
+      "team": "h",
+      "name": "海野隆司",
+      "outs": 1915,
+      "uzr": 1.8,
+      "per1200": 3.4,
+      "playerId": "h-海野隆司",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 71,
+      "team": "e",
+      "name": "武藤敦貴",
+      "outs": 240,
+      "uzr": 1.8,
+      "per1200": 27,
+      "playerId": "e-武藤敦貴",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 72,
+      "team": "m",
+      "name": "藤岡裕大",
+      "outs": 162,
+      "uzr": 1.8,
+      "per1200": 39.7,
+      "playerId": "m-藤岡裕大",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 73,
+      "team": "d",
+      "name": "土田龍空",
+      "outs": 552,
+      "uzr": 1.7,
+      "per1200": 11.4,
+      "playerId": "d-土田龍空",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 74,
+      "team": "g",
+      "name": "笹原操希",
+      "outs": 643,
+      "uzr": 1.7,
+      "per1200": 9.7,
+      "playerId": "g-笹原操希",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 75,
+      "team": "g",
+      "name": "石塚裕惺",
+      "outs": 762,
+      "uzr": 1.7,
+      "per1200": 8.2,
+      "playerId": "g-石塚裕惺",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 76,
+      "team": "b",
+      "name": "宗佑磨",
+      "outs": 3204,
+      "uzr": 1.7,
+      "per1200": 1.9,
+      "playerId": "b-宗佑磨",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 77,
+      "team": "c",
+      "name": "佐藤啓介",
+      "outs": 516,
+      "uzr": 1.7,
+      "per1200": 11.6,
+      "playerId": "c-佐藤啓介",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 78,
+      "team": "g",
+      "name": "大城卓三",
+      "outs": 2021,
+      "uzr": 1.6,
+      "per1200": 2.9,
+      "playerId": "g-大城卓三",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 79,
+      "team": "s",
+      "name": "塩見泰隆",
+      "outs": 362,
+      "uzr": 1.6,
+      "per1200": 15.9,
+      "playerId": "s-塩見泰隆",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 80,
+      "team": "e",
+      "name": "陽柏翔",
+      "outs": 75,
+      "uzr": 1.6,
+      "per1200": 75.5,
+      "playerId": "e-陽柏翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230821.png"
+    },
+    {
+      "rank": 81,
+      "team": "t",
+      "name": "岡城快生",
+      "outs": 204,
+      "uzr": 1.6,
+      "per1200": 27.4,
+      "playerId": "t-岡城快生",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 82,
+      "team": "m",
+      "name": "松川虎生",
+      "outs": 808,
+      "uzr": 1.5,
+      "per1200": 6.5,
+      "playerId": "m-松川虎生",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 83,
+      "team": "db",
+      "name": "神里和毅",
+      "outs": 307,
+      "uzr": 1.5,
+      "per1200": 17.1,
+      "playerId": "db-神里和毅",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 84,
+      "team": "f",
+      "name": "今川優馬",
+      "outs": 248,
+      "uzr": 1.4,
+      "per1200": 20.6,
+      "playerId": "f-今川優馬",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 85,
+      "team": "g",
+      "name": "佐々木俊輔",
+      "outs": 2345,
+      "uzr": 1.4,
+      "per1200": 2.2,
+      "playerId": "g-佐々木俊輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 86,
+      "team": "l",
+      "name": "石井一成",
+      "outs": 1484,
+      "uzr": 1.4,
+      "per1200": 3.3,
+      "playerId": "l-石井一成",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 87,
+      "team": "db",
+      "name": "東克樹",
+      "outs": 450,
+      "uzr": 1.4,
+      "per1200": 11,
+      "playerId": "db-東克樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 88,
+      "team": "s",
+      "name": "奥川恭伸",
+      "outs": 432,
+      "uzr": 1.3,
+      "per1200": 10.5,
+      "playerId": "s-奥川恭伸",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 89,
+      "team": "d",
+      "name": "大野雄大",
+      "outs": 411,
+      "uzr": 1.2,
+      "per1200": 10.9,
+      "playerId": "d-大野雄大",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 90,
+      "team": "f",
+      "name": "淺間大基",
+      "outs": 315,
+      "uzr": 1.2,
+      "per1200": 14,
+      "playerId": "f-淺間大基",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 91,
+      "team": "db",
+      "name": "京田陽太",
+      "outs": 782,
+      "uzr": 1.2,
+      "per1200": 5.6,
+      "playerId": "db-京田陽太",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 92,
+      "team": "e",
+      "name": "堀内謙伍",
+      "outs": 396,
+      "uzr": 1.2,
+      "per1200": 10.9,
+      "playerId": "e-堀内謙伍",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 93,
+      "team": "t",
+      "name": "大竹耕太郎",
+      "outs": 287,
+      "uzr": 1.2,
+      "per1200": 14.5,
+      "playerId": "t-大竹耕太郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 94,
+      "team": "m",
+      "name": "井上広大",
+      "outs": 598,
+      "uzr": 1.2,
+      "per1200": 6.9,
+      "playerId": "m-井上広大",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 95,
+      "team": "h",
+      "name": "大関友久",
+      "outs": 172,
+      "uzr": 1.1,
+      "per1200": 23,
+      "playerId": "h-大関友久",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 96,
+      "team": "db",
+      "name": "三森大貴",
+      "outs": 936,
+      "uzr": 1.1,
+      "per1200": 4.2,
+      "playerId": "db-三森大貴",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 97,
+      "team": "c",
+      "name": "栗林良吏",
+      "outs": 331,
+      "uzr": 1.1,
+      "per1200": 11.6,
+      "playerId": "c-栗林良吏",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 98,
+      "team": "db",
+      "name": "石田裕太郎",
+      "outs": 341,
+      "uzr": 1,
+      "per1200": 11,
+      "playerId": "db-石田裕太郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 99,
+      "team": "b",
+      "name": "髙島泰都",
+      "outs": 290,
+      "uzr": 1,
+      "per1200": 12.8,
+      "playerId": "b-髙島泰都",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 100,
+      "team": "m",
+      "name": "佐藤都志也",
+      "outs": 2651,
+      "uzr": 1,
+      "per1200": 1.4,
+      "playerId": "m-佐藤都志也",
+      "sourceFile": "スクリーンショット 2026-09-21 230825.png"
+    },
+    {
+      "rank": 101,
+      "team": "d",
+      "name": "岡林勇希",
+      "outs": 1986,
+      "uzr": 1,
+      "per1200": 1.8,
+      "playerId": "d-岡林勇希",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 102,
+      "team": "e",
+      "name": "荘司康誠",
+      "outs": 438,
+      "uzr": 1,
+      "per1200": 8.2,
+      "playerId": "e-荘司康誠",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 103,
+      "team": "d",
+      "name": "金丸夢斗",
+      "outs": 467,
+      "uzr": 1,
+      "per1200": 7.4,
+      "playerId": "d-金丸夢斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 104,
+      "team": "s",
+      "name": "山野太一",
+      "outs": 445,
+      "uzr": 0.9,
+      "per1200": 7.7,
+      "playerId": "s-山野太一",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 105,
+      "team": "c",
+      "name": "森下暢仁",
+      "outs": 380,
+      "uzr": 0.9,
+      "per1200": 8.7,
+      "playerId": "c-森下暢仁",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 106,
+      "team": "g",
+      "name": "岡田悠希",
+      "outs": 51,
+      "uzr": 0.9,
+      "per1200": 64.3,
+      "playerId": "g-岡田悠希",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 107,
+      "team": "s",
+      "name": "茂木栄五郎",
+      "outs": 259,
+      "uzr": 0.9,
+      "per1200": 12.5,
+      "playerId": "s-茂木栄五郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 108,
+      "team": "l",
+      "name": "武内夏暉",
+      "outs": 405,
+      "uzr": 0.9,
+      "per1200": 7.6,
+      "playerId": "l-武内夏暉",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 109,
+      "team": "d",
+      "name": "加藤匠馬",
+      "outs": 600,
+      "uzr": 0.8,
+      "per1200": 5.1,
+      "playerId": "d-加藤匠馬",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 110,
+      "team": "t",
+      "name": "髙橋遥人",
+      "outs": 435,
+      "uzr": 0.8,
+      "per1200": 6.9,
+      "playerId": "t-髙橋遥人",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 111,
+      "team": "g",
+      "name": "井上温大",
+      "outs": 400,
+      "uzr": 0.8,
+      "per1200": 7.4,
+      "playerId": "g-井上温大",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 112,
+      "team": "g",
+      "name": "山瀬慎之助",
+      "outs": 148,
+      "uzr": 0.8,
+      "per1200": 19.9,
+      "playerId": "g-山瀬慎之助",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 113,
+      "team": "s",
+      "name": "丸山翔大",
+      "outs": 117,
+      "uzr": 0.8,
+      "per1200": 24.5,
+      "playerId": "s-丸山翔大",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 114,
+      "team": "e",
+      "name": "藤原聡大",
+      "outs": 70,
+      "uzr": 0.8,
+      "per1200": 40.7,
+      "playerId": "e-藤原聡大",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 115,
+      "team": "b",
+      "name": "若月健矢",
+      "outs": 2472,
+      "uzr": 0.8,
+      "per1200": 1.1,
+      "playerId": "b-若月健矢",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 116,
+      "team": "s",
+      "name": "清水昇",
+      "outs": 119,
+      "uzr": 0.8,
+      "per1200": 23.9,
+      "playerId": "s-清水昇",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 117,
+      "team": "s",
+      "name": "並木秀尊",
+      "outs": 477,
+      "uzr": 0.8,
+      "per1200": 5.8,
+      "playerId": "s-並木秀尊",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 118,
+      "team": "c",
+      "name": "塹江敦哉",
+      "outs": 94,
+      "uzr": 0.8,
+      "per1200": 29.1,
+      "playerId": "c-塹江敦哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 119,
+      "team": "g",
+      "name": "知念大成",
+      "outs": 156,
+      "uzr": 0.8,
+      "per1200": 17.6,
+      "playerId": "g-知念大成",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 120,
+      "team": "d",
+      "name": "涌井秀章",
+      "outs": 181,
+      "uzr": 0.8,
+      "per1200": 15,
+      "playerId": "d-涌井秀章",
+      "sourceFile": "スクリーンショット 2026-09-21 230829.png"
+    },
+    {
+      "rank": 121,
+      "team": "l",
+      "name": "髙橋光成",
+      "outs": 382,
+      "uzr": 0.7,
+      "per1200": 7.1,
+      "playerId": "l-髙橋光成",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 122,
+      "team": "t",
+      "name": "中川勇斗",
+      "outs": 126,
+      "uzr": 0.7,
+      "per1200": 21.2,
+      "playerId": "t-中川勇斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 123,
+      "team": "e",
+      "name": "瀧中瞭太",
+      "outs": 321,
+      "uzr": 0.7,
+      "per1200": 8.2,
+      "playerId": "e-瀧中瞭太",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 124,
+      "team": "g",
+      "name": "岸田行倫",
+      "outs": 1235,
+      "uzr": 0.7,
+      "per1200": 2.1,
+      "playerId": "g-岸田行倫",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 125,
+      "team": "g",
+      "name": "若林楽人",
+      "outs": 135,
+      "uzr": 0.7,
+      "per1200": 18.3,
+      "playerId": "g-若林楽人",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 126,
+      "team": "t",
+      "name": "小野寺暖",
+      "outs": 121,
+      "uzr": 0.7,
+      "per1200": 20.1,
+      "playerId": "t-小野寺暖",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 127,
+      "team": "e",
+      "name": "J・ウレーニャ",
+      "outs": 173,
+      "uzr": 0.7,
+      "per1200": 14,
+      "playerId": "e-ウレーニャ",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 128,
+      "team": "b",
+      "name": "杉澤龍",
+      "outs": 484,
+      "uzr": 0.7,
+      "per1200": 4.9,
+      "playerId": "b-杉澤龍",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 129,
+      "team": "c",
+      "name": "石原貴規",
+      "outs": 1028,
+      "uzr": 0.7,
+      "per1200": 2.3,
+      "playerId": "c-石原貴規",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 130,
+      "team": "g",
+      "name": "皆川岳飛",
+      "outs": 100,
+      "uzr": 0.6,
+      "per1200": 23.3,
+      "playerId": "g-皆川岳飛",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 131,
+      "team": "m",
+      "name": "田中晴也",
+      "outs": 246,
+      "uzr": 0.6,
+      "per1200": 9.4,
+      "playerId": "m-田中晴也",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 132,
+      "team": "d",
+      "name": "髙橋宏斗",
+      "outs": 350,
+      "uzr": 0.6,
+      "per1200": 6.1,
+      "playerId": "d-髙橋宏斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 133,
+      "team": "f",
+      "name": "奈良間大己",
+      "outs": 1850,
+      "uzr": 0.6,
+      "per1200": 1.1,
+      "playerId": "f-奈良間大己",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 134,
+      "team": "c",
+      "name": "S・ファビアン",
+      "outs": 2049,
+      "uzr": 0.6,
+      "per1200": 1,
+      "playerId": "c-ファビアン",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 135,
+      "team": "g",
+      "name": "堀田賢慎",
+      "outs": 111,
+      "uzr": 0.6,
+      "per1200": 18.4,
+      "playerId": "g-堀田賢慎",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 136,
+      "team": "m",
+      "name": "岡大海",
+      "outs": 305,
+      "uzr": 0.6,
+      "per1200": 6.7,
+      "playerId": "m-岡大海",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 137,
+      "team": "b",
+      "name": "福永奨",
+      "outs": 348,
+      "uzr": 0.6,
+      "per1200": 5.8,
+      "playerId": "b-福永奨",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 138,
+      "team": "h",
+      "name": "松本晴",
+      "outs": 334,
+      "uzr": 0.5,
+      "per1200": 5.9,
+      "playerId": "h-松本晴",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 139,
+      "team": "g",
+      "name": "中山礼都",
+      "outs": 1001,
+      "uzr": 0.5,
+      "per1200": 2,
+      "playerId": "g-中山礼都",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 140,
+      "team": "l",
+      "name": "甲斐野央",
+      "outs": 152,
+      "uzr": 0.5,
+      "per1200": 12.9,
+      "playerId": "l-甲斐野央",
+      "sourceFile": "スクリーンショット 2026-09-21 230833.png"
+    },
+    {
+      "rank": 141,
+      "team": "b",
+      "name": "内藤鵬",
+      "outs": 72,
+      "uzr": 0.5,
+      "per1200": 26.5,
+      "playerId": "b-内藤鵬",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 142,
+      "team": "c",
+      "name": "久保修",
+      "outs": 53,
+      "uzr": 0.5,
+      "per1200": 35.9,
+      "playerId": "c-久保修",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 143,
+      "team": "g",
+      "name": "小笠原慎之介",
+      "outs": 184,
+      "uzr": 0.5,
+      "per1200": 10.3,
+      "playerId": "g-小笠原慎之介",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 144,
+      "team": "db",
+      "name": "岩田将貴",
+      "outs": 79,
+      "uzr": 0.5,
+      "per1200": 23.9,
+      "playerId": "db-岩田将貴",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 145,
+      "team": "b",
+      "name": "西野真弘",
+      "outs": 513,
+      "uzr": 0.5,
+      "per1200": 3.7,
+      "playerId": "b-西野真弘",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 146,
+      "team": "c",
+      "name": "中村奨成",
+      "outs": 891,
+      "uzr": 0.5,
+      "per1200": 2.1,
+      "playerId": "c-中村奨成",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 147,
+      "team": "s",
+      "name": "古賀優大",
+      "outs": 2011,
+      "uzr": 0.5,
+      "per1200": 0.9,
+      "playerId": "s-古賀優大",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 148,
+      "team": "b",
+      "name": "片山楽生",
+      "outs": 129,
+      "uzr": 0.5,
+      "per1200": 14.1,
+      "playerId": "b-片山楽生",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 149,
+      "team": "h",
+      "name": "伊藤優輔",
+      "outs": 102,
+      "uzr": 0.5,
+      "per1200": 17.8,
+      "playerId": "h-伊藤優輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 150,
+      "team": "g",
+      "name": "赤星優志",
+      "outs": 157,
+      "uzr": 0.5,
+      "per1200": 11.5,
+      "playerId": "g-赤星優志",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 151,
+      "team": "f",
+      "name": "清水優心",
+      "outs": 234,
+      "uzr": 0.5,
+      "per1200": 7.6,
+      "playerId": "f-清水優心",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 152,
+      "team": "l",
+      "name": "浜屋将太",
+      "outs": 62,
+      "uzr": 0.5,
+      "per1200": 28.7,
+      "playerId": "l-浜屋将太",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 153,
+      "team": "c",
+      "name": "髙太一",
+      "outs": 147,
+      "uzr": 0.5,
+      "per1200": 12,
+      "playerId": "c-髙太一",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 154,
+      "team": "t",
+      "name": "伊藤将司",
+      "outs": 153,
+      "uzr": 0.5,
+      "per1200": 11.4,
+      "playerId": "t-伊藤将司",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 155,
+      "team": "l",
+      "name": "桑原将志",
+      "outs": 1413,
+      "uzr": 0.5,
+      "per1200": 1.2,
+      "playerId": "l-桑原将志",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 156,
+      "team": "h",
+      "name": "大津亮介",
+      "outs": 418,
+      "uzr": 0.5,
+      "per1200": 4.1,
+      "playerId": "h-大津亮介",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 157,
+      "team": "c",
+      "name": "勝田成",
+      "outs": 1620,
+      "uzr": 0.5,
+      "per1200": 1.1,
+      "playerId": "c-勝田成",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 158,
+      "team": "b",
+      "name": "山﨑颯一郎",
+      "outs": 153,
+      "uzr": 0.5,
+      "per1200": 11,
+      "playerId": "b-山﨑颯一郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 159,
+      "team": "l",
+      "name": "茶野篤政",
+      "outs": 89,
+      "uzr": 0.5,
+      "per1200": 18.7,
+      "playerId": "l-茶野篤政",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 160,
+      "team": "f",
+      "name": "A・マルティネス",
+      "outs": 168,
+      "uzr": 0.5,
+      "per1200": 9.9,
+      "playerId": "f-マルティネス",
+      "sourceFile": "スクリーンショット 2026-09-21 230837.png"
+    },
+    {
+      "rank": 161,
+      "team": "h",
+      "name": "山本祐大",
+      "outs": 1207,
+      "uzr": 0.5,
+      "per1200": 1.4,
+      "playerId": "h-山本祐大",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 162,
+      "team": "t",
+      "name": "神宮僚介",
+      "outs": 47,
+      "uzr": 0.5,
+      "per1200": 34.9,
+      "playerId": "t-神宮僚介",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 163,
+      "team": "h",
+      "name": "緒方理貢",
+      "outs": 30,
+      "uzr": 0.5,
+      "per1200": 54.7,
+      "playerId": "h-緒方理貢",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 164,
+      "team": "db",
+      "name": "吉野光樹",
+      "outs": 76,
+      "uzr": 0.4,
+      "per1200": 20.9,
+      "playerId": "db-吉野光樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 165,
+      "team": "db",
+      "name": "S・レイノルズ",
+      "outs": 177,
+      "uzr": 0.4,
+      "per1200": 8.9,
+      "playerId": "db-レイノルズ",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 166,
+      "team": "h",
+      "name": "谷川原健太",
+      "outs": 660,
+      "uzr": 0.4,
+      "per1200": 2.3,
+      "playerId": "h-谷川原健太",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 167,
+      "team": "g",
+      "name": "増田陸",
+      "outs": 1024,
+      "uzr": 0.4,
+      "per1200": 1.5,
+      "playerId": "g-増田陸",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 168,
+      "team": "e",
+      "name": "西垣雅矢",
+      "outs": 101,
+      "uzr": 0.4,
+      "per1200": 15.1,
+      "playerId": "e-西垣雅矢",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 169,
+      "team": "db",
+      "name": "J・エンカーナシオン",
+      "outs": 1271,
+      "uzr": 0.4,
+      "per1200": 1.2,
+      "playerId": "db-エンカーナシオン",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 170,
+      "team": "db",
+      "name": "関根大気",
+      "outs": 132,
+      "uzr": 0.4,
+      "per1200": 11.3,
+      "playerId": "db-関根大気",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 171,
+      "team": "t",
+      "name": "才木浩人",
+      "outs": 438,
+      "uzr": 0.4,
+      "per1200": 3.4,
+      "playerId": "t-才木浩人",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 172,
+      "team": "f",
+      "name": "島本浩也",
+      "outs": 109,
+      "uzr": 0.4,
+      "per1200": 13.7,
+      "playerId": "f-島本浩也",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 173,
+      "team": "h",
+      "name": "髙橋隆慶",
+      "outs": 21,
+      "uzr": 0.4,
+      "per1200": 70.1,
+      "playerId": "h-髙橋隆慶",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 174,
+      "team": "b",
+      "name": "廣岡大志",
+      "outs": 312,
+      "uzr": 0.4,
+      "per1200": 4.7,
+      "playerId": "b-廣岡大志",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 175,
+      "team": "f",
+      "name": "伊藤大海",
+      "outs": 494,
+      "uzr": 0.4,
+      "per1200": 3,
+      "playerId": "f-伊藤大海",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 176,
+      "team": "t",
+      "name": "E・ルーカス",
+      "outs": 77,
+      "uzr": 0.4,
+      "per1200": 18.8,
+      "playerId": "t-ルーカス",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 177,
+      "team": "s",
+      "name": "松本健吾",
+      "outs": 309,
+      "uzr": 0.4,
+      "per1200": 4.6,
+      "playerId": "s-松本健吾",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 178,
+      "team": "t",
+      "name": "門別啓人",
+      "outs": 57,
+      "uzr": 0.4,
+      "per1200": 24.8,
+      "playerId": "t-門別啓人",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 179,
+      "team": "d",
+      "name": "牧野憲伸",
+      "outs": 52,
+      "uzr": 0.4,
+      "per1200": 26.8,
+      "playerId": "d-牧野憲伸",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 180,
+      "team": "g",
+      "name": "湯浅大",
+      "outs": 15,
+      "uzr": 0.4,
+      "per1200": 91.5,
+      "playerId": "g-湯浅大",
+      "sourceFile": "スクリーンショット 2026-09-21 230842.png"
+    },
+    {
+      "rank": 182,
+      "team": "h",
+      "name": "木村光",
+      "outs": 102,
+      "uzr": 0.4,
+      "per1200": 13.1,
+      "playerId": "h-木村光",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 183,
+      "team": "g",
+      "name": "田和廉",
+      "outs": 85,
+      "uzr": 0.4,
+      "per1200": 15.7,
+      "playerId": "g-田和廉",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 184,
+      "team": "e",
+      "name": "藤井聖",
+      "outs": 134,
+      "uzr": 0.4,
+      "per1200": 9.9,
+      "playerId": "e-藤井聖",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 185,
+      "team": "m",
+      "name": "澤田圭佑",
+      "outs": 121,
+      "uzr": 0.4,
+      "per1200": 10.9,
+      "playerId": "m-澤田圭佑",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 186,
+      "team": "f",
+      "name": "進藤勇也",
+      "outs": 1205,
+      "uzr": 0.4,
+      "per1200": 1.1,
+      "playerId": "f-進藤勇也",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 187,
+      "team": "b",
+      "name": "入山海斗",
+      "outs": 99,
+      "uzr": 0.4,
+      "per1200": 13.2,
+      "playerId": "b-入山海斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 188,
+      "team": "d",
+      "name": "K・マラー",
+      "outs": 352,
+      "uzr": 0.4,
+      "per1200": 3.6,
+      "playerId": "d-マラー",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 189,
+      "team": "m",
+      "name": "田村龍弘",
+      "outs": 30,
+      "uzr": 0.4,
+      "per1200": 42,
+      "playerId": "m-田村龍弘",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 190,
+      "team": "g",
+      "name": "森田駿哉",
+      "outs": 109,
+      "uzr": 0.3,
+      "per1200": 11.5,
+      "playerId": "g-森田駿哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 191,
+      "team": "e",
+      "name": "石原彪",
+      "outs": 96,
+      "uzr": 0.3,
+      "per1200": 13,
+      "playerId": "e-石原彪",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 192,
+      "team": "s",
+      "name": "小川泰弘",
+      "outs": 123,
+      "uzr": 0.3,
+      "per1200": 10.1,
+      "playerId": "s-小川泰弘",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 193,
+      "team": "d",
+      "name": "木下拓哉",
+      "outs": 446,
+      "uzr": 0.3,
+      "per1200": 2.8,
+      "playerId": "d-木下拓哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 194,
+      "team": "h",
+      "name": "石塚綜一郎",
+      "outs": 129,
+      "uzr": 0.3,
+      "per1200": 9.5,
+      "playerId": "h-石塚綜一郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 195,
+      "team": "l",
+      "name": "A・ワイナンス",
+      "outs": 130,
+      "uzr": 0.3,
+      "per1200": 9.5,
+      "playerId": "l-ワイナンス",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 196,
+      "team": "b",
+      "name": "平沼翔太",
+      "outs": 207,
+      "uzr": 0.3,
+      "per1200": 5.9,
+      "playerId": "b-平沼翔太",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 197,
+      "team": "f",
+      "name": "エドポロケイン",
+      "outs": 60,
+      "uzr": 0.3,
+      "per1200": 20.3,
+      "playerId": "f-エドポロケイン",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 198,
+      "team": "m",
+      "name": "坂本光士郎",
+      "outs": 99,
+      "uzr": 0.3,
+      "per1200": 12.2,
+      "playerId": "m-坂本光士郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 199,
+      "team": "c",
+      "name": "林晃汰",
+      "outs": 24,
+      "uzr": 0.3,
+      "per1200": 49.8,
+      "playerId": "c-林晃汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 200,
+      "team": "h",
+      "name": "J・ダウンズ",
+      "outs": 42,
+      "uzr": 0.3,
+      "per1200": 28.1,
+      "playerId": "h-ダウンズ",
+      "sourceFile": "スクリーンショット 2026-09-21 230847.png"
+    },
+    {
+      "rank": 201,
+      "team": "m",
+      "name": "鈴木昭汰",
+      "outs": 141,
+      "uzr": 0.3,
+      "per1200": 8.3,
+      "playerId": "m-鈴木昭汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 202,
+      "team": "g",
+      "name": "平山功太",
+      "outs": 691,
+      "uzr": 0.3,
+      "per1200": 1.7,
+      "playerId": "g-平山功太",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 203,
+      "team": "m",
+      "name": "S・ロング",
+      "outs": 194,
+      "uzr": 0.3,
+      "per1200": 5.8,
+      "playerId": "m-ロング",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 204,
+      "team": "b",
+      "name": "吉田輝星",
+      "outs": 64,
+      "uzr": 0.3,
+      "per1200": 17.1,
+      "playerId": "b-吉田輝星",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 205,
+      "team": "b",
+      "name": "A・エスピノーザ",
+      "outs": 424,
+      "uzr": 0.3,
+      "per1200": 2.6,
+      "playerId": "b-エスピノーザ",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 206,
+      "team": "b",
+      "name": "寺西成騎",
+      "outs": 162,
+      "uzr": 0.3,
+      "per1200": 6.7,
+      "playerId": "b-寺西成騎",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 207,
+      "team": "g",
+      "name": "S・ハワード",
+      "outs": 112,
+      "uzr": 0.3,
+      "per1200": 9.6,
+      "playerId": "g-ハワード",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 208,
+      "team": "t",
+      "name": "伏見寅威",
+      "outs": 891,
+      "uzr": 0.3,
+      "per1200": 1.2,
+      "playerId": "t-伏見寅威",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 209,
+      "team": "db",
+      "name": "竹田祐",
+      "outs": 111,
+      "uzr": 0.3,
+      "per1200": 9.5,
+      "playerId": "db-竹田祐",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 210,
+      "team": "c",
+      "name": "斉藤優汰",
+      "outs": 101,
+      "uzr": 0.3,
+      "per1200": 10.4,
+      "playerId": "c-斉藤優汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 211,
+      "team": "db",
+      "name": "浜地真澄",
+      "outs": 83,
+      "uzr": 0.3,
+      "per1200": 12.6,
+      "playerId": "db-浜地真澄",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 212,
+      "team": "h",
+      "name": "中村晃",
+      "outs": 48,
+      "uzr": 0.3,
+      "per1200": 21.5,
+      "playerId": "h-中村晃",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 213,
+      "team": "b",
+      "name": "L・ペルドモ",
+      "outs": 44,
+      "uzr": 0.3,
+      "per1200": 23,
+      "playerId": "b-ペルドモ",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 214,
+      "team": "s",
+      "name": "小澤怜史",
+      "outs": 55,
+      "uzr": 0.3,
+      "per1200": 18.3,
+      "playerId": "s-小澤怜史",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 215,
+      "team": "d",
+      "name": "伊藤茉央",
+      "outs": 50,
+      "uzr": 0.3,
+      "per1200": 20,
+      "playerId": "d-伊藤茉央",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 216,
+      "team": "t",
+      "name": "下村海翔",
+      "outs": 104,
+      "uzr": 0.3,
+      "per1200": 9.6,
+      "playerId": "t-下村海翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 217,
+      "team": "db",
+      "name": "島田舜也",
+      "outs": 59,
+      "uzr": 0.3,
+      "per1200": 16.7,
+      "playerId": "db-島田舜也",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 218,
+      "team": "e",
+      "name": "内星龍",
+      "outs": 94,
+      "uzr": 0.3,
+      "per1200": 10.5,
+      "playerId": "e-内星龍",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 219,
+      "team": "l",
+      "name": "若林楽人",
+      "outs": 123,
+      "uzr": 0.3,
+      "per1200": 8,
+      "playerId": "l-若林楽人",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 220,
+      "team": "s",
+      "name": "宮本丈",
+      "outs": 254,
+      "uzr": 0.3,
+      "per1200": 3.8,
+      "playerId": "s-宮本丈",
+      "sourceFile": "スクリーンショット 2026-09-21 230850.png"
+    },
+    {
+      "rank": 561,
+      "team": "b",
+      "name": "麦谷祐介",
+      "outs": 618,
+      "uzr": -1.2,
+      "per1200": -6.7,
+      "playerId": "b-麦谷祐介",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 562,
+      "team": "e",
+      "name": "伊藤光",
+      "outs": 305,
+      "uzr": -1.2,
+      "per1200": -13.8,
+      "playerId": "e-伊藤光",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 563,
+      "team": "g",
+      "name": "浦田俊輔",
+      "outs": 2933,
+      "uzr": -1.2,
+      "per1200": -1.5,
+      "playerId": "g-浦田俊輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 564,
+      "team": "db",
+      "name": "古市尊",
+      "outs": 377,
+      "uzr": -1.2,
+      "per1200": -11.4,
+      "playerId": "db-古市尊",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 565,
+      "team": "d",
+      "name": "樋口正修",
+      "outs": 91,
+      "uzr": -1.2,
+      "per1200": -47.8,
+      "playerId": "d-樋口正修",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 566,
+      "team": "c",
+      "name": "T・ハーン",
+      "outs": 106,
+      "uzr": -1.2,
+      "per1200": -42.2,
+      "playerId": "c-ハーン",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 567,
+      "team": "e",
+      "name": "前田健太",
+      "outs": 214,
+      "uzr": -1.2,
+      "per1200": -21,
+      "playerId": "e-前田健太",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 568,
+      "team": "d",
+      "name": "鵜飼航丞",
+      "outs": 1134,
+      "uzr": -1.3,
+      "per1200": -4,
+      "playerId": "d-鵜飼航丞",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 569,
+      "team": "s",
+      "name": "橋本星哉",
+      "outs": 45,
+      "uzr": -1.3,
+      "per1200": -104.3,
+      "playerId": "s-橋本星哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 570,
+      "team": "db",
+      "name": "勝又温史",
+      "outs": 1916,
+      "uzr": -1.3,
+      "per1200": -2.5,
+      "playerId": "db-勝又温史",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 571,
+      "team": "g",
+      "name": "坂本勇人",
+      "outs": 908,
+      "uzr": -1.4,
+      "per1200": -5.4,
+      "playerId": "g-坂本勇人",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 572,
+      "team": "s",
+      "name": "田口麗斗",
+      "outs": 43,
+      "uzr": -1.4,
+      "per1200": -118.7,
+      "playerId": "s-田口麗斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 573,
+      "team": "l",
+      "name": "林安可",
+      "outs": 645,
+      "uzr": -1.5,
+      "per1200": -8.3,
+      "playerId": "l-林安可",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 574,
+      "team": "c",
+      "name": "名原典彦",
+      "outs": 1643,
+      "uzr": -1.5,
+      "per1200": -3.3,
+      "playerId": "c-名原典彦",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 575,
+      "team": "e",
+      "name": "小郷裕哉",
+      "outs": 906,
+      "uzr": -1.5,
+      "per1200": -6,
+      "playerId": "e-小郷裕哉",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 576,
+      "team": "db",
+      "name": "戸柱恭孝",
+      "outs": 720,
+      "uzr": -1.5,
+      "per1200": -7.6,
+      "playerId": "db-戸柱恭孝",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 577,
+      "team": "f",
+      "name": "北山亘基",
+      "outs": 410,
+      "uzr": -1.5,
+      "per1200": -13.5,
+      "playerId": "f-北山亘基",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 578,
+      "team": "s",
+      "name": "廣澤優",
+      "outs": 113,
+      "uzr": -1.6,
+      "per1200": -50.6,
+      "playerId": "s-廣澤優",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 579,
+      "team": "d",
+      "name": "C・ロドリゲス",
+      "outs": 81,
+      "uzr": -1.6,
+      "per1200": -71.9,
+      "playerId": "d-ロドリゲス",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 580,
+      "team": "b",
+      "name": "大城滉二",
+      "outs": 306,
+      "uzr": -1.6,
+      "per1200": -19.2,
+      "playerId": "b-大城滉二",
+      "sourceFile": "スクリーンショット 2026-09-21 230917.png"
+    },
+    {
+      "rank": 581,
+      "team": "e",
+      "name": "小深田大翔",
+      "outs": 1076,
+      "uzr": -1.7,
+      "per1200": -5.6,
+      "playerId": "e-小深田大翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 582,
+      "team": "b",
+      "name": "山岡泰輔",
+      "outs": 52,
+      "uzr": -1.7,
+      "per1200": -116.9,
+      "playerId": "b-山岡泰輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 583,
+      "team": "f",
+      "name": "宮崎一樹",
+      "outs": 87,
+      "uzr": -1.7,
+      "per1200": -71.5,
+      "playerId": "f-宮崎一樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 584,
+      "team": "e",
+      "name": "吉納翼",
+      "outs": 84,
+      "uzr": -1.8,
+      "per1200": -75.1,
+      "playerId": "e-吉納翼",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 585,
+      "team": "d",
+      "name": "阿部寿樹",
+      "outs": 476,
+      "uzr": -1.8,
+      "per1200": -13.7,
+      "playerId": "d-阿部寿樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 586,
+      "team": "t",
+      "name": "D・ガルシア",
+      "outs": 123,
+      "uzr": -1.9,
+      "per1200": -55,
+      "playerId": "t-ガルシア",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 587,
+      "team": "e",
+      "name": "古謝樹",
+      "outs": 314,
+      "uzr": -1.9,
+      "per1200": -21.9,
+      "playerId": "e-古謝樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 588,
+      "team": "m",
+      "name": "高野脩汰",
+      "outs": 171,
+      "uzr": -2,
+      "per1200": -41.4,
+      "playerId": "m-高野脩汰",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 589,
+      "team": "l",
+      "name": "佐藤太陽",
+      "outs": 225,
+      "uzr": -2,
+      "per1200": -32.4,
+      "playerId": "l-佐藤太陽",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 590,
+      "team": "t",
+      "name": "佐藤輝明",
+      "outs": 3513,
+      "uzr": -2,
+      "per1200": -2.1,
+      "playerId": "t-佐藤輝明",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 591,
+      "team": "g",
+      "name": "吉川尚輝",
+      "outs": 1001,
+      "uzr": -2,
+      "per1200": -7.4,
+      "playerId": "g-吉川尚輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 592,
+      "team": "db",
+      "name": "H・マルセリーノ",
+      "outs": 85,
+      "uzr": -2.1,
+      "per1200": -86.8,
+      "playerId": "db-マルセリーノ",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 593,
+      "team": "s",
+      "name": "松本直樹",
+      "outs": 532,
+      "uzr": -2.1,
+      "per1200": -14.2,
+      "playerId": "s-松本直樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 594,
+      "team": "d",
+      "name": "山本泰寛",
+      "outs": 504,
+      "uzr": -2.1,
+      "per1200": -15.1,
+      "playerId": "d-山本泰寛",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 595,
+      "team": "m",
+      "name": "和田康士朗",
+      "outs": 223,
+      "uzr": -2.1,
+      "per1200": -34.5,
+      "playerId": "m-和田康士朗",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 596,
+      "team": "l",
+      "name": "秋山俊",
+      "outs": 102,
+      "uzr": -2.2,
+      "per1200": -76.1,
+      "playerId": "l-秋山俊",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 597,
+      "team": "t",
+      "name": "福島圭音",
+      "outs": 96,
+      "uzr": -2.2,
+      "per1200": -81.8,
+      "playerId": "t-福島圭音",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 598,
+      "team": "db",
+      "name": "林琢真",
+      "outs": 1151,
+      "uzr": -2.2,
+      "per1200": -6.9,
+      "playerId": "db-林琢真",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 599,
+      "team": "g",
+      "name": "T・キャベッジ",
+      "outs": 2153,
+      "uzr": -2.3,
+      "per1200": -3.8,
+      "playerId": "g-キャベッジ",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 600,
+      "team": "d",
+      "name": "高橋周平",
+      "outs": 502,
+      "uzr": -2.4,
+      "per1200": -16.9,
+      "playerId": "d-高橋周平",
+      "sourceFile": "スクリーンショット 2026-09-21 230911.png"
+    },
+    {
+      "rank": 601,
+      "team": "d",
+      "name": "大島洋平",
+      "outs": 360,
+      "uzr": -2.4,
+      "per1200": -24.2,
+      "playerId": "d-大島洋平",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 602,
+      "team": "h",
+      "name": "野村勇",
+      "outs": 917,
+      "uzr": -2.5,
+      "per1200": -9.7,
+      "playerId": "h-野村勇",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 603,
+      "team": "g",
+      "name": "丸佳浩",
+      "outs": 417,
+      "uzr": -2.5,
+      "per1200": -21.4,
+      "playerId": "g-丸佳浩",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 604,
+      "team": "t",
+      "name": "森下翔太",
+      "outs": 3429,
+      "uzr": -2.5,
+      "per1200": -2.6,
+      "playerId": "t-森下翔太",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 605,
+      "team": "b",
+      "name": "太田椋",
+      "outs": 3033,
+      "uzr": -2.5,
+      "per1200": -3,
+      "playerId": "b-太田椋",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 606,
+      "team": "b",
+      "name": "中川圭太",
+      "outs": 2733,
+      "uzr": -2.6,
+      "per1200": -3.5,
+      "playerId": "b-中川圭太",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 607,
+      "team": "s",
+      "name": "石井巧",
+      "outs": 383,
+      "uzr": -2.7,
+      "per1200": -25,
+      "playerId": "s-石井巧",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 608,
+      "team": "c",
+      "name": "野間峻祥",
+      "outs": 474,
+      "uzr": -2.7,
+      "per1200": -20.5,
+      "playerId": "c-野間峻祥",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 609,
+      "team": "m",
+      "name": "山本大斗",
+      "outs": 867,
+      "uzr": -2.7,
+      "per1200": -11.2,
+      "playerId": "m-山本大斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 610,
+      "team": "l",
+      "name": "小島大河",
+      "outs": 1853,
+      "uzr": -2.7,
+      "per1200": -5.3,
+      "playerId": "l-小島大河",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 611,
+      "team": "l",
+      "name": "A・カナリオ",
+      "outs": 2822,
+      "uzr": -2.8,
+      "per1200": -3.5,
+      "playerId": "l-カナリオ",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 612,
+      "team": "e",
+      "name": "鈴木大地",
+      "outs": 258,
+      "uzr": -2.8,
+      "per1200": -39.6,
+      "playerId": "e-鈴木大地",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 613,
+      "team": "db",
+      "name": "宮下朝陽",
+      "outs": 252,
+      "uzr": -2.9,
+      "per1200": -41.9,
+      "playerId": "db-宮下朝陽",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 614,
+      "team": "h",
+      "name": "牧原大成",
+      "outs": 3118,
+      "uzr": -3.1,
+      "per1200": -3.6,
+      "playerId": "h-牧原大成",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 615,
+      "team": "t",
+      "name": "立石正広",
+      "outs": 731,
+      "uzr": -3.2,
+      "per1200": -15.5,
+      "playerId": "t-立石正広",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 616,
+      "team": "b",
+      "name": "B・シーモア",
+      "outs": 606,
+      "uzr": -3.3,
+      "per1200": -19.6,
+      "playerId": "b-シーモア",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 617,
+      "team": "h",
+      "name": "山川穂高",
+      "outs": 1046,
+      "uzr": -3.3,
+      "per1200": -11.5,
+      "playerId": "h-山川穂高",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 618,
+      "team": "d",
+      "name": "福永裕基",
+      "outs": 2334,
+      "uzr": -3.4,
+      "per1200": -5.3,
+      "playerId": "d-福永裕基",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 619,
+      "team": "c",
+      "name": "菊池涼介",
+      "outs": 2982,
+      "uzr": -3.5,
+      "per1200": -4.3,
+      "playerId": "c-菊池涼介",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 620,
+      "team": "s",
+      "name": "田中陽翔",
+      "outs": 273,
+      "uzr": -3.6,
+      "per1200": -47.1,
+      "playerId": "s-田中陽翔",
+      "sourceFile": "スクリーンショット 2026-09-21 230907.png"
+    },
+    {
+      "rank": 621,
+      "team": "f",
+      "name": "R・カストロ",
+      "outs": 1287,
+      "uzr": -3.6,
+      "per1200": -10,
+      "playerId": "f-カストロ",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 622,
+      "team": "f",
+      "name": "万波中正",
+      "outs": 2770,
+      "uzr": -3.6,
+      "per1200": -4.7,
+      "playerId": "f-万波中正",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 623,
+      "team": "m",
+      "name": "N・ソト",
+      "outs": 1369,
+      "uzr": -3.7,
+      "per1200": -9.8,
+      "playerId": "m-ソト",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 624,
+      "team": "db",
+      "name": "蝦名達夫",
+      "outs": 2239,
+      "uzr": -3.8,
+      "per1200": -6.1,
+      "playerId": "db-蝦名達夫",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 625,
+      "team": "s",
+      "name": "モンテル",
+      "outs": 729,
+      "uzr": -4,
+      "per1200": -19.7,
+      "playerId": "s-モンテル",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 626,
+      "team": "t",
+      "name": "小幡竜平",
+      "outs": 726,
+      "uzr": -4.1,
+      "per1200": -20.3,
+      "playerId": "t-小幡竜平",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 627,
+      "team": "s",
+      "name": "増田珠",
+      "outs": 2464,
+      "uzr": -4.3,
+      "per1200": -6.3,
+      "playerId": "s-増田珠",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 628,
+      "team": "db",
+      "name": "宮﨑敏郎",
+      "outs": 1962,
+      "uzr": -4.3,
+      "per1200": -8,
+      "playerId": "db-宮﨑敏郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 629,
+      "team": "db",
+      "name": "牧秀悟",
+      "outs": 2521,
+      "uzr": -4.5,
+      "per1200": -6.4,
+      "playerId": "db-牧秀悟",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 630,
+      "team": "m",
+      "name": "安田尚憲",
+      "outs": 1074,
+      "uzr": -4.7,
+      "per1200": -15.6,
+      "playerId": "m-安田尚憲",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 631,
+      "team": "f",
+      "name": "清宮幸太郎",
+      "outs": 2974,
+      "uzr": -4.8,
+      "per1200": -5.8,
+      "playerId": "f-清宮幸太郎",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 632,
+      "team": "c",
+      "name": "持丸泰輝",
+      "outs": 2060,
+      "uzr": -5.2,
+      "per1200": -9,
+      "playerId": "c-持丸泰輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 633,
+      "team": "b",
+      "name": "来田涼斗",
+      "outs": 2060,
+      "uzr": -5.4,
+      "per1200": -9.5,
+      "playerId": "b-来田涼斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 634,
+      "team": "f",
+      "name": "細川凌平",
+      "outs": 1045,
+      "uzr": -5.9,
+      "per1200": -20.3,
+      "playerId": "f-細川凌平",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 635,
+      "team": "l",
+      "name": "西川愛也",
+      "outs": 2120,
+      "uzr": -6,
+      "per1200": -10.1,
+      "playerId": "l-西川愛也",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 636,
+      "team": "t",
+      "name": "木浪聖也",
+      "outs": 835,
+      "uzr": -6.1,
+      "per1200": -26.4,
+      "playerId": "t-木浪聖也",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 637,
+      "team": "g",
+      "name": "B・ダルベック",
+      "outs": 3137,
+      "uzr": -6.7,
+      "per1200": -7.7,
+      "playerId": "g-ダルベック",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 638,
+      "team": "m",
+      "name": "藤原恭大",
+      "outs": 2451,
+      "uzr": -6.8,
+      "per1200": -9.9,
+      "playerId": "m-藤原恭大",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 639,
+      "team": "c",
+      "name": "坂倉将吾",
+      "outs": 3285,
+      "uzr": -7,
+      "per1200": -7.7,
+      "playerId": "c-坂倉将吾",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 640,
+      "team": "c",
+      "name": "E・モンテロ",
+      "outs": 1610,
+      "uzr": -7.1,
+      "per1200": -15.8,
+      "playerId": "c-モンテロ",
+      "sourceFile": "スクリーンショット 2026-09-21 230903.png"
+    },
+    {
+      "rank": 641,
+      "team": "t",
+      "name": "大山悠輔",
+      "outs": 3426,
+      "uzr": -7.1,
+      "per1200": -7.5,
+      "playerId": "t-大山悠輔",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 642,
+      "team": "b",
+      "name": "西川龍馬",
+      "outs": 2124,
+      "uzr": -7.3,
+      "per1200": -12.4,
+      "playerId": "b-西川龍馬",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 643,
+      "team": "t",
+      "name": "中野拓夢",
+      "outs": 3141,
+      "uzr": -7.5,
+      "per1200": -8.5,
+      "playerId": "t-中野拓夢",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 644,
+      "team": "f",
+      "name": "吉田賢吾",
+      "outs": 724,
+      "uzr": -7.7,
+      "per1200": -38.5,
+      "playerId": "f-吉田賢吾",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 645,
+      "team": "e",
+      "name": "村林一輝",
+      "outs": 3212,
+      "uzr": -8.1,
+      "per1200": -9,
+      "playerId": "e-村林一輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 646,
+      "team": "m",
+      "name": "山口航輝",
+      "outs": 1378,
+      "uzr": -8.2,
+      "per1200": -21.5,
+      "playerId": "m-山口航輝",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 647,
+      "team": "d",
+      "name": "細川成也",
+      "outs": 3423,
+      "uzr": -8.3,
+      "per1200": -8.8,
+      "playerId": "d-細川成也",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 648,
+      "team": "db",
+      "name": "筒香嘉智",
+      "outs": 2072,
+      "uzr": -8.4,
+      "per1200": -14.7,
+      "playerId": "db-筒香嘉智",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 649,
+      "team": "t",
+      "name": "前川右京",
+      "outs": 1081,
+      "uzr": -8.6,
+      "per1200": -28.6,
+      "playerId": "t-前川右京",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 650,
+      "team": "s",
+      "name": "長岡秀樹",
+      "outs": 2899,
+      "uzr": -8.6,
+      "per1200": -10.7,
+      "playerId": "s-長岡秀樹",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 651,
+      "team": "d",
+      "name": "J・ボスラー",
+      "outs": 1588,
+      "uzr": -9.3,
+      "per1200": -21,
+      "playerId": "d-ボスラー",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 652,
+      "team": "t",
+      "name": "熊谷敬宥",
+      "outs": 1253,
+      "uzr": -9.6,
+      "per1200": -27.7,
+      "playerId": "t-熊谷敬宥",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 653,
+      "team": "db",
+      "name": "C・ヒュンメル",
+      "outs": 700,
+      "uzr": -9.7,
+      "per1200": -50.1,
+      "playerId": "db-ヒュンメル",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 654,
+      "team": "c",
+      "name": "小園海斗",
+      "outs": 2507,
+      "uzr": -11,
+      "per1200": -15.8,
+      "playerId": "c-小園海斗",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 655,
+      "team": "s",
+      "name": "D・サンタナ",
+      "outs": 2156,
+      "uzr": -13.1,
+      "per1200": -21.9,
+      "playerId": "s-サンタナ",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 656,
+      "team": "g",
+      "name": "平内龍太",
+      "outs": 23,
+      "uzr": null,
+      "per1200": null,
+      "playerId": "g-平内龍太",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 657,
+      "team": "g",
+      "name": "山田龍聖",
+      "outs": 9,
+      "uzr": null,
+      "per1200": null,
+      "playerId": "g-山田龍聖",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 658,
+      "team": "g",
+      "name": "又木鉄平",
+      "outs": 45,
+      "uzr": null,
+      "per1200": null,
+      "playerId": "g-又木鉄平",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 659,
+      "team": "g",
+      "name": "宮原駿介",
+      "outs": 13,
+      "uzr": null,
+      "per1200": null,
+      "playerId": "g-宮原駿介",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    },
+    {
+      "rank": 660,
+      "team": "d",
+      "name": "福敬登",
+      "outs": 7,
+      "uzr": null,
+      "per1200": null,
+      "playerId": "d-福敬登",
+      "sourceFile": "スクリーンショット 2026-09-21 230859.png"
+    }
+  ]
+}

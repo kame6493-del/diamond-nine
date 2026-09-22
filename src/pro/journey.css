@@ -1,0 +1,51 @@
+.player-card{min-height:246px;aspect-ratio:.66}
+.player-card .card-art{bottom:40%;top:10%;left:18%;right:0}
+.player-card .card-bottom{padding:20px 10px 12px}
+.player-card .card-bottom>strong{font-size:clamp(12px,1.15vw,19px);letter-spacing:0;margin:5px 0 9px}
+.player-card .card-club{font-size:9px}
+.card-abilities{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;border-top:1px solid #dfd8ae40;padding-top:8px}
+.card-abilities>div{display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.card-abilities small{font-size:10px;white-space:nowrap;color:#d3dfd6;font-weight:500}
+.card-abilities strong{font:700 24px 'Barlow Condensed',sans-serif;line-height:1.1}
+.card-abilities em{font:600 13px 'Barlow Condensed',sans-serif;line-height:1.2;color:#f3f3dc;font-style:normal}
+.pitching-abilities{grid-template-columns:1.4fr repeat(3,minmax(0,1fr))}
+.card-abilities .card-speed strong{font-size:25px;color:#ffdfa1}
+.card-abilities .card-speed em{font:500 9px sans-serif}
+.player-card .awaken{top:39px;bottom:auto;font-size:8px}
+.opening-slot>.player-card,.spotlight-card>.player-card{aspect-ratio:.66}
+.featured-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+.last-pulls{grid-template-columns:repeat(5,minmax(0,1fr))}
+.mini-cards .player-card{min-height:205px}
+.mini-cards .card-abilities small{font-size:8px}
+.mini-cards .card-abilities strong{font-size:18px}
+.mini-cards .card-abilities em{font-size:11px}
+.position-picker{width:48px!important;padding:5px 1px!important;border:1px solid #c5d3c8!important;background:#edf2ec;color:#204e41;font-weight:700;border-radius:5px}
+.position-picker.mismatch{color:#b44931;background:#fff0e7}
+.season-journey{background:#fdfcf7;border:1px solid #d6ded5;border-radius:14px;padding:28px;margin-bottom:24px;overflow:hidden}
+.journey-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;color:#254e40}
+.journey-heading h2{font-size:28px;margin:9px 0 20px;letter-spacing:-.7px}
+.journey-heading>svg{color:#b6954e;flex-shrink:0}
+.journey-steps{list-style:none;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:5px 0 26px}
+.journey-steps li{display:flex;align-items:center;gap:8px;padding:12px 8px;border-top:3px solid #e0e4d9;color:#8c958a;font-size:11px;min-width:0}
+.journey-steps li>span{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#eef0e8;flex-shrink:0}
+.journey-steps li.current{color:#245842;border-color:#c9aa55;background:linear-gradient(#f2e9ca,transparent);border-radius:4px}
+.journey-steps li.current>span{background:#254e40;color:#fff}.journey-steps li.done{color:#437c5d;border-color:#638b60}
+.journey-milestones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0 24px}
+.journey-milestones>div{border:1px solid #e3e6db;border-radius:8px;padding:15px 12px;display:flex;flex-direction:column;gap:7px;background:#f5f5ee}
+.journey-milestones small{font:600 11px 'Barlow Condensed',sans-serif;letter-spacing:1px;color:#7b8377}
+.journey-milestones strong{font-size:13px}.journey-milestones span{font-size:10px;color:#728072}
+.journey-milestones .done{background:#edf4e9;border-color:#b7cfa9}.journey-milestones .done small{color:#3b7047}
+.condition-section{background:#f3f4ee;border-radius:9px;padding:17px;margin-bottom:18px}
+.condition-section>div:first-child{display:flex;gap:8px;align-items:center;margin-bottom:12px}.condition-section strong{font-size:12px}.condition-section small{font-size:10px;color:#7c8275}
+.condition-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.condition-cards button{display:flex;align-items:center;gap:12px;background:#fffdf7;border:1px solid #e4d5b4;border-radius:7px;padding:12px;text-align:left;color:#b4852d}.condition-cards button.cold{color:#5282a1;border-color:#c7d8e3}.condition-cards span{display:flex;flex-direction:column;gap:4px}.condition-cards strong{color:#2c4537}.condition-cards small{color:inherit}
+.post-callout{display:flex;gap:28px;justify-content:space-between;align-items:center;background:linear-gradient(125deg,#1d473c,#102e2b);color:#f9f5e0;padding:26px;border-radius:10px;margin-bottom:24px}
+.post-callout h3{font-size:24px;margin:8px 0}.post-callout p{font-size:12px;color:#bed1c4;line-height:1.7}.post-callout small{font-size:11px;line-height:1.7;color:#d3c698;display:block;max-width:570px}.post-callout>div:first-child>span{font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:#ddc582}.post-callout>div:last-child{display:flex;flex-direction:column;gap:10px;flex-shrink:0}.post-callout .outline{color:#dfe8da;border-color:#667e70}
+.post-callout .btn.outline{background:transparent;color:#f1ead4;border-color:#789180}
+.post-bracket{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:18px 0}.series-tile{border:1px solid #dbe0d4;border-radius:9px;padding:18px;background:#f9faf5}.series-tile.my-series{border-color:#c8b271;background:#faf7eb}.series-tile>small{font-size:10px;letter-spacing:1px;color:#77816e}.series-tile>p{font-size:11px;color:#658056}.series-tile:last-child:nth-child(odd){grid-column:1/-1}.series-score{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:15px}.series-score>strong{font-size:13px;flex:1}.series-score>strong:last-child{text-align:right}.series-score>strong.winner{color:#2a804a}.series-score>b{font:700 30px 'Barlow Condensed',sans-serif;white-space:nowrap;color:#204e3d}.series-score i{font-size:16px;font-style:normal;font-weight:400;color:#a7b2a0}.series-games{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}.series-games button{border:1px solid #d8decb;background:#fffef9;padding:7px 10px;border-radius:5px;display:flex;flex-direction:column;gap:2px}.series-games small{font-size:9px;color:#8a9080}.series-games b{font:600 17px 'Barlow Condensed',sans-serif;color:#2c4c3a}
+.season-report{padding:21px 0}.season-report h3{font-size:20px;margin:6px 0 16px}.season-leaders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.season-leaders>button{display:flex;flex-direction:column;align-items:flex-start;padding:22px;border-radius:10px;border:1px solid #d7dece;background:linear-gradient(125deg,#f6f4e8,#fffef9);text-align:left}.season-leaders small{font-size:10px;letter-spacing:1px;color:#7e8773}.season-leaders b{font:700 43px 'Barlow Condensed',sans-serif;color:#285743;margin:7px 0}.season-leaders strong{font-size:15px}.season-leaders span{font-size:10px;color:#7c8675;margin-top:8px}
+.champion-banner{display:flex;justify-content:space-between;align-items:center;gap:20px;background:#e8eede;padding:28px;border-radius:10px;margin:15px 0}.champion-banner svg{color:#8a9d62}.champion-banner span{font:600 12px 'Barlow Condensed',sans-serif;letter-spacing:2px;margin-left:10px}.champion-banner h3{font-size:32px;margin:8px 0}.champion-banner p{font-size:12px;line-height:1.7}.my-championship{background:radial-gradient(ellipse at top left,#ede2b4,#ecefd9);border:1px solid #c6aa5e}.my-championship svg{color:#af8d33}
+.journey-footer{display:flex;gap:15px;align-items:center;justify-content:space-between}.journey-footer small{color:#82907a;font-size:10px}.season-rules{margin-top:20px;border-top:1px solid #e0e5d8;padding-top:16px;font-size:11px;color:#7a8570}.season-rules summary,.post-stats summary{cursor:pointer;font-weight:600}.season-rules p{line-height:1.9}.post-stats{margin-top:20px;font-size:12px}.post-stats .table-scroll{margin-top:10px}
+@media(max-width:1250px){.featured-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.last-pulls{grid-template-columns:repeat(3,minmax(0,1fr))}.post-callout{align-items:flex-start;flex-direction:column}.post-callout>div:last-child{flex-direction:row}.journey-steps li{font-size:10px;gap:4px}}
+@media(max-width:760px){.season-journey{padding:17px}.journey-heading h2{font-size:21px}.journey-steps{gap:4px;margin-bottom:17px}.journey-steps li{flex-direction:column;text-align:center;font-size:9px;padding:10px 1px}.journey-milestones{grid-template-columns:repeat(2,minmax(0,1fr))}.condition-section>div:first-child{flex-wrap:wrap}.condition-cards{grid-template-columns:1fr}.condition-cards button{padding:10px}.condition-cards span{flex-direction:row;align-items:center;gap:15px}.post-callout{padding:18px}.post-callout h3{font-size:20px}.post-callout>div:last-child{flex-direction:column;width:100%}.post-bracket{grid-template-columns:1fr}.season-leaders{grid-template-columns:1fr;gap:8px}.season-leaders>button{padding:14px;display:grid;grid-template-columns:1fr auto;gap:5px}.season-leaders b{grid-column:2;grid-row:1/4;font-size:36px;margin:0}.season-leaders small{grid-column:1}.season-leaders span{margin:0}.champion-banner{padding:20px;align-items:flex-start;flex-direction:column}.champion-banner h3{font-size:27px}.journey-footer{align-items:flex-start;flex-direction:column}.player-card{min-height:238px;aspect-ratio:.64}.player-card .card-bottom{padding:18px 8px 12px}.player-card .card-bottom>strong{font-size:14px}.player-card .card-art{bottom:45%}.card-abilities small{font-size:9px}.card-abilities strong{font-size:21px}.card-abilities em{font-size:12px}.card-abilities .card-speed strong{font-size:23px}.last-pulls{grid-template-columns:repeat(2,minmax(0,1fr))}.opening-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mini-cards .player-card{min-height:194px}.scout-display .player-card{min-height:229px}.scout-display .card-abilities small{font-size:8px}.scout-display .card-abilities strong{font-size:19px}.featured-cards{gap:12px}}
+@media(prefers-reduced-motion:no-preference){.my-championship{animation:champion-arrive .7s ease-out}.journey-steps .current>span{box-shadow:0 0 0 4px #d0b25c33}@keyframes champion-arrive{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}}
+@media(max-width:760px){.collection-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}.collection-grid .player-card{min-height:248px}.collection-grid .card-bottom>strong{font-size:14px!important}.collection-grid .card-abilities small{font-size:9px}.opening-slot>.player-card{min-height:245px}}

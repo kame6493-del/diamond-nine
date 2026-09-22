@@ -1,0 +1,18 @@
+import type {GameState} from './engine';
+import {circuitOf,wonNpbLeague} from './leagues';
+
+export const achievementNames={npbLeague:'リーグ優勝',npbChampion:'日本一',mlbEntry:'MLB挑戦',worldChampion:'ワールドシリーズ優勝'} as const;
+export type AchievementId=keyof typeof achievementNames;
+export type Achievements=Partial<Record<AchievementId,number>>;
+// Keep milestones after the rolling season archive expires. Legacy saves only
+// contribute verifiable seasons; do not claim an unknown earlier first title.
+export function recordAchievements(input:GameState):GameState{
+ const records:Achievements={...input.achievements};
+ const add=(id:AchievementId,year:number)=>{records[id]=Math.min(records[id]??year,year);};
+ for(const season of [...input.history,...(input.parkedSeason?[input.parkedSeason]:[]),input.season]){
+  if(circuitOf(season)==='MLB')add('mlbEntry',season.number);
+  if(wonNpbLeague(season,input.club))add('npbLeague',season.number);
+  if(season.completed&&season.postseason?.stage==='complete'&&season.postseason.champion===input.club)add(circuitOf(season)==='MLB'?'worldChampion':'npbChampion',season.number);
+ }
+ return JSON.stringify(records)===JSON.stringify(input.achievements)?input:{...input,achievements:records};
+}

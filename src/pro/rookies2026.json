@@ -1,0 +1,512 @@
+{
+  "year": 2026,
+  "definition": "2025年NPBドラフト（育成含む）指名選手のうち2026年収録名簿と氏名・球団が一致した選手",
+  "sources": [
+    {
+      "team": "t",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_t.html",
+      "listed": 7
+    },
+    {
+      "team": "g",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_g.html",
+      "listed": 11
+    },
+    {
+      "team": "db",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_db.html",
+      "listed": 6
+    },
+    {
+      "team": "c",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_c.html",
+      "listed": 9
+    },
+    {
+      "team": "s",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_s.html",
+      "listed": 8
+    },
+    {
+      "team": "d",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_d.html",
+      "listed": 9
+    },
+    {
+      "team": "h",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_h.html",
+      "listed": 13
+    },
+    {
+      "team": "f",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_f.html",
+      "listed": 7
+    },
+    {
+      "team": "m",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_m.html",
+      "listed": 10
+    },
+    {
+      "team": "e",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_e.html",
+      "listed": 12
+    },
+    {
+      "team": "b",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_b.html",
+      "listed": 11
+    },
+    {
+      "team": "l",
+      "url": "https://draft.npb.jp/draft/2025/draftlist_l.html",
+      "listed": 13
+    }
+  ],
+  "entries": [
+    {
+      "id": "t-立石正広",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-谷端将伍",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-岡城快生",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-早瀬朔",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-能登嵩都",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-神宮僚介",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "t-山﨑照英",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_t.html"
+    },
+    {
+      "id": "g-竹丸和幸",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-田和廉",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-山城京平",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-皆川岳飛",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-小濱佑斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-藤井健翔",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-冨重英二郎",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-林燦",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-松井蓮太朗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-河野優作",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "g-知念大成",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_g.html"
+    },
+    {
+      "id": "db-小田康一郎",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "db-島田舜也",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "db-宮下朝陽",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "db-片山皓心",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "db-成瀬脩人",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "db-清水詩太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_db.html"
+    },
+    {
+      "id": "c-平川蓮",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-齊藤汰直",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-勝田成",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-工藤泰己",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-赤木晴哉",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-西川篤夢",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-髙木快大",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-小林結太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "c-岸本大希",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_c.html"
+    },
+    {
+      "id": "s-松下歩叶",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-松川玲央",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-山崎太陽",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-増居翔太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-鈴木蓮吾",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-石井巧",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-飯田琉斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "s-小宮悠瞳",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_s.html"
+    },
+    {
+      "id": "d-中西聖輝",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-櫻井頼之介",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-篠﨑国忠",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-能戸輝夢",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-新保茉良",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-花田旭",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-牧野憲伸",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-石川大峨",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "d-三上愛介",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_d.html"
+    },
+    {
+      "id": "h-稲川竜汰",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-鈴木豪太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-相良雅斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-髙橋隆慶",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-池田栞太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-江崎歩",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-大矢琉晟",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-大橋令和",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-鈴木貴大",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "h-長﨑蓮汰",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_h.html"
+    },
+    {
+      "id": "f-大川慈英",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-エドポロケイン",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-大塚瑠晏",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-半田南十",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-藤森海斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-常谷拓輝",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "f-横山永遠",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_f.html"
+    },
+    {
+      "id": "m-石垣元気",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-毛利海大",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-奥村頼人",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-櫻井ユウヤ",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-冨士隼斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-岡村了樹",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-大聖",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-中山優人",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-髙橋快秀",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "m-杉山諒",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_m.html"
+    },
+    {
+      "id": "e-藤原聡大",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-伊藤樹",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-繁永晟",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-大栄利哉",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-伊藤大晟",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-九谷瑠",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-阪上翔也",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-幌村黛汰",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-大坪梓恩",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-中沢匠磨",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-金子京介",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "e-島原大河",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_e.html"
+    },
+    {
+      "id": "b-藤川敦也",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-森陽樹",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-佐藤龍月",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-窪田洋祐",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-髙谷舟",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-野上士耀",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-三方陽登",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-中西創大",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "b-渡邉一生",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_b.html"
+    },
+    {
+      "id": "l-小島大河",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-岩城颯空",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-秋山俊",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-堀越啓太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-横田蒼和",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-川田悠慎",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-新井唯斗",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-今岡拓夢",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-斎藤佳紳",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-濱岡蒼太",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-平口寛人",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-正木悠馬",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    },
+    {
+      "id": "l-安藤銀杜",
+      "source": "https://draft.npb.jp/draft/2025/draftlist_l.html"
+    }
+  ]
+}

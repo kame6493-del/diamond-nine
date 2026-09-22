@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.npm-cache/
+.vite/
+*.local
+*.log
+.asset_extract_tmp_*/
+.tmp-assets/
+node-compile-cache/
+scripts/data/
+.openai/*.tmp
+deployment/
+*.tar.gz

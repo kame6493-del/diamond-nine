@@ -1,0 +1,189 @@
+import {circuitOf,seasonGames,leagueFor,leagueProgress,titleFor,NPB_TITLES_TO_MLB,type Circuit} from './leagues';
+import {switchLeague} from './engine';
+import {AchievementsPanel} from './CareerAchievements';
+import {VictoryShare} from './VictoryShare';
+import {TeamSeasonStats} from './TeamSeasonStats';
+import {LeagueSeasonStats} from './LeagueSeasonStats';
+import {recordAchievements} from './achievements';
+import {useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {Check,ChevronRight,Download,Layers3,Play,RotateCcw,Settings,Sparkles,Upload,Users,Volume2,VolumeX,X} from 'lucide-react';
+import {formatAvg,formatIP,normalizeName,playerMap,players,teamById,type Player} from './data';
+import {battingAverage,effectiveOverall,era,loadState,migrateState,nextMatchPreview,nextSeason,ops,rankings,saveKeyFor,simulateDays,type GameState,type Season} from './engine';
+import {buildByStrategy,trainPlayer} from './franchise';
+import {finishPostseason,stageLabel} from './postseason';
+import {bestUpgrade,equipScoutedPlayer} from './career-roster';
+import {CardAbilities} from './CardAbilities';
+import {PlayerHoverPreview} from './PlayerHoverPreview';
+import {pitchingRoleLabel} from './wiki-players';
+import {SIMPLE_SCOUT_COST,MLB_SCOUT_CHANCE,MLB_GUARANTEE_EVERY,mlbScoutCountdown,collectSimpleRewards,drawSimplePlayer,moveSimplePlayer,replacementPool,replaceSimplePlayer} from './simple-game';
+import type {Profile} from './progression';
+import './simple.css';
+import {DeckTeam,TradingCard} from './CardDeck';
+import {PlayerCatalog} from './PlayerCatalog';
+import {gameSound} from './game-audio';
+import {readResetBackup,resetTeam,restoreResetBackup,completeResetTeam} from './reset-team';
+import './arcade.css';
+import {PlayerDetails} from './PlayerDetails';
+import {ScoutCharge,scoutDuration} from './ScoutEffects';
+import {mlbPlayers} from './mlb-players';
+import './scout.css';
+
+type Page='season'|'team'|'scout'|'catalog';
+const count=(n:number)=>n.toLocaleString('ja-JP');
+const bonus=(s:GameState,id:string)=>Math.min(5,Math.max(0,(s.owned[id]??1)-1))+(s.training[id]??0);
+const tabs=[{id:'season',label:'試合・成績',icon:Play},{id:'team',label:'チーム',icon:Users},{id:'scout',label:'スカウト',icon:Sparkles}] as const;
+
+function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
+ const ref=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  const old=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';ref.current?.focus();
+  const key=(e:KeyboardEvent)=>{
+   if(e.key==='Escape')onClose();
+   if(e.key==='Tab'){
+    const nodes=ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,a[href]');
+    if(!nodes?.length)return;
+    if(e.shiftKey&&(document.activeElement===nodes[0]||document.activeElement===ref.current)){e.preventDefault();nodes[nodes.length-1].focus();}
+    else if(!e.shiftKey&&document.activeElement===nodes[nodes.length-1]){e.preventDefault();nodes[0].focus();}
+   }
+  };
+  document.addEventListener('keydown',key);
+  return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);old?.focus();};
+ },[onClose]);
+ return <div className="simple-overlay" onClick={onClose}><div className="simple-dialog" ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} onClick={e=>e.stopPropagation()}><header><h2>{title}</h2><button className="s-icon" onClick={onClose} aria-label="閉じる"><X size={20}/></button></header>{children}</div></div>;
+}
+
+export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season:Season;club:string;onPlayer:(p:Player)=>void;lineup?:string[];pitchers?:string[]}){
+ const bats=Object.values(season.batting).filter(b=>b.team===club);
+ const arms=Object.values(season.pitching).filter(p=>p.team===club);
+ const batIds=[...new Set([...lineup,...bats.map(b=>b.playerId)])];
+ const pitIds=[...new Set([...pitchers,...arms.map(p=>p.playerId)])];
+ const batMap=new Map(bats.map(b=>[b.playerId,b])),pitMap=new Map(arms.map(p=>[p.playerId,p]));
+ return <div className="s-stat-columns"><section className="s-panel"><h2>打撃成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['打率','本塁打','打点','OPS','盗塁'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{batIds.map(id=>{const b=batMap.get(id);return <tr key={id}><th><button data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td></tr>;})}</tbody></table>{!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section><section className="s-panel"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section></div>;
+}
+
+export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,message,onSwitchLeague}:{state:GameState;busy:boolean;progress:number;onPlay:(n:number)=>void;onPost:()=>void;onNext:()=>void;onPlayer:(p:Player)=>void;message:string;onSwitchLeague?:(circuit:Circuit)=>void}){
+ const [archive,setArchive]=useState(0);
+ const season=state.history.find(s=>s.number===archive)??state.season;
+ const current=season===state.season,table=rankings(season,leagueFor(season,state.club)),mine=table.find(t=>t.team===state.club)!;
+ const next=current?nextMatchPreview(state):null,latest=season.results.at(-1);
+ const ownScore=latest?.[latest.home===state.club?'homeRuns':'awayRuns'],otherScore=latest?.[latest.home===state.club?'awayRuns':'homeRuns'];
+ const post=season.postseason,champion=post?.champion,major=circuitOf(season)==='MLB',total=seasonGames(season),career=leagueProgress(state);
+ const challengeRevealed=major||career.mlbUnlocked||career.npbStreak>0||recordAchievements(state).achievements?.npbLeague!==undefined;
+ return <>
+  <div className="s-page-title"><div><p className="s-kicker">{circuitOf(season)} · SEASON {String(season.number).padStart(2,'0')}</p><h1>{season.completed?'シーズンの成績':'試合を進めよう。'}</h1></div>{state.history.length>0&&<select aria-label="表示するシーズン" value={archive} onChange={e=>setArchive(Number(e.target.value))}><option value={0}>今シーズン</option>{state.history.map(s=><option value={s.number} key={s.number}>{s.number}年目 · {circuitOf(s)}</option>)}</select>}</div>
+  {current&&challengeRevealed&&<section className={'league-challenge '+(major?'league-major':career.mlbUnlocked?'league-unlocked':'')} aria-label="リーグ挑戦">
+   <div><span>{major?'LEAGUE 02':'LEAGUE 01'}</span><h2>{major?'MLB挑戦':career.mlbUnlocked?'NPB · MLB挑戦も選べます':'NPB · リーグ優勝3連覇への道'}</h2><p>{major?'チームを育ててワールドシリーズへ。NPBに戻って立て直すこともできます。':career.mlbUnlocked?'NPBで育成を続けるか、MLBへ挑戦するか選べます。':'リーグ1位を3年連続で達成するとMLBへ。CS・日本シリーズの結果は問いません。'}</p>{career.mlbUnlocked&&<div className="league-switch"><button className="s-button" disabled={busy} onClick={()=>{setArchive(0);onSwitchLeague?.(major?'NPB':'MLB');}}>{major?'NPBで立て直す':'MLBに挑戦する'}</button><small>途中の成績を保存して、いつでも再開できます。</small></div>}</div>
+   {!major&&<div className="title-streak" role="progressbar" aria-label="リーグ優勝の連覇" aria-valuemin={0} aria-valuemax={NPB_TITLES_TO_MLB} aria-valuenow={career.npbStreak}><div>{Array.from({length:NPB_TITLES_TO_MLB},(_,i)=>i+1).map(n=><span className={n<=career.npbStreak?'won':''} key={n}>★</span>)}</div><b>{career.npbStreak} / {NPB_TITLES_TO_MLB} 連覇</b></div>}
+  </section>}
+  <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
+   {current&&!season.completed&&<><p className="s-next-opponent">次の相手：{next&&teamById(next.opponent).short}{next&&<span>先発 {playerMap[next.mine].name}</span>}{major&&next&&<span>相手先発 {playerMap[next.theirs].name}</span>}</p><div className="s-play-actions"><button className="s-primary" disabled={busy} onClick={()=>onPlay(1)}><Play size={17} fill="currentColor"/>1試合進める</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(10)}>10試合</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(total)}>シーズン終了まで</button></div></>}
+   {current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'MLB挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>{major?'ワールドシリーズ終了まで':'CS・日本シリーズ終了まで'}<ChevronRight size={18}/></button></>}</div>}
+   {busy&&<p className="s-working" role="status">試合を計算しています… {progress}%</p>}
+  </section>
+  <div className="s-inline-result" role="status">{message&&current?<span>{message}</span>:latest?<span>直近の試合 <b>{ownScore} − {otherScore}</b> {teamById(latest.home===state.club?latest.away:latest.home).short}戦</span>:<span>試合でポイントを貯めて、新しい選手を迎えよう。</span>}</div>
+  {post?.stage==='complete'&&<details className="s-fold postseason-results"><summary>{major?'プレーオフ':'短期決戦'}の結果を見る</summary>{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{stageLabel(s.stage)}</span><b>{s.higher===state.club?state.name:teamById(s.higher).short} {s.wins[0]} − {s.wins[1]} {s.lower===state.club?state.name:teamById(s.lower).short}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。次のシーズンで再挑戦。</p>}</details>}
+  <AchievementsPanel state={state} season={season}/>
+  <VictoryShare state={state} season={season}/>
+  <TeamSeasonStats season={season} club={state.club}/>
+  <SimpleStats season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
+  <LeagueSeasonStats key={circuitOf(season)} season={season} club={state.club} clubName={season.shareTeam?.name??state.name}/>
+ </>;
+}
+
+export function SimplePlayerCard({player,state}:{player:Player;state:GameState}){return <div className="s-player-card"><TradingCard player={player} state={state}/></div>;}
+
+export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlayer}:{state:GameState;onDraw:()=>void;onEquip:(id:string)=>void;drawing:boolean;hasDrawn:boolean;onSeason:()=>void;onPlayer?:(p:Player)=>void}){
+ const panel=useRef<HTMLElement>(null);
+ useEffect(()=>{if(drawing)panel.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});},[drawing]);
+ const pull=hasDrawn?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
+ const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
+ const remaining=mlbScoutCountdown(state),major=!!player?.mlb&&!drawing;
+ return <>
+  <div className="s-page-title"><div><p className="s-kicker">SCOUT</p><h1>スカウト</h1><p>新たな選手を獲得しよう！</p></div></div>
+  <section ref={panel} className={'s-scout-panel '+(major?'major-reveal':'')}><div className="s-scout-main">
+   <div className={'s-scout-result '+(drawing?'drawing':'')} aria-live="polite">
+    {drawing&&<ScoutCharge/>}
+    {player&&!drawing?<>
+     
+     {major&&<div className="major-arrival animate__animated animate__backInDown"><small>JAPANESE MAJOR LEAGUER</small><strong>MLB選手を獲得！</strong></div>}
+     <span className="s-new-label">{pull!.isNew?'新しい選手が加入！':pull!.copies<=6?'選手が成長！':'ポイント ＋80'}</span>
+     <div className={'scout-reveal animate__animated '+(major?'animate__zoomInDown':'animate__flipInY')} key={state.pulls+'-'+state.franchise.tickets+'-'+pull?.copies}><TradingCard player={player} state={state} onPlayer={onPlayer}/></div>
+     {!pull!.isNew&&pull!.copies<=6&&<p>重複獲得で能力 ＋1（最大＋5）</p>}
+     {upgrade?<div className="s-equip-offer"><p>{playerMap[upgrade.oldId].name}と入れ替えて起用できます。</p><button className="s-button" onClick={()=>onEquip(player.id)}><Users size={16}/>チームに入れる</button></div>:[...state.lineup,...state.pitchers].includes(player.id)?<p className="s-equipped"><Check size={16}/>チームに編成済み</p>:<p>控えに加入しました。チーム画面で起用できます。</p>}
+    </>:!drawing&&<div className="s-unopened"><div className="s-baseball" aria-hidden="true">⚾</div><h2>選手カードを1枚獲得</h2><p>NPB・日本人MLB選手が登場</p></div>}
+   </div>
+   <button className="s-primary s-draw" disabled={!canDraw||drawing} onClick={onDraw}><Sparkles size={19}/>{drawing?'スカウト中…':hasDrawn?'もう1人引く':'1人引く'}<span>{count(SIMPLE_SCOUT_COST)+' pt'}</span></button>
+   <p className="s-scout-cost">所持 {count(state.gems)} pt</p>
+   {!canDraw&&<><p className="scout-missing">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p><button className="s-text-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={15}/></button></>}
+   <div className="scout-guarantee"><div><span>MLB選手確定まで</span><b>あと{remaining}回</b></div><div className="scout-guarantee-track" role="progressbar" aria-label="MLB選手確定までのスカウト進行" aria-valuemin={0} aria-valuemax={MLB_GUARANTEE_EVERY} aria-valuenow={MLB_GUARANTEE_EVERY-remaining}><i style={{width:(MLB_GUARANTEE_EVERY-remaining)/MLB_GUARANTEE_EVERY*100+'%'}}/></div><small>ポイントでのスカウトで進行 · シーズンをまたいで引き継ぎ</small></div>
+  </div><div className="s-scout-note">1人 3,000 pt。30人目はMLB選手確定。<details><summary>獲得できる選手・抽選確率</summary><p>NPB {players.length-mlbPlayers.length}人／MLBの日本人 {mlbPlayers.length}人。通常はNPB {100-MLB_SCOUT_CHANCE*100}%・MLB {MLB_SCOUT_CHANCE*100}%で、各グループ内は同じ確率です。30回ごとの確定時は未所持のMLB選手から同じ確率で抽選し、全員所持の場合はMLB全員が対象になります。</p></details></div></section>
+ </>;
+}
+
+function PlayerInfo({player,state,onChange,onClose,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onAwaken:()=>void;catalog?:boolean}){return <Dialog title="選手情報" onClose={onClose}><PlayerDetails player={player} state={state} onChange={onChange} onAwaken={onAwaken} catalog={catalog}/></Dialog>;}
+
+function SimpleSettings({state,onChange,onClose,onProfileChange,onReset,onRestore,onCompleteReset,canRestore}:{state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onProfileChange?:(p:Profile)=>void;onReset:()=>void;onRestore:()=>void;onCompleteReset:()=>void;canRestore:boolean}){
+ const [name,setName]=useState(state.name),[error,setError]=useState('');const input=useRef<HTMLInputElement>(null);
+ const download=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(state)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`diamond-nine-${state.mode==='career'?'career':'free'}-${state.season.number}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+ return <Dialog title="設定" onClose={onClose}><label className="s-field">チーム名<input value={name} maxLength={20} onChange={e=>setName(e.target.value)}/></label><button className="s-button" disabled={!name.trim()} onClick={()=>{onChange({...state,name:name.trim()});onClose();}}>保存</button><hr/><div className="reset-zone"><h3>最初からチームをつくる</h3><p>退避してやり直すか、獲得カードを含めて完全に消すか選べます。</p><button className="s-button reset-team" onClick={onReset}><RotateCcw size={16}/>退避してリセット</button>{canRestore&&<button className="s-button" onClick={onRestore}>リセット前のチームに戻す</button>}<button className="s-button complete-reset" onClick={onCompleteReset}>カードも消して完全リセット</button></div><hr/><h3>セーブデータ</h3><p>進行はこの端末・ブラウザに自動保存されます。別の端末や公開URLへ引き継ぐときは、書き出したデータを移動先で読み込んでください。</p><div className="s-settings-actions"><button className="s-button" onClick={download}><Download size={16}/>書き出す</button><button className="s-button" onClick={()=>input.current?.click()}><Upload size={16}/>読み込む</button><input hidden ref={input} type="file" accept=".json,application/json" onChange={async e=>{const file=e.target.files?.[0];if(!file)return;try{if(file.size>10_000_000)throw new Error();const s=migrateState(JSON.parse(await file.text()));if(!s)throw new Error();if((s.mode==='career')!==(state.mode==='career')){setError('別のモードのセーブです。先にクラブを切り替えてください。');return;}onChange(collectSimpleRewards(s));onClose();}catch{setError('このセーブデータを読み込めませんでした。');}finally{e.target.value='';}}}/></div>{error&&<p role="alert">{error}</p>}<details className="s-source"><summary>ゲームについて・以前のクラブ</summary><p>2026年のNPB所属全選手と、日本人MLB選手{mlbPlayers.length}人を収録した非公式シミュレーションです。</p><p>打席ごとの結果を集計して成績を計算します。NPBは143試合・延長12回。リーグ優勝3連覇後はMLBの30球団・162試合（独自日程）に昇格。カリフォルニア枠でア・リーグ西地区に参加します。MLBは延長決着制で、通常シーズンの延長のみ二塁に走者を置きます。両リーグDH制。対戦相手はNPBよりMLBで強い補正があります。故障・加齢・トレードは未実装です。過去8季の成績を保存します。</p><p>効果音：Kenney（CC0） · 演出：Animate.css / canvas-confetti</p><a href="/THIRD_PARTY_ASSETS.txt" target="_blank" rel="noreferrer">素材の出典とライセンス ↗</a>{onProfileChange&&<button className="s-button" onClick={()=>onProfileChange(state.mode==='career'?'free':'career')}>{state.mode==='career'?'以前のクラブに切り替える':'育成モードに切り替える'}</button>}</details></Dialog>;
+}
+
+export default function SimpleApp({profile='career',onProfileChange}:{profile?:Profile;onProfileChange?:(p:Profile)=>void}){
+ const loaded=useMemo(()=>loadState(profile),[profile]);
+ const [state,setState]=useState(()=>collectSimpleRewards(loaded.state));
+ const [sound,setSound]=useState(()=>{try{return localStorage.getItem('diamond-nine-sound')!=='off';}catch{return true;}}),[resetId,setResetId]=useState(0);
+ const [canRestore,setCanRestore]=useState(()=>{try{return !!readResetBackup(profile,localStorage);}catch{return false;}});
+ const impact=()=>{if(sound)gameSound('join');};
+ const [page,setPage]=useState<Page>('season'),[selected,setSelected]=useState<string|null>(null),[settings,setSettings]=useState(false),[confirmCompleteReset,setConfirmCompleteReset]=useState(false);
+ const [message,setMessage]=useState(''),[saveError,setSaveError]=useState(loaded.warning),[busy,setBusy]=useState(false),[progress,setProgress]=useState(0),[drawing,setDrawing]=useState(false),[hasDrawn,setHasDrawn]=useState(false);
+ const lock=useRef(false),timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ useEffect(()=>{try{const serialized=JSON.stringify(state);if(localStorage.getItem(saveKeyFor(profile))!==serialized)localStorage.setItem(saveKeyFor(profile),serialized);setSaveError('');}catch{setSaveError('保存できません。設定からデータを書き出してください。');}},[state,profile]);
+ useEffect(()=>()=>{if(timer.current)clearTimeout(timer.current);},[]);
+ // Synchronize other open tabs so a reset cannot be overwritten by stale cards.
+ useEffect(()=>{
+  const sync=(event:StorageEvent)=>{
+   if(event.storageArea!==localStorage)return;
+   try{
+    if(event.key===saveKeyFor(profile)){
+     const raw=localStorage.getItem(saveKeyFor(profile)),incoming=raw?migrateState(JSON.parse(raw)):null;
+     if(incoming&&(incoming.mode==='career')===(profile==='career')){
+      if(timer.current)clearTimeout(timer.current);lock.current=false;setBusy(false);setDrawing(false);setHasDrawn(false);setSelected(null);setSettings(false);setConfirmCompleteReset(false);setMessage('');setResetId(v=>v+1);setState(current=>JSON.stringify(current)===JSON.stringify(incoming)?current:incoming);
+     }
+    }
+    if(event.key?.startsWith(saveKeyFor(profile)))setCanRestore(!!readResetBackup(profile,localStorage));
+   }catch{setSaveError('別タブの保存を反映できませんでした。画面を再読み込みしてください。');}
+  };
+  window.addEventListener('storage',sync);return()=>window.removeEventListener('storage',sync);
+ },[profile]);
+ const askCompleteReset=()=>{setSettings(false);setConfirmCompleteReset(true);};
+ const completeReset=()=>{
+  if(lock.current)return;
+  try{const fresh=completeResetTeam(profile,localStorage);setState(fresh);setHasDrawn(false);setSettings(false);setSelected(null);setConfirmCompleteReset(false);setCanRestore(false);setResetId(v=>v+1);setPage('team');setMessage('完全リセットしました。初期配布24人・0ポイントからスタートです。');}
+  catch{setSaveError('完全リセットを完了できませんでした。保存状態を確認してください。');setConfirmCompleteReset(false);}
+ };
+ const reset=()=>{if(lock.current)return;try{const fresh=resetTeam(state,profile,localStorage);setState(fresh);setHasDrawn(false);setSettings(false);setSelected(null);setCanRestore(true);setResetId(v=>v+1);setPage('team');setMessage('チームをリセットしました。');impact();}catch{setSaveError('退避または保存ができなかったため、リセットを中止しました。設定から書き出してください。');setSettings(false);}};
+ const restore=()=>{if(lock.current)return;try{setState(restoreResetBackup(state,profile,localStorage));setHasDrawn(false);setSettings(false);setSelected(null);setResetId(v=>v+1);setPage('team');setMessage('リセット前のチームに戻しました。');}catch{setSaveError('チームを復元できませんでした。');setSettings(false);}};
+ const toggleSound=()=>{setSound(v=>{try{localStorage.setItem('diamond-nine-sound',v?'off':'on');}catch{}return !v;});};
+ const change=(s:GameState)=>{if(!lock.current)setState(collectSimpleRewards(s));};
+ const go=(p:Page)=>{setPage(p);window.scrollTo({top:0,behavior:'smooth'});};
+ const play=(days:number)=>{
+  if(lock.current||state.season.completed)return;
+  lock.current=true;setBusy(true);setProgress(0);let current=state;const from=state.season.day,target=Math.min(seasonGames(state.season),from+days);
+  const step=()=>{try{
+   current=simulateDays(current,Math.min(7,target-current.season.day));setProgress(Math.round((current.season.day-from)/(target-from)*100));
+   if(current.season.day<target)timer.current=setTimeout(step,20);
+   else{current=collectSimpleRewards(finishPostseason(current));const a=state.season.standings.find(t=>t.team===state.club)!,b=current.season.standings.find(t=>t.team===state.club)!;const game=current.season.results.at(-1)!;const score=game.home===state.club?`${game.homeRuns} − ${game.awayRuns}`:`${game.awayRuns} − ${game.homeRuns}`;setMessage(`${target-from===1?`${teamById(game.home===state.club?game.away:game.home).short}戦 ${score}`:`${target-from}試合：${b.w-a.w}勝 ${b.l-a.l}敗 ${b.d-a.d}分`}　獲得ポイント ＋${count(current.gems-state.gems)} pt${current.season.completed?` · ${circuitOf(current.season)==='MLB'?'ワールドシリーズ':'CS・日本シリーズ'}まで終了！`:''}`);setState(current);if(b.w>a.w||current.season.completed){if(sound)gameSound('win');}lock.current=false;setBusy(false);}
+  }catch{setMessage('試合を進められませんでした。編成をご確認ください。');setBusy(false);lock.current=false;}};
+  timer.current=setTimeout(step,30);
+ };
+ const post=()=>{if(lock.current)return;lock.current=true;setBusy(true);setProgress(0);timer.current=setTimeout(()=>{try{const next=collectSimpleRewards(finishPostseason(state));setState(next);setMessage(`${circuitOf(next.season)==='MLB'?'ワールドシリーズ':'CS・日本シリーズ'}まで終了しました。獲得ポイント ＋${count(next.gems-state.gems)} pt`);}catch{setMessage('短期決戦を進められませんでした。');}finally{lock.current=false;setBusy(false);}},30);};
+ const draw=()=>{
+  if(lock.current||state.gems<SIMPLE_SCOUT_COST)return;
+  lock.current=true;setDrawing(true);if(sound)gameSound('draw');
+  // Commit before the reveal so reloading during animation cannot reroll a card.
+  const next=drawSimplePlayer(state);setState(next);setHasDrawn(true);
+  timer.current=setTimeout(()=>{if(sound)gameSound(playerMap[next.lastPulls[0].playerId].mlb?'awaken':'reveal');setDrawing(false);lock.current=false;},scoutDuration());
+ };
+ return <div className="simple-app"><header className="s-header"><a href="#" onClick={e=>{e.preventDefault();go('season');}} className="s-brand"><span>9</span><b>DIAMOND NINE</b></a><div><span className="s-wallet">{count(state.gems)} <small>pt</small></span><button className="s-icon sound-toggle" aria-label={sound?"効果音をオフにする":"効果音をオンにする"} onClick={toggleSound}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}</button><button className="s-icon" aria-label="設定を開く" onClick={()=>setSettings(true)} disabled={busy||drawing}><Settings size={19}/></button></div></header><nav className="s-nav" aria-label="メインメニュー">{tabs.map(t=><button key={t.id} aria-current={(page==='catalog'?'team':page)===t.id?'page':undefined} onClick={()=>go(t.id)} disabled={busy||drawing}><t.icon size={18}/>{t.label}</button>)}</nav><main className="s-main">{saveError&&<div className="s-save-error" role="alert">{saveError}<button onClick={()=>setSettings(true)}>設定を開く</button></div>}{page==='season'&&<SimpleSeason state={state} busy={busy} progress={progress} onPlay={play} onPost={post} onNext={()=>{change(nextSeason(state));setMessage('新しいシーズンが始まりました。');}} onSwitchLeague={target=>{change(switchLeague(state,target));setMessage(target+'に切り替えました。選手・育成・ポイントは引き継いでいます。');}} onPlayer={p=>setSelected(p.id)} message={message}/ >}{page==='catalog'&&<PlayerCatalog state={state} onBack={()=>go('team')} onPlayer={p=>setSelected(p.id)}/ >}{page==='team'&&<DeckTeam key={resetId} state={state} onChange={change} onPlayer={p=>setSelected(p.id)} onImpact={impact} onCatalog={()=>go('catalog')} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{page==='scout'&&<SimpleScout state={state} onDraw={draw} onEquip={id=>change(equipScoutedPlayer(state,id))} drawing={drawing} hasDrawn={hasDrawn} onSeason={()=>go('season')} onPlayer={p=>setSelected(p.id)}/ >}</main><footer className="s-footer">自動保存 · NPB＋日本人MLB選手 · 非公式ゲーム</footer>{selected&&<PlayerInfo player={playerMap[selected]} state={state} catalog={page==='catalog'} onChange={change} onClose={()=>setSelected(null)} onAwaken={()=>{if(sound)gameSound('awaken');}}/ >}{settings&&<SimpleSettings state={state} onChange={change} onClose={()=>setSettings(false)} onProfileChange={onProfileChange} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{confirmCompleteReset&&<Dialog title="完全リセット" onClose={()=>setConfirmCompleteReset(false)}><div className="complete-reset-dialog"><h3>このクラブの獲得カードをすべて消します。</h3><p>所持カード {Object.keys(state.owned).length}人分・重複獲得・覚醒・ポイント・シーズン成績と、リセット前の復元用データを削除します。</p><p>初期配布の24人、覚醒なし、0ポイント、1年目の開幕前から再スタートします。</p><p><strong>完全リセット後は元に戻せません。</strong></p><div><button className="s-button" onClick={()=>setConfirmCompleteReset(false)}>キャンセル</button><button className="s-button complete-reset" onClick={completeReset}>所持カードを消して最初から</button></div></div></Dialog>}<PlayerHoverPreview owned={page==='catalog'?{}:state.owned} training={page==='catalog'?{}:state.training}/></div>;
+}

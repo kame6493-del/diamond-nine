@@ -1,0 +1,26 @@
+DIAMOND NINE — external audio and animation credits
+
+Sound recordings: Kenney
+Casino Audio (CC0 1.0): https://kenney.nl/assets/casino-audio
+ - cards-pack-open-1.ogg → audio/kenney/pack-open.ogg
+ - card-place-1.ogg → audio/kenney/card-place.ogg
+Interface Sounds (CC0 1.0): https://kenney.nl/assets/interface-sounds
+ - confirmation_002.ogg → audio/kenney/confirm.ogg
+ - maximize_008.ogg → audio/kenney/awaken.ogg
+Original recordings, played at a reduced volume. WAV copies preserve the same audio for browser compatibility.
+License texts: /audio/kenney/Casino-License.txt and Interface-License.txt
+Kenney assets are also listed by the Defold Foundation:
+https://defold.com/assets/kenney/
+
+Card animation presets: Animate.css (MIT)
+https://animate.style/
+https://github.com/animate-css/animate.css
+flipInY, tada, bounceIn and fadeInUp presets. No custom animation keyframes.
+License: /audio/kenney/Animate-LICENSE.txt
+
+Confetti animation: canvas-confetti (ISC)
+https://github.com/catdad/canvas-confetti
+License: /audio/kenney/Confetti-LICENSE.txt
+
+Dependencies are pinned in package-lock.json and bundled locally.
+All animations respect prefers-reduced-motion. The sound toggle is saved.

@@ -1,0 +1,44 @@
+/* Keep the same three screens usable with fingers and narrow browser windows. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.simple-app{min-height:100svh}
+.simple-dialog{overscroll-behavior:contain}
+@media(max-width:600px){
+ .s-header{padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right));padding-top:max(14px,env(safe-area-inset-top));gap:8px}
+ .s-header>div{gap:4px}.s-brand{min-width:0}.s-wallet{white-space:nowrap}
+ .s-icon,.simple-dialog header>.s-icon{min-width:44px;min-height:44px;display:inline-grid;place-items:center;padding:8px}
+ .s-nav{position:sticky;top:0;z-index:30;background:#fff;margin:0;padding:0 max(12px,env(safe-area-inset-left)) 0 max(12px,env(safe-area-inset-right));box-shadow:0 3px 9px #25365808}
+ .s-nav>button{min-height:50px}
+ .s-main{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+ .s-footer{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+ .simple-app input,.simple-app select,.simple-dialog input,.simple-dialog select,.simple-app textarea{font-size:16px}
+ .s-page-title{flex-wrap:wrap}.s-page-title select{max-width:150px}
+ .s-button,.s-primary,.s-secondary,.hand-equip,.catalog-ownership button,.league-switch button{min-height:44px}
+ .catalog-circuits button{flex-direction:column;gap:2px;padding:8px}
+ .catalog-collection>div:first-child{flex-wrap:wrap;gap:4px 10px}.catalog-collection strong{font-size:21px}
+ .deck-guide.is-choosing{top:50px}.deck-notice{bottom:max(16px,env(safe-area-inset-bottom))}
+ .lineup-row,.pitching-board .lineup-row{grid-template-columns:44px 44px minmax(0,1fr) 44px;gap:6px;padding:8px;scroll-margin-top:64px}
+ .lineup-row>.order-handle{grid-column:1;grid-row:1;min-height:44px}
+ .lineup-row>.position-cell{grid-column:2;grid-row:1}.position-handle{width:44px;min-height:44px}
+ .lineup-row>.row-identity{grid-column:3/5;grid-row:1}.row-identity>button{min-height:30px;font-size:15px}
+ .lineup-row>.row-jersey{grid-column:1;grid-row:2;height:44px}.row-jersey .deck-jersey{width:40px;height:44px}
+ .lineup-row>.row-overall{grid-column:2;grid-row:2;border-right:0;padding:0}
+ .lineup-row>.row-actions,.pitching-board .lineup-row>.row-actions{grid-column:3/5;grid-row:2;flex-direction:row;justify-content:flex-end;align-items:center;gap:6px}
+ .deck-card-button{min-width:44px;min-height:44px;font-size:11px;padding:6px}
+ .row-actions>div{gap:4px}.row-actions>div>button{min-width:44px;min-height:44px;justify-content:center;align-items:center}
+ .lineup-row>.card-abilities,.pitching-board .lineup-row>.card-abilities{grid-column:1/5;grid-row:3}
+ .pitching-board .lineup-row>.row-identity{grid-column:2/5}
+ .pitching-board .lineup-row>.row-overall{grid-column:2}
+ .simple-overlay{padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+ .simple-dialog{width:100%;max-width:550px;max-height:calc(100svh - 20px);padding:16px}
+ .s-stat-columns .s-stats{table-layout:fixed;width:100%}.s-stat-columns .s-stats th:first-child{width:29%;padding-left:9px}
+ .s-stat-columns .s-stats th:last-child,.s-stat-columns .s-stats td:last-child{padding-right:6px}
+ .s-stats tbody th>button{overflow-wrap:anywhere;min-height:32px;text-align:left}
+}
+@media(max-width:350px){
+ .s-brand{font-size:9px;gap:4px}.s-brand>span{width:25px;height:25px}.s-wallet{font-size:13px}
+ .s-scout-main{padding-left:14px;padding-right:14px}.deck-hand-list{grid-template-columns:1fr;max-height:none}
+ .catalog-grid{gap:8px}.catalog-grid .trading-card{padding:8px}.catalog-grid .tc-name{padding-left:0;padding-right:0}
+ .catalog-grid .card-abilities strong{font-size:13px}.catalog-grid .card-abilities em{font-size:9px}
+ .s-stat-columns .s-stats thead th{font-size:8px;padding-left:2px;padding-right:2px}
+ .lineup-row>.row-actions{gap:3px}.row-actions>div{gap:2px}
+}

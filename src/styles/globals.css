@@ -1,0 +1,299 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #0f172a;
+  background: #fefce8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 4px solid #facc15;
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #fde047;
+  color: #0f172a;
+}
+
+.asset-header,
+.asset-panel,
+.asset-modal,
+.asset-talk,
+.asset-status,
+.asset-tabs-bar,
+.player-card,
+.training-card,
+.scoreboard-panel {
+  position: relative;
+}
+
+.asset-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 16px 16px, rgba(255, 255, 255, 0.22) 0 2px, transparent 2px 100%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 44%);
+  background-size: 24px 24px, auto;
+}
+
+.asset-panel,
+.asset-modal,
+.asset-talk,
+.asset-status,
+.player-card,
+.training-card {
+  background-image:
+    radial-gradient(circle at 14px 14px, rgba(59, 130, 246, 0.08) 0 2px, transparent 2px 100%),
+    linear-gradient(180deg, #ffffff 0%, #fffdf2 56%, #eff6ff 100%);
+  background-size: 28px 28px, auto;
+}
+
+.asset-panel::after,
+.asset-modal::after,
+.player-card::after,
+.training-card::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  border: 2px dashed rgba(37, 99, 235, 0.24);
+  border-radius: 10px;
+}
+
+.asset-panel > *,
+.asset-modal > *,
+.player-card > *,
+.training-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.asset-panel-title {
+  margin-left: -1rem;
+  margin-top: -1rem;
+}
+
+.asset-button {
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 0 rgba(8, 47, 73, 0.45);
+}
+
+.asset-button::before,
+.asset-tab::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 4px;
+  height: 35%;
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0));
+}
+
+.asset-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: var(--button-kit-image, url("/assets/production/buttons/btn_training_large.png"));
+  background-size: 270px auto;
+  background-position: left top;
+  mix-blend-mode: soft-light;
+  opacity: 0.12;
+  z-index: 0;
+}
+
+.asset-button > *,
+.asset-tab > * {
+  position: relative;
+  z-index: 1;
+}
+
+.asset-tab {
+  position: relative;
+  overflow: hidden;
+}
+
+.scoreboard-panel {
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(8, 47, 73, 0.96)),
+    url("/assets/production/scoreboards/scoreboard_main.png"),
+    radial-gradient(circle at 18px 18px, rgba(253, 224, 71, 0.2) 0 2px, transparent 2px 100%);
+  background-size: auto, cover, 28px 28px;
+  background-blend-mode: normal, soft-light, normal;
+}
+
+.asset-status {
+  background:
+    linear-gradient(90deg, #fef3c7 0%, #ffffff 32%, #dbeafe 100%),
+    radial-gradient(circle at 14px 14px, rgba(22, 163, 74, 0.14) 0 2px, transparent 2px 100%);
+}
+
+.asset-modal .asset-button:not(:disabled) {
+  --button-kit-image: url("/assets/production/buttons/btn_confirm_cancel_pair.png");
+}
+
+.asset-tabs-bar {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(219, 234, 254, 0.96));
+  scrollbar-width: thin;
+}
+
+.asset-tabs-bar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.asset-tabs-bar::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 999px;
+}
+
+.player-card {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(239, 246, 255, 0.9)),
+    url("/assets/production/cards/player_cards_set.png");
+  background-size: auto, 230px auto;
+  background-position: center, right -24px top -16px;
+  background-repeat: repeat, no-repeat;
+}
+
+.training-card {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 251, 235, 0.92)),
+    url("/assets/production/panels/panel_large_blue_header.png");
+  background-size: auto, 360px auto;
+  background-position: center, right -70px top -35px;
+  background-repeat: repeat, no-repeat;
+}
+
+.asset-preview-card {
+  background-image:
+    radial-gradient(circle at 12px 12px, rgba(37, 99, 235, 0.08) 0 2px, transparent 2px 100%),
+    linear-gradient(180deg, #ffffff, #fffdf1);
+  background-size: 22px 22px, auto;
+}
+
+.broadcast-field {
+  background:
+    radial-gradient(circle at 14px 14px, rgba(255, 255, 255, 0.28) 0 2px, transparent 2px 100%),
+    linear-gradient(180deg, #8bd86f 0%, #4fb45b 58%, #2f8f44 100%);
+  background-size: 24px 24px, auto;
+}
+
+.field-diamond {
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  border: 4px solid #082f49;
+  border-radius: 18px;
+  background:
+    linear-gradient(45deg, transparent 42%, rgba(255, 236, 179, 0.9) 42% 58%, transparent 58%),
+    radial-gradient(circle at 50% 54%, #d9a15b 0 23%, transparent 23%),
+    radial-gradient(circle at 50% 76%, #b7783d 0 22%, transparent 22%),
+    linear-gradient(180deg, #74cf68, #3ba758);
+}
+
+.field-diamond::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  width: 190px;
+  height: 190px;
+  border: 5px solid rgba(255, 255, 255, 0.85);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.base,
+.mound,
+.batter-box {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  border: 3px solid #082f49;
+  font-weight: 900;
+  box-shadow: 0 4px 0 rgba(8, 47, 73, 0.28);
+}
+
+.base {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #fff7d6;
+  color: #082f49;
+  transform: rotate(45deg);
+}
+
+.base-first {
+  right: 25%;
+  top: 51%;
+}
+
+.base-second {
+  left: 50%;
+  top: 20%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.base-third {
+  left: 25%;
+  top: 51%;
+}
+
+.base-home {
+  left: 50%;
+  bottom: 10%;
+  transform: translateX(-50%) rotate(45deg);
+  background: #ffffff;
+}
+
+.mound {
+  left: 50%;
+  top: 53%;
+  width: min(170px, 44vw);
+  min-height: 56px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: #fff;
+  color: #082f49;
+}
+
+.batter-box {
+  left: 50%;
+  bottom: 22%;
+  width: min(170px, 44vw);
+  min-height: 52px;
+  transform: translateX(-50%);
+  border-radius: 12px;
+  background: #fde047;
+  color: #082f49;
+}
