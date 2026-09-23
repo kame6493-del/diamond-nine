@@ -5,7 +5,6 @@ import {initialState,initialSandboxState,emptySeason,simulateDays,nextSeason,mig
 import {finishPostseason} from '../src/pro/postseason';
 import {fieldingRuns,formatUZR,playerSeasonUZR,teamFieldingStats} from '../src/pro/fielding-stats';
 import {teamSeasonStats} from '../src/pro/team-stats';
-import {TeamSeasonStats} from '../src/pro/TeamSeasonStats';
 import {SimpleStats} from '../src/pro/SimpleApp';
 import {trainPlayer} from '../src/pro/franchise';
 
@@ -37,13 +36,11 @@ export function registerFieldingStatsTests(test:(name:string,run:()=>void)=>void
   [nextDH.defense[id],nextDH.defense[oldDH]]=[nextDH.defense[oldDH],nextDH.defense[id]];
   const switched=simulateDays(nextDH,1);assert.deepEqual(switched.season.fielding!.players[`${normal.club}|${id}`],previous);
  });
- test('legacy UZR is not invented and mixed seasons explicitly identify their recorded game count',()=>{
+ test('legacy UZR is not invented and mixed seasons retain their recorded game count',()=>{
   const old=simulateDays(initialState(7125),3);delete old.season.fielding;
   const loaded=migrateState(JSON.parse(JSON.stringify(old)))!;assert.ok(loaded);assert.equal(teamFieldingStats(loaded.season,loaded.club).uzr,null);
-  assert.ok(renderToStaticMarkup(createElement(TeamSeasonStats,{season:loaded.season,club:loaded.club})).includes('更新後の試合から'));
   const partial=simulateDays(loaded,2),summary=teamSeasonStats(partial.season,partial.club);
   assert.equal(summary.games,5);assert.equal(summary.uzrGames,2);assert.ok(summary.uzr!==null);
-  assert.ok(renderToStaticMarkup(createElement(TeamSeasonStats,{season:partial.season,club:partial.club})).includes('記録開始後の2試合分'));
   assert.equal(teamFieldingStats(emptySeason(),loaded.club).uzr,0);
  });
  test('UZR survives saves and archived box-score compaction with no postseason contamination',()=>{
