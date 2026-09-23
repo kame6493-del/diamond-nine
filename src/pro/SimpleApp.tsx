@@ -26,6 +26,8 @@ import './arcade.css';
 import {PlayerDetails} from './PlayerDetails';
 import {ScoutCharge,ScoutArrival,scoutDuration} from './ScoutEffects';
 import {scoutPresentation} from './scout-presentation';
+import {StarterScout} from './StarterScout';
+import {starterScoutActive,pickStarterCard,finishStarterScout} from './starter-scout';
 import {mlbPlayers} from './mlb-players';
 import './scout.css';
 
@@ -134,6 +136,7 @@ function SimpleSettings({state,onChange,onClose,onProfileChange,onReset,onRestor
 export default function SimpleApp({profile='career',onProfileChange}:{profile?:Profile;onProfileChange?:(p:Profile)=>void}){
  const loaded=useMemo(()=>loadState(profile),[profile]);
  const [state,setState]=useState(()=>collectSimpleRewards(loaded.state));
+ const starter=starterScoutActive(state);
  const [sound,setSound]=useState(()=>{try{return localStorage.getItem('diamond-nine-sound')!=='off';}catch{return true;}}),[resetId,setResetId]=useState(0);
  const [canRestore,setCanRestore]=useState(()=>{try{return !!readResetBackup(profile,localStorage);}catch{return false;}});
  const impact=()=>{if(sound)gameSound('join');};
@@ -163,14 +166,33 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
  const askCompleteReset=()=>{setSettings(false);setConfirmCompleteReset(true);};
  const completeReset=()=>{
   if(lock.current)return;
-  try{const fresh=completeResetTeam(profile,localStorage);setState(fresh);setHasDrawn(false);setSettings(false);setSelected(null);setConfirmCompleteReset(false);setCanRestore(false);setResetId(v=>v+1);setPage('team');setMessage('完全リセットしました。初期配布24人・0ポイントからスタートです。');}
+  try{const fresh=completeResetTeam(profile,localStorage);setState(fresh);setHasDrawn(false);setSettings(false);setSelected(null);setConfirmCompleteReset(false);setCanRestore(false);setResetId(v=>v+1);setPage('team');setMessage('完全リセットしました。スタートスカウトで最初の主力を選べます。');}
   catch{setSaveError('完全リセットを完了できませんでした。保存状態を確認してください。');setConfirmCompleteReset(false);}
  };
  const reset=()=>{if(lock.current)return;try{const fresh=resetTeam(state,profile,localStorage);setState(fresh);setHasDrawn(false);setSettings(false);setSelected(null);setCanRestore(true);setResetId(v=>v+1);setPage('team');setMessage('チームをリセットしました。');impact();}catch{setSaveError('退避または保存ができなかったため、リセットを中止しました。設定から書き出してください。');setSettings(false);}};
  const restore=()=>{if(lock.current)return;try{setState(restoreResetBackup(state,profile,localStorage));setHasDrawn(false);setSettings(false);setSelected(null);setResetId(v=>v+1);setPage('team');setMessage('リセット前のチームに戻しました。');}catch{setSaveError('チームを復元できませんでした。');setSettings(false);}};
  const toggleSound=()=>{if(sound)stopGameAudio();soundRef.current=!sound;setSound(v=>{try{localStorage.setItem('diamond-nine-sound',v?'off':'on');}catch{}return !v;});};
  const change=(s:GameState)=>{if(!lock.current)setState(collectSimpleRewards(s));};
- const go=(p:Page)=>{if(page==='scout'&&p!==page)stopGameAudio();setPage(p);window.scrollTo({top:0,behavior:'smooth'});};
+ // Persist the offer and selected card before playing the reveal. Reloads,
+ // imports and a second open tab resume the same one-time reward.
+ const commitStarter=(index:number|null):boolean=>{
+  if(lock.current)return false;
+  try{
+   const raw=localStorage.getItem(saveKeyFor(profile));
+   const current=raw?migrateState(JSON.parse(raw)):state;
+   if(!current||(current.mode==='career')!==(profile==='career'))throw new Error('Invalid save');
+   if(!starterScoutActive(current)||JSON.stringify(current.starterScout?.choices)!==JSON.stringify(state.starterScout?.choices)||(index!==null&&current.starterScout?.selected)){
+    setState(current);return false;
+   }
+   const next=index===null?finishStarterScout(current):pickStarterCard(current,index);
+   if(next===current)return false;
+   const ready=index===null?equipScoutedPlayer(next,next.starterScout!.selected!):next;
+   localStorage.setItem(saveKeyFor(profile),JSON.stringify(ready));setState(ready);
+   if(index===null){stopGameAudio();setPage('season');setHasDrawn(false);setMessage('主力選手がチームに加入しました。最初のシーズンを始めよう！');window.scrollTo({top:0,behavior:'auto'});}
+   return true;
+  }catch{setSaveError('保存できませんでした。空き容量を確認して、もう一度お試しください。設定からデータを書き出すこともできます。');return false;}
+ };
+ const go=(p:Page)=>{if(starter)return;if(page==='scout'&&p!==page)stopGameAudio();setPage(p);window.scrollTo({top:0,behavior:'smooth'});};
  const play=(days:number)=>{
   if(lock.current||state.season.completed)return;
   lock.current=true;setBusy(true);setProgress(0);let current=state;const from=state.season.day,target=Math.min(seasonGames(state.season),from+days);
@@ -196,5 +218,5 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
   };
   timer.current=setTimeout(()=>finishDraw.current?.(),scoutDuration(tier));
  };
- return <div className="simple-app"><header className="s-header"><a href="#" onClick={e=>{e.preventDefault();go('season');}} className="s-brand"><span>9</span><b>DIAMOND NINE</b></a><div><span className="s-wallet">{count(state.gems)} <small>pt</small></span><button className="s-icon sound-toggle" aria-label={sound?"効果音をオフにする":"効果音をオンにする"} onClick={toggleSound}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}</button><button className="s-icon" aria-label="設定を開く" onClick={()=>setSettings(true)} disabled={busy||drawing}><Settings size={19}/></button></div></header><nav className="s-nav" aria-label="メインメニュー">{tabs.map(t=><button key={t.id} aria-current={(page==='catalog'?'team':page)===t.id?'page':undefined} onClick={()=>go(t.id)} disabled={busy||drawing}><t.icon size={18}/>{t.label}</button>)}</nav><main className="s-main">{saveError&&<div className="s-save-error" role="alert">{saveError}<button onClick={()=>setSettings(true)}>設定を開く</button></div>}{page==='season'&&<SimpleSeason state={state} busy={busy} progress={progress} onPlay={play} onPost={post} onNext={()=>{change(nextSeason(state));setMessage('新しいシーズンが始まりました。');}} onSwitchLeague={target=>{change(switchLeague(state,target));setMessage(target+'に切り替えました。選手・育成・ポイントは引き継いでいます。');}} onPlayer={p=>setSelected(p.id)} message={message}/ >}{page==='catalog'&&<PlayerCatalog state={state} onBack={()=>go('team')} onPlayer={p=>setSelected(p.id)}/ >}{page==='team'&&<DeckTeam key={resetId} state={state} onChange={change} onPlayer={p=>setSelected(p.id)} onImpact={impact} onCatalog={()=>go('catalog')} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{page==='scout'&&<SimpleScout state={state} onSkip={()=>finishDraw.current?.()} onDraw={draw} onEquip={id=>change(equipScoutedPlayer(state,id))} drawing={drawing} hasDrawn={hasDrawn} onSeason={()=>go('season')} onPlayer={p=>setSelected(p.id)}/ >}</main><footer className="s-footer">自動保存 · NPB＋日本人MLB選手 · 非公式ゲーム</footer>{selected&&<PlayerInfo player={playerMap[selected]} state={state} catalog={page==='catalog'} onChange={change} onClose={()=>setSelected(null)} onAwaken={()=>{if(sound)gameSound('awaken');}}/ >}{settings&&<SimpleSettings state={state} onChange={change} onClose={()=>setSettings(false)} onProfileChange={onProfileChange} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{confirmCompleteReset&&<Dialog title="完全リセット" onClose={()=>setConfirmCompleteReset(false)}><div className="complete-reset-dialog"><h3>このクラブの獲得カードをすべて消します。</h3><p>所持カード {Object.keys(state.owned).length}人分・重複獲得・覚醒・ポイント・シーズン成績と、リセット前の復元用データを削除します。</p><p>初期配布の24人、覚醒なし、0ポイント、1年目の開幕前から再スタートします。</p><p><strong>完全リセット後は元に戻せません。</strong></p><div><button className="s-button" onClick={()=>setConfirmCompleteReset(false)}>キャンセル</button><button className="s-button complete-reset" onClick={completeReset}>所持カードを消して最初から</button></div></div></Dialog>}<PlayerHoverPreview owned={page==='catalog'?{}:state.owned} training={page==='catalog'?{}:state.training}/></div>;
+ return <div className="simple-app"><header className="s-header"><a href="#" onClick={e=>{e.preventDefault();go('season');}} className="s-brand"><span>9</span><b>DIAMOND NINE</b></a><div><span className="s-wallet">{count(state.gems)} <small>pt</small></span><button className="s-icon sound-toggle" aria-label={sound?"効果音をオフにする":"効果音をオンにする"} onClick={toggleSound}>{sound?<Volume2 size={18}/>:<VolumeX size={18}/>}</button><button className="s-icon" aria-label="設定を開く" onClick={()=>setSettings(true)} disabled={busy||drawing}><Settings size={19}/></button></div></header><nav className="s-nav" aria-label="メインメニュー">{tabs.map(t=><button key={t.id} aria-current={(page==='catalog'?'team':page)===t.id?'page':undefined} onClick={()=>go(t.id)} disabled={busy||drawing||starter}><t.icon size={18}/>{t.label}</button>)}</nav><main className="s-main">{saveError&&<div className="s-save-error" role="alert">{saveError}<button onClick={()=>setSettings(true)}>設定を開く</button></div>}{starter?<StarterScout key={resetId+'-'+state.starterScout!.choices.join('-')} state={state} sound={sound} onPick={index=>commitStarter(index)} onFinish={()=>commitStarter(null)} onPlayer={p=>setSelected(p.id)}/>:<>{page==='season'&&<SimpleSeason state={state} busy={busy} progress={progress} onPlay={play} onPost={post} onNext={()=>{change(nextSeason(state));setMessage('新しいシーズンが始まりました。');}} onSwitchLeague={target=>{change(switchLeague(state,target));setMessage(target+'に切り替えました。選手・育成・ポイントは引き継いでいます。');}} onPlayer={p=>setSelected(p.id)} message={message}/ >}{page==='catalog'&&<PlayerCatalog state={state} onBack={()=>go('team')} onPlayer={p=>setSelected(p.id)}/ >}{page==='team'&&<DeckTeam key={resetId} state={state} onChange={change} onPlayer={p=>setSelected(p.id)} onImpact={impact} onCatalog={()=>go('catalog')} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{page==='scout'&&<SimpleScout state={state} onSkip={()=>finishDraw.current?.()} onDraw={draw} onEquip={id=>change(equipScoutedPlayer(state,id))} drawing={drawing} hasDrawn={hasDrawn} onSeason={()=>go('season')} onPlayer={p=>setSelected(p.id)}/ >}</>}</main><footer className="s-footer">自動保存 · NPB＋日本人MLB選手 · 非公式ゲーム</footer>{selected&&<PlayerInfo player={playerMap[selected]} state={state} catalog={page==='catalog'} onChange={change} onClose={()=>setSelected(null)} onAwaken={()=>{if(sound)gameSound('awaken');}}/ >}{settings&&<SimpleSettings state={state} onChange={change} onClose={()=>setSettings(false)} onProfileChange={onProfileChange} onReset={reset} onRestore={restore} onCompleteReset={askCompleteReset} canRestore={canRestore}/ >}{confirmCompleteReset&&<Dialog title="完全リセット" onClose={()=>setConfirmCompleteReset(false)}><div className="complete-reset-dialog"><h3>このクラブの獲得カードをすべて消します。</h3><p>所持カード {Object.keys(state.owned).length}人分・重複獲得・覚醒・ポイント・シーズン成績と、リセット前の復元用データを削除します。</p><p>初期配布の24人、覚醒なし、0ポイントに戻り、スタートスカウトで1人を選んで再スタートします。</p><p><strong>完全リセット後は元に戻せません。</strong></p><div><button className="s-button" onClick={()=>setConfirmCompleteReset(false)}>キャンセル</button><button className="s-button complete-reset" onClick={completeReset}>所持カードを消して最初から</button></div></div></Dialog>}<PlayerHoverPreview owned={page==='catalog'?{}:state.owned} training={page==='catalog'?{}:state.training}/></div>;
 }

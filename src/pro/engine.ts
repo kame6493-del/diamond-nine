@@ -13,6 +13,7 @@ import {claimSeasonGoals} from './ambitions';
 import {ownedRatings,ratingOverall} from './development';
 import {recordAchievements,achievementNames,type Achievements} from './achievements';
 import {captureSeasonTeam,validSeasonTeam,type SeasonTeamSnapshot} from './season-team';
+import {createStarterScout,validStarterScout,type StarterScoutState} from './starter-scout';
 
 export interface BatStats { playerId:string;team:string;games:number;pa:number;ab:number;hits:number;doubles:number;triples:number;hr:number;rbi:number;runs:number;bb:number;so:number;sb:number;hbp:number;sf:number }
 export interface PitStats { playerId:string;team:string;games:number;starts:number;wins:number;losses:number;saves:number;outs:number;hits:number;er:number;bb:number;so:number;hr:number;hbp:number;bf:number }
@@ -21,7 +22,7 @@ export interface PlayHighlight { inning:number;team:string;batter:string;pitcher
 export interface GameBox { batting:BatStats[];pitching:PitStats[];highlights:PlayHighlight[] }
 export interface GameResult { day:number;home:string;away:string;homeRuns:number;awayRuns:number;innings:number;line:number[][];stars:string[];errors?:[number,number];box?:GameBox }
 export interface Season { shareTeam?:SeasonTeamSnapshot;circuit?:Circuit;club?:string;number:number;day:number;standings:Standing[];batting:Record<string,BatStats>;pitching:Record<string,PitStats>;results:GameResult[];trend:number[];completed:boolean;rewardClaimed:boolean;model?:'2026-dips'|'2025-basic';postseason?:Postseason }
-export interface GameState { achievements?:Achievements;parkedSeason?:Season;leagueChoice?:Circuit;leagueProgress?:LeagueProgress;version:1;mode?:Profile;name:string;club:string;gems:number;owned:Record<string,number>;lineup:string[];defense:Record<string,string>;pitchers:string[];season:Season;history:Season[];pulls:number;pity:number;seed:number;lastPulls:Pull[];franchise:Franchise;training:Record<string,number> }
+export interface GameState { starterScout?:StarterScoutState;achievements?:Achievements;parkedSeason?:Season;leagueChoice?:Circuit;leagueProgress?:LeagueProgress;version:1;mode?:Profile;name:string;club:string;gems:number;owned:Record<string,number>;lineup:string[];defense:Record<string,string>;pitchers:string[];season:Season;history:Season[];pulls:number;pity:number;seed:number;lastPulls:Pull[];franchise:Franchise;training:Record<string,number> }
 export interface Pull { playerId:string;isNew:boolean;copies:number;guaranteed:boolean;trainingReward?:number;contract?:boolean }
 export const SAVE_KEY='diamond-dynasty-v1';
 export const CAREER_SAVE_KEY='diamond-dynasty-career-v1';
@@ -44,11 +45,13 @@ export function initialState():GameState {
  const relief=arms.filter(p=>!starters.includes(p)).slice(0,6);
  if(starters.length!==6||relief.length!==6)throw new Error('Missing starter pitchers');
  const pitchers=[...starters,...relief].map(p=>p.id),bench=batters.filter(p=>!lineup.includes(p.id)).slice(0,3);
- return {achievements:{},version:1,mode:'career',name:'東京ルーキーズ',club:'t',gems:0,owned:Object.fromEntries([...lineup,...pitchers,...bench.map(p=>p.id)].map(id=>[id,1])),lineup,defense,pitchers,season:emptySeason(),history:[],pulls:0,pity:0,seed:Math.floor(Math.random()*0xffffffff)||428374,lastPulls:[],franchise:{...freshFranchise(),established:true,tickets:0,points:0,motto:'一枚ずつ、強くなる。'},training:{}};
+ const seed=Math.floor(Math.random()*0xffffffff)||428374;
+ return {starterScout:createStarterScout(seed),achievements:{},version:1,mode:'career',name:'東京ルーキーズ',club:'t',gems:0,owned:Object.fromEntries([...lineup,...pitchers,...bench.map(p=>p.id)].map(id=>[id,1])),lineup,defense,pitchers,season:emptySeason(),history:[],pulls:0,pity:0,seed,lastPulls:[],franchise:{...freshFranchise(),established:true,tickets:0,points:0,motto:'一枚ずつ、強くなる。'},training:{}};
 }
 export function validState(value:unknown):value is GameState{
  if(!value||typeof value!=='object')return false;
  const s=value as GameState;
+ if(s.starterScout!==undefined&&!validStarterScout(s.starterScout,s.owned))return false;
  const finite=(n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
  const progress=s.leagueProgress;
  const latestSeason=Math.max(s.season?.number??0,s.parkedSeason?.number??0,...(Array.isArray(s.history)?s.history.map(h=>h?.number??0):[]));
