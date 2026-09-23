@@ -18,7 +18,7 @@ export function registerCareerTests(test:(name:string,run:()=>void)=>void){
   for(let seed=1;seed<=500;seed++){
    const state=initialState(seed),ids=Object.keys(state.owned);assert.ok(validState(state));assert.equal(ids.length,24);
    assert.equal(new Set([...state.lineup,...state.pitchers]).size,21);
-   for(const id of ids){const p=playerMap[id],score=ratingOverall(p);assert.equal(state.owned[id],1);assert.ok(!p.mlb&&!p.provisional);assert.ok(p.role==='batter'?score>=52&&score<=62:score>=62&&score<=73);}
+   for(const id of ids){const p=playerMap[id],score=ratingOverall(p);assert.equal(state.owned[id],1);assert.ok(!p.mlb&&!p.provisional);assert.ok(score<=(p.role==='batter'?52:pitchingRoleLabel(p)==='先発'?57:54));}
    for(const id of state.lineup)assert.ok(fitsPosition(playerMap[id],state.defense[id]));
    assert.ok(state.pitchers.slice(0,6).every(id=>pitchingRoleLabel(playerMap[id])==='先発'));
    assert.ok(state.pitchers.slice(6).every(id=>pitchingRoleLabel(playerMap[id])==='救援'));

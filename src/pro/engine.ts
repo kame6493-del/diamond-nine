@@ -44,10 +44,12 @@ export function initialState(seed=Math.floor(Math.random()*0xffffffff)||428374):
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(random.next()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
   return pool;
  };
- const batters=shuffle(players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional&&p.overall>=40&&p.overall<=48&&ratingOverall(p)>=52&&ratingOverall(p)<=62));
+ // Cap the displayed rating, with no lower cutoff that would exclude the
+ // weakest cards. Starters need a slightly wider pool to fill six unique slots.
+ const batters=shuffle(players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional&&ratingOverall(p)<=52));
  const lineup:string[]=[],defense:Record<string,string>={};
  for(const slot of rosterSlots){const p=batters.find(p=>!lineup.includes(p.id)&&fitsPosition(p,slot));if(!p)throw new Error('Missing starter position '+slot);lineup.push(p.id);defense[p.id]=slot;}
- const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&p.overall>=56&&p.overall<=64&&ratingOverall(p)>=62&&ratingOverall(p)<=73));
+ const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&ratingOverall(p)<=(pitchingRoleLabel(p)==='先発'?57:54)));
  const starters=arms.filter(p=>pitchingRoleLabel(p)==='先発').slice(0,6);
  const relief=arms.filter(p=>pitchingRoleLabel(p)==='救援').slice(0,6);
  if(starters.length!==6||relief.length!==6)throw new Error('Missing starter pitchers');

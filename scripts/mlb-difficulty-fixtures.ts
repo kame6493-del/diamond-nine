@@ -8,7 +8,7 @@ import {recordAchievements} from '../src/pro/achievements';
 export function mlbDifficultySquads():[string,GameState][]{
  const domestic=npbDifficultySquads(),base=initialState();
  const mixed=(stage:number)=>buildByStrategy({...base,owned:Object.fromEntries(players.map(p=>[p.id,1])),training:Object.fromEntries(players.map(p=>[p.id,stage]))},'balanced');
- return [['昇格水準・主力5人と覚醒2',domestic[2][1]],['バランスのよいNPB主力',domestic[3][1]],['NPB選抜・未覚醒',domestic[4][1]],['混成選抜・覚醒3',mixed(3)],['混成選抜・覚醒5',mixed(5)]];
+ return [['初期チーム＋主力5人と覚醒2',domestic[2][1]],['バランスのよいNPB主力',domestic[3][1]],['NPB選抜・未覚醒',domestic[4][1]],['混成選抜・覚醒3',mixed(3)],['混成選抜・覚醒5',mixed(5)]];
 }
 export const mlbDifficultyStart=(squad:GameState,index:number):GameState=>recordAchievements({...squad,seed:39017+index*98881,season:emptySeason(6,'MLB',squad.club),leagueProgress:{basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:5}});
 export function runMlbDifficultySeason(squad:GameState,index:number){

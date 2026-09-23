@@ -18,7 +18,7 @@ export function registerMlbDifficultyTests(test:(name:string,run:()=>void)=>void
    return {wins:results.reduce((n,r)=>n+r.wins,0)/8,titles:results.reduce((n,r)=>n+r.champion,0),finals:results.reduce((n,r)=>n+r.finals,0),playoffs:results.reduce((n,r)=>n+r.playoffs,0)};
   });
   const [promoted,stars,developed]=summaries;
-  assert.ok(promoted.wins>=55&&promoted.wins<=78,JSON.stringify(summaries));assert.equal(promoted.titles,0);
+  assert.ok(promoted.wins>=40&&promoted.wins<=70,JSON.stringify(summaries));assert.equal(promoted.titles,0);
   assert.ok(stars.wins>=85&&stars.wins<=115);assert.ok(stars.wins>promoted.wins+22);assert.ok(stars.playoffs>=4);
   assert.ok(developed.wins>stars.wins+5&&developed.wins<132);assert.ok(developed.finals>=2);assert.ok(developed.titles>=1&&developed.titles<8);
   const domestic=simulateDays({...squads[0][1],seed:39017},143).season.standings.find(r=>r.team===squads[0][1].club)!;
