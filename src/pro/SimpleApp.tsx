@@ -37,24 +37,25 @@ const count=(n:number)=>n.toLocaleString('ja-JP');
 const bonus=(s:GameState,id:string)=>Math.min(5,Math.max(0,(s.owned[id]??1)-1))+(s.training[id]??0);
 const tabs=[{id:'season',label:'試合・成績',icon:Play},{id:'team',label:'チーム',icon:Users},{id:'scout',label:'スカウト',icon:Sparkles}] as const;
 
-function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){
- const ref=useRef<HTMLDivElement>(null);
+function Dialog({title,onClose,children,className=''}:{title:string;onClose:()=>void;children:ReactNode;className?:string}){
+ const ref=useRef<HTMLDivElement>(null),close=useRef(onClose);close.current=onClose;
  useEffect(()=>{
   const old=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;
-  document.body.style.overflow='hidden';ref.current?.focus();
+  document.body.style.overflow='hidden';ref.current?.focus({preventScroll:true});
   const key=(e:KeyboardEvent)=>{
-   if(e.key==='Escape')onClose();
+   if(!ref.current?.contains(document.activeElement))return;
+   if(e.key==='Escape'){e.preventDefault();close.current();}
    if(e.key==='Tab'){
-    const nodes=ref.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,a[href]');
+    const nodes=Array.from(ref.current.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,summary,a[href]')).filter(node=>node.getClientRects().length);
     if(!nodes?.length)return;
     if(e.shiftKey&&(document.activeElement===nodes[0]||document.activeElement===ref.current)){e.preventDefault();nodes[nodes.length-1].focus();}
     else if(!e.shiftKey&&document.activeElement===nodes[nodes.length-1]){e.preventDefault();nodes[0].focus();}
    }
   };
   document.addEventListener('keydown',key);
-  return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);old?.focus();};
- },[onClose]);
- return <div className="simple-overlay" onClick={onClose}><div className="simple-dialog" ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} onClick={e=>e.stopPropagation()}><header><h2>{title}</h2><button className="s-icon" onClick={onClose} aria-label="閉じる"><X size={20}/></button></header>{children}</div></div>;
+  return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);old?.focus({preventScroll:true});};
+ },[]);
+ return <div className="simple-overlay" onClick={onClose}><div className={`simple-dialog ${className}`} ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} onClick={e=>e.stopPropagation()}><header><h2>{title}</h2><button className="s-icon" onClick={onClose} aria-label="閉じる"><X size={20}/></button></header>{children}</div></div>;
 }
 
 export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season:Season;club:string;onPlayer:(p:Player)=>void;lineup?:string[];pitchers?:string[]}){
@@ -143,7 +144,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
  </div>;
 }
 
-function PlayerInfo({player,state,onChange,onClose,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onAwaken:()=>void;catalog?:boolean}){return <Dialog title="選手情報" onClose={onClose}><PlayerDetails player={player} state={state} onChange={onChange} onAwaken={onAwaken} catalog={catalog}/></Dialog>;}
+function PlayerInfo({player,state,onChange,onClose,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onAwaken:()=>void;catalog?:boolean}){return <Dialog title="選手情報" className="player-dialog" onClose={onClose}><PlayerDetails player={player} state={state} onChange={onChange} onAwaken={onAwaken} catalog={catalog}/></Dialog>;}
 
 function SimpleSettings({state,onChange,onClose,onProfileChange,onReset,onRestore,onCompleteReset,canRestore}:{state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onProfileChange?:(p:Profile)=>void;onReset:()=>void;onRestore:()=>void;onCompleteReset:()=>void;canRestore:boolean}){
  const [name,setName]=useState(state.name),[error,setError]=useState('');const input=useRef<HTMLInputElement>(null);

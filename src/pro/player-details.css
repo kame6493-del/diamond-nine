@@ -1,0 +1,86 @@
+/* Keep current abilities and the awakening action together at the top. */
+.player-dialog{--detail-padding:25px;scroll-padding-top:76px}
+.player-dialog>header{position:sticky;top:calc(-1 * var(--detail-padding));z-index:2;margin:calc(-1 * var(--detail-padding)) calc(-1 * var(--detail-padding)) 14px;padding:8px var(--detail-padding);min-height:60px;background:#fff;border-bottom:1px solid #e9eaf1}
+.player-dialog>header>.s-icon{min-width:44px;min-height:44px;display:grid;place-items:center}
+.player-details .player-bio{font-size:12px;line-height:1.7;margin:10px 0 14px;color:#576981;overflow-wrap:anywhere}
+.player-details .awakening-panel{margin:0 0 18px;padding:14px;background:#f8f5ff}
+.player-details .awakening-heading{gap:10px}
+.player-details .awakening-heading h3{font-size:17px;margin:0}
+.player-details .awakening-heading h3>span{font-size:12px;color:#75648c;margin-left:6px}
+.player-details .growth-overall{display:flex;align-items:center;gap:7px;margin:0;text-align:right}
+.player-details .growth-overall small{font-size:10px;color:#75648c}
+.player-details .growth-overall b{font-size:25px;line-height:1;color:#7047a8}
+.player-details .awakening-track{margin:12px 0;gap:4px}
+.player-details .awakening-track>div b{width:22px;height:22px;font-size:11px}
+.player-details .awakening-track>div small{font-size:10px;margin-top:4px;color:#75648c}
+.player-details .awakening-budget{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 12px;background:white;border:1px solid #e7e0f1;border-radius:9px;font-variant-numeric:tabular-nums}
+.player-details .awakening-budget>div:last-child{text-align:right}
+.player-details .awakening-budget small{display:block;font-size:11px;color:#68778a;margin-bottom:2px}
+.player-details .awakening-budget strong{font-size:18px;color:#3c2e56}
+.player-details .awakening-savings{margin:9px 0 0;height:5px}
+.player-details .awakening-affordability{font-size:12px;line-height:1.6;text-align:right;margin:5px 0 9px;color:#6c597f}
+.player-details .awakening-affordability.shortfall{color:#9b5028}
+.player-details .awaken-button{margin:0;min-height:50px;font-size:16px;gap:8px;justify-content:center;white-space:normal;line-height:1.5}
+.player-details .awaken-button:disabled{background:#e8e4ef;color:#776b87;opacity:1;box-shadow:none;cursor:default}
+.player-details .awakening-cost-note{font-size:11px;line-height:1.6;text-align:center;margin:7px 0 0;color:#736780}
+.player-details .awakening-success{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 12px;margin:10px 0 0;padding:10px;border:1px solid #bce3d4;border-radius:8px;background:#edf9f3;color:#246a51;font-size:13px;line-height:1.6}
+.player-details .awakening-success b{font-size:20px}
+.player-details .awakening-success:focus-visible{outline:2px solid #42876d;outline-offset:2px}
+.player-details .s-detail-label{font-size:12px;color:#52647b;margin:14px 0 8px}
+.player-details .s-detail-stats{display:flex;gap:5px}
+.player-details .s-detail-stats>div{min-width:0;padding:10px 2px}
+.player-details .s-detail-stats small{font-size:11px;color:#68778a}
+.player-details .s-detail-stats b{font-size:20px;font-variant-numeric:tabular-nums}
+.player-details .special-abilities,.player-details .pitch-repertoire{margin-top:18px}
+.player-details .special-abilities h3,.player-details .pitch-repertoire h3{font-size:14px}
+.player-details .special-abilities>div{gap:7px}
+.player-details .special-abilities span{padding:8px 10px}
+.player-details .special-abilities span b{font-size:12px}
+.player-details .special-abilities span small{font-size:11px;line-height:1.6;color:#596a81}
+.player-details .pitch-repertoire span{font-size:12px;padding:7px 10px}
+@media(max-width:760px){.player-dialog{--detail-padding:19px}}
+@media(max-width:600px){
+ .player-dialog{--detail-padding:16px;border-radius:16px;scrollbar-width:thin}
+ .player-dialog>header{margin-bottom:12px}
+ .player-details .detail-card{width:100%;max-width:none;margin:0}
+ .player-details .trading-card{display:grid;grid-template-columns:58px minmax(0,1fr) 52px;gap:2px 8px;padding:12px;border-radius:12px}
+ .player-details .tc-art{display:contents}
+ .player-details .tc-watermark{display:none}
+ .player-details .deck-jersey{grid-column:1;grid-row:1/4;align-self:center;width:58px;height:67px}
+ .player-details .tc-top{grid-column:2;grid-row:1;justify-content:flex-start;gap:6px;flex-wrap:wrap}
+ .player-details .tc-top>span{font-size:10px;padding:2px 5px}
+ .player-details .tc-top>small{font-size:10px}
+ .player-details .tc-name{grid-column:2;grid-row:2;justify-content:flex-start;text-align:left;border:0;padding:0;margin:0;min-width:0}
+ .player-details .tc-name strong{font-size:20px;line-height:1.5;overflow-wrap:anywhere}
+ .player-details .tc-team{position:static;grid-column:2;grid-row:3;justify-self:start;font-size:11px;padding:0;background:none;color:#5f7088}
+ .player-details .tc-overall{position:static;grid-column:3;grid-row:1/4;align-self:center}
+ .player-details .tc-overall small{font-size:10px}
+ .player-details .tc-overall b{font-size:34px;letter-spacing:-1px}
+ .player-details .trading-card>.card-abilities{grid-column:1/-1;margin-top:6px;padding-top:6px;gap:4px}
+ .player-details .card-abilities>div{padding:5px 1px;display:grid;grid-template-columns:auto auto;justify-content:center;column-gap:3px;row-gap:2px;background:#fff}
+ .player-details .card-abilities small{grid-column:1/-1;font-size:11px;color:#53647d}
+ .player-details .card-abilities strong{font-size:20px}
+ .player-details .card-abilities em{font-size:14px;align-self:center}
+ .player-details .card-speed em{font-size:9px}
+ .player-details .tc-awakening{grid-column:1/-1;margin:4px 0 0;padding:4px;font-size:11px}
+ .player-details .awakening-panel{padding:12px}
+ .player-details .two-way-offer p{font-size:12px;line-height:1.6}
+ .player-details .two-way-offer button{width:100%;justify-content:center;min-height:44px}
+ /* A hover preview must not intercept the tap that opens player information. */
+ .player-hover-preview{pointer-events:none}
+}
+@media(max-width:350px){
+ .player-details .trading-card{grid-template-columns:42px minmax(0,1fr) 44px;padding:9px;gap:2px 6px}
+ .player-details .deck-jersey{width:42px;height:60px}
+ .player-details .tc-name strong{font-size:17px}
+ .player-details .tc-overall b{font-size:30px}
+ .player-details .card-abilities small{font-size:10px}
+ .player-details .card-abilities strong{font-size:18px}
+ .player-details .card-abilities em{font-size:12px}
+ .player-details .card-speed em{font-size:8px}
+ .player-details .awakening-heading h3{font-size:16px}
+ .player-details .awakening-heading h3>span{display:block;margin:2px 0 0;font-size:11px}
+ .player-details .growth-overall{gap:5px}
+ .player-details .awakening-budget strong{font-size:16px}
+ .player-details .s-detail-stats b{font-size:18px}
+}

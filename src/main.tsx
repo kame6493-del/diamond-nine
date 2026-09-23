@@ -5,6 +5,7 @@ import "./pro/player-hover.css";
 import 'animate.css';
 import './pro/mobile.css';
 import './pro/mobile-readability.css';
+import './pro/player-details.css';
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
