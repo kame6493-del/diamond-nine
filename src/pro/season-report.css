@@ -8,6 +8,9 @@
 .s-season-view .s-team-stats dl>div{padding:5px 3px}
 .s-season-view .s-team-stats dt{font-size:10px}
 .s-season-view .s-team-stats dd{font-size:22px;line-height:1.3;margin-top:2px}
+.s-team-stats dd{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.team-stat-rank{font-size:10px;line-height:1.5;font-weight:700;padding:2px 4px;border-radius:5px;background:#e9e2f7;color:#725790}
+.team-stat-rank.is-first{background:#fff0c5;color:#946100}
 .s-season-view .s-team-stats dd.unrecorded{font-size:13px;line-height:2.2}
 .s-season-view .s-season-end{margin:14px 0 20px;padding:14px 16px;background:#f5f3fc;border-radius:12px}
 .s-season-view .s-season-end p{color:#576984}
@@ -52,6 +55,8 @@
  .s-season-view.is-complete .s-season-top h2{font-size:14px}
 }
 @media(max-width:350px){
+ .s-season-view .s-team-stats dd{font-size:20px;gap:3px}
+ .team-stat-rank{font-size:9px;padding:2px 3px}
  .season-player-stats .s-stat-columns .s-stats td,.season-player-stats .s-stats tbody th>button{font-size:11px}
  .season-player-stats .s-stat-columns .s-stats thead th{padding-left:2px;padding-right:2px;font-size:9px}
  .season-player-stats .s-stat-columns .batting-uzr-table td{font-size:10px}
