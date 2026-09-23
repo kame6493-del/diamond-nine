@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {players,playerMap} from '../src/pro/data';
-import {initialState,emptySeason,simulateDays,validState,migrateState,nextSeason,type GameState,type Season} from '../src/pro/engine';
+import {initialState,initialSandboxState,emptySeason,simulateDays,validState,migrateState,nextSeason,type GameState,type Season} from '../src/pro/engine';
 import {buildByStrategy} from '../src/pro/franchise';
 import {finishPostseason,simulatePostseason,newPostseason,type Postseason} from '../src/pro/postseason';
 import {leagueProgress,settleLeagueProgress,seasonGames,mlbSchedule,leagueTeams,playoffSeeds,wonNpbLeague} from '../src/pro/leagues';
@@ -65,7 +65,9 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   const archived=structuredClone(done);delete archived.leagueProgress;archived.history=[4,3,2,1].map(number=>({...structuredClone(done.season),number}));assert.equal(nextSeason(archived).season.circuit,'MLB');
  });
  test('MLB plays 162 games with conserved batting/pitching totals, actual steals and one-time rewards',()=>{
-  const base=initialState(),start={...base,seed:778811,season:emptySeason(6,'MLB',base.club),leagueProgress:{basis:'league' as const,npbStreak:3,mlbUnlocked:true,lastSettledSeason:5}};
+  // Use a fixed roster containing base stealers; a random weak starter roster
+  // can legitimately finish with zero steals and cannot test their accounting.
+  const base=initialSandboxState(),start={...base,seed:778811,season:emptySeason(6,'MLB',base.club),leagueProgress:{basis:'league' as const,npbStreak:3,mlbUnlocked:true,lastSettledSeason:5}};
   const daily=simulateDays(simulateDays(start,1),1),batch=simulateDays(start,2);assert.deepEqual(daily,batch);
   const end=simulateDays(start,162);assert.ok(validState(end));assert.equal(end.season.results.length,162);assert.equal(end.season.day,162);assert.ok(end.season.completed);assert.deepEqual(simulateDays(end,162),end);
   for(const t of end.season.standings){assert.equal(t.w+t.l+t.d,162);assert.equal(t.d,0);}

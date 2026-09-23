@@ -7,6 +7,7 @@ import {trainPlayer} from './franchise';
 import {traitDescriptions} from './wiki-traits';
 import {TradingCard} from './CardDeck';
 import {equipTwoWayPlayer} from './simple-game';
+import {formatUZR,playerSeasonUZR} from './fielding-stats';
 
 export function PlayerDetails({player,state,onChange,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onAwaken:()=>void;catalog?:boolean}){
  const [result,setResult]=useState<{before:number;after:number;stage:number}|null>(null);
@@ -17,7 +18,7 @@ export function PlayerDetails({player,state,onChange,onAwaken,catalog=false}:{pl
  const traits=player.traits.filter(t=>!['暫定査定','基本能力型','実戦派'].includes(t));
  const twoWay=!!player.mlb?.twoWay,pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
- const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['盗塁',b?.sb??0]];
+ const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['盗塁',b?.sb??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
  const pitStats=[['奪三振',p?.so??0],['防御率',p?.outs?era(p).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['セーブ',p?.saves??0]];
  const overall=effectiveOverall(player,state.owned,state.training);
  const awaken=()=>{
@@ -44,8 +45,8 @@ export function PlayerDetails({player,state,onChange,onAwaken,catalog=false}:{pl
    {result&&<div key={result.stage} ref={success} tabIndex={-1} className="awakening-success" role="status"><strong>第{result.stage}段階へ覚醒成功！</strong><span>総合 {result.before} → <b>{result.after}</b></span></div>}
   </section>}
   {!catalog&&twoWay&&!!state.owned[player.id]&&<div className="two-way-offer"><p>1枚で先発とDHの両方に起用できます。</p><button className="s-button" disabled={bothEquipped} onClick={()=>onChange(equipTwoWayPlayer(state,player.id))}>{bothEquipped?'投手＋DHで二刀流起用中':'投手＋DHで二刀流起用'}</button></div>}
-  {!catalog&&<><p className="s-detail-label">今シーズンの成績{twoWay?' · 投手':''}</p><div className="s-detail-stats">{(player.role==='pitcher'?pitStats:batStats).map(([label,value])=><div key={label}><small>{label}</small><b>{value}</b></div>)}</div>
-  {twoWay&&<><p className="s-detail-label">今シーズンの成績 · 打撃</p><div className="s-detail-stats">{batStats.map(([label,value])=><div key={label}><small>{label}</small><b>{value}</b></div>)}</div></>}</>}
+  {!catalog&&<><p className="s-detail-label">今シーズンの成績{twoWay?' · 投手':''}</p><div className={'s-detail-stats'+(player.role==='pitcher'?'':' batting-detail-stats')}>{(player.role==='pitcher'?pitStats:batStats).map(([label,value])=><div key={label}><small>{label}</small><b>{value}</b></div>)}</div>
+  {twoWay&&<><p className="s-detail-label">今シーズンの成績 · 打撃</p><div className="s-detail-stats batting-detail-stats">{batStats.map(([label,value])=><div key={label}><small>{label}</small><b>{value}</b></div>)}</div></>}</>}
   <section className="special-abilities"><h3>特殊能力</h3><div>{traits.map((trait,i)=><span key={`${trait}-${i}`} className={traitDescriptions[trait]?'trait-active':'trait-reference'}><b>{trait}</b>{traitDescriptions[trait]&&<small>{traitDescriptions[trait]}</small>}</span>)}{!traits.length&&<span>なし</span>}</div></section>
   {!!pitches.length&&<section className="pitch-repertoire"><h3>持ち球</h3><div>{player.wikiAssessment?.secondFastball&&<span>{player.wikiAssessment.secondFastball}</span>}{pitches.map((pitch,i)=><span key={i}>{pitch.name} <b>{pitch.level}</b></span>)}</div></section>}
  </div>;

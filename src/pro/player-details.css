@@ -28,6 +28,7 @@
 .player-details .awakening-success:focus-visible{outline:2px solid #42876d;outline-offset:2px}
 .player-details .s-detail-label{font-size:12px;color:#52647b;margin:14px 0 8px}
 .player-details .s-detail-stats{display:flex;gap:5px}
+.player-details .batting-detail-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 .player-details .s-detail-stats>div{min-width:0;padding:10px 2px}
 .player-details .s-detail-stats small{font-size:11px;color:#68778a}
 .player-details .s-detail-stats b{font-size:20px;font-variant-numeric:tabular-nums}

@@ -68,7 +68,7 @@ export function registerDevelopmentTests(test:(name:string,run:()=>void)=>void){
    for(const text of ['最大覚醒','次の覚醒','>MAX<','growth-table'])assert.ok(!view.includes(text));
   }
   const card=renderToStaticMarkup(createElement(TradingCard,{player,state}));assert.ok(card.includes('総合'));assert.ok(card.includes(`>${effectiveOverall(player,state.owned,state.training)}</b>`));
-  assert.equal(Object.keys(uniformColors).length,22);assert.equal(new Set(Object.values(uniformColors).map(c=>c.join(','))).size,22);assert.ok(!html.includes('UZR'));assert.ok(!html.includes('レア度'));
+  assert.equal(Object.keys(uniformColors).length,22);assert.equal(new Set(Object.values(uniformColors).map(c=>c.join(','))).size,22);assert.ok(!html.includes('画像のUZR'));assert.ok(!html.includes('レア度'));
  });
  test('overall stays monotonic above 100 for elite abilities, on the same scale for pitchers and batters',()=>{
   const batter=players.find(p=>p.role==='batter')!,pitcher=players.find(p=>p.role==='pitcher')!;

@@ -1,4 +1,5 @@
 import type {Season} from './engine';
+import {teamFieldingStats} from './fielding-stats';
 
 // Sum the full season roster, including players who have since left the lineup.
 // Rates use total opportunities rather than averaging individual player rates.
@@ -10,5 +11,5 @@ export function teamSeasonStats(season:Season,club:string){
  const standing=season.standings.find(t=>t.team===club),games=standing?standing.w+standing.l+standing.d:0;
  const recorded=season.results.filter(g=>(g.home===club||g.away===club)&&g.errors!==undefined);
  const errors=recorded.reduce((n,g)=>n+g.errors![g.home===club?1:0],0);
- return {avg:ab?hits/ab:null,rbi,era:outs?earnedRuns*27/outs:null,errors:games===0||recorded.length?errors:null,errorGames:recorded.length,games};
+ return {avg:ab?hits/ab:null,rbi,era:outs?earnedRuns*27/outs:null,errors:games===0||recorded.length?errors:null,errorGames:recorded.length,games,...teamFieldingStats(season,club)};
 }

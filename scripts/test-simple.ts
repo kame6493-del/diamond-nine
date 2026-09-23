@@ -91,12 +91,12 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
   assert.deepEqual(replacementPool(start,'pit',100),[]);
   const moved=moveSimplePlayer(next,'bat',0,1);assert.ok(validState(moved));assert.deepEqual(moved.defense,next.defense);
  });
- test('simple season stats render five batting and four pitching statistics including saves',()=>{
+ test('simple season stats render batting, UZR and four pitching statistics including saves',()=>{
   const state=simulateDays(initialState(),3);
   const html=renderToStaticMarkup(createElement(SimpleStats,{season:state.season,club:state.club,onPlayer:()=>{},lineup:state.lineup,pitchers:state.pitchers}));
   const headers=[...html.matchAll(/<thead>(.*?)<\/thead>/g)].map(m=>[...m[1].matchAll(/<th>(.*?)<\/th>/g)].map(x=>x[1]));
-  assert.deepEqual(headers,[['選手','打率','本塁打','打点','OPS','盗塁'],['選手','奪三振','防御率','投球回','セーブ']]);
-  for(const label of ['四球','WHIP','UZR','安打','勝率'])assert.ok(!html.includes(label));
+  assert.deepEqual(headers,[['選手','打率','本塁打','打点','OPS','盗塁','UZR'],['選手','奪三振','防御率','投球回','セーブ']]);
+  for(const label of ['四球','WHIP','安打','勝率'])assert.ok(!html.includes(label));
  });
  test('simple application has three main choices and acquisition has no rarity or second reveal step',()=>{
   const html=renderToStaticMarkup(createElement(SimpleApp,{}));

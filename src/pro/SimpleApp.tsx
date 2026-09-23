@@ -4,6 +4,7 @@ import {AchievementsPanel} from './CareerAchievements';
 import {VictoryShare} from './VictoryShare';
 import {TeamSeasonStats} from './TeamSeasonStats';
 import {LeagueSeasonStats} from './LeagueSeasonStats';
+import {formatUZR,playerSeasonUZR} from './fielding-stats';
 import {achievementNames,recordAchievements} from './achievements';
 import {useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {Check,ChevronRight,Download,Layers3,Play,RotateCcw,Settings,Sparkles,Upload,Users,Volume2,VolumeX,X} from 'lucide-react';
@@ -68,7 +69,21 @@ export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season
  const batIds=[...new Set([...lineup,...bats.map(b=>b.playerId)])];
  const pitIds=[...new Set([...pitchers,...arms.map(p=>p.playerId)])];
  const batMap=new Map(bats.map(b=>[b.playerId,b])),pitMap=new Map(arms.map(p=>[p.playerId,p]));
- return <div className="season-player-stats" ref={statsRef}><div className="season-stat-switch" role="group" aria-label="表示する個人成績"><button aria-pressed={view==='bat'} onClick={()=>changeView('bat')}>打撃成績</button><button aria-pressed={view==='pit'} onClick={()=>changeView('pit')}>投手成績</button></div><div className="s-stat-columns"><section className={'s-panel season-stat-panel'+(view==='bat'?' is-active':'')} aria-label="打撃成績"><h2>打撃成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['打率','本塁打','打点','OPS','盗塁'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{batIds.map(id=>{const b=batMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td></tr>;})}</tbody></table>{!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section><section className={'s-panel season-stat-panel'+(view==='pit'?' is-active':'')} aria-label="投手成績"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回','セーブ'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td><td>{p?.saves??0}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section></div></div>;
+ return <div className="season-player-stats" ref={statsRef}>
+  <div className="season-stat-switch" role="group" aria-label="表示する個人成績"><button aria-pressed={view==='bat'} onClick={()=>changeView('bat')}>打撃成績</button><button aria-pressed={view==='pit'} onClick={()=>changeView('pit')}>投手成績</button></div>
+  <div className="s-stat-columns">
+   <section className={'s-panel season-stat-panel'+(view==='bat'?' is-active':'')} aria-label="打撃成績"><h2>打撃成績</h2>
+    <table className="s-stats batting-uzr-table"><thead><tr><th>選手</th>{['打率','本塁打','打点','OPS','盗塁','UZR'].map(h=><th key={h}>{h}</th>)}</tr></thead>
+     <tbody>{batIds.map(id=>{const b=batMap.get(id),uzr=playerSeasonUZR(season,club,id);return <tr key={id}>
+      <th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td><td className={'uzr-value '+(uzr!==null&&uzr>0?'positive':uzr!==null&&uzr<0?'negative':'')}>{formatUZR(uzr)}</td>
+     </tr>;})}</tbody>
+    </table>
+    <p className="s-uzr-note">UZRはゲーム内の守備貢献の推定値。守備なし・未記録は「—」。</p>
+    {!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}
+   </section>
+   <section className={'s-panel season-stat-panel'+(view==='pit'?' is-active':'')} aria-label="投手成績"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回','セーブ'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td><td>{p?.saves??0}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section>
+  </div>
+ </div>;
 }
 
 export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,message,onSwitchLeague}:{state:GameState;busy:boolean;progress:number;onPlay:(n:number)=>void;onPost:()=>void;onNext:()=>void;onPlayer:(p:Player)=>void;message:string;onSwitchLeague?:(circuit:Circuit)=>void}){

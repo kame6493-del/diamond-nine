@@ -16,7 +16,7 @@ export function registerTeamStatsTests(test:(name:string,run:()=>void)=>void){
   const stats=teamSeasonStats(season,s.club);assert.equal(stats.avg,.200);assert.equal(stats.rbi,10);assert.equal(stats.era,3);
   assert.notEqual(stats.avg,(.5+15/90)/2);assert.notEqual(stats.era,(9+2.25)/2);
   const html=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:s.club}));
-  for(const text of ['チーム全体成績','打率','打点','失策','防御率','.200','3.00'])assert.ok(html.includes(text));assert.equal((html.match(/<dt>/g)??[]).length,4);
+  for(const text of ['チーム全体成績','打率','打点','UZR','防御率','.200','3.00'])assert.ok(html.includes(text));assert.ok(!html.includes('失策'));assert.equal((html.match(/<dt>/g)??[]).length,4);
   const empty=teamSeasonStats(emptySeason(),s.club);assert.equal(empty.avg,null);assert.equal(empty.era,null);assert.equal(empty.rbi,0);assert.equal(empty.errors,0);
  });
  test('errors use the defensive side and count an at-bat without a hit, RBI or earned run on a direct error score',()=>{
@@ -43,7 +43,7 @@ export function registerTeamStatsTests(test:(name:string,run:()=>void)=>void){
  });
  test('new errors are retained in archived and reloaded seasons, with no playoff contamination or legacy fabrication',()=>{
   const initial={...initialState(),seed:19017},start=simulateDays(initial,7),legacy=structuredClone(start);
-  legacy.season.results.forEach(g=>delete g.errors);assert.ok(migrateState(legacy));
+  legacy.season.results.forEach(g=>delete g.errors);delete legacy.season.fielding;assert.ok(migrateState(legacy));
   assert.equal(teamSeasonStats(legacy.season,legacy.club).errors,null);
   const partial=simulateDays(legacy,2),partialStats=teamSeasonStats(partial.season,partial.club);
   assert.equal(partialStats.errorGames,2);assert.equal(partialStats.games,9);
