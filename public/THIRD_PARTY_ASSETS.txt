@@ -11,7 +11,7 @@ Original recordings, played at a reduced volume. WAV copies preserve the same au
 License texts: /audio/kenney/Casino-License.txt and Interface-License.txt
 Scouting music and impacts (CC0 1.0), added 2026-09-23:
 https://kenney.nl/assets/music-jingles
- - Audio/Pizzicato jingles/jingles_PIZZI03.ogg -> scout-gold.wav
+ - Audio/Pizzicato jingles/jingles_PIZZI03.ogg -> scout-gold.wav (legacy clip, no longer played)
  - Audio/Sax jingles/jingles_SAX00.ogg -> scout-rainbow.wav
 https://kenney.nl/assets/impact-sounds
  - Audio/impactBell_heavy_000.ogg -> scout-impact.wav
@@ -22,6 +22,18 @@ Original recordings converted to PCM WAV; no synthesized or imitated voices.
 Pack licenses: Jingles-License.txt, Impact-License.txt and Voice-License.txt under /audio/kenney/.
 Kenney assets are also listed by the Defold Foundation:
 https://defold.com/assets/kenney/
+
+Gold scout acquisition sound, replaced 2026-09-23:
+"success 1" by Leszek Szary (Leszek_Szary), Freesound sound 171671
+Source: https://freesound.org/people/Leszek_Szary/sounds/171671/
+Creator: https://freesound.org/people/Leszek_Szary/
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Public high-quality preview: https://cdn.freesound.org/previews/171/171671_2437358-hq.mp3
+Local file: /audio/freesound/scout-gold-success-171671.wav
+The published MP3 recording was converted to stereo 44.1 kHz PCM WAV for browser compatibility.
+No cuts, synthesis or added effects; runtime playback gain is 0.4.
+License and provenance: /audio/freesound/LICENSE.txt
 
 Card animation presets: Animate.css (MIT)
 https://animate.style/

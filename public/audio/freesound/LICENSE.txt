@@ -1,0 +1,14 @@
+success 1 — Leszek Szary (Leszek_Szary)
+Freesound sound ID: 171671
+Source: https://freesound.org/people/Leszek_Szary/sounds/171671/
+Creator: https://freesound.org/people/Leszek_Szary/
+
+The creator released this recording under CC0 1.0 Universal.
+License summary: https://creativecommons.org/publicdomain/zero/1.0/
+Full legal text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Source file: https://cdn.freesound.org/previews/171/171671_2437358-hq.mp3
+Included file: scout-gold-success-171671.wav
+Converted from the public high-quality MP3 preview to stereo 44.1 kHz PCM WAV.
+No cuts or added effects. Playback volume is reduced by the game.
+Retrieved: 2026-09-23
