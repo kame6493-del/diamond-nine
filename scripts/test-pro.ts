@@ -1,5 +1,6 @@
 import {registerLeagueTests} from './test-leagues';
 import {registerJourneyTests} from './test-journey';
+import {registerTitleCelebrationTests} from './test-title-celebration';
 import {registerCatalogTests} from './test-catalog';
 import {registerGrowthTests} from './test-growth';
 import {registerVictoryShareTests} from './test-victory-share';
@@ -297,6 +298,7 @@ registerMLBTests(test);
 registerBalanceTests(test);
 registerLeagueTests(test);
 registerJourneyTests(test);
+registerTitleCelebrationTests(test);
 registerCatalogTests(test);
 registerGrowthTests(test);
 registerVictoryShareTests(test);

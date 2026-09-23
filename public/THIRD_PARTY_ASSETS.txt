@@ -39,8 +39,13 @@ Card animation presets: Animate.css (MIT)
 https://animate.style/
 https://github.com/animate-css/animate.css
 flipInY, tada, rubberBand, bounceIn, backInDown, zoomInDown, zoomOut,
-rotateIn and fadeInUp presets. No custom animation keyframes.
+rotateIn, fadeIn, fadeInDown and fadeInUp presets. No custom animation keyframes.
 License: /audio/kenney/Animate-LICENSE.txt
+
+First-title celebrations (NPB league three-peat / World Series):
+Reuse the credited Kenney impact, sax jingle and congratulations voice,
+Leszek Szary success recording, and Animate.css entrance presets above.
+No confetti. Sound can be muted and the ceremony can be closed immediately.
 
 Confetti animation: canvas-confetti (ISC)
 https://github.com/catdad/canvas-confetti
