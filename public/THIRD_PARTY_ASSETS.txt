@@ -9,13 +9,25 @@ Interface Sounds (CC0 1.0): https://kenney.nl/assets/interface-sounds
  - maximize_008.ogg → audio/kenney/awaken.ogg
 Original recordings, played at a reduced volume. WAV copies preserve the same audio for browser compatibility.
 License texts: /audio/kenney/Casino-License.txt and Interface-License.txt
+Scouting music and impacts (CC0 1.0), added 2026-09-23:
+https://kenney.nl/assets/music-jingles
+ - Audio/Pizzicato jingles/jingles_PIZZI03.ogg -> scout-gold.wav
+ - Audio/Sax jingles/jingles_SAX00.ogg -> scout-rainbow.wav
+https://kenney.nl/assets/impact-sounds
+ - Audio/impactBell_heavy_000.ogg -> scout-impact.wav
+https://kenney.nl/assets/voiceover-pack
+ - Male/congratulations.ogg -> scout-congratulations.wav
+ - Male voice: Jeffrey M. Smith (pack credits included as Voice-Credits.txt).
+Original recordings converted to PCM WAV; no synthesized or imitated voices.
+Pack licenses: Jingles-License.txt, Impact-License.txt and Voice-License.txt under /audio/kenney/.
 Kenney assets are also listed by the Defold Foundation:
 https://defold.com/assets/kenney/
 
 Card animation presets: Animate.css (MIT)
 https://animate.style/
 https://github.com/animate-css/animate.css
-flipInY, tada, bounceIn and fadeInUp presets. No custom animation keyframes.
+flipInY, tada, rubberBand, bounceIn, backInDown, zoomInDown, zoomOut,
+rotateIn and fadeInUp presets. No custom animation keyframes.
 License: /audio/kenney/Animate-LICENSE.txt
 
 Confetti animation: canvas-confetti (ISC)

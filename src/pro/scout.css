@@ -15,3 +15,41 @@
 .scout-energy{position:absolute;width:450px;height:450px;background:conic-gradient(from 20deg,transparent,#c286ff66,transparent,#73d4ff66,transparent,#ffc06899,transparent);border-radius:50%;--animate-duration:1.3s}.neon-pack{width:164px;height:240px;border-radius:14px;border:3px solid #c394ff;background:linear-gradient(135deg,#233184,#8046de 45%,#214a9b);box-shadow:0 15px 45px #733ed34d,0 0 0 6px #c28bff33;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:#fff3b5;--animate-duration:1.4s}.neon-pack>b{font-size:72px;line-height:1;font-weight:950;color:white;text-shadow:0 0 24px #b6efff}.neon-pack>span{font-size:9px;letter-spacing:.18em}
 .scout-flash{position:absolute;inset:15%;border-radius:50%;background:radial-gradient(ellipse,#ffffffed,#dcc2ff55,transparent 70%);pointer-events:none;opacity:0;--animate-delay:1.25s;animation-delay:1.25s;--animate-duration:.35s}.scout-reveal{--animate-duration:.8s}.major-reveal .scout-reveal{--animate-duration:1.1s}.s-scout-result.drawing>.scout-charge{visibility:visible}
 @media(prefers-reduced-motion:reduce){.neon-orbit,.scout-energy,.scout-flash{display:none}.neon-pack{animation:none!important}.neon-scout{min-height:320px}}
+
+/* Finite Animate.css presets: spotlights, impact ring and card entrances.
+   No confetti, falling particles, strobing or infinite motion. */
+.s-scout-panel{scroll-margin-top:65px}
+.s-scout-result{position:relative;isolation:isolate}
+.s-scout-result>p,.s-scout-result>.s-equip-offer,.s-scout-result>.s-new-label{position:relative;z-index:2}
+.scout-tier-gold{--scout-accent:#e8ab21;--scout-glow:#ffd56066}
+.scout-tier-rainbow{--scout-accent:#9688ff;--scout-glow:#ac8fff77}
+.scout-tier-gold .s-scout-main{background:radial-gradient(ellipse at 50% 27%,#ffecb2,#fffbec 46%,#fff 80%)}
+.scout-tier-rainbow .s-scout-main{background:radial-gradient(ellipse at 14% 27%,#f7cdffb8,transparent 55%),radial-gradient(ellipse at 87% 32%,#bdf7ffbf,transparent 50%),linear-gradient(160deg,#eee7ff,#fff3d4 48%,#fff 88%)}
+.scout-tier-gold.neon-scout,.scout-tier-rainbow.neon-scout{background:radial-gradient(ellipse at 50% 45%,#5f4521,#17233e 62%,#0b1124);color:#fff;min-height:475px}
+.scout-tier-rainbow.neon-scout{background:radial-gradient(ellipse at 20% 20%,#48249199,transparent 60%),radial-gradient(ellipse at 80% 75%,#00788888,transparent 55%),#111a37}
+.scout-tier-gold .neon-pack{border-color:#ffe08b;color:#fff0b0;background:linear-gradient(135deg,#c88817,#ffdf6f 44%,#ad6914 45%,#f4cb68);box-shadow:0 0 70px #ffd25e90,0 0 0 7px #ffe6a122,0 20px 30px #0005}
+.scout-tier-rainbow .neon-pack{border-color:#e8e5ff;background:linear-gradient(145deg,#546ff5,#c645c6 35%,#edb656 57%,#48b4bc 77%,#6857ca);box-shadow:0 0 70px #96bdff90,0 0 0 7px #c9ddff33,0 20px 30px #0005;color:white}
+.scout-tier-gold .neon-orbit,.scout-tier-rainbow .neon-orbit{border-color:var(--scout-accent);box-shadow:0 0 0 18px #fff1,0 0 60px var(--scout-glow);--animate-duration:var(--scout-time)}
+.scout-tier-gold .scout-energy,.scout-tier-rainbow .scout-energy{background:conic-gradient(from 20deg,transparent,#ffdf7399,transparent,#eeb32a66,transparent,#fff2b199,transparent);--animate-duration:var(--scout-time)}
+.scout-tier-rainbow .scout-energy{background:conic-gradient(from 20deg,#80cfff77,transparent,#f086ff77,transparent,#ffe8a666,transparent,#85ffdb88,transparent)}
+.scout-spotlight{position:absolute;inset:0;opacity:.65;background:conic-gradient(from 15deg at 50% 52%,transparent 0deg 36deg,#fff8 38deg 40deg,transparent 42deg 155deg,#fff6 157deg 160deg,transparent 162deg 278deg,#fff7 280deg 282deg,transparent 284deg);--animate-duration:var(--scout-time);pointer-events:none}
+.scout-ring-outer{position:absolute;width:380px;height:380px;border:1px solid #fff8;box-shadow:0 0 0 10px #fff1,inset 0 0 24px var(--scout-glow);border-radius:50%;--animate-duration:1.1s}
+.scout-tier-gold.neon-scout>strong,.scout-tier-rainbow.neon-scout>strong{color:#fff1be;bottom:70px}
+.neon-pack{position:relative;z-index:1}
+.scout-flash{animation-delay:var(--burst-delay,1.25s)!important;z-index:2}
+.scout-skip{position:absolute;bottom:12px;right:12px;z-index:3;min-height:44px;padding:0 14px;border:1px solid #9e8cbf55;border-radius:30px;background:#fff;color:#6f6384;font-size:11px;cursor:pointer}
+.scout-arrival{position:relative;z-index:2;text-align:center;margin:2px 0 12px;color:#895311;--animate-duration:.7s}
+.scout-arrival>span{font-size:13px;font-weight:900;letter-spacing:.14em}
+.scout-arrival>div{display:flex;align-items:center;justify-content:center;gap:10px;line-height:1;margin-top:6px}
+.scout-arrival small{font-size:12px;font-weight:900}.scout-arrival strong{font-size:60px;letter-spacing:-.07em;font-weight:950;color:#9c630a;text-shadow:0 2px 0 #fff,0 0 22px #ffc82f66}
+.scout-tier-rainbow .scout-arrival{color:#6951a3}.scout-tier-rainbow .scout-arrival strong{color:#8045d0;text-shadow:0 2px 0 #fff,0 0 28px #b891ff77}
+.scout-arrival-rays{position:absolute;z-index:-1;pointer-events:none;top:65px;left:calc(50% - 235px);width:470px;height:470px;border-radius:50%;background:repeating-conic-gradient(from 10deg,transparent 0deg 25deg,#eebb3324 25deg 29deg,transparent 29deg 45deg);--animate-duration:1.8s}
+.scout-tier-rainbow .scout-arrival-rays{background:conic-gradient(#bd98ff55,transparent,#f9a4dc55,transparent,#78e1ff66,transparent,#fdeba266,transparent,#bd98ff55)}
+.scout-shockwave{position:absolute;pointer-events:none;top:150px;left:calc(50% - 155px);width:310px;height:310px;border:6px solid var(--scout-accent);box-shadow:0 0 30px var(--scout-glow),inset 0 0 30px var(--scout-glow);border-radius:50%;--animate-duration:1.1s}
+.scout-reveal{position:relative;z-index:1;max-width:100%;border-radius:17px}
+.scout-tier-gold .scout-reveal,.scout-tier-rainbow .scout-reveal{padding:5px;background:linear-gradient(135deg,#ba791d,#ffef9e,#c48923);box-shadow:0 10px 32px #c790353d;--animate-duration:.85s}
+.scout-tier-rainbow .scout-reveal{background:linear-gradient(135deg,#7c6fff,#ec76cf,#ffd568,#77e6e9,#ae8aff);box-shadow:0 12px 40px #9853e340,0 0 0 3px #fff;--animate-duration:1s}
+.scout-tier-gold .scout-reveal .trading-card,.scout-tier-rainbow .scout-reveal .trading-card{margin:0;border:0}
+.scout-tier-rainbow .scout-reveal .tc-overall>b{color:#864cc7}
+@media(max-width:600px){.scout-arrival strong{font-size:52px}.scout-tier-gold.neon-scout,.scout-tier-rainbow.neon-scout{min-height:425px}.neon-pack{width:148px;height:215px}.scout-tier-gold .scout-reveal,.scout-tier-rainbow .scout-reveal{padding:4px}}
+@media(prefers-reduced-motion:reduce){.scout-arrival-rays,.scout-shockwave,.scout-spotlight,.scout-ring-outer{display:none}.scout-reveal,.scout-arrival{animation:none!important}}
