@@ -1,6 +1,7 @@
 import { fitsPosition, playerMap } from './data';
 import { effectiveOverall, type GameState } from './engine';
-import { pitchingRoleLabel,wikiPositionPenalty } from './wiki-players';
+import { pitchingRoleLabel } from './wiki-players';
+import {positionDefensePenalty} from './position-defense';
 
 export function bestUpgrade(state: GameState, id: string) {
   const player = playerMap[id];
@@ -10,7 +11,7 @@ export function bestUpgrade(state: GameState, id: string) {
   const roster = pitching ? state.pitchers : state.lineup;
   const candidates = roster.map((oldId, index) => ({ oldId, index }))
     .filter(({ oldId, index }) => pitching ? (starter ? index < 6 : index >= 6) : fitsPosition(player, state.defense[oldId]))
-    .map(slot => {const position=state.defense[slot.oldId],before=effectiveOverall(playerMap[slot.oldId], state.owned, state.training),after=effectiveOverall(player, state.owned, state.training);return {...slot,before,after,gain:after-before+(pitching?0:(fitsPosition(playerMap[slot.oldId],position)?wikiPositionPenalty(playerMap[slot.oldId],position):22)-wikiPositionPenalty(player,position))*.14};})
+    .map(slot => {const position=state.defense[slot.oldId],before=effectiveOverall(playerMap[slot.oldId], state.owned, state.training),after=effectiveOverall(player, state.owned, state.training);return {...slot,before,after,gain:after-before+(pitching?0:positionDefensePenalty(playerMap[slot.oldId],position)-positionDefensePenalty(player,position))*.14};})
     .sort((a, b) => b.gain-a.gain || a.index - b.index);
   const best = candidates[0];
   return best && best.gain > 0 ? { ...best, pitching, position: pitching ? starter ? '先発' : '救援' : state.defense[best.oldId] } : null;

@@ -7,7 +7,8 @@ import { validPostseason } from './postseason-valid';
 import { seasonConditions } from './conditions';
 import { gameRatings,matchupProbabilities,extraBaseChance,stealProbabilities } from './matchup';
 import { gameReward,isCareer,seasonReward,type Profile } from './progression';
-import { pitchingRoleLabel,wikiPositionPenalty } from './wiki-players';
+import { pitchingRoleLabel } from './wiki-players';
+import {defenseAtPosition} from './position-defense';
 import { validGameBox } from './game-log';
 import {claimSeasonGoals} from './ambitions';
 import {ownedRatings,ratingOverall} from './development';
@@ -108,7 +109,7 @@ export const rankings=(season:Season,league='CENTRAL')=>season.standings.filter(
 export function rng(seed:number){let state=seed>>>0;return {next(){state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;},get state(){return state;}};}
 export const effectiveOverall=(p:Player,owned:Record<string,number>,training:Record<string,number>={})=>ratingOverall(p,ownedRatings(p,owned,training));
 export function defenseAdjustment(lineup:string[],positions:Record<string,string>,owned:Record<string,number>={},training:Record<string,number>={},abilityAdjustment=0){
- const ratings=lineup.filter(id=>positions[id]!=='DH').map(id=>{const p=playerMap[id],r=ownedRatings(p,owned,training);return clamp(r.field+abilityAdjustment,0,99)*.85+clamp(r.catching+abilityAdjustment,0,99)*.15-(fitsPosition(p,positions[id])?wikiPositionPenalty(p,positions[id]):22);});
+ const ratings=lineup.filter(id=>positions[id]!=='DH').map(id=>{const p=playerMap[id],r=ownedRatings(p,owned,training);return defenseAtPosition(p,positions[id],{...r,field:r.field+abilityAdjustment,catching:r.catching+abilityAdjustment}).skill;});
  return (ratings.reduce((a,b)=>a+b,0)/Math.max(1,ratings.length)-60)*.0012;
 }
 // Per at-bat probability of reaching on an error; higher defensive skill lowers it.
@@ -157,9 +158,9 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  const defenses=rosters.map((r,side)=>{
   const mine=ids[side]===state.club;
   const f=defenseAdjustment(r.lineup,r.defense,mine?state.owned:{},mine?state.training:{},mine?0:opponentAdjustment);
-  const outfield=r.lineup.filter(id=>r.defense[id]==='外').map(id=>gameRatings(playerMap[id],bonusFor(side,id),stageFor(side,id)).arm-(fitsPosition(playerMap[id],'外')?0:15));
-  const catcherId=r.lineup.find(id=>r.defense[id]==='捕')!,catcher=gameRatings(playerMap[catcherId],bonusFor(side,catcherId),stageFor(side,catcherId));
-  return {field:f,arm:outfield.reduce((n,a)=>n+a,0)/Math.max(1,outfield.length),catcherArm:catcher.arm-(fitsPosition(playerMap[catcherId],'捕')?0:20),catcherField:catcher.field};
+  const outfield=r.lineup.filter(id=>r.defense[id]==='外').map(id=>defenseAtPosition(playerMap[id],'外',gameRatings(playerMap[id],bonusFor(side,id),stageFor(side,id))).arm);
+  const catcherId=r.lineup.find(id=>r.defense[id]==='捕')!,catcher=defenseAtPosition(playerMap[catcherId],'捕',gameRatings(playerMap[catcherId],bonusFor(side,catcherId),stageFor(side,catcherId)));
+  return {field:f,arm:outfield.reduce((n,a)=>n+a,0)/Math.max(1,outfield.length),catcherArm:catcher.arm,catcherField:catcher.field};
  });
  const matchupCache=new Map<string,ReturnType<typeof matchupProbabilities>>();
  let winningPitcher=start[0],losingPitcher=start[1],winningSide=0;
