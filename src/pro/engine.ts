@@ -7,7 +7,7 @@ import { validPostseason } from './postseason-valid';
 import { seasonConditions } from './conditions';
 import { gameRatings,matchupProbabilities,extraBaseChance,stealProbabilities } from './matchup';
 import { gameReward,isCareer,seasonReward,type Profile } from './progression';
-import { wikiPositionPenalty } from './wiki-players';
+import { pitchingRoleLabel,wikiPositionPenalty } from './wiki-players';
 import { validGameBox } from './game-log';
 import {claimSeasonGoals} from './ambitions';
 import {ownedRatings,ratingOverall} from './development';
@@ -36,16 +36,22 @@ export function initialSandboxState():GameState{
  const defense=Object.fromEntries(order.map((id,i)=>[id,['外','二','外','一','三','DH','捕','外','遊'][i]]));
  return {achievements:{},version:1,name:'東京スターズ',club:'t',gems:15600,owned,lineup:order,defense,pitchers:autoPitchers(pool),season:emptySeason(),history:[],pulls:0,pity:0,seed:Math.floor(Math.random()*0xffffffff)||428374,lastPulls:[],franchise:freshFranchise(),training:{}};
 }
-export function initialState():GameState {
- const batters=players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional).sort((a,b)=>Math.abs(a.overall-44)-Math.abs(b.overall-44)||a.id.localeCompare(b.id));
+export function initialState(seed=Math.floor(Math.random()*0xffffffff)||428374):GameState {
+ // Use a separate stream for the starting roster so it cannot advance scouts
+ // or game results. Shuffle candidates, not their abilities or the shared data.
+ const random=rng(seed^0x85ebca6b);
+ const shuffle=(pool:Player[])=>{
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(random.next()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  return pool;
+ };
+ const batters=shuffle(players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional&&p.overall>=40&&p.overall<=48&&ratingOverall(p)>=52&&ratingOverall(p)<=62));
  const lineup:string[]=[],defense:Record<string,string>={};
  for(const slot of rosterSlots){const p=batters.find(p=>!lineup.includes(p.id)&&fitsPosition(p,slot));if(!p)throw new Error('Missing starter position '+slot);lineup.push(p.id);defense[p.id]=slot;}
- const arms=players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30).sort((a,b)=>Math.abs(a.overall-60)-Math.abs(b.overall-60)||a.id.localeCompare(b.id));
- const starters=arms.filter(p=>p.pitching!.outs/Math.max(1,p.pitching!.games)>=12).slice(0,6);
- const relief=arms.filter(p=>!starters.includes(p)).slice(0,6);
+ const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&p.overall>=56&&p.overall<=64&&ratingOverall(p)>=62&&ratingOverall(p)<=73));
+ const starters=arms.filter(p=>pitchingRoleLabel(p)==='先発').slice(0,6);
+ const relief=arms.filter(p=>pitchingRoleLabel(p)==='救援').slice(0,6);
  if(starters.length!==6||relief.length!==6)throw new Error('Missing starter pitchers');
  const pitchers=[...starters,...relief].map(p=>p.id),bench=batters.filter(p=>!lineup.includes(p.id)).slice(0,3);
- const seed=Math.floor(Math.random()*0xffffffff)||428374;
  return {starterScout:createStarterScout(seed),achievements:{},version:1,mode:'career',name:'東京ルーキーズ',club:'t',gems:0,owned:Object.fromEntries([...lineup,...pitchers,...bench.map(p=>p.id)].map(id=>[id,1])),lineup,defense,pitchers,season:emptySeason(),history:[],pulls:0,pity:0,seed,lastPulls:[],franchise:{...freshFranchise(),established:true,tickets:0,points:0,motto:'一枚ずつ、強くなる。'},training:{}};
 }
 export function validState(value:unknown):value is GameState{

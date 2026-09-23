@@ -67,7 +67,7 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
   const next=trainPlayer(restored,ids[3]);assert.equal(next.training[ids[3]],4);assert.equal(next.gems,base.gems+3800);assert.equal(next.training[fullId],5);assert.equal(JSON.stringify(base),saved);
  });
  test('one focused prospect needs multiple years for late stages while early awakening is attainable in year one',()=>{
-  let state=initialState();state.seed=20260922;const id=findPlayer('ティマ').id,years:number[]=[];assert.ok(state.lineup.includes(id));
+  let state=initialState(20260922);const id=findPlayer('ティマ').id,years:number[]=[];state.owned[id]??=1;
   assert.ok(id);let spent=0;
   for(let year=1;year<=25;year++){
    state=collectSimpleRewards(simulatePostseason(collectSimpleRewards(simulateDays(state,143)),60));

@@ -32,12 +32,12 @@ export function registerArcadeTests(test:(name:string,run:()=>void)=>void){
   const burst=renderToStaticMarkup(createElement(Burst,{}));assert.ok(burst.includes('aria-hidden="true"'));
  });
  test('complete reset removes acquired cards, duplicates, development, seasons and every reset snapshot of this club',()=>{
-  const storage=store(),before=simulateDays(initialState(),5),newPlayer=players.find(p=>!before.owned[p.id])!;
+  const storage=store(),before=simulateDays(initialState(),5),newPlayer=players.find(p=>p.mlb)!;
   before.owned[newPlayer.id]=6;before.training[newPlayer.id]=5;before.pulls=23;before.name='前のクラブ';
   resetTeam(before,'career',storage);resetTeam(before,'career',storage);
   storage.setItem(saveKeyFor('free'),'other-profile');storage.setItem('unrelated-setting','keep');
   const fresh=completeResetTeam('career',storage);
-  assert.ok(validState(fresh));assert.deepEqual(fresh.owned,initialState().owned);assert.equal(fresh.owned[newPlayer.id],undefined);assert.ok(Object.values(fresh.owned).every(v=>v===1));assert.deepEqual(fresh.training,{});assert.deepEqual(fresh.history,[]);assert.deepEqual(fresh.lastPulls,[]);
+  assert.ok(validState(fresh));assert.deepEqual(fresh.owned,initialState(fresh.seed).owned);assert.equal(Object.keys(fresh.owned).length,24);assert.equal(fresh.owned[newPlayer.id],undefined);assert.ok(Object.values(fresh.owned).every(v=>v===1));assert.deepEqual(fresh.training,{});assert.deepEqual(fresh.history,[]);assert.deepEqual(fresh.lastPulls,[]);
   assert.equal(fresh.season.number,1);assert.equal(fresh.season.day,0);assert.equal(fresh.gems,0);assert.equal(fresh.franchise.points,0);assert.equal(fresh.franchise.tickets,0);assert.equal(fresh.pulls,0);assert.equal(readResetBackup('career',storage),null);
   assert.ok(![...storage.data.keys()].some(key=>key.startsWith(saveKeyFor('career')+'-')));assert.equal(storage.getItem('unrelated-setting'),'keep');assert.equal(storage.getItem(saveKeyFor('free')),'other-profile');
   assert.deepEqual(JSON.parse(storage.getItem(saveKeyFor('career'))!),fresh);

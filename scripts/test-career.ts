@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { initialState,initialSandboxState,drawPlayers,simulateDays,loadState,saveKeyFor,SAVE_KEY,CAREER_SAVE_KEY,validState,redeemURTicket,nextSeason,type GameResult } from '../src/pro/engine';
+import { initialState,initialSandboxState,drawPlayers,simulateDays,loadState,migrateState,saveKeyFor,SAVE_KEY,CAREER_SAVE_KEY,validState,redeemURTicket,nextSeason,type GameResult } from '../src/pro/engine';
 import { fitsPosition,players,playerMap,findPlayer } from '../src/pro/data';
 import { claimAllMilestones,claimMilestone,establishClub,milestonesFor } from '../src/pro/franchise';
 import { gameReward,seasonReward,postseasonReward } from '../src/pro/progression';
@@ -9,8 +9,33 @@ import { simulatePostseason } from '../src/pro/postseason';
 import { bestUpgrade,equipScoutedPlayer } from '../src/pro/career-roster';
 import {claimSeasonGoals} from '../src/pro/ambitions';
 import { CareerHome,CareerScout,SingleScoutOpening } from '../src/pro/Career';
+import {ratingOverall} from '../src/pro/development';
+import {pitchingRoleLabel} from '../src/pro/wiki-players';
 
 export function registerCareerTests(test:(name:string,run:()=>void)=>void){
+ test('random starting rosters vary across every slot while remaining weak, complete and duplicate-free',()=>{
+  const baseline=JSON.stringify(players),rosters=new Set<string>(),slots=Array.from({length:21},()=>new Set<string>());
+  for(let seed=1;seed<=500;seed++){
+   const state=initialState(seed),ids=Object.keys(state.owned);assert.ok(validState(state));assert.equal(ids.length,24);
+   assert.equal(new Set([...state.lineup,...state.pitchers]).size,21);
+   for(const id of ids){const p=playerMap[id],score=ratingOverall(p);assert.equal(state.owned[id],1);assert.ok(!p.mlb&&!p.provisional);assert.ok(p.role==='batter'?score>=52&&score<=62:score>=62&&score<=73);}
+   for(const id of state.lineup)assert.ok(fitsPosition(playerMap[id],state.defense[id]));
+   assert.ok(state.pitchers.slice(0,6).every(id=>pitchingRoleLabel(playerMap[id])==='先発'));
+   assert.ok(state.pitchers.slice(6).every(id=>pitchingRoleLabel(playerMap[id])==='救援'));
+   assert.equal(ids.filter(id=>playerMap[id].role==='batter').length,12);assert.equal(state.gems,0);assert.equal(state.pulls,0);assert.deepEqual(state.training,{});
+   assert.ok(state.starterScout!.choices.every(id=>!state.owned[id]));assert.equal(state.seed,seed);
+   rosters.add(ids.sort().join(','));[...state.lineup,...state.pitchers].forEach((id,i)=>slots[i].add(id));
+  }
+  assert.equal(rosters.size,500);assert.ok(slots.every(ids=>ids.size>=10));assert.equal(JSON.stringify(players),baseline);
+ });
+ test('a saved random roster resumes unchanged and never rerolls on migration',()=>{
+  const initial=initialState(20260923);assert.deepEqual(initialState(20260923),initial);
+  assert.notDeepEqual(initialState(20260924).owned,initial.owned);
+  const played=simulateDays(initial,3),saved=JSON.stringify(played),restored=migrateState(JSON.parse(saved))!;
+  assert.deepEqual(restored,played);assert.deepEqual(restored.owned,initial.owned);
+  const legacy=structuredClone(restored);delete legacy.starterScout;
+  assert.deepEqual(migrateState(legacy)!.owned,legacy.owned);assert.equal(JSON.stringify(played),saved);
+ });
  test('career starts with 24 real players, valid positions, modest strength and zero currency',()=>{
   const s=initialState();assert.ok(validState(s));assert.equal(s.mode,'career');assert.equal(Object.keys(s.owned).length,24);assert.ok(Object.keys(s.owned).every(id=>!playerMap[id].provisional));assert.ok(s.lineup.every(id=>playerMap[id].overall<=50));assert.ok(s.pitchers.every(id=>playerMap[id].overall<=65));assert.equal(s.gems,0);assert.equal(s.franchise.tickets,0);assert.equal(s.franchise.points,0);assert.equal(s.pulls,0);
   for(const id of s.lineup)assert.ok(fitsPosition(playerMap[id],s.defense[id]));

@@ -65,13 +65,13 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
   assert.ok(major>=45&&major<=120,`MLB outcomes ${major}/4000`);
  });
  test('multi-year economy earns a handful of point scouts each year and keeps balances and cards',()=>{
-  let state=initialState();const earned:number[]=[];
+  let state=initialState(20260923);const owned={...state.owned},earned:number[]=[];
   for(let year=0;year<4;year++){
    const before=state.gems,done=collectSimpleRewards(simulatePostseason(collectSimpleRewards(simulateDays(state,143)),60));
    const draws=(done.gems-before)/SIMPLE_SCOUT_COST;earned.push(draws);assert.ok(draws>=1&&draws<=2,`year ${year+1}: ${draws} point scouts`);
    assert.equal(done.franchise.tickets,0);state=nextSeason(done);
   }
-  assert.deepEqual(state.owned,initialState().owned);assert.ok(earned.reduce((a,b)=>a+b,0)<30);
+  assert.deepEqual(state.owned,owned);assert.ok(earned.reduce((a,b)=>a+b,0)<30);
  });
  test('MLB cards show both Ohtani ability sets and accessible player details without rarity labels',()=>{
   const player=playerMap['mlb-660271'],base=initialState(),state={...base,owned:{...base.owned,[player.id]:1}};
