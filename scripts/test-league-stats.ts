@@ -6,6 +6,7 @@ import {leagueFor,leagueTeams} from '../src/pro/leagues';
 import {leagueSeasonStats,teamSeasonRanks} from '../src/pro/league-stats';
 import {LeagueSeasonStats,TeamStatsDetail} from '../src/pro/LeagueSeasonStats';
 import {TeamSeasonStats} from '../src/pro/TeamSeasonStats';
+import {fieldingRuns,formatUZR} from '../src/pro/fielding-stats';
 
 export function registerLeagueStatsTests(test:(name:string,run:()=>void)=>void){
  test('league scoring sums all clubs, filters by league and weights ERA by actual outs, including interleague games',()=>{
@@ -47,7 +48,8 @@ export function registerLeagueStatsTests(test:(name:string,run:()=>void)=>void){
   for(const text of ['打率','本塁打','打点','盗塁','出塁率','得点','防御率','奪三振','セーブ','投球回','失点','得失点差'])assert.ok(detail.includes(text));
   const batters=Object.values(season.batting).filter(b=>b.team===state.club),pitchers=Object.values(season.pitching).filter(p=>p.team===state.club);
   assert.equal(mine.hr,batters.reduce((n,b)=>n+b.hr,0));assert.equal(mine.sb,batters.reduce((n,b)=>n+b.sb,0));assert.equal(mine.so,pitchers.reduce((n,p)=>n+p.so,0));assert.equal(mine.saves,pitchers.reduce((n,p)=>n+p.saves,0));
-  assert.ok(!/NaN|Infinity|UZR|FIP|WAR/.test(detail));
+  assert.equal(mine.uzr,Object.values(season.fielding!.players).filter(p=>p.team===state.club).reduce((n,p)=>n+fieldingRuns(p),0));
+  assert.ok(detail.includes('チームUZR'));assert.ok(detail.includes(formatUZR(mine.uzr)));assert.ok(!/NaN|Infinity|FIP|WAR/.test(detail));
  });
  test('team metric ranks use only the same league, allow ties, reverse ERA and leave unplayed rates unranked',()=>{
   const season=emptySeason();
@@ -75,5 +77,20 @@ export function registerLeagueStatsTests(test:(name:string,run:()=>void)=>void){
   // Better National League hitters cannot lower the custom club's American League batting rank.
   for(const t of members.filter(t=>t.league==='NATIONAL'))season.batting[t.id].hits=90;
   assert.equal(american.length,15);assert.equal(teamSeasonRanks(season,'db').ranks.avg,1);assert.equal(teamSeasonRanks(season,'db').ranks.hr,15);
+ });
+ test('team UZR ranks sum actual fielders, allow ties and never rank missing or mismatched recording periods',()=>{
+  const state=simulateDays(initialState(9284),2),season=state.season,totals:Record<string,number>={t:5.25,g:5.25,db:-2,c:0,d:-3,s:-4,h:99};
+  const assigned=new Set<string>();
+  for(const row of Object.values(season.fielding!.players)){row.rangeRuns=assigned.has(row.team)?0:totals[row.team]??0;row.armRuns=0;row.errorRuns=0;assigned.add(row.team);}
+  assert.equal(teamSeasonRanks(season,'t').uzrRank,1);assert.equal(teamSeasonRanks(season,'g').uzrRank,1);assert.equal(teamSeasonRanks(season,'db').uzrRank,4);
+  const rows=leagueSeasonStats(season).rows,t=rows.find(t=>t.team==='t')!,db=rows.find(t=>t.team==='db')!;
+  assert.equal(t.uzr,5.25);assert.equal(db.uzr,-2);
+  const positive=renderToStaticMarkup(createElement(TeamStatsDetail,{team:t,name:'テスト'})),negative=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:'db'}));
+  assert.ok(positive.includes('team-uzr-summary positive'));assert.ok(positive.includes('+5.3'));assert.ok(positive.includes('1位'));
+  assert.ok(negative.includes('team-uzr-summary negative'));assert.ok(negative.includes('-2.0'));assert.ok(negative.includes('4位'));
+  season.fielding!.games.t=1;assert.equal(teamSeasonRanks(season,'t').uzrRank,null);assert.equal(teamSeasonRanks(season,'g').uzrRank,null);
+  assert.ok(renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:'t'})).includes('記録開始後の1試合分'));
+  delete season.fielding;assert.equal(teamSeasonRanks(season,'t').uzrRank,null);
+  const legacy=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:'t'}));assert.ok(legacy.includes('未記録'));assert.ok(!legacy.includes('team-uzr-rank'));
  });
 }

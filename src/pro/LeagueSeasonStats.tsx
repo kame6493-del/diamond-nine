@@ -3,6 +3,7 @@ import type {Season} from './engine';
 import {formatAvg,formatIP,teamById} from './data';
 import {circuitOf,leagueFor,playoffSeeds} from './leagues';
 import {leagueSeasonStats,leagueStatsNames,type LeagueStatsScope,type LeagueTeamStats} from './league-stats';
+import {TeamUZR} from './TeamUZR';
 import './league-stats.css';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
@@ -13,6 +14,7 @@ export function TeamStatsDetail({team,name}:{team:LeagueTeamStats;name:string}){
  return <section className="league-team-detail" aria-label={`${name}の詳細成績`}>
   <header><h4>{name}</h4><span>{team.games}試合</span></header>
   {groups.map(([label,values])=><div className="league-detail-group" key={label}><h5>{label}</h5><dl>{values.map(([metric,value])=><div key={metric}><dt>{metric}</dt><dd>{value}</dd></div>)}</dl></div>)}
+  <TeamUZR {...team} rank={team.uzrRank}/>
  </section>;
 }
 

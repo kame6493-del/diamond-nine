@@ -19,7 +19,7 @@ export function registerTeamStatsTests(test:(name:string,run:()=>void)=>void){
   assert.notEqual(stats.obp,(10/16+25/102)/2); // Weight opportunities; exclude sacrifice bunts from the denominator.
   assert.notEqual(stats.avg,(.5+15/90)/2);assert.notEqual(stats.era,(9+2.25)/2);
   const html=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:s.club}));
-  for(const text of ['チーム全体成績','打率','本塁打','打点','盗塁','出塁率','防御率','.200','.297','3.00'])assert.ok(html.includes(text));assert.ok(!html.includes('失策'));assert.ok(!html.includes('UZR'));assert.equal((html.match(/<dt>/g)??[]).length,6);
+  for(const text of ['チーム全体成績','打率','本塁打','打点','盗塁','出塁率','防御率','チームUZR','.200','.297','3.00'])assert.ok(html.includes(text));assert.ok(!html.includes('失策'));assert.equal((html.match(/<dt>/g)??[]).length,6);
   const empty=teamSeasonStats(emptySeason(),s.club);assert.equal(empty.avg,null);assert.equal(empty.obp,null);assert.equal(empty.hr,0);assert.equal(empty.sb,0);assert.equal(empty.era,null);assert.equal(empty.rbi,0);assert.equal(empty.errors,0);
   season.batting={a:bat(s.lineup[0],s.club,0,0,0,{pa:4,bb:3,sf:1})};
   assert.equal(teamSeasonStats(season,s.club).avg,null);assert.equal(teamSeasonStats(season,s.club).obp,.750);
@@ -52,7 +52,7 @@ export function registerTeamStatsTests(test:(name:string,run:()=>void)=>void){
   assert.equal(teamSeasonStats(legacy.season,legacy.club).errors,null);
   const partial=simulateDays(legacy,2),partialStats=teamSeasonStats(partial.season,partial.club);
   assert.equal(partialStats.errorGames,2);assert.equal(partialStats.games,9);
-  assert.ok(!renderToStaticMarkup(createElement(TeamSeasonStats,{season:partial.season,club:partial.club})).includes('UZR'));
+  assert.ok(renderToStaticMarkup(createElement(TeamSeasonStats,{season:partial.season,club:partial.club})).includes('記録開始後の2試合分'));
   const regular=simulateDays(start,143),before=teamSeasonStats(regular.season,regular.club),done=finishPostseason(regular);
   assert.equal(before.errorGames,143);assert.ok(before.errors!>0);assert.deepEqual(teamSeasonStats(done.season,done.club),before);
   // Advancing with a prior archive exercises compacted game records without box scores.
