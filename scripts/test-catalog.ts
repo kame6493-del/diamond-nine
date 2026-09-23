@@ -7,6 +7,7 @@ import {playerAge,ratingOverall} from '../src/pro/development';
 import {browseCards,browseCatalogCards,collectionProgress,defaultCardFilters,cardTeams} from '../src/pro/player-browser';
 import {PlayerCatalog,CATALOG_PAGE_SIZE} from '../src/pro/PlayerCatalog';
 import {DeckTeam} from '../src/pro/CardDeck';
+import {CardFilterControls} from '../src/pro/CardFilters';
 import {PlayerDetails} from '../src/pro/PlayerDetails';
 
 export function registerCatalogTests(test:(name:string,run:()=>void)=>void){
@@ -41,7 +42,8 @@ export function registerCatalogTests(test:(name:string,run:()=>void)=>void){
   const state=initialState(),html=renderToStaticMarkup(createElement(PlayerCatalog,{state,onBack:()=>{},onPlayer:()=>{}}));
   assert.equal((html.match(/class="catalog-card"/g)??[]).length,CATALOG_PAGE_SIZE);for(const label of ['カードカタログ','日本人MLB選手','カタログの球団','18〜24歳','年齢が若い順','カタログの次のページ','未入手','カード収集率','data-collected="false"'])assert.ok(html.includes(label));assert.ok(!html.includes('レア度'));
   const unowned=players.find(p=>!state.owned[p.id])!,detail=renderToStaticMarkup(createElement(PlayerDetails,{player:unowned,state,onChange:()=>{},onAwaken:()=>{},catalog:true}));assert.ok(detail.includes(unowned.name));assert.ok(detail.includes('特殊能力'));assert.ok(detail.includes('catalog-detail-unowned'));assert.ok(!detail.includes('awaken-button'));assert.ok(!detail.includes('hand-equip'));
-  const deck=renderToStaticMarkup(createElement(DeckTeam,{state,onChange:()=>{},onPlayer:()=>{},onImpact:()=>{},onCatalog:()=>{}}));for(const label of ['カードカタログ','控えの年齢帯','控えの球団','球団順','年齢が高い順','3人を表示'])assert.ok(deck.includes(label));assert.equal(playerMap[unowned.id].id,unowned.id);
+  const deck=renderToStaticMarkup(createElement(DeckTeam,{state,onChange:()=>{},onPlayer:()=>{},onImpact:()=>{},onCatalog:()=>{}}));for(const label of ['カードカタログ','控え 3'])assert.ok(deck.includes(label));
+  const filters=renderToStaticMarkup(createElement(CardFilterControls,{prefix:'控え',value:defaultCardFilters,onChange:()=>{}}));for(const label of ['控えの年齢帯','控えの球団','球団順','年齢が高い順'])assert.ok(filters.includes(label));assert.equal(playerMap[unowned.id].id,unowned.id);
  });
  test('catalog cards, ability sorting and details never reveal awakening or duplicate bonuses, including two-way players',()=>{
   const initial=initialState(),base={...initial,owned:Object.fromEntries(players.map(p=>[p.id,1])),training:{}};

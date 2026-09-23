@@ -23,9 +23,10 @@ export function registerArcadeTests(test:(name:string,run:()=>void)=>void){
   storage.setItem(`${saveKeyFor('career')}-reset-backup`,'bad');storage.setItem('bad','not-json');assert.equal(restoreResetBackup(before,'career',storage),before);
   storage.setItem('bad',JSON.stringify({...before,mode:'free'}));assert.equal(readResetBackup('career',storage),null);
  });
- test('card deck exposes 21 selectable roster cards, hand cards, five abilities and no rarity badges',()=>{
+ test('compact deck preserves 21 roster slots and abilities, with bench selection available on demand',()=>{
   const state=initialState(),html=renderToStaticMarkup(createElement(DeckTeam,{state,onChange:()=>{},onPlayer:()=>{},onImpact:()=>{}}));
-  assert.equal((html.match(/class="deck-card-button"/g)??[]).length,21);assert.equal((html.match(/class="deck-hand-card"/g)??[]).length,3);
+  assert.equal((html.match(/class="deck-card-button"/g)??[]).length,21);assert.equal((html.match(/class="deck-hand-card"/g)??[]).length,0);
+  assert.ok(html.includes('控え 3'));assert.ok(html.includes('能力を表示'));assert.ok(html.includes('編成する選手'));
   assert.ok(html.includes('スターティング9'));assert.ok(html.includes('投手デッキ'));assert.ok(html.includes('draggable="true"'));
   assert.ok(!html.includes('rarity-'));assert.ok(!html.includes('レア度'));
   const card=renderToStaticMarkup(createElement(TradingCard,{player:playerMap[state.lineup[0]],state}));for(const label of ['ミート','パワー','走力','肩','守備'])assert.ok(card.includes(label));assert.ok(!card.includes('UZR'));

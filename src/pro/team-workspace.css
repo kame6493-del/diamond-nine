@@ -1,0 +1,124 @@
+.compact-team{overflow-anchor:none}
+.compact-team .s-page-title{margin-bottom:12px}
+.compact-team .deck-layout{display:block}
+.compact-team .deck-boards{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.compact-team .deck-board>header{margin-bottom:8px}
+.compact-team .deck-board>header>span{display:none}
+.deck-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff}
+.deck-view-switch{display:none}
+.deck-ability-toggle,.deck-bench-open{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:38px;padding:7px 12px;border:1px solid #dedbef;border-radius:9px;font-size:11px;font-weight:700;color:#71638e;background:#fff}
+.deck-ability-toggle[aria-pressed=true]{background:#f0eafa;color:#7147bd}
+.deck-bench-open{background:#f2edff;color:#6946b5}
+.compact-team .deck-guide{min-height:28px;margin-bottom:8px;padding:4px 8px;font-size:10px;line-height:1.5;background:#f8f8fc}
+.compact-team .deck-guide.is-choosing{position:static}
+.compact-team .deck-defense-warning{padding:7px 10px;margin-bottom:8px;font-size:10px;line-height:1.4}
+.compact-team .deck-defense-warning strong{font-size:11px}
+.compact-team .lineup-list{gap:4px}
+.compact-team .lineup-row{grid-template-columns:38px 30px 26px minmax(0,1fr) 35px 42px;gap:5px;min-height:44px;padding:3px 6px 3px 2px;border-radius:8px}
+.compact-team .pitching-board .lineup-row{grid-template-columns:44px 26px minmax(0,1fr) 35px 42px}
+.compact-team .lineup-row>.order-handle{grid-column:1;grid-row:1;min-height:36px;gap:0}
+.compact-team .order-handle svg{display:none}
+.compact-team .order-handle b{font-size:11px}
+.compact-team .lineup-row>.position-cell{grid-column:2;grid-row:1}
+.compact-team .position-handle{width:30px;min-height:34px;font-size:11px}
+.compact-team .lineup-row>.row-jersey{grid-column:3;grid-row:1;height:32px}
+.compact-team .row-jersey .deck-jersey{width:26px;height:32px}
+.compact-team .lineup-row>.row-identity{grid-column:4;grid-row:1;gap:0;min-width:0}
+.compact-team .row-identity>button{font-size:12px;min-height:21px;line-height:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-team .row-identity-meta{gap:4px;flex-wrap:nowrap;line-height:1.2}
+.compact-team .row-identity-meta small{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.compact-team .player-age{font-size:8px;padding:1px 3px}
+.compact-team .row-identity>span{display:none}
+.compact-team .lineup-row>.row-overall{grid-column:5;grid-row:1;padding:0;border:0}
+.compact-team .row-overall small{font-size:7px;line-height:1}
+.compact-team .row-overall b{font-size:21px;letter-spacing:-.5px}
+.compact-team .lineup-row>.row-actions{grid-column:6;grid-row:1;display:block}
+.compact-team .row-actions>div{display:none}
+.compact-team .deck-card-button{width:100%;min-width:0;min-height:36px;padding:3px;font-size:10px}
+.compact-team .pitching-board .lineup-row>.row-jersey{grid-column:2}
+.compact-team .pitching-board .lineup-row>.row-identity{grid-column:3}
+.compact-team .pitching-board .lineup-row>.row-overall{grid-column:4}
+.compact-team .pitching-board .lineup-row>.row-actions{grid-column:5;grid-row:1;display:block}
+.compact-team .lineup-row>.card-abilities,.compact-team .pitching-board .lineup-row>.card-abilities{grid-column:1/-1;grid-row:2}
+.compact-team:not(.show-abilities) .lineup-row>.card-abilities{display:none}
+.compact-team .lineup-row .card-abilities>div{display:flex;flex-wrap:nowrap;gap:3px;padding:3px 1px}
+.compact-team .lineup-row .card-abilities small{font-size:8px;width:auto;margin:0}
+.compact-team .lineup-row .card-abilities strong{font-size:12px}
+.compact-team .lineup-row .card-abilities em{font-size:9px}
+.compact-team .can-equip{border-color:#9b81dd;background:#f7f2ff}
+.compact-team .can-equip .deck-card-button{background:#7954ce;color:#fff}
+.deck-picker-overlay{position:fixed;inset:0;z-index:1050;background:#1f2c4659;backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:18px}
+.deck-picker{width:720px;max-width:100%;max-height:calc(100dvh - 36px);display:flex;flex-direction:column;border-radius:17px;background:#fff;box-shadow:0 20px 80px #20345833;outline:0;overflow:hidden;color:#344764}
+.deck-picker>header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #e8e8f0;flex-shrink:0}
+.deck-picker>header>div{min-width:0}
+.deck-picker>header small{font-size:10px;color:#836aab}
+.deck-picker h2{font-size:15px;line-height:1.5}
+.deck-picker .s-icon{flex-shrink:0;min-width:40px;min-height:40px;display:grid;place-items:center}
+.deck-picker-tools{padding:12px 16px 0;flex-shrink:0}
+.deck-picker input{min-height:40px;font-size:16px}
+.deck-picker-filters summary{padding:10px 0;cursor:pointer;font-size:12px;color:#796494}
+.deck-picker-filters .card-filter-controls{margin:0 0 8px}
+.deck-picker-filters select{font-size:14px}
+.deck-picker .bench-filter-result{padding:2px 0 10px;font-size:11px}
+.deck-picker-list{overflow:auto;overscroll-behavior:contain;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 16px 16px}
+.deck-picker .deck-hand-card{cursor:auto;user-select:auto;border:1px solid #e3e6ef;border-left:3px solid var(--team-tint);border-radius:10px;padding:9px;background:#fff}
+.bench-choice-heading{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.bench-choice-heading>.deck-jersey{width:32px;height:38px;flex-shrink:0}
+.bench-choice-name{min-width:0;flex:1}
+.bench-choice-name>button{padding:0;min-height:26px;font-size:13px;font-weight:800;text-align:left;line-height:1.3}
+.bench-choice-name small{display:block;font-size:9px;line-height:1.5;color:#748299;overflow-wrap:anywhere}
+.bench-choice-overall{text-align:center;min-width:29px}
+.bench-choice-overall small{display:block;font-size:8px;color:#8a77a5}
+.bench-choice-overall b{font-size:23px;line-height:1;color:#7754c5}
+.deck-picker .hand-equip{width:44px;min-width:44px;min-height:40px;margin:0;padding:4px;background:#7954d0;color:#fff;font-size:12px;font-weight:700}
+.deck-picker .card-abilities>div{flex-wrap:nowrap;padding:4px 1px;gap:2px}
+.deck-picker .card-abilities small{width:auto;font-size:8px;margin:0}
+.deck-picker .card-abilities strong{font-size:12px}
+.deck-picker .card-abilities em{font-size:9px}
+.deck-picker-empty{padding:30px 20px;font-size:13px;text-align:center;color:#778397}
+@media(max-width:900px){
+ .compact-team .deck-boards{display:block}
+ .compact-team .deck-board:not(.is-active){display:none}
+ .compact-team .deck-board>header{display:none}
+ .deck-toolbar{position:sticky;top:0;z-index:20;padding:4px 0}
+ .deck-view-switch{display:flex;gap:3px;padding:3px;border-radius:10px;background:#edf0fa;flex:1;min-width:0}
+ .deck-view-switch>button{display:flex;align-items:center;justify-content:center;gap:4px;min-height:36px;padding:4px 8px;flex:1;font-size:12px;font-weight:700;color:#7884a0;white-space:nowrap;border-radius:8px}
+ .deck-view-switch>button[aria-pressed=true]{background:#fff;color:#7051bb;box-shadow:0 1px 5px #38427118}
+ .deck-ability-toggle,.deck-bench-open{padding:6px 8px;font-size:10px}
+ .compact-team .s-kicker{display:none}
+ .compact-team .s-page-title{margin-bottom:5px}
+ .compact-team .lineup-row{grid-template-columns:32px 30px 26px minmax(0,1fr) 33px 40px;min-height:43px;gap:4px;padding:2px 5px 2px 1px}
+ .compact-team .pitching-board .lineup-row{grid-template-columns:42px 26px minmax(0,1fr) 33px 40px;min-height:43px;gap:4px;padding:2px 5px 2px 1px}
+ .compact-team .lineup-list{gap:3px}
+ .compact-team .team-reset-panel{margin-top:14px;padding-top:10px}
+}
+@media(max-width:600px){
+ .deck-toolbar{top:50px;gap:5px}
+ .compact-team .s-page-title h1{font-size:17px}
+ .compact-team .team-title-actions{gap:4px;flex-wrap:nowrap}
+ .compact-team .team-title-actions .s-button{min-height:36px;padding:5px 7px;font-size:9px}
+ .compact-team .team-title-actions .s-button svg{width:13px}
+ .deck-view-switch>button{padding:3px 4px;font-size:11px;gap:2px}
+ .deck-view-switch svg{display:none}
+ .deck-picker-overlay{align-items:flex-end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+ .deck-picker{max-height:calc(100dvh - 20px);border-radius:16px}
+ .deck-picker>header{padding:10px 12px}
+ .deck-picker-tools{padding:10px 12px 0}
+ .deck-picker-list{grid-template-columns:1fr;padding:0 12px 12px;gap:8px}
+ .deck-picker-filters select{font-size:16px}
+ .deck-picker .deck-hand-card{padding:8px}
+ .deck-picker .card-abilities strong{font-size:13px}
+ .deck-picker .card-abilities em{font-size:10px}
+}
+@media(max-width:350px){
+ .compact-team .lineup-row{grid-template-columns:27px 27px 21px minmax(0,1fr) 28px 35px;gap:3px}
+ .compact-team .pitching-board .lineup-row{grid-template-columns:38px 21px minmax(0,1fr) 28px 35px}
+ .compact-team .position-handle{width:27px}
+ .compact-team .row-jersey .deck-jersey{width:21px}
+ .compact-team .row-identity>button{font-size:11px}
+ .compact-team .row-overall b{font-size:19px}
+ .compact-team .team-title-actions .s-button{font-size:8px;padding:4px}
+ .compact-team .team-title-actions .s-button svg{display:none}
+ .deck-toolbar{gap:3px}
+ .deck-ability-toggle,.deck-bench-open{padding:5px;font-size:9px;gap:3px}
+}

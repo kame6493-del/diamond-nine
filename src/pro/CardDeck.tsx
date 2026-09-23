@@ -1,4 +1,5 @@
-import {useEffect,useRef,useState,type CSSProperties,type DragEvent,type PointerEvent} from 'react';
+import {useEffect,useRef,useState,type CSSProperties,type DragEvent,type PointerEvent,type ReactNode} from 'react';
+import {createPortal} from 'react-dom';
 import {ArrowDown,ArrowUp,BookOpen,Check,GripVertical,Layers3,RotateCcw,Search,ShieldAlert,Shuffle,Users,X,Zap} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {fitsPosition,playerMap,teamById,type Player} from './data';
@@ -11,6 +12,7 @@ import {CardAbilities} from './CardAbilities';
 import {CardFilterControls} from './CardFilters';
 import {browseCards,defaultCardFilters,type CardFilters} from './player-browser';
 import './catalog.css';
+import './team-workspace.css';
 
 export const cardBonus=(s:GameState,id:string)=>Math.min(5,Math.max(0,(s.owned[id]??1)-1));
 export function Burst({kind='gold'}:{kind?:'gold'|'cyan'}){
@@ -38,24 +40,43 @@ export function TradingCard({player,state,slot,selected=false,compact=false,onPl
 }
 type Slot={kind:'bat'|'pit';index:number};
 type Payload={mode:'order'|'defense'|'bench';id:string;kind:'bat'|'pit'};
+function BenchDialog({title,onClose,returnSlot,children}:{title:string;onClose:()=>void;returnSlot?:Slot|null;children:ReactNode}){
+ const panel=useRef<HTMLDivElement>(null),close=useRef(onClose);close.current=onClose;
+ useEffect(()=>{
+  const previous=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';panel.current?.focus({preventScroll:true});
+  const key=(event:KeyboardEvent)=>{
+   if(!panel.current?.contains(document.activeElement))return;
+   if(event.key==='Escape'){event.preventDefault();close.current();}
+   if(event.key==='Tab'){
+    const nodes=Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled),input,select,summary,a[href]')).filter(node=>node.getClientRects().length);
+    if(!nodes.length){event.preventDefault();return;}
+    if(event.shiftKey&&(document.activeElement===nodes[0]||document.activeElement===panel.current)){event.preventDefault();nodes.at(-1)?.focus();}
+    else if(!event.shiftKey&&document.activeElement===nodes.at(-1)){event.preventDefault();nodes[0].focus();}
+   }
+  };
+  document.addEventListener('keydown',key);
+  return()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',key);const target=previous?.isConnected?previous:returnSlot?document.getElementById(`slot-${returnSlot.kind}-${returnSlot.index}`)?.querySelector<HTMLElement>('.deck-card-button'):null;target?.focus({preventScroll:true});};
+ },[]);
+ return createPortal(<div className="deck-picker-overlay" onClick={onClose}><div ref={panel} className="deck-picker" role="dialog" aria-modal="true" aria-label={title} tabIndex={-1} onClick={e=>e.stopPropagation()}><header><div><small>控えから選ぶ</small><h2>{title}</h2></div><button aria-label="控えを閉じる" className="s-icon" onClick={onClose}><X size={20}/></button></header>{children}</div></div>,document.body);
+}
 export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onCompleteReset,onCatalog,canRestore=false}:{state:GameState;onChange:(s:GameState)=>void;onPlayer:(p:Player)=>void;onImpact:()=>void;onReset?:()=>void;onRestore?:()=>void;onCompleteReset?:()=>void;onCatalog?:()=>void;canRestore?:boolean}){
  const [selected,setSelected]=useState<Slot|null>(null),[order,setOrder]=useState<Slot|null>(null),[defender,setDefender]=useState<string|null>(null),[hand,setHand]=useState<string|null>(null);
  const [filters,setFilters]=useState<CardFilters>({...defaultCardFilters}),[notice,setNotice]=useState('');
+ const [view,setView]=useState<Slot['kind']>('bat'),[showAbilities,setShowAbilities]=useState(false),[benchOpen,setBenchOpen]=useState(false);
  const [dragging,setDragging]=useState<Payload|null>(null),[over,setOver]=useState(''),[ghost,setGhost]=useState<{x:number;y:number;name:string}|null>(null);
  const pointer=useRef<{payload:Payload;x:number;y:number;moved:boolean}|null>(null),ignoreClick=useRef(false);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),3600);return()=>clearTimeout(timer);},[notice]);
- useEffect(()=>{if(!window.matchMedia('(max-width:760px)').matches)return;if(selected)document.getElementById('deck-hand')?.scrollIntoView({behavior:'smooth',block:'start'});else if(hand)document.getElementById(`slot-${playerMap[hand].role==='pitcher'?'pit':'bat'}-0`)?.scrollIntoView({behavior:'smooth',block:'start'});},[selected,hand]);
  const roster=new Set([...state.lineup,...state.pitchers]);
  const bench=Object.keys(state.owned).map(id=>playerMap[id]).filter(p=>!roster.has(p.id)||(selected&&p.mlb?.twoWay&&!(selected.kind==='bat'?state.lineup:state.pitchers).includes(p.id)));
  const eligible=selected?new Set(replacementPool(state,selected.kind,selected.index).map(p=>p.id)):null;
  const visible=browseCards(bench.filter(p=>!eligible||eligible.has(p.id)),state,filters);
- const clear=()=>{setSelected(null);setOrder(null);setDefender(null);setHand(null);};
+ const clear=()=>{setSelected(null);setOrder(null);setDefender(null);setHand(null);setBenchOpen(false);};
  const commit=(next:GameState,message:string)=>{if(next===state)return;onChange(next);onImpact();clear();setNotice(message);};
  const replace=(slot:Slot,id:string)=>{
   const next=replaceSimplePlayer(state,slot.kind,slot.index,id);
   if(next===state){setNotice('この枠には起用できません。守備適性に合う枠を選んでください。');return;}
   commit(next,`${playerMap[id].name}を起用しました。`);
-  if(window.matchMedia('(max-width:760px)').matches)requestAnimationFrame(()=>document.getElementById(`slot-${slot.kind}-${slot.index}`)?.scrollIntoView({behavior:'smooth',block:'center'}));
  };
  const drop=(payload:Payload,slot:Slot)=>{
   const ids=slot.kind==='bat'?state.lineup:state.pitchers,target=ids[slot.index];
@@ -79,25 +100,32 @@ export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
   const player=playerMap[id],age=playerAge(player),key=`${kind}-${index}`,active=selected?.kind===kind&&selected.index===index,slot={kind,index},overall=effectiveOverall(player,state.owned,state.training);
   const pos=state.defense[id],fit=kind==='pit'||fitsPosition(player,pos),role=kind==='bat'?`${index+1}番`:index<6?`先発${index+1}`:index===11?'抑え':`中継${index-5}`;
   const compatible=dragging&&(dragging.mode==='bench'?replacementPool(state,kind,index).some(p=>p.id===dragging.id):dragging.kind===kind);
-  return <article key={id} id={`slot-${key}`} data-deck-kind={kind} data-deck-index={index} className={`lineup-row ${active?'active-row':''} ${over===key&&compatible?'drop-over':''}`} style={{'--team-tint':teamById(player.team).color} as CSSProperties}
+  const handFits=hand&&replacementPool(state,kind,index).some(p=>p.id===hand);
+  return <article key={id} id={`slot-${key}`} data-deck-kind={kind} data-deck-index={index} className={`lineup-row ${active?'active-row':''} ${over===key&&compatible?'drop-over':''} ${handFits?'can-equip':''}`} style={{'--team-tint':teamById(player.team).color} as CSSProperties}
    onDragOver={e=>{if(compatible){e.preventDefault();setOver(key);}}} onDragLeave={()=>setOver('')} onDrop={e=>{e.preventDefault();if(dragging)drop(dragging,slot);setDragging(null);setOver('');}}>
    <button {...dragProps({mode:'order',id,kind})} className={`order-handle ${order?.kind===kind&&order.index===index?'picked':''}`} aria-label={`${player.name}の${kind==='bat'?'打順':'投手順'}を移動`} aria-pressed={order?.kind===kind&&order.index===index} onClick={()=>tapOrder(slot)}><GripVertical size={14}/><b>{role}</b></button>
    {kind==='bat'&&<div className="position-cell"><button {...dragProps({mode:'defense',id,kind})} className={`position-handle ${defender===id?'picked':''} ${fit?'':'unfit'}`} aria-label={`${player.name}の守備位置 ${pos}を交換`} aria-pressed={defender===id} onClick={()=>tapDefense(id)}>{pos}</button>{defender===id&&<select aria-label={`${player.name}の変更先の守備位置`} value="" onChange={e=>{if(e.target.value)commit(swapDefense(state,id,e.target.value),'守備位置を交換しました。');}}><option value="">交換先</option>{state.lineup.filter(other=>other!==id).map(other=><option key={other} value={other}>{state.defense[other]} · {playerMap[other].name}</option>)}</select>}</div>}
    <div className="row-jersey"><JerseyArt player={player}/></div>
-   <div className="row-identity"><div className="row-identity-meta"><small>{teamById(player.team).short}{!fit&&' · 適性外'}</small><span className="player-age" title="2026年9月20日時点">{age===null?'年齢未登録':`${age}歳`}</span></div><button data-player-id={id} onClick={()=>onPlayer(player)}>{player.name}</button>{(state.training[id]??0)>0&&<span>覚醒 {state.training[id]}/5</span>}</div>
+   <div className="row-identity"><div className="row-identity-meta"><small>{teamById(player.team).short}{!fit&&' · 適性外'}</small><span className="player-age" title="2026年9月20日時点">{age===null?'年齢未登録':`${age}歳`}</span></div><button title={player.name} data-player-id={id} onClick={()=>onPlayer(player)}>{player.name}</button>{(state.training[id]??0)>0&&<span>覚醒 {state.training[id]}/5</span>}</div>
    <div className={'row-overall'+(overall>=100?' triple-digit':'')} aria-label={`総合 ${overall}`}><small>総合</small><b>{overall}</b></div>
    <CardAbilities player={player} mode={kind==='bat'?'batter':'pitcher'} ratings={ownedRatings(player,state.owned,state.training)}/>
-   <div className="row-actions"><button className="deck-card-button" aria-label={`${role} ${player.name}を入れ替える`} aria-pressed={active} onClick={()=>{if(hand)replace(slot,hand);else{clear();setSelected(active?null:slot);setFilters({...defaultCardFilters});}}}>{active?'選択中':'入替'}</button><div><button aria-label={`${player.name}を上へ`} disabled={index===0} onClick={()=>commit(reorderSimplePlayer(state,kind,index,index-1),'順番を変更しました。')}><ArrowUp size={13}/></button><button aria-label={`${player.name}を下へ`} disabled={index===(kind==='bat'?8:11)} onClick={()=>commit(reorderSimplePlayer(state,kind,index,index+1),'順番を変更しました。')}><ArrowDown size={13}/></button></div></div>
+   <div className="row-actions"><button className="deck-card-button" aria-label={`${role} ${player.name}を入れ替える`} aria-pressed={active} onClick={()=>{if(hand)replace(slot,hand);else{clear();setSelected(slot);setView(kind);setFilters({...defaultCardFilters});setBenchOpen(true);}}}>{active?'選択中':'入替'}</button><div><button aria-label={`${player.name}を上へ`} disabled={index===0} onClick={()=>commit(reorderSimplePlayer(state,kind,index,index-1),'順番を変更しました。')}><ArrowUp size={13}/></button><button aria-label={`${player.name}を下へ`} disabled={index===(kind==='bat'?8:11)} onClick={()=>commit(reorderSimplePlayer(state,kind,index,index+1),'順番を変更しました。')}><ArrowDown size={13}/></button></div></div>
   </article>;
  };
  const misplaced=state.lineup.filter(id=>!fitsPosition(playerMap[id],state.defense[id]));
- const selectionText=order?'移動先の打順番号をタップ。':defender?'交換先の守備位置をタップ。適性外では失点が増えやすくなります。':selected?`${playerMap[(selected.kind==='bat'?state.lineup:state.pitchers)[selected.index]].name}と入れ替える控えを選んでください。`:hand?'起用するスタメンの「入替」をタップ。':'番号をドラッグで打順変更。守備位置もドラッグ・タップで交換。選手名で詳細。';
- return <><div className="s-page-title"><div><p className="s-kicker">MY TEAM</p><h1>チーム編成</h1></div><div className="team-title-actions">{onCatalog&&<button className="s-button catalog-open" onClick={onCatalog}><BookOpen size={16}/>カードカタログ</button>}<button className="s-button deck-auto" onClick={()=>commit(buildByStrategy(state,'balanced'),'編成しました。')}><Shuffle size={16}/>おまかせ編成</button></div></div>
+ const selectionText=order?(order.kind==='bat'?'移動先の打順番号をタップ。':'移動先の投手枠をタップ。'):defender?'交換先の守備位置をタップ。適性外では失点が増えやすくなります。':selected?`${playerMap[(selected.kind==='bat'?state.lineup:state.pitchers)[selected.index]].name}と入れ替える控えを選んでください。`:hand?'起用する枠の「入替」をタップ。':'番号・守備位置をタップして交換。選手名で詳細。';
+ return <div className={'compact-team'+(showAbilities?' show-abilities':'')}><div className="s-page-title"><div><p className="s-kicker">MY TEAM</p><h1>チーム編成</h1></div><div className="team-title-actions">{onCatalog&&<button className="s-button catalog-open" onClick={onCatalog}><BookOpen size={16}/>カードカタログ</button>}<button className="s-button deck-auto" onClick={()=>commit(buildByStrategy(state,'balanced'),'編成しました。')}><Shuffle size={16}/>おまかせ編成</button></div></div>
+ <div className="deck-toolbar"><div className="deck-view-switch" role="group" aria-label="編成する選手"><button aria-pressed={view==='bat'} onClick={()=>{clear();setView('bat');}}><Users size={16}/>打線 9</button><button aria-pressed={view==='pit'} onClick={()=>{clear();setView('pit');}}><Zap size={16}/>投手 12</button></div><button className="deck-ability-toggle" aria-pressed={showAbilities} onClick={()=>setShowAbilities(v=>!v)}>{showAbilities?'能力を隠す':'能力を表示'}</button><button className="deck-bench-open" onClick={()=>{clear();setFilters({...defaultCardFilters});setBenchOpen(true);}}><Layers3 size={16}/>控え {bench.length}</button></div>
  <div className={`deck-guide ${order||defender||selected||hand?'is-choosing':''}`}><Layers3 size={17}/><span>{selectionText}</span>{(order||defender||selected||hand)&&<button aria-label="編成の選択を解除" onClick={clear}><X size={18}/></button>}</div>
  {misplaced.length>0&&<div className="deck-defense-warning" role="status"><ShieldAlert size={18} aria-hidden="true"/><div><strong>守備適性外 {misplaced.length}人</strong><span>被安打・失策が増え、失点しやすくなります。{misplaced.some(id=>state.defense[id]==='捕')&&'捕手の適性外は盗塁も許しやすくなります。'}</span></div></div>}
- <div className="deck-layout"><div className="deck-boards"><section className="deck-board"><header><h2><Users size={19}/>スターティング9</h2><span>打順 / 守備 / 選手 / 総合 / 能力</span></header><div className="lineup-list">{state.lineup.map((id,i)=>row(id,i,'bat'))}</div></section><section className="deck-board pitching-board"><header><h2><Zap size={19}/>投手デッキ</h2><span>先発6人・リリーフ6人</span></header><div className="lineup-list">{state.pitchers.map((id,i)=>row(id,i,'pit'))}</div></section></div>
- <aside className={`deck-hand ${selected?'choosing':''}`} id="deck-hand"><header><h2><Layers3 size={19}/>控えのカード</h2><span>{bench.length}人</span></header><p>{selected?'選んで入れ替え':'カードをドラッグ、または「起用」をタップ'}</p><label className="deck-search"><Search size={15}/><input aria-label="控えを選手名で検索" value={filters.search} onChange={e=>setFilters({...filters,search:e.target.value})} placeholder="選手名で探す"/></label><CardFilterControls prefix="控え" value={filters} onChange={setFilters}/><div className="bench-filter-result"><span role="status">{visible.length}人を表示</span>{(filters.search||filters.team!=="all"||filters.age!=="all"||filters.role!=="all")&&<button onClick={()=>setFilters({...defaultCardFilters})}>絞り込みを解除</button>}</div><div className="deck-hand-list">{visible.map(p=><article className="deck-hand-card" key={p.id} {...dragProps({mode:'bench',id:p.id,kind:p.role==='pitcher'?'pit':'bat'})}><div className="bench-card-meta"><span>{playerAge(p)===null?"年齢未登録":`${playerAge(p)}歳`}</span><span>{teamById(p.team).short}</span></div><TradingCard player={p} state={state} compact selected={hand===p.id} onPlayer={onPlayer}/><button className="hand-equip" onClick={()=>{if(ignoreClick.current)return;if(selected)replace(selected,p.id);else{clear();setHand(p.id);}}}>{selected?'この選手に入れ替え':hand===p.id?'起用先を選んでください':'この選手を起用'}</button></article>)}</div>{!visible.length&&<p className="deck-empty">条件に合う控えがいません。</p>}</aside></div>
+ <div className="deck-layout"><div className="deck-boards"><section className={'deck-board'+(view==='bat'?' is-active':'')} aria-label="打線の編成"><header><h2><Users size={19}/>スターティング9</h2><span>打順 / 守備 / 選手 / 総合 / 能力</span></header><div className="lineup-list">{state.lineup.map((id,i)=>row(id,i,'bat'))}</div></section><section className={'deck-board pitching-board'+(view==='pit'?' is-active':'')} aria-label="投手の編成"><header><h2><Zap size={19}/>投手デッキ</h2><span>先発6人・リリーフ6人</span></header><div className="lineup-list">{state.pitchers.map((id,i)=>row(id,i,'pit'))}</div></section></div>
+ </div>
+ {benchOpen&&<BenchDialog title={selected?`${selected.kind==='bat'?`${selected.index+1}番`:selected.index<6?`先発${selected.index+1}`:selected.index===11?'抑え':`中継${selected.index-5}`} ${playerMap[(selected.kind==='bat'?state.lineup:state.pitchers)[selected.index]].name}と入替`:'控えの選手'} onClose={clear} returnSlot={selected}>
+  <div className="deck-picker-tools"><label className="deck-search"><Search size={15}/><input aria-label="控えを選手名で検索" value={filters.search} onChange={e=>setFilters({...filters,search:e.target.value})} placeholder="選手名で探す"/></label><details className="deck-picker-filters"><summary>絞り込み・並べ替え</summary><CardFilterControls prefix="控え" value={filters} onChange={setFilters}/></details><div className="bench-filter-result"><span role="status">{visible.length}人{selected?' · この枠に起用できる選手':''}</span>{(filters.search||filters.team!=='all'||filters.age!=='all'||filters.role!=='all')&&<button onClick={()=>setFilters({...defaultCardFilters})}>絞り込みを解除</button>}</div></div>
+  <div className="deck-picker-list">{visible.map(p=><article className="deck-hand-card" key={p.id} style={{'--team-tint':teamById(p.team).color} as CSSProperties}><div className="bench-choice-heading"><JerseyArt player={p}/><div className="bench-choice-name"><button onClick={()=>onPlayer(p)}>{p.name}</button><small>{playerAge(p)===null?'年齢未登録':`${playerAge(p)}歳`} · {teamById(p.team).short} · {p.role==='pitcher'?pitchingRoleLabel(p):p.positions.join('/')}</small></div><div className="bench-choice-overall"><small>総合</small><b>{effectiveOverall(p,state.owned,state.training)}</b></div><button className="hand-equip" aria-label={`${p.name}を起用`} onClick={()=>{if(selected)replace(selected,p.id);else{clear();setHand(p.id);setView(p.role==='pitcher'?'pit':'bat');}}}>起用</button></div><CardAbilities player={p} mode={selected?.kind==='bat'?'batter':p.role} ratings={ownedRatings(p,state.owned,state.training)}/></article>)}</div>
+  {!visible.length&&<p className="deck-picker-empty">{eligible&&eligible.size===0?'この枠に起用できる控えがいません。':'条件に合う控えがいません。'}</p>}
+ </BenchDialog>}
  {onReset&&<details className="team-reset-panel"><summary><RotateCcw size={15}/>チームをリセット</summary><p>退避してやり直すか、獲得カードを含めて完全に消すか選べます。</p><button className="s-button reset-team" onClick={onReset}>退避してリセット</button>{canRestore&&onRestore&&<button className="s-button" onClick={onRestore}>リセット前のチームに戻す</button>}{onCompleteReset&&<button className="s-button complete-reset" onClick={onCompleteReset}>カードも消して完全リセット</button>}</details>}
  {notice&&<div className="deck-notice animate__animated animate__fadeInUp" role="status"><Check size={17}/>{notice}</div>}{ghost&&<div className="deck-drag-ghost" style={{left:ghost.x+14,top:ghost.y+10}}>{ghost.name}</div>}
- </>;
+ </div>;
 }
