@@ -1,0 +1,165 @@
+/* A readable default across the small-screen card and collection views. */
+.compact-team.show-abilities .lineup-row>.card-abilities{padding:0;gap:4px}
+.compact-team.show-abilities .lineup-row .card-abilities>div{display:grid;grid-template-columns:auto auto;justify-content:center;column-gap:4px;row-gap:1px;padding:4px 2px}
+.compact-team.show-abilities .lineup-row .card-abilities small{grid-column:1/-1;text-align:center;font-size:10px;color:#576981}
+.compact-team.show-abilities .lineup-row .card-abilities strong{font-size:16px}
+.compact-team.show-abilities .lineup-row .card-abilities em{font-size:12px;align-self:center}
+.compact-team.show-abilities .lineup-row .card-speed em{font-size:9px}
+.catalog-controls{display:block;padding:12px}
+.catalog-search-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(120px,.65fr);gap:8px}
+.catalog-search-row .card-filter-controls{grid-template-columns:1fr}
+.catalog-controls input,.catalog-controls select{min-height:42px;font-size:14px}
+.catalog-extra-filters summary{cursor:pointer;padding:10px 2px 0;font-size:12px;font-weight:600;color:#5e537d}
+.catalog-extra-filters summary span{margin-left:8px;color:#7649b7}
+.catalog-extra-filters .card-filter-controls{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:10px}
+.catalog-pagination .s-button{min-width:42px;min-height:42px;justify-content:center}
+.season-goals{margin:0 0 12px;border:1px solid #dfd6ed;border-radius:12px;background:#faf7ff;overflow:hidden}
+.season-goals>summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:66px;padding:10px 14px;cursor:pointer}
+.season-goals>summary::-webkit-details-marker{display:none}
+.season-goals>summary>span{flex:1;min-width:0}
+.season-goals>summary small{display:block;font-size:11px;color:#75618f;margin-bottom:2px}
+.season-goals>summary strong{display:block;font-size:16px;color:#433461}
+.goal-new-record{display:block;margin-top:4px;font-size:12px;line-height:1.6;font-weight:700;color:#946414}
+.season-goals>summary>b{font-size:13px;white-space:nowrap;color:#72519c}
+.season-goals>summary>svg{flex-shrink:0;color:#806897;transition:transform .15s}
+.season-goals[open]>summary>svg{transform:rotate(90deg)}
+.season-goals-body{border-top:1px solid #e3dcef;padding:14px;background:white}
+.season-goal-intro{font-size:13px;line-height:1.8;color:#52647b;margin:0 0 12px}
+.season-goals .league-challenge{margin:0;display:flex;flex-wrap:wrap;gap:14px;padding:14px;border-radius:10px}
+.season-goals .league-challenge>div:first-child{flex:1;min-width:180px}
+.season-goals .league-challenge h2{font-size:17px;line-height:1.6;margin:6px 0}
+.season-goals .league-challenge p{font-size:13px;line-height:1.8}
+.season-goals .league-switch small{font-size:11px;line-height:1.7}
+.season-goals .title-streak{min-width:0;text-align:left}
+.season-goals .title-streak span{font-size:28px}
+.season-goals .achievement-records{margin:12px 0 0}
+.season-goals .achievement-grid strong{font-size:13px;line-height:1.6}
+.season-goals .achievement-grid p{font-size:12px;color:#68768b}
+.season-goals .achievement-grid>div{padding:12px;gap:10px}
+.season-goals .achievement-banner{margin:12px 0;padding:14px}
+.season-goals .achievement-banner p{font-size:12px}
+.mobile-scout .s-scout-result{min-height:0}
+.mobile-scout .s-unopened{padding:28px 0}
+.mobile-scout .s-draw{min-height:50px}
+.mobile-scout .scout-guarantee small{font-size:11px;line-height:1.6}
+.mobile-scout .s-scout-note{font-size:12px}
+.mobile-scout .scout-guarantee{font-size:13px}
+.mobile-scout .scout-guarantee b{font-size:16px}
+@media(max-width:600px){
+ .simple-app .s-main{padding:16px max(12px,env(safe-area-inset-right)) 24px max(12px,env(safe-area-inset-left))}
+ .simple-app .s-nav>button{white-space:nowrap;padding:12px 4px;gap:4px}
+ .compact-team .row-identity>button{font-size:13px}
+ .compact-team .row-identity-meta small,.compact-team .player-age{font-size:10px}
+ .compact-team.show-abilities .lineup-list{max-height:max(290px,calc(100dvh - 280px));overflow:auto;overscroll-behavior:contain;padding:2px 3px 3px 0;scrollbar-width:thin}
+ .compact-team.show-abilities .lineup-row{min-height:88px;row-gap:4px;padding-bottom:5px}
+ .deck-toolbar .deck-ability-toggle,.deck-toolbar .deck-bench-open{min-height:42px;font-size:11px}
+ .player-catalog .s-page-title{margin-bottom:10px;gap:8px;flex-wrap:nowrap}
+ .player-catalog .s-kicker{display:none}
+ .player-catalog .s-page-title p:last-child{font-size:11px;line-height:1.5}
+ .player-catalog .s-page-title>.s-button{font-size:11px;min-height:40px;padding:6px}
+ .catalog-collection{margin-top:0;padding:7px 12px}
+ .catalog-collection>div:first-child{gap:8px}
+ .catalog-collection strong{font-size:21px;line-height:1.1}
+ .catalog-collection-track{margin-top:5px;height:4px}
+ .catalog-circuits{margin:8px 0;padding:3px;gap:4px}
+ .catalog-circuits button{min-height:46px;flex-direction:column;gap:1px;padding:3px;line-height:1.4}
+ .catalog-circuits strong{font-size:13px}
+ .catalog-circuits span{font-size:11px}
+ .catalog-ownership{gap:6px;margin-bottom:10px}
+ .catalog-ownership button{flex:1;min-height:38px;padding:6px 8px;font-size:12px}
+ .catalog-controls{padding:9px}
+ .catalog-controls input,.catalog-controls select{font-size:16px;min-height:42px}
+ .catalog-search-row{grid-template-columns:minmax(0,1fr) minmax(100px,.7fr);gap:6px}
+ .catalog-extra-filters .card-filter-controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .catalog-extra-filters .card-filter-controls select:first-child{grid-column:1/-1}
+ .catalog-extra-filters summary{font-size:12px;min-height:34px;line-height:24px;padding-top:6px}
+ .catalog-results-heading{margin:10px 0 8px;scroll-margin-top:60px;gap:8px}
+ .catalog-results-heading p{font-size:12px}
+ .catalog-pagination{gap:6px}
+ .catalog-grid{grid-template-columns:1fr;gap:12px}
+ .catalog-card-meta{padding:0 4px 5px;font-size:12px;color:#53677f}
+ .catalog-card-meta>span:last-child{font-size:11px;padding:2px 9px}
+ .catalog-grid .trading-card{display:grid;grid-template-columns:54px minmax(0,1fr) 48px;gap:2px 9px;padding:12px;border-radius:12px}
+ .catalog-grid .tc-art{display:contents}
+ .catalog-grid .tc-watermark{display:none}
+ .catalog-grid .deck-jersey{grid-column:1;grid-row:1/4;align-self:center;width:54px;height:65px}
+ .catalog-grid .tc-top{grid-column:2;grid-row:1;justify-content:flex-start;gap:8px}
+ .catalog-grid .tc-top>span{font-size:10px;padding:2px 6px}
+ .catalog-grid .tc-top>small{font-size:10px}
+ .catalog-grid .tc-name{grid-column:2;grid-row:2;justify-content:flex-start;text-align:left;border:0;padding:0;margin:0;min-width:0}
+ .catalog-grid .tc-name button{font-size:17px;line-height:1.5;min-height:28px;text-align:left}
+ .catalog-grid .tc-team{position:static;grid-column:2;grid-row:3;justify-self:start;font-size:11px;padding:0;background:none;color:#5f7088}
+ .catalog-grid .tc-overall{position:static;grid-column:3;grid-row:1/4;align-self:center}
+ .catalog-grid .tc-overall small{font-size:10px}
+ .catalog-grid .tc-overall b{font-size:32px;letter-spacing:-1px}
+ .catalog-grid .trading-card>.card-abilities{grid-column:1/-1;margin-top:6px;padding-top:7px;gap:5px}
+ .catalog-grid .trading-card .card-abilities>div{padding:5px 2px;display:grid;grid-template-columns:auto auto;justify-content:center;column-gap:4px;row-gap:2px;background:#fff}
+ .catalog-grid .trading-card .card-abilities small{grid-column:1/-1;font-size:11px;color:#53647d}
+ .catalog-grid .trading-card .card-abilities strong{font-size:19px}
+ .catalog-grid .trading-card .card-abilities em{font-size:14px;align-self:center}
+ .catalog-grid .trading-card .card-speed em{font-size:9px}
+ .mobile-scout .s-page-title{margin-bottom:12px}
+ .mobile-scout .s-kicker{display:none}
+ .mobile-scout .s-page-title h1+p{font-size:13px;margin-top:2px}
+ .mobile-scout .s-scout-main{padding:14px 12px}
+ .mobile-scout .s-unopened{padding:18px 0 12px}
+ .mobile-scout .s-baseball{font-size:46px}
+ .mobile-scout .s-unopened h2{font-size:19px;margin:7px 0}
+ .mobile-scout .s-unopened p{font-size:13px}
+ .mobile-scout .s-draw{margin-top:12px;min-height:50px;font-size:16px;padding:12px}
+ .mobile-scout .s-draw span{font-size:13px}
+ .mobile-scout .s-scout-cost{font-size:13px;margin-top:8px}
+ .mobile-scout .scout-guarantee{margin:13px auto 0}
+ .mobile-scout .s-scout-note{padding:10px 12px;line-height:1.7}
+ .mobile-scout .s-scout-note summary{min-height:36px;line-height:24px;padding:6px 0}
+ .mobile-scout .scout-reveal{max-width:340px}
+ .mobile-scout .scout-reveal .trading-card{padding:10px}
+ .mobile-scout .scout-reveal .tc-art{height:82px}
+ .mobile-scout .scout-reveal .deck-jersey{height:82px;width:92px}
+ .mobile-scout .scout-reveal .tc-watermark{font-size:70px}
+ .mobile-scout .scout-reveal .tc-name{margin:2px 0 5px;padding:2px 0 5px}
+ .mobile-scout .scout-reveal .tc-name>button{font-size:22px;min-height:36px}
+ .mobile-scout .scout-reveal .card-abilities{padding-top:5px;gap:4px}
+ .mobile-scout .scout-reveal .card-abilities>div{padding:5px 1px}
+ .mobile-scout .scout-reveal .card-abilities small{font-size:11px;color:#53647d}
+ .mobile-scout .scout-reveal .card-abilities strong{font-size:23px}
+ .mobile-scout .scout-reveal .card-abilities em{font-size:14px}
+ .mobile-scout .scout-reveal .card-speed em{font-size:10px}
+ .mobile-scout .s-new-label{font-size:14px;margin-bottom:8px}
+ .mobile-scout .scout-arrival{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 8px}
+ .mobile-scout .scout-arrival>span{font-size:12px;letter-spacing:.05em}
+ .mobile-scout .scout-arrival>div{margin:0;gap:5px}
+ .mobile-scout .scout-arrival strong{font-size:36px}
+ .mobile-scout .s-equip-offer{margin-top:10px;padding:9px}
+ .mobile-scout .s-equip-offer p{font-size:12px;margin-bottom:6px;line-height:1.6}
+ .mobile-scout .s-equip-offer .s-button{min-height:42px;font-size:13px;justify-content:center;width:100%}
+ .mobile-scout .s-scout-result>p{margin:8px 0 0;line-height:1.7;font-size:12px}
+ .mobile-scout .neon-scout{min-height:330px}
+ .mobile-scout .neon-pack{width:128px;height:188px}
+ .mobile-scout .scout-tier-gold.neon-scout>strong,.mobile-scout .scout-tier-rainbow.neon-scout>strong{bottom:58px}
+ .mobile-scout .scout-missing{font-size:13px;line-height:1.6;text-align:center}
+ .mobile-scout .s-text-link{font-size:13px;min-height:40px;margin-top:4px}
+ .season-goals>summary{padding:10px;gap:8px;min-height:64px}
+ .season-goals>summary strong{font-size:15px;line-height:1.5}
+ .season-goals>summary>b{font-size:12px}
+ .season-goals-body{padding:10px}
+ .season-goals .league-challenge{display:block;padding:12px}
+ .season-goals .title-streak{margin-top:12px;display:flex;align-items:center;gap:12px}
+ .season-goals .league-switch .s-button{width:100%;min-height:44px;justify-content:center;font-size:13px}
+ .season-goals .achievement-grid{padding:0 10px 10px;gap:8px}
+ .season-goals .achievement-banner{gap:8px;padding:12px}
+ .season-goals .achievement-banner>svg{width:22px}
+ .season-goals .achievement-banner h2{font-size:15px;line-height:1.5}
+ .season-goals .achievement-banner>b{font-size:24px}
+}
+@media(max-width:350px){
+ .deck-toolbar .deck-ability-toggle,.deck-toolbar .deck-bench-open{font-size:10px}
+ .catalog-grid .trading-card{grid-template-columns:45px minmax(0,1fr) 43px;gap:2px 7px;padding:10px}
+ .catalog-grid .deck-jersey{width:45px}
+ .catalog-grid .tc-name button{font-size:15px}
+ .catalog-grid .trading-card .card-abilities small{font-size:10px}
+ .catalog-grid .trading-card .card-abilities strong{font-size:17px}
+ .catalog-grid .trading-card .card-abilities em{font-size:13px}
+ .player-catalog h1{font-size:16px}
+ .player-catalog h1 svg{display:none}
+}

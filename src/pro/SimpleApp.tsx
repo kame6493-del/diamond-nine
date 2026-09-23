@@ -4,7 +4,7 @@ import {AchievementsPanel} from './CareerAchievements';
 import {VictoryShare} from './VictoryShare';
 import {TeamSeasonStats} from './TeamSeasonStats';
 import {LeagueSeasonStats} from './LeagueSeasonStats';
-import {recordAchievements} from './achievements';
+import {achievementNames,recordAchievements} from './achievements';
 import {useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {Check,ChevronRight,Download,Layers3,Play,RotateCcw,Settings,Sparkles,Upload,Users,Volume2,VolumeX,X} from 'lucide-react';
 import {formatAvg,formatIP,normalizeName,playerMap,players,teamById,type Player} from './data';
@@ -78,6 +78,7 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
  const ownScore=latest?.[latest.home===state.club?'homeRuns':'awayRuns'],otherScore=latest?.[latest.home===state.club?'awayRuns':'homeRuns'];
  const post=season.postseason,champion=post?.champion,major=circuitOf(season)==='MLB',total=seasonGames(season),career=leagueProgress(state);
  const challengeRevealed=major||career.mlbUnlocked||career.npbStreak>0||recordAchievements(state).achievements?.npbLeague!==undefined;
+ const achievements=recordAchievements(state).achievements??{},recentAchievement=(Object.keys(achievementNames) as Array<keyof typeof achievementNames>).filter(id=>achievements[id]===season.number).at(-1);
  const report=useRef<HTMLDivElement>(null),wasComplete=useRef(season.completed);
  useEffect(()=>{
   if(season.completed&&!wasComplete.current)report.current?.scrollIntoView({block:'start',behavior:'auto'});
@@ -86,6 +87,14 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
  const endActions=current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();window.scrollTo({top:0,behavior:'auto'});}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'MLB挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>{major?'ワールドシリーズ終了まで':'CS・日本シリーズ終了まで'}<ChevronRight size={18}/></button></>}</div>;
  return <div className={'s-season-view'+(season.completed?' is-complete':'')}>
   <div className="s-page-title"><div><p className="s-kicker">{circuitOf(season)} · SEASON {String(season.number).padStart(2,'0')}</p><h1>{season.completed?'シーズンの成績':'試合を進めよう。'}</h1></div>{state.history.length>0&&<select aria-label="表示するシーズン" value={archive} onChange={e=>setArchive(Number(e.target.value))}><option value={0}>今シーズン</option>{state.history.map(s=><option value={s.number} key={s.number}>{s.number}年目 · {circuitOf(s)}</option>)}</select>}</div>
+  {current&&<details className="season-goals"><summary><span><small>目標・達成記録</small><strong>{major?'ワールドシリーズ優勝':career.mlbUnlocked?'MLB挑戦が解放！':challengeRevealed?'リーグ優勝3連覇':'リーグ初優勝'}</strong>{recentAchievement&&<span className="goal-new-record" role="status">{season.number}年目に{achievementNames[recentAchievement]}を達成！</span>}</span><b>{!major&&challengeRevealed&&!career.mlbUnlocked?`${career.npbStreak} / ${NPB_TITLES_TO_MLB} 連覇`:season.day?`現在 ${table.indexOf(mine)+1}位`:'開幕前'}</b><ChevronRight size={18}/></summary><div className="season-goals-body">
+  {!challengeRevealed&&<p className="season-goal-intro">まずはレギュラーシーズンでリーグ1位を目指そう。達成した年は、ここに記録されます。</p>}
+  {current&&challengeRevealed&&<section className={'league-challenge '+(major?'league-major':career.mlbUnlocked?'league-unlocked':'')} aria-label="リーグ挑戦">
+   <div><span>{major?'LEAGUE 02':'LEAGUE 01'}</span><h2>{major?'MLB挑戦':career.mlbUnlocked?'NPB · MLB挑戦も選べます':'NPB · リーグ優勝3連覇への道'}</h2><p>{major?'チームを育ててワールドシリーズへ。NPBに戻って立て直すこともできます。':career.mlbUnlocked?'NPBで育成を続けるか、MLBへ挑戦するか選べます。':'リーグ1位を3年連続で達成するとMLBへ。CS・日本シリーズの結果は問いません。'}</p>{career.mlbUnlocked&&<div className="league-switch"><button className="s-button" disabled={busy} onClick={()=>{setArchive(0);onSwitchLeague?.(major?'NPB':'MLB');}}>{major?'NPBで立て直す':'MLBに挑戦する'}</button><small>途中の成績を保存して、いつでも再開できます。</small></div>}</div>
+   {!major&&<div className="title-streak" role="progressbar" aria-label="リーグ優勝の連覇" aria-valuemin={0} aria-valuemax={NPB_TITLES_TO_MLB} aria-valuenow={career.npbStreak}><div>{Array.from({length:NPB_TITLES_TO_MLB},(_,i)=>i+1).map(n=><span className={n<=career.npbStreak?'won':''} key={n}>★</span>)}</div><b>{career.npbStreak} / {NPB_TITLES_TO_MLB} 連覇</b></div>}
+  </section>}
+  <AchievementsPanel state={state} season={season} expanded/>
+  </div></details>}
   <div className="season-report-start" ref={report}>
   <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
    {current&&!season.completed&&<><p className="s-next-opponent">次の相手：{next&&teamById(next.opponent).short}{next&&<span>先発 {playerMap[next.mine].name}</span>}{major&&next&&<span>相手先発 {playerMap[next.theirs].name}</span>}</p><div className="s-play-actions"><button className="s-primary" disabled={busy} onClick={()=>onPlay(1)}><Play size={17} fill="currentColor"/>1試合進める</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(10)}>10試合</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(total)}>シーズン終了まで</button></div></>}
@@ -96,12 +105,8 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
   <SimpleStats key={circuitOf(season)+season.number} season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
   </div>
   {endActions}
-  {current&&challengeRevealed&&<section className={'league-challenge '+(major?'league-major':career.mlbUnlocked?'league-unlocked':'')} aria-label="リーグ挑戦">
-   <div><span>{major?'LEAGUE 02':'LEAGUE 01'}</span><h2>{major?'MLB挑戦':career.mlbUnlocked?'NPB · MLB挑戦も選べます':'NPB · リーグ優勝3連覇への道'}</h2><p>{major?'チームを育ててワールドシリーズへ。NPBに戻って立て直すこともできます。':career.mlbUnlocked?'NPBで育成を続けるか、MLBへ挑戦するか選べます。':'リーグ1位を3年連続で達成するとMLBへ。CS・日本シリーズの結果は問いません。'}</p>{career.mlbUnlocked&&<div className="league-switch"><button className="s-button" disabled={busy} onClick={()=>{setArchive(0);onSwitchLeague?.(major?'NPB':'MLB');}}>{major?'NPBで立て直す':'MLBに挑戦する'}</button><small>途中の成績を保存して、いつでも再開できます。</small></div>}</div>
-   {!major&&<div className="title-streak" role="progressbar" aria-label="リーグ優勝の連覇" aria-valuemin={0} aria-valuemax={NPB_TITLES_TO_MLB} aria-valuenow={career.npbStreak}><div>{Array.from({length:NPB_TITLES_TO_MLB},(_,i)=>i+1).map(n=><span className={n<=career.npbStreak?'won':''} key={n}>★</span>)}</div><b>{career.npbStreak} / {NPB_TITLES_TO_MLB} 連覇</b></div>}
-  </section>}
   {post?.stage==='complete'&&<details className="s-fold postseason-results"><summary>{major?'プレーオフ':'短期決戦'}の結果を見る</summary>{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{stageLabel(s.stage)}</span><b>{s.higher===state.club?state.name:teamById(s.higher).short} {s.wins[0]} − {s.wins[1]} {s.lower===state.club?state.name:teamById(s.lower).short}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。次のシーズンで再挑戦。</p>}</details>}
-  <AchievementsPanel state={state} season={season}/>
+  {!current&&<AchievementsPanel state={state} season={season}/>}
   <VictoryShare state={state} season={season}/>
   <LeagueSeasonStats key={circuitOf(season)} season={season} club={state.club} clubName={season.shareTeam?.name??state.name}/>
  </div>;
@@ -116,7 +121,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
  const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
  const remaining=mlbScoutCountdown(state),major=!!player?.mlb&&!drawing;
  const {tier,overall}=scoutPresentation(player,state.owned,state.training);
- return <>
+ return <div className="mobile-scout">
   <div className="s-page-title"><div><p className="s-kicker">SCOUT</p><h1>スカウト</h1><p>新たな選手を獲得しよう！</p></div></div>
   <section ref={panel} className={'s-scout-panel scout-tier-'+tier+' '+(major?'major-reveal':'')}><div className="s-scout-main">
    <div className={'s-scout-result '+(drawing?'drawing':'')} aria-live="polite" aria-busy={drawing}>
@@ -135,7 +140,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
    {!canDraw&&<><p className="scout-missing">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p><button className="s-text-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={15}/></button></>}
    <div className="scout-guarantee"><div><span>MLB選手確定まで</span><b>あと{remaining}回</b></div><div className="scout-guarantee-track" role="progressbar" aria-label="MLB選手確定までのスカウト進行" aria-valuemin={0} aria-valuemax={MLB_GUARANTEE_EVERY} aria-valuenow={MLB_GUARANTEE_EVERY-remaining}><i style={{width:(MLB_GUARANTEE_EVERY-remaining)/MLB_GUARANTEE_EVERY*100+'%'}}/></div><small>ポイントでのスカウトで進行 · シーズンをまたいで引き継ぎ</small></div>
   </div><div className="s-scout-note">1人 3,000 pt。30人目はMLB選手確定。<details><summary>獲得できる選手・抽選確率</summary><p>NPB {players.length-mlbPlayers.length}人／MLBの日本人 {mlbPlayers.length}人。通常はNPB {100-MLB_SCOUT_CHANCE*100}%・MLB {MLB_SCOUT_CHANCE*100}%で、各グループ内は同じ確率です。30回ごとの確定時は未所持のMLB選手から同じ確率で抽選し、全員所持の場合はMLB全員が対象になります。</p></details></div></section>
- </>;
+ </div>;
 }
 
 function PlayerInfo({player,state,onChange,onClose,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onClose:()=>void;onAwaken:()=>void;catalog?:boolean}){return <Dialog title="選手情報" onClose={onClose}><PlayerDetails player={player} state={state} onChange={onChange} onAwaken={onAwaken} catalog={catalog}/></Dialog>;}

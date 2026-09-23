@@ -63,7 +63,7 @@ function BenchDialog({title,onClose,returnSlot,children}:{title:string;onClose:(
 export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onCompleteReset,onCatalog,canRestore=false}:{state:GameState;onChange:(s:GameState)=>void;onPlayer:(p:Player)=>void;onImpact:()=>void;onReset?:()=>void;onRestore?:()=>void;onCompleteReset?:()=>void;onCatalog?:()=>void;canRestore?:boolean}){
  const [selected,setSelected]=useState<Slot|null>(null),[order,setOrder]=useState<Slot|null>(null),[defender,setDefender]=useState<string|null>(null),[hand,setHand]=useState<string|null>(null);
  const [filters,setFilters]=useState<CardFilters>({...defaultCardFilters}),[notice,setNotice]=useState('');
- const [view,setView]=useState<Slot['kind']>('bat'),[showAbilities,setShowAbilities]=useState(false),[benchOpen,setBenchOpen]=useState(false);
+ const [view,setView]=useState<Slot['kind']>('bat'),[showAbilities,setShowAbilities]=useState(true),[benchOpen,setBenchOpen]=useState(false);
  const [dragging,setDragging]=useState<Payload|null>(null),[over,setOver]=useState(''),[ghost,setGhost]=useState<{x:number;y:number;name:string}|null>(null);
  const pointer=useRef<{payload:Payload;x:number;y:number;moved:boolean}|null>(null),ignoreClick=useRef(false);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),3600);return()=>clearTimeout(timer);},[notice]);
