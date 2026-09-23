@@ -1,0 +1,50 @@
+/* The season result is the first stop; supplementary reports follow it. */
+.s-season-view{overflow-anchor:none}
+.season-report-start{scroll-margin-top:16px}
+.s-season-view .s-team-stats{margin:12px 0}
+.s-season-view .s-team-stats header{padding:10px 14px 0}
+.s-season-view .s-team-stats h2{font-size:12px}
+.s-season-view .s-team-stats dl{margin:7px 10px 10px;gap:6px}
+.s-season-view .s-team-stats dl>div{padding:5px 3px}
+.s-season-view .s-team-stats dt{font-size:10px}
+.s-season-view .s-team-stats dd{font-size:22px;line-height:1.3;margin-top:2px}
+.s-season-view .s-team-stats dd.unrecorded{font-size:13px;line-height:2.2}
+.s-season-view .s-season-end{margin:14px 0 20px;padding:14px 16px;background:#f5f3fc;border-radius:12px}
+.s-season-view .s-season-end p{color:#576984}
+.s-season-view .league-challenge{margin-top:20px}
+.s-season-view.is-complete .s-season-card{padding:12px 16px}
+.s-season-view.is-complete .s-season-top h2{font-size:16px}
+.s-season-view.is-complete .s-game-count>b{font-size:27px}
+.s-season-view.is-complete .s-progress{display:none}
+.s-season-view .s-inline-result{min-height:0;padding:8px 2px;font-size:11px;line-height:1.6}
+.season-stat-switch{display:none}
+.season-player-stats .s-stat-columns{gap:14px}
+.season-player-stats .s-panel>h2{padding:10px 14px;font-size:14px}
+.season-player-stats .s-stats th,.season-player-stats .s-stats td{padding:2px 6px;height:34px;font-size:12px}
+.season-player-stats .s-stats thead th{height:29px;font-size:10px}
+.season-player-stats .s-stats th:first-child{width:33%;padding-left:12px}
+.season-player-stats .s-stats th:last-child,.season-player-stats .s-stats td:last-child{padding-right:12px}
+.season-player-stats .s-stats tbody th>button{display:block;width:100%;min-height:30px;line-height:30px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.season-player-stats .s-stats tbody tr:nth-child(even){background:#f8faff}
+.season-player-stats .s-stats td{color:#334761}
+@media(max-width:800px){
+ .season-report-start{scroll-margin-top:60px}
+ .season-stat-switch{display:flex;background:#edf0fa;border-radius:10px;padding:3px;margin-bottom:8px;gap:4px}
+ .season-stat-switch button{flex:1;min-height:40px;border-radius:8px;font-size:13px;font-weight:700;color:#6c7893}
+ .season-stat-switch button[aria-pressed=true]{background:#fff;color:#6144c0;box-shadow:0 1px 5px #38427118}
+ .season-player-stats .season-stat-panel:not(.is-active){display:none}
+ .season-player-stats .season-stat-panel>h2{display:none}
+ .season-player-stats .s-stat-columns{display:block}
+ .season-player-stats .s-stat-columns .s-stats th:first-child{width:33%;padding-left:9px}
+ .season-player-stats .s-stat-columns .s-stats th:last-child,.season-player-stats .s-stat-columns .s-stats td:last-child{padding-right:7px}
+ .season-player-stats .s-stat-columns .s-stats th,.season-player-stats .s-stat-columns .s-stats td{padding-top:2px;padding-bottom:2px}
+ .season-player-stats .s-stat-columns .s-stats td{font-size:12px;padding-left:3px;padding-right:3px}
+ .s-season-view .s-team-stats header{flex-wrap:nowrap}
+ .s-season-view .s-team-stats header>span{font-size:9px}
+ .s-season-view.is-complete .s-season-top h2{font-size:14px}
+}
+@media(max-width:350px){
+ .season-player-stats .s-stat-columns .s-stats td,.season-player-stats .s-stats tbody th>button{font-size:11px}
+ .season-player-stats .s-stat-columns .s-stats thead th{padding-left:2px;padding-right:2px;font-size:9px}
+ .s-season-view.is-complete .s-season-card{padding:10px}
+}

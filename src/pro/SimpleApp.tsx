@@ -5,7 +5,7 @@ import {VictoryShare} from './VictoryShare';
 import {TeamSeasonStats} from './TeamSeasonStats';
 import {LeagueSeasonStats} from './LeagueSeasonStats';
 import {recordAchievements} from './achievements';
-import {useEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {Check,ChevronRight,Download,Layers3,Play,RotateCcw,Settings,Sparkles,Upload,Users,Volume2,VolumeX,X} from 'lucide-react';
 import {formatAvg,formatIP,normalizeName,playerMap,players,teamById,type Player} from './data';
 import {battingAverage,effectiveOverall,era,loadState,migrateState,nextMatchPreview,nextSeason,ops,rankings,saveKeyFor,simulateDays,type GameState,type Season} from './engine';
@@ -30,6 +30,7 @@ import {StarterScout} from './StarterScout';
 import {starterScoutActive,pickStarterCard,finishStarterScout} from './starter-scout';
 import {mlbPlayers} from './mlb-players';
 import './scout.css';
+import './season-report.css';
 
 type Page='season'|'team'|'scout'|'catalog';
 const count=(n:number)=>n.toLocaleString('ja-JP');
@@ -57,12 +58,16 @@ function Dialog({title,onClose,children}:{title:string;onClose:()=>void;children
 }
 
 export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season:Season;club:string;onPlayer:(p:Player)=>void;lineup?:string[];pitchers?:string[]}){
+ const [view,setView]=useState<'bat'|'pit'>('bat');
+ const statsRef=useRef<HTMLDivElement>(null),viewScroll=useRef<number|null>(null);
+ const changeView=(next:'bat'|'pit')=>{if(next!==view){const report=statsRef.current?.closest('.season-report-start');viewScroll.current=report?window.scrollY+report.getBoundingClientRect().top-60:window.scrollY;setView(next);}};
+ useLayoutEffect(()=>{if(viewScroll.current!==null){window.scrollTo({top:viewScroll.current,behavior:'auto'});viewScroll.current=null;}},[view]);
  const bats=Object.values(season.batting).filter(b=>b.team===club);
  const arms=Object.values(season.pitching).filter(p=>p.team===club);
  const batIds=[...new Set([...lineup,...bats.map(b=>b.playerId)])];
  const pitIds=[...new Set([...pitchers,...arms.map(p=>p.playerId)])];
  const batMap=new Map(bats.map(b=>[b.playerId,b])),pitMap=new Map(arms.map(p=>[p.playerId,p]));
- return <div className="s-stat-columns"><section className="s-panel"><h2>打撃成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['打率','本塁打','打点','OPS','盗塁'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{batIds.map(id=>{const b=batMap.get(id);return <tr key={id}><th><button data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td></tr>;})}</tbody></table>{!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section><section className="s-panel"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回','セーブ'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td><td>{p?.saves??0}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section></div>;
+ return <div className="season-player-stats" ref={statsRef}><div className="season-stat-switch" role="group" aria-label="表示する個人成績"><button aria-pressed={view==='bat'} onClick={()=>changeView('bat')}>打撃成績</button><button aria-pressed={view==='pit'} onClick={()=>changeView('pit')}>投手成績</button></div><div className="s-stat-columns"><section className={'s-panel season-stat-panel'+(view==='bat'?' is-active':'')} aria-label="打撃成績"><h2>打撃成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['打率','本塁打','打点','OPS','盗塁'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{batIds.map(id=>{const b=batMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td></tr>;})}</tbody></table>{!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section><section className={'s-panel season-stat-panel'+(view==='pit'?' is-active':'')} aria-label="投手成績"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回','セーブ'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td><td>{p?.saves??0}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section></div></div>;
 }
 
 export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,message,onSwitchLeague}:{state:GameState;busy:boolean;progress:number;onPlay:(n:number)=>void;onPost:()=>void;onNext:()=>void;onPlayer:(p:Player)=>void;message:string;onSwitchLeague?:(circuit:Circuit)=>void}){
@@ -73,25 +78,33 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
  const ownScore=latest?.[latest.home===state.club?'homeRuns':'awayRuns'],otherScore=latest?.[latest.home===state.club?'awayRuns':'homeRuns'];
  const post=season.postseason,champion=post?.champion,major=circuitOf(season)==='MLB',total=seasonGames(season),career=leagueProgress(state);
  const challengeRevealed=major||career.mlbUnlocked||career.npbStreak>0||recordAchievements(state).achievements?.npbLeague!==undefined;
- return <>
+ const report=useRef<HTMLDivElement>(null),wasComplete=useRef(season.completed);
+ useEffect(()=>{
+  if(season.completed&&!wasComplete.current)report.current?.scrollIntoView({block:'start',behavior:'auto'});
+  wasComplete.current=season.completed;
+ },[season.completed]);
+ const endActions=current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();window.scrollTo({top:0,behavior:'auto'});}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'MLB挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>{major?'ワールドシリーズ終了まで':'CS・日本シリーズ終了まで'}<ChevronRight size={18}/></button></>}</div>;
+ return <div className={'s-season-view'+(season.completed?' is-complete':'')}>
   <div className="s-page-title"><div><p className="s-kicker">{circuitOf(season)} · SEASON {String(season.number).padStart(2,'0')}</p><h1>{season.completed?'シーズンの成績':'試合を進めよう。'}</h1></div>{state.history.length>0&&<select aria-label="表示するシーズン" value={archive} onChange={e=>setArchive(Number(e.target.value))}><option value={0}>今シーズン</option>{state.history.map(s=><option value={s.number} key={s.number}>{s.number}年目 · {circuitOf(s)}</option>)}</select>}</div>
+  <div className="season-report-start" ref={report}>
+  <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
+   {current&&!season.completed&&<><p className="s-next-opponent">次の相手：{next&&teamById(next.opponent).short}{next&&<span>先発 {playerMap[next.mine].name}</span>}{major&&next&&<span>相手先発 {playerMap[next.theirs].name}</span>}</p><div className="s-play-actions"><button className="s-primary" disabled={busy} onClick={()=>onPlay(1)}><Play size={17} fill="currentColor"/>1試合進める</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(10)}>10試合</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(total)}>シーズン終了まで</button></div></>}
+   {busy&&<p className="s-working" role="status">試合を計算しています… {progress}%</p>}
+  </section>
+  <div className="s-inline-result" role="status">{message&&current?<span>{message}</span>:latest?<span>直近の試合 <b>{ownScore} − {otherScore}</b> {teamById(latest.home===state.club?latest.away:latest.home).short}戦</span>:<span>試合でポイントを貯めて、新しい選手を迎えよう。</span>}</div>
+  <TeamSeasonStats season={season} club={state.club}/>
+  <SimpleStats key={circuitOf(season)+season.number} season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
+  </div>
+  {endActions}
   {current&&challengeRevealed&&<section className={'league-challenge '+(major?'league-major':career.mlbUnlocked?'league-unlocked':'')} aria-label="リーグ挑戦">
    <div><span>{major?'LEAGUE 02':'LEAGUE 01'}</span><h2>{major?'MLB挑戦':career.mlbUnlocked?'NPB · MLB挑戦も選べます':'NPB · リーグ優勝3連覇への道'}</h2><p>{major?'チームを育ててワールドシリーズへ。NPBに戻って立て直すこともできます。':career.mlbUnlocked?'NPBで育成を続けるか、MLBへ挑戦するか選べます。':'リーグ1位を3年連続で達成するとMLBへ。CS・日本シリーズの結果は問いません。'}</p>{career.mlbUnlocked&&<div className="league-switch"><button className="s-button" disabled={busy} onClick={()=>{setArchive(0);onSwitchLeague?.(major?'NPB':'MLB');}}>{major?'NPBで立て直す':'MLBに挑戦する'}</button><small>途中の成績を保存して、いつでも再開できます。</small></div>}</div>
    {!major&&<div className="title-streak" role="progressbar" aria-label="リーグ優勝の連覇" aria-valuemin={0} aria-valuemax={NPB_TITLES_TO_MLB} aria-valuenow={career.npbStreak}><div>{Array.from({length:NPB_TITLES_TO_MLB},(_,i)=>i+1).map(n=><span className={n<=career.npbStreak?'won':''} key={n}>★</span>)}</div><b>{career.npbStreak} / {NPB_TITLES_TO_MLB} 連覇</b></div>}
   </section>}
-  <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
-   {current&&!season.completed&&<><p className="s-next-opponent">次の相手：{next&&teamById(next.opponent).short}{next&&<span>先発 {playerMap[next.mine].name}</span>}{major&&next&&<span>相手先発 {playerMap[next.theirs].name}</span>}</p><div className="s-play-actions"><button className="s-primary" disabled={busy} onClick={()=>onPlay(1)}><Play size={17} fill="currentColor"/>1試合進める</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(10)}>10試合</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(total)}>シーズン終了まで</button></div></>}
-   {current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'MLB挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>{major?'ワールドシリーズ終了まで':'CS・日本シリーズ終了まで'}<ChevronRight size={18}/></button></>}</div>}
-   {busy&&<p className="s-working" role="status">試合を計算しています… {progress}%</p>}
-  </section>
-  <div className="s-inline-result" role="status">{message&&current?<span>{message}</span>:latest?<span>直近の試合 <b>{ownScore} − {otherScore}</b> {teamById(latest.home===state.club?latest.away:latest.home).short}戦</span>:<span>試合でポイントを貯めて、新しい選手を迎えよう。</span>}</div>
   {post?.stage==='complete'&&<details className="s-fold postseason-results"><summary>{major?'プレーオフ':'短期決戦'}の結果を見る</summary>{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{stageLabel(s.stage)}</span><b>{s.higher===state.club?state.name:teamById(s.higher).short} {s.wins[0]} − {s.wins[1]} {s.lower===state.club?state.name:teamById(s.lower).short}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。次のシーズンで再挑戦。</p>}</details>}
   <AchievementsPanel state={state} season={season}/>
   <VictoryShare state={state} season={season}/>
-  <TeamSeasonStats season={season} club={state.club}/>
-  <SimpleStats season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
   <LeagueSeasonStats key={circuitOf(season)} season={season} club={state.club} clubName={season.shareTeam?.name??state.name}/>
- </>;
+ </div>;
 }
 
 export function SimplePlayerCard({player,state}:{player:Player;state:GameState}){return <div className="s-player-card"><TradingCard player={player} state={state}/></div>;}

@@ -12,7 +12,7 @@ import {PlayerDetails} from '../src/pro/PlayerDetails';
 
 export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
  test('saves from simulated games appear in the season table and player details',()=>{
-  const state=simulateDays(initialState(),40);
+  const state=simulateDays(initialState(12345),143);
   const pitcher=Object.values(state.season.pitching).find(p=>p.team===state.club&&p.saves>0)!;
   assert.ok(pitcher,'a reliever earned a save in the simulated games');
   const player=playerMap[pitcher.playerId];
