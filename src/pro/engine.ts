@@ -1,3 +1,4 @@
+import {pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
 import {circuitOf,seasonGames,leagueTeams,leagueFor,mlbSchedule,leagueProgress,settleLeagueProgress,standingOrder,NPB_TITLES_TO_MLB,type Circuit,type LeagueProgress} from './leagues';
 import {mlbLeagueTeams,mlbOpponentPlayers} from './mlb-opponents';
 import { autoLineup,autoPitchers,canBat,wasLegacyBatter,fitsPosition,clamp,contextFor,findPlayer,playerMap,players,rosterSlots,teams,type Player,type Rarity } from './data';
@@ -174,7 +175,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  });
  const matchupCache=new Map<string,ReturnType<typeof matchupProbabilities>&{rangeSlope:number;errorSlope:number}>();
  let winningPitcher=start[0],losingPitcher=start[1],winningSide=0;
- const starterLimit=start.map((id,side)=>Math.floor(clamp(4.5+gameRatings(playerMap[id],bonusFor(side,id),stageFor(side,id)).stamina/55+random.next()*1.6,5,8)));
+ const starterLimit=start.map((id,side)=>Math.floor(clamp(4.5+pitchingRatingsForRole(playerMap[id],gameRatings(playerMap[id],bonusFor(side,id),stageFor(side,id)),'先').stamina/55+random.next()*1.6,5,8)));
  const latestPitcher=[start[0],start[1]];const enteringLead=new Map<string,number>();
  const getB=(side:number,id:string)=>{
   const key=batKey(ids[side],id);
@@ -197,6 +198,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
    const alreadyOut=usedPitchers[defense].has(preferred)&&latestPitcher[defense]!==preferred;
    const relief=alreadyOut?(rosters[defense].pitchers.slice(6).find(id=>!usedPitchers[defense].has(id))??latestPitcher[defense]):preferred;
    const pitcherId=!starterDone?start[defense]:relief;
+   const pitcherRole=pitcherSlotRole(rosters[defense].pitchers.indexOf(pitcherId));
    const pitcher=playerMap[pitcherId];const ps=getP(defense,pitcherId);
    if(!usedPitchers[defense].has(pitcherId)){ps.games++;if(inning===0)ps.starts++;usedPitchers[defense].add(pitcherId);enteringLead.set(`${defense}|${pitcherId}`,scores[defense]-scores[side]);}
    latestPitcher[defense]=pitcherId;
@@ -216,8 +218,8 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
     const cacheKey=side+'|'+id+'|'+pitcherId+'|'+Number(scoringPosition);
     let rates=matchupCache.get(cacheKey);if(!rates){
      const field=defenses[defense].field;
-     const current=matchupProbabilities(pl,pitcher,bonusFor(side,id),pitchBonus,field,{scoringPosition},stageFor(side,id),stageFor(defense,pitcherId),circuitOf(season));
-     const neutral=matchupProbabilities(pl,pitcher,bonusFor(side,id),pitchBonus,0,{scoringPosition},stageFor(side,id),stageFor(defense,pitcherId),circuitOf(season));
+     const current=matchupProbabilities(pl,pitcher,bonusFor(side,id),pitchBonus,field,{scoringPosition},stageFor(side,id),stageFor(defense,pitcherId),circuitOf(season),pitcherRole);
+     const neutral=matchupProbabilities(pl,pitcher,bonusFor(side,id),pitchBonus,0,{scoringPosition},stageFor(side,id),stageFor(defense,pitcherId),circuitOf(season),pitcherRole);
      const rangeSlope=Math.abs(field)>1e-10?(neutral.babip-current.babip)/field:current.babip>.18&&current.babip<.41?1:0;
      const errorSlope=Math.abs(field)>1e-10?(fieldingErrorRate(0)-fieldingErrorRate(field))/field:.2;
      rates={...current,rangeSlope,errorSlope};matchupCache.set(cacheKey,rates);

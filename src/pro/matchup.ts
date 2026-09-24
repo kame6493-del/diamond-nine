@@ -2,6 +2,7 @@ import { clamp,contextFor,playerMap,type Player,type Ratings } from './data';
 import { wikiMatchEffects,wikiRunningEffects,type MatchSituation } from './wiki-traits';
 import {developedRatings} from './development';
 import type {Circuit} from './leagues';
+import {pitchingRatingsForRole,type PitcherRole} from './pitcher-aptitude';
 
 // MLB uses its own run environment instead of NPB's lower HR/K baselines.
 // Each MLB identity contributes once even if roster snapshots contain repeats.
@@ -16,9 +17,9 @@ const referenceRatings = new Map(Object.values(playerMap).map(p => [p.id, { ...(
 export function gameRatings(player: Player, bonus = 0, stage = 0): Ratings {
   return developedRatings(player,stage,bonus);
 }
-export function matchupProbabilities(batter: Player, pitcher: Player, batBonus = 0, pitchBonus = 0, defense = 0, situation:MatchSituation = {}, batStage=0, pitchStage=0,circuit:Circuit='NPB') {
+export function matchupProbabilities(batter: Player, pitcher: Player, batBonus = 0, pitchBonus = 0, defense = 0, situation:MatchSituation = {}, batStage=0, pitchStage=0,circuit:Circuit='NPB',pitcherRole?:PitcherRole) {
   const b = batter.batting, q = pitcher.pitching, lg = contextFor(pitcher);
-  const batting = gameRatings(batter, batBonus,batStage), pitching = gameRatings(pitcher, pitchBonus,pitchStage);
+  const batting = gameRatings(batter, batBonus,batStage), pitching = pitchingRatingsForRole(pitcher,gameRatings(pitcher, pitchBonus,pitchStage),pitcherRole);
   const batBase = referenceRatings.get(batter.id) ?? batter.ratings, pitBase = referenceRatings.get(pitcher.id) ?? pitcher.ratings;
   const traits=wikiMatchEffects(batter,pitcher,situation);
   const contact = clamp(batting.contact+traits.contact,0,99) - batBase.contact, power = clamp(batting.power+traits.power,0,99) - batBase.power, speed = batting.speed - batBase.speed;

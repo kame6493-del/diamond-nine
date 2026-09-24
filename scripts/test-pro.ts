@@ -12,6 +12,7 @@ import {registerMlbDifficultyTests} from './test-mlb-difficulty';
 import {registerDisplayNameTests} from './test-display-names';
 import {registerStarterScoutTests} from './test-starter-scout';
 import {registerPositionDefenseTests} from './test-position-defense';
+import {registerPitcherAptitudeTests} from './test-pitcher-aptitude';
 import {gameReward,seasonReward,postseasonReward} from '../src/pro/progression';
 import {awakeningCosts} from '../src/pro/development';
 import {registerBalanceTests} from './test-balance';
@@ -310,6 +311,7 @@ registerMlbDifficultyTests(test);
 registerDisplayNameTests(test);
 registerStarterScoutTests(test);
 registerPositionDefenseTests(test);
+registerPitcherAptitudeTests(test);
 let failures=0;
 for(const t of tests){try{t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);
