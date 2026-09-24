@@ -18,12 +18,15 @@ assert.equal(scripts[0].src,'https://pagead2.googlesyndication.com/pagead/js/ads
 scripts[0].onload();await Promise.all([one,two]);delete globalThis.document;
 for(const file of ['dist/index.html','dist/welcome.html','dist/privacy.html']){
  const html=await readFile(file,'utf8');
- assert.ok(!html.includes('google-adsense-account'),'no placeholder publisher IDs');
+ const verificationTag=`<meta name="google-adsense-account" content="${config.publisherId}" />`;
+ if(validPublisherId(config.publisherId)&&!file.includes('privacy'))assert.ok(html.includes(verificationTag),'verification tag uses the configured publisher');
+ else assert.ok(!html.includes('google-adsense-account'),'no placeholder publisher IDs');
  assert.ok(!html.includes('pagead2.googlesyndication.com'),'no live ad script in unconfigured HTML');
  for(const match of html.matchAll(/(?:href|src)="(\/[^"#]*)"/g))await access('dist'+(match[1]==='/'?'/index.html':match[1]));
  if(!file.includes('privacy')){assert.ok(html.includes('summary_large_image'));assert.ok(html.includes('share-cover-v1.png'));}
 }
 const intro=await readFile('dist/welcome.html','utf8');
 assert.ok(intro.includes('無料でプレイする'));assert.ok(intro.includes('ゲームを開く'));assert.ok(!intro.includes('/assets/game.js'),'landing does not load the game database');
-await assert.rejects(access('dist/ads.txt'),'no fabricated ads.txt');
-console.log('PASS marketing: disabled ads, ID guards, single async load, local links, large social card, lightweight landing, no fabricated publisher');
+if(validPublisherId(config.publisherId))assert.equal(await readFile('dist/ads.txt','utf8'),`google.com, ${config.publisherId.slice(3)}, DIRECT, f08c47fec0942fa0\n`,'ads.txt identifies the configured publisher');
+else await assert.rejects(access('dist/ads.txt'),'no fabricated ads.txt');
+console.log('PASS marketing: disabled ads, ID guards, single async load, local links, large social card, lightweight landing, publisher verification and ads.txt');
