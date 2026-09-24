@@ -19,12 +19,12 @@ export function measureEnvironment(circuit:Circuit,samples=5){
  return {circuit,samples,rpg:t.runs/t.games,avg:t.hits/t.ab,obp,slg,ops:obp+slg,hrPerTeamGame:t.hr/t.games,era:t.er*27/t.outs,kPct:t.so/t.pa};
 }
 export function registerRunEnvironmentTests(test:(name:string,run:()=>void)=>void){
- test('all leagues retain a modern MLB-like scoring environment and consistent sacrifice-fly accounting',()=>{
+ test('all leagues retain a 2025 NPB-like scoring environment and consistent sacrifice-fly accounting',()=>{
   for(const circuit of ['NPB','MLB','SPACE'] as const){
    const m=measureEnvironment(circuit);console.log('Run environment:',JSON.stringify(m));
-   assert.ok(m.rpg>4.2&&m.rpg<4.7);assert.ok(m.avg>.235&&m.avg<.255);
-   assert.ok(m.obp>.305&&m.obp<.325);assert.ok(m.ops>.695&&m.ops<.745);
-   assert.ok(m.era>3.9&&m.era<4.4);assert.ok(m.hrPerTeamGame>1.05&&m.hrPerTeamGame<1.3);
+   assert.ok(m.rpg>3.1&&m.rpg<3.55);assert.ok(m.avg>.235&&m.avg<.255);
+   assert.ok(m.obp>.29&&m.obp<.315);assert.ok(m.ops>.635&&m.ops<.675);
+   assert.ok(m.era>2.85&&m.era<3.3);assert.ok(m.hrPerTeamGame>.58&&m.hrPerTeamGame<.71);
   }
  });
 }
