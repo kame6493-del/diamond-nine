@@ -56,7 +56,11 @@ export function stealProbabilities(runner: Player, bonus: number, catcherArm: nu
   const successful = runner.batting?.sb ?? 0, caught = runner.batting?.cs ?? 0;
   const base = referenceRatings.get(runner.id) ?? runner.ratings, speed = gameRatings(runner, bonus,stage).speed - base.speed;
   const effects=wikiRunningEffects(runner);
-  const attempt = clamp((successful + caught) / Math.max(100, (runner.batting?.hits ?? 0) + (runner.batting?.bb ?? 0)) * 1.1 * Math.exp(speed * .03)*effects.attempt, 0, .5);
-  const success = clamp((successful + 8) / (successful + caught + 10) + speed * .003 - (catcherArm - 66) * .003 - (catcherField - 60) * .001 + effects.success, .30, .96);
+  // One decision per eligible trip to first base. Small-sample runners regress
+  // toward a modest speed-based tendency; growth cannot multiply attempts endlessly.
+  const prior=clamp((base.speed-35)*.0015,.005,.08);
+  const opportunities=Math.max(60,(runner.batting?.hits??0)+(runner.batting?.bb??0)+(runner.batting?.hbp??0));
+  const attempt = clamp((successful+caught+prior*40)/(opportunities+40)*1.7*clamp(Math.exp(speed*.015),.65,1.7)*effects.attempt,0,.45);
+  const success = clamp((successful + 7.5) / (successful + caught + 10) + speed * .002 - (catcherArm - 66) * .003 - (catcherField - 60) * .001 + effects.success, .30, .92);
   return { attempt, success };
 }

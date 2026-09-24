@@ -195,7 +195,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
   return season.pitching[key]??=({playerId:id,team:ids[side],games:0,starts:0,wins:0,losses:0,saves:0,outs:0,hits:0,er:0,bb:0,so:0,hr:0,hbp:0,bf:0});
  };
  rosters.forEach((r,side)=>r.lineup.forEach(id=>getB(side,id).games++));
- type Runner={id:string;pitcher:string;unearned?:boolean};
+ type Runner={id:string;pitcher:string;unearned?:boolean;stealConsidered?:boolean};
  for(let inning=0;inning<(circuitOf(season)!=='NPB'?100:12);inning++){
   for(let side=0;side<2;side++){
    if(side===1&&inning>=8&&scores[1]>scores[0]){line[1].push(-1);break;}
@@ -277,10 +277,13 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
     }
     if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play,runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
     if(side===1&&inning>=8&&scores[1]>scores[0])break;
-    if(bases[0]&&!bases[1]&&out<3){
+    if(bases[0]&&!bases[1]&&out<3&&!bases[0].stealConsidered){
+     bases[0].stealConsidered=true;
      const runner=playerMap[bases[0].id];
      const {attempt:stealChance,success:successRate}=stealProbabilities(runner,bonusFor(side,runner.id),defenses[defense].catcherArm,defenses[defense].catcherField,stageFor(side,runner.id));
-     if(random.next()<stealChance){
+     const margin=Math.abs(scores[side]-scores[defense]);
+     const situationRate=inning>=6&&margin>=5?.15:inning>=6&&margin>=3?.55:1;
+     if(random.next()<stealChance*situationRate){
       const neutral=stealProbabilities(runner,bonusFor(side,runner.id),66,60,stageFor(side,runner.id));defenses[defense].catcherRow.armRuns+=(neutral.success-successRate)*.65;
       if(random.next()<successRate){getB(side,runner.id).sb++;bases[1]=bases[0];}else{out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);}bases[0]=null;
      }
