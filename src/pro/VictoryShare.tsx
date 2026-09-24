@@ -1,3 +1,4 @@
+import {saveGameFile} from './native-files';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Camera,Copy,Download,Share2} from 'lucide-react';
 import type {GameState,Season} from './engine';
@@ -7,7 +8,7 @@ import './victory-share.css';
 
 export function VictoryShare({state,season}:{state:GameState;season:Season}){
  const data=useMemo(()=>victoryShareData(state,season),[season,state.club,state.name,state.lineup,state.pitchers,state.defense,state.owned,state.training]);
- const gameUrl=typeof window==='undefined'?'':publicGameUrl(window.location.href);
+ const gameUrl=typeof window==='undefined'?'':window.diamondNativeFiles?'https://diamond-nine-baseball.com/':publicGameUrl(window.location.href);
  const [image,setImage]=useState<{url:string;file:File;key:typeof data}|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[sharing,setSharing]=useState(false),[attempt,setAttempt]=useState(0);
  const [zoomed,setZoomed]=useState(false);
  const textArea=useRef<HTMLTextAreaElement>(null),shareLock=useRef(false);
@@ -21,11 +22,11 @@ export function VictoryShare({state,season}:{state:GameState;season:Season}){
  },[data,gameUrl,attempt]);
  if(!data)return null;
  const ready=image?.key===data?image:null,text= victoryPostText(data,gameUrl),intent=xPostIntent(text);
- const native=!!ready&&canShareVictory(navigator,ready.file,window.isSecureContext);
- const download=()=>{if(!ready)return;const link=document.createElement('a');link.href=ready.url;link.download=ready.file.name;document.body.appendChild(link);link.click();link.remove();};
+ const native=!!ready&&(!!window.diamondNativeFiles||canShareVictory(navigator,ready.file,window.isSecureContext));
+ const download=()=>{if(!ready)return;void saveGameFile(ready.file).catch(()=>setNotice('画像を保存できませんでした。もう一度お試しください。'));};
  const share=async()=>{
   if(!ready||shareLock.current)return;shareLock.current=true;setSharing(true);setNotice('');
-  try{await navigator.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`});setNotice('共有先に画像と投稿文を渡しました。');}
+  try{await (window.diamondNativeFiles?window.diamondNativeFiles.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}):navigator.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}));setNotice('共有先に画像と投稿文を渡しました。');}
   catch(error){if((error as Error)?.name!=='AbortError')setNotice('この端末では画像を共有できませんでした。画像を保存してXに添付できます。');}
   finally{shareLock.current=false;setSharing(false);}
  };
