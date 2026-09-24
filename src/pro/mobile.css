@@ -2,7 +2,9 @@
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .simple-app{min-height:100svh}
 .simple-dialog{overscroll-behavior:contain}
+.s-brand-icon{display:block;width:44px;height:44px;flex:none;object-fit:contain;border-radius:9px;box-shadow:0 2px 8px #193d6b26}
 @media(max-width:600px){
+ .s-brand-icon{width:36px;height:36px;border-radius:7px}
  .s-header{padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right));padding-top:max(14px,env(safe-area-inset-top));gap:8px}
  .s-header>div{gap:4px}.s-brand{min-width:0}.s-wallet{white-space:nowrap}
  .s-icon,.simple-dialog header>.s-icon{min-width:44px;min-height:44px;display:inline-grid;place-items:center;padding:8px}
@@ -35,6 +37,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
  .s-stats tbody th>button{overflow-wrap:anywhere;min-height:32px;text-align:left}
 }
 @media(max-width:350px){
+ .s-brand-icon{width:30px;height:30px;border-radius:6px}
  .s-brand{font-size:9px;gap:4px}.s-brand>span{width:25px;height:25px}.s-wallet{font-size:13px}
  .s-scout-main{padding-left:14px;padding-right:14px}.deck-hand-list{grid-template-columns:1fr;max-height:none}
  .catalog-grid{gap:8px}.catalog-grid .trading-card{padding:8px}.catalog-grid .tc-name{padding-left:0;padding-right:0}
