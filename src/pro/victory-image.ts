@@ -2,7 +2,7 @@ import type {VictoryShareData} from './victory-share';
 import {grade} from './data';
 
 export const VICTORY_IMAGE_WIDTH=1080;
-export const VICTORY_IMAGE_HEIGHT=2460;
+export const VICTORY_IMAGE_HEIGHT=2544;
 
 // Render game data locally: no screen-capture permission, external image host,
 // fonts or cross-origin assets are needed to create the shareable PNG.
@@ -65,10 +65,10 @@ export async function renderVictoryImage(data:VictoryShareData,url=''):Promise<B
   text(p.position,374,y+29,23,'#596886',600,'center');text(String(p.overall),481,y+29,26,'#7050bb',900,'center');text(String(p.ratings.velocity),613,y+29,27,'#237f9a',800,'center');
   [p.ratings.control,p.ratings.stamina,p.ratings.breaking].forEach((value,j)=>ability(value,pitColumns[j+5],y));
  });
- ctx.fillStyle='#e7e1f0';ctx.fillRect(52,2310,976,2);
- text('選手を集めて、育てて、自分だけのチームを。',540,2354,27,'#7050bb',800,'center');
- if(url)text(url.replace(/^https?:\/\//,''),540,2393,23,'#596886',600,'center',955);
- else text('#DIAMONDNINE  #野球ゲーム',540,2393,24,'#596886',600,'center');
- text('国内・海外の選手が登場する非公式シミュレーション',540,2432,19,'#8991a0',500,'center');
+ ctx.fillStyle='#e7e1f0';ctx.fillRect(52,2394,976,2);
+ text('選手を集めて、育てて、自分だけのチームを。',540,2438,27,'#7050bb',800,'center');
+ if(url)text(url.replace(/^https?:\/\//,''),540,2477,23,'#596886',600,'center',955);
+ else text('#DIAMONDNINE  #野球ゲーム',540,2477,24,'#596886',600,'center');
+ text('国内・海外の選手が登場する非公式シミュレーション',540,2516,19,'#8991a0',500,'center');
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG unavailable')),'image/png'));
 }

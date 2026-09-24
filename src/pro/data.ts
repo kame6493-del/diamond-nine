@@ -1,3 +1,4 @@
+import {pitcherRolePenalty,pitcherSlotRole} from './pitcher-aptitude';
 import {mlbLeagueTeams,mlbOpponentPlayers} from './mlb-opponents';
 import { assessHandling,assessUZR,type DefenseEvidence,type UzrRecord } from './defense';
 import uzrSnapshot from './uzr2026-screenshots.json';
@@ -172,13 +173,21 @@ export function autoLineup(pool:Player[]):string[]{
   if(!best)return '';used.add(best.id);return best.id;
  });
 }
-export function autoPitchers(pool:Player[]):string[]{
- const pitchers=pool.filter(p=>p.role==='pitcher');
- const starterFit=(p:Player)=>p.wikiAssessment?({'◎':3,'○':2,'△':1}[p.wikiAssessment.pitcherRoles['先']]??0):(p.pitching?.outs??0)/Math.max(1,p.pitching?.games??0)>=12?3:0;
- const starters=[...pitchers].sort((a,b)=>starterFit(b)-starterFit(a)||b.ratings.stamina-a.ratings.stamina||b.overall-a.overall).slice(0,6);
- const bullpen=pitchers.filter(p=>!starters.includes(p)).sort((a,b)=>b.overall-a.overall).slice(0,6);
- // Slot 12 is the closer. Use the published closing aptitude where present.
- const closer=[...bullpen].sort((a,b)=>Number(b.wikiAssessment?.pitcherRoles['抑']==='◎')-Number(a.wikiAssessment?.pitcherRoles['抑']==='◎')||b.overall-a.overall)[0];
- if(closer){bullpen.splice(bullpen.indexOf(closer),1);bullpen.push(closer);}
- return [...starters,...bullpen].map(p=>p.id);
+export function autoPitchers(pool:Player[],strict=false):string[]{
+ const pitchers=pool.filter(p=>p.role==='pitcher').sort((a,b)=>b.overall-a.overall||a.id.localeCompare(b.id));
+ // Bipartite assignment reserves scarce aptitudes instead of spending a closer
+ // or dual-role arm on an earlier slot and filling the final slot out of role.
+ const choices=Array.from({length:14},(_,i)=>pitchers.filter(p=>pitcherRolePenalty(p,pitcherSlotRole(i))===0));
+ const assignments=new Map<string,number>(),slots=Array<string>(14);
+ const assign=(slot:number,seen:Set<string>):boolean=>{
+  for(const p of choices[slot]){if(seen.has(p.id))continue;seen.add(p.id);const old=assignments.get(p.id);
+   if(old===undefined||assign(old,seen)){assignments.set(p.id,slot);slots[slot]=p.id;return true;}}
+  return false;
+ };
+ const order=Array.from({length:14},(_,i)=>i).sort((a,b)=>choices[a].length-choices[b].length||a-b);
+ for(const slot of order)if(!assign(slot,new Set())&&strict)return [];
+ // CPU/reference rosters may lack enough published role grades. Keep games
+ // playable there; user auto-formation always opts into the strict path.
+ if(!strict)for(let i=0;i<14;i++)if(!slots[i]){const available=pitchers.filter(p=>!slots.includes(p.id)).sort((a,b)=>pitcherRolePenalty(a,pitcherSlotRole(i))-pitcherRolePenalty(b,pitcherSlotRole(i))||b.overall-a.overall);if(available[0])slots[i]=available[0].id;}
+ return slots.filter(Boolean);
 }

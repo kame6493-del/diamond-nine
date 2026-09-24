@@ -1,3 +1,4 @@
+import {pitcherRolePenalty,pitcherSlotRole} from './pitcher-aptitude';
 import { fitsPosition, playerMap } from './data';
 import { effectiveOverall, type GameState } from './engine';
 import { pitchingRoleLabel } from './wiki-players';
@@ -10,7 +11,7 @@ export function bestUpgrade(state: GameState, id: string) {
   const starter = pitchingRoleLabel(player)==='先発';
   const roster = pitching ? state.pitchers : state.lineup;
   const candidates = roster.map((oldId, index) => ({ oldId, index }))
-    .filter(({ oldId, index }) => pitching ? (starter ? index < 6 : index >= 6) : fitsPosition(player, state.defense[oldId]))
+    .filter(({ oldId, index }) => pitching ? pitcherRolePenalty(player,pitcherSlotRole(index))===0 : fitsPosition(player, state.defense[oldId]))
     .map(slot => {const position=state.defense[slot.oldId],before=effectiveOverall(playerMap[slot.oldId], state.owned, state.training),after=effectiveOverall(player, state.owned, state.training);return {...slot,before,after,gain:after-before+(pitching?0:positionDefensePenalty(playerMap[slot.oldId],position)-positionDefensePenalty(player,position))*.14};})
     .sort((a, b) => b.gain-a.gain || a.index - b.index);
   const best = candidates[0];

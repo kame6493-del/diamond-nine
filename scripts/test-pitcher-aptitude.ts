@@ -10,15 +10,15 @@ import {DeckTeam} from '../src/pro/CardDeck';
 export function registerPitcherAptitudeTests(test:(name:string,run:()=>void)=>void){
  test('team screen explains role penalties without modifying card data',()=>{
   const state=initialSandboxState(),p=findPlayer('才木浩人'),before=JSON.stringify(p);
-  const pitchers=state.pitchers.filter(id=>id!==p.id);pitchers.splice(11,0,p.id);
-  const html=renderToStaticMarkup(createElement(DeckTeam,{state:{...state,pitchers:pitchers.slice(0,12),owned:{...state.owned,[p.id]:1}},onChange:()=>{},onPlayer:()=>{},onImpact:()=>{},onReset:()=>{},onRestore:()=>{},onCompleteReset:()=>{},canRestore:false}));
+  const pitchers=state.pitchers.filter(id=>id!==p.id);pitchers.splice(13,0,p.id);
+  const html=renderToStaticMarkup(createElement(DeckTeam,{state:{...state,pitchers:pitchers.slice(0,14),owned:{...state.owned,[p.id]:1}},onChange:()=>{},onPlayer:()=>{},onImpact:()=>{},onReset:()=>{},onRestore:()=>{},onCompleteReset:()=>{},canRestore:false}));
   assert.ok(html.includes('投手の役割適性不足'));assert.ok(html.includes('能力欄は起用時の補正後'));
   assert.equal(JSON.stringify(p),before);
  });
  test('pitching role grades preserve suitable abilities and penalize unfamiliar roles without mutating cards',()=>{
   const base=findPlayer('才木浩人');
   const p={...base,wikiAssessment:{...base.wikiAssessment!,pitcherRoles:{先:'◎',中:'△',抑:'－'}}};
-  assert.equal(pitcherSlotRole(0),'先');assert.equal(pitcherSlotRole(5),'先');assert.equal(pitcherSlotRole(6),'中');assert.equal(pitcherSlotRole(10),'中');assert.equal(pitcherSlotRole(11),'抑');
+  assert.equal(pitcherSlotRole(0),'先');assert.equal(pitcherSlotRole(5),'先');assert.equal(pitcherSlotRole(6),'中');assert.equal(pitcherSlotRole(10),'中');assert.equal(pitcherSlotRole(11),'中');assert.equal(pitcherSlotRole(12),'中');assert.equal(pitcherSlotRole(13),'抑');
   assert.equal(pitcherRolePenalty(p,'先'),0);assert.equal(pitcherRolePenalty(p,'中'),5);assert.equal(pitcherRolePenalty(p,'抑'),12);
   const before={...p.ratings};
   assert.deepEqual(pitchingRatingsForRole(p,p.ratings,'先'),before);

@@ -1,7 +1,7 @@
 import type {Player,Ratings} from './data';
 
 export type PitcherRole='先'|'中'|'抑';
-export const pitcherSlotRole=(index:number):PitcherRole=>index<6?'先':index===11?'抑':'中';
+export const pitcherSlotRole=(index:number):PitcherRole=>index<6?'先':index===13?'抑':'中';
 export function pitcherRolePenalty(player:Player,role:PitcherRole):number{
  const roles=player.wikiAssessment?.pitcherRoles;
  if(roles&&Object.keys(roles).length){

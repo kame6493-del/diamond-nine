@@ -1,4 +1,4 @@
-import {pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
+import {pitcherRolePenalty,pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
 import {spaceUnlocked,circuitOf,seasonGames,leagueTeams,leagueFor,mlbSchedule,leagueProgress,settleLeagueProgress,standingOrder,NPB_TITLES_TO_MLB,type Circuit,type LeagueProgress} from './leagues';
 import {mlbLeagueTeams,mlbOpponentPlayers} from './mlb-opponents';
 import { autoLineup,autoPitchers,canBat,wasLegacyBatter,fitsPosition,clamp,contextFor,findPlayer,playerMap,players,rosterSlots,teams,type Player,type Rarity } from './data';
@@ -32,7 +32,7 @@ export const CAREER_SAVE_KEY='diamond-dynasty-career-v1';
 export const saveKeyFor=(profile:Profile)=>profile==='career'?CAREER_SAVE_KEY:SAVE_KEY;
 export const emptySeason=(number=1,circuit:Circuit='NPB',club='t'):Season=>({...(circuit!=='NPB'?{circuit,club}:{}),number,day:0,model:'2026-dips',standings:leagueTeams({circuit,club} as Season).map(t=>({team:t.id,w:0,l:0,d:0,rf:0,ra:0,form:[]})),batting:{},pitching:{},fielding:emptyFielding(),results:[],trend:[],completed:false,rewardClaimed:false});
 export function initialSandboxState():GameState{
- const names=['坂倉将吾','大山悠輔','中野拓夢','清宮幸太郎','宗山塁','近本光司','森下翔太','西川愛也','佐野恵太','村上頌樹','才木浩人','東克樹','大関友久','隅田知一郎','九里亜蓮','桐敷拓馬','藤嶋健人','杉浦稔大','木浪聖也','藤原恭大','梅野隆太郎','清水達也','田中正義','杉山一樹'];
+ const names=['坂倉将吾','大山悠輔','中野拓夢','清宮幸太郎','宗山塁','近本光司','森下翔太','西川愛也','佐野恵太','村上頌樹','才木浩人','東克樹','大関友久','隅田知一郎','九里亜蓮','桐敷拓馬','藤嶋健人','杉浦稔大','木浪聖也','藤原恭大','梅野隆太郎','清水達也','田中正義','杉山一樹','松山晋也','石井大智'];
  const pool=names.map(n=>findPlayer(n)).filter(Boolean);
  const owned=Object.fromEntries(pool.map(p=>[p.id,1]));
  const order=['近本光司','中野拓夢','森下翔太','大山悠輔','清宮幸太郎','佐野恵太','坂倉将吾','西川愛也','宗山塁'].map(name=>findPlayer(name).id);
@@ -53,10 +53,8 @@ export function initialState(seed=Math.floor(Math.random()*0xffffffff)||428374):
  const lineup:string[]=[],defense:Record<string,string>={};
  for(const slot of rosterSlots){const p=batters.find(p=>!lineup.includes(p.id)&&fitsPosition(p,slot));if(!p)throw new Error('Missing starter position '+slot);lineup.push(p.id);defense[p.id]=slot;}
  const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&ratingOverall(p)<=(pitchingRoleLabel(p)==='先発'?57:54)));
- const starters=arms.filter(p=>pitchingRoleLabel(p)==='先発').slice(0,6);
- const relief=arms.filter(p=>pitchingRoleLabel(p)==='救援').slice(0,6);
- if(starters.length!==6||relief.length!==6)throw new Error('Missing starter pitchers');
- const pitchers=[...starters,...relief].map(p=>p.id),bench=batters.filter(p=>!lineup.includes(p.id)).slice(0,3);
+ const pitchers=autoPitchers(arms.map(p=>({...p,overall:random.next()*100})),true),bench=batters.filter(p=>!lineup.includes(p.id)).slice(0,3);
+ if(pitchers.length!==14)throw new Error('Missing suitable starter pitchers');
  return {starterScout:createStarterScout(seed),achievements:{},version:1,mode:'career',name:'東京ルーキーズ',club:'t',gems:0,owned:Object.fromEntries([...lineup,...pitchers,...bench.map(p=>p.id)].map(id=>[id,1])),lineup,defense,pitchers,season:emptySeason(),history:[],pulls:0,pity:0,seed,lastPulls:[],franchise:{...freshFranchise(),established:true,tickets:0,points:0,motto:'一枚ずつ、強くなる。'},training:{}};
 }
 export function validState(value:unknown):value is GameState{
@@ -82,7 +80,7 @@ export function validState(value:unknown):value is GameState{
  if(s.parkedSeason&&(!validSeason(s.parkedSeason)||circuitOf(s.parkedSeason)===circuitOf(s.season)||s.parkedSeason.number===s.season.number||s.history?.some(h=>h.number===s.parkedSeason!.number)))return false;
  const parked=[...(s.parkedSeason?[s.parkedSeason]:[]),...(s.additionalParkedSeasons??[])];
  if(parked.some(x=>!validSeason(x)||circuitOf(x)===circuitOf(s.season)||s.history?.some(h=>h.number===x.number))||new Set([s.season.number,...parked.map(x=>x.number)]).size!==parked.length+1||new Set(parked.map(circuitOf)).size!==parked.length)return false;
- return s.version===1&&(s.mode===undefined||s.mode==='career'||s.mode==='free')&&typeof s.name==='string'&&s.name.length>0&&s.name.length<=30&&teams.some(t=>t.id===s.club)&&finite(s.gems)&&finite(s.pulls)&&finite(s.pity)&&s.pity<50&&finite(s.seed)&&!!s.owned&&typeof s.owned==='object'&&Object.entries(s.owned).every(([id,c])=>!!playerMap[id]&&!playerMap[id].opponentOnly&&Number.isInteger(c)&&c>0)&&Array.isArray(s.lineup)&&s.lineup.length===9&&new Set(s.lineup).size===9&&s.lineup.every(id=>s.owned[id]&&(canBat(playerMap[id])||wasLegacyBatter(id)))&&!!s.defense&&s.lineup.map(id=>s.defense[id]).sort().join(',')===[...rosterSlots].sort().join(',')&&Array.isArray(s.pitchers)&&s.pitchers.length===12&&new Set(s.pitchers).size===12&&s.pitchers.every(id=>s.owned[id]&&playerMap[id]?.role==='pitcher')&&!!validSeason(s.season)&&Array.isArray(s.history)&&s.history.length<=8&&s.history.every(validSeason)&&Array.isArray(s.lastPulls)&&s.lastPulls.length<=10&&s.lastPulls.every(p=>playerMap[p.playerId]&&finite(p.copies));
+ return s.version===1&&(s.mode===undefined||s.mode==='career'||s.mode==='free')&&typeof s.name==='string'&&s.name.length>0&&s.name.length<=30&&teams.some(t=>t.id===s.club)&&finite(s.gems)&&finite(s.pulls)&&finite(s.pity)&&s.pity<50&&finite(s.seed)&&!!s.owned&&typeof s.owned==='object'&&Object.entries(s.owned).every(([id,c])=>!!playerMap[id]&&!playerMap[id].opponentOnly&&Number.isInteger(c)&&c>0)&&Array.isArray(s.lineup)&&s.lineup.length===9&&new Set(s.lineup).size===9&&s.lineup.every(id=>s.owned[id]&&(canBat(playerMap[id])||wasLegacyBatter(id)))&&!!s.defense&&s.lineup.map(id=>s.defense[id]).sort().join(',')===[...rosterSlots].sort().join(',')&&Array.isArray(s.pitchers)&&[12,14].includes(s.pitchers.length)&&new Set(s.pitchers).size===s.pitchers.length&&s.pitchers.every(id=>s.owned[id]&&playerMap[id]?.role==='pitcher')&&!!validSeason(s.season)&&Array.isArray(s.history)&&s.history.length<=8&&s.history.every(validSeason)&&Array.isArray(s.lastPulls)&&s.lastPulls.length<=10&&s.lastPulls.every(p=>playerMap[p.playerId]&&finite(p.copies));
 }
 export function migrateState(value:unknown):GameState|null{
  if(!value||typeof value!=='object')return null;
@@ -97,6 +95,13 @@ export function migrateState(value:unknown):GameState|null{
   if(season.pitching)for(const p of Object.values(season.pitching)){p.hbp??=0;p.hr??=0;p.bf??=0;}
  }
  if(!validState(data))return null;
+ // Expand legacy staffs once, retaining all twelve selected arms and the closer.
+ if(data.pitchers.length===12){
+  const available=players.filter(p=>p.role==='pitcher'&&!p.mlb&&!data.pitchers.includes(p.id)&&pitcherRolePenalty(p,'中')===0)
+   .sort((a,b)=>Number(!!data.owned[b.id])-Number(!!data.owned[a.id])||ratingOverall(a)-ratingOverall(b)||a.id.localeCompare(b.id));
+  const added=available.slice(0,2).map(p=>p.id);for(const id of added)data.owned[id]??=1;
+  data.pitchers.splice(11,0,...added);
+ }
  // Fold the legacy training balance into the visible wallet, then clear it.
  // Re-reading, importing, or syncing the migrated save cannot credit it twice.
  const balance=data.gems+data.franchise.points;if(!Number.isFinite(balance))return null;
@@ -202,7 +207,8 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
    const defense=1-side;
    const starterDone=inning>=starterLimit[defense]||(inning>=4&&scores[side]>=5);
    const lead=scores[defense]-scores[side];
-   const reliefOffset=inning===8&&lead>0&&lead<=3?5:inning===7&&lead>=0&&lead<=3?4:(season.day+Math.max(0,inning-4))%4;
+   const reliefCount=rosters[defense].pitchers.length-6;
+   const reliefOffset=inning===8&&lead>0&&lead<=3?reliefCount-1:inning===7&&lead>=0&&lead<=3?reliefCount-2:(season.day+Math.max(0,inning-4))%Math.max(1,reliefCount-2);
    const preferred=rosters[defense].pitchers[6+reliefOffset];
    const alreadyOut=usedPitchers[defense].has(preferred)&&latestPitcher[defense]!==preferred;
    const relief=alreadyOut?(rosters[defense].pitchers.slice(6).find(id=>!usedPitchers[defense].has(id))??latestPitcher[defense]):preferred;

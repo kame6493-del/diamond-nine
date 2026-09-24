@@ -26,7 +26,7 @@ export function victoryShareData(state:GameState,season:Season){
   abilityLabel:season.shareTeam?'シーズン終了時のチーム能力':'現在のチーム能力',
   playerAbilityLabel:season.shareTeam?'シーズン終了時の選手能力':'現在の選手能力',
   lineupAbilities:team.batters.map((p,i)=>({id:p.id,name:playerMap[p.id].name,order:i+1,position:p.position,overall:p.overall,ratings:{...p.ratings}})),
-  pitcherAbilities:team.pitchers.map((p,i)=>({id:p.id,name:playerMap[p.id].name,order:i+1,position:i<6?'先発':i===11?'抑え':'救援',overall:p.overall,ratings:{...p.ratings}})),
+  pitcherAbilities:team.pitchers.map((p,i)=>({id:p.id,name:playerMap[p.id].name,order:i+1,position:i<6?'先発':i===team.pitchers.length-1?'抑え':'救援',overall:p.overall,ratings:{...p.ratings}})),
   batters:rows.slice(0,9).map(b=>({name:playerMap[b.playerId].name,avg:b.ab?formatAvg(battingAverage(b)):'—',hr:b.hr,rbi:b.rbi,ops:formatAvg(ops(b)),sb:b.sb})),
   battingLabel:rows.length>9?'打撃成績 · 打席数上位9人':'打撃成績 · 打席数順'};
 }

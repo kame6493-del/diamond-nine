@@ -1,4 +1,5 @@
 import {registerLeagueTests} from './test-leagues';
+import {registerBullpenTests} from './test-bullpen';
 import {registerRunEnvironmentTests} from './bench-run-environment';
 import {registerJourneyTests} from './test-journey';
 import {registerTitleCelebrationTests} from './test-title-celebration';
@@ -318,6 +319,7 @@ registerPitcherAptitudeTests(test);
 registerSpaceLeagueTests(test);
 registerStealBalanceTests(test);
 registerRunEnvironmentTests(test);
+registerBullpenTests(test);
 let failures=0;
 for(const t of tests){try{t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);
