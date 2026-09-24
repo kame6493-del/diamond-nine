@@ -10,7 +10,7 @@ import { battingMetrics,leagueContext,pitchingMetrics } from './sabermetrics';
 import { assessBatting,assessPitching } from './wiki-assessment';
 import { applyWikiAssessment,wikiPositionPenalty,type WikiAssessment } from './wiki-players';
 import {mlbInfo,mlbPlayers,mlbTeams} from './mlb-players';
-import {maskPlayerName,teamLocation} from './display-names';
+import {maskPlayerName,teamLocation,spaceTeams} from './display-names';
 
 export type Rarity = 'UR' | 'SSR' | 'SR' | 'R';
 export interface BattingRecord { games:number;pa:number;ab:number;runs:number;hits:number;doubles:number;triples:number;hr:number;tb:number;rbi:number;sb:number;cs:number;sh:number;sf:number;bb:number;ibb:number;hbp:number;so:number;gidp:number;avg:number;slg:number;obp:number }
@@ -43,7 +43,10 @@ export const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n
 const scale=(n:number)=>Math.round(clamp(n,15,99));
 export const grade=(n:number)=>n>=90?'S':n>=80?'A':n>=70?'B':n>=60?'C':n>=50?'D':n>=40?'E':n>=20?'F':'G';
 export const gradeColor=(n:number)=>n>=90?'#edb9ff':n>=80?'#f5bf5d':n>=70?'#eb8497':n>=60?'#68b2eb':n>=50?'#6bc29c':'#97a7ab';
-export const teamById=(id:string)=>teams.find(t=>t.id===id)??mlbTeams.find(t=>t.id===id)??mlbLeagueTeams.find(t=>t.id===id)!;
+export const teamById=(id:string,season?:{circuit?:string})=>{
+ const team=teams.find(t=>t.id===id)??mlbTeams.find(t=>t.id===id)??mlbLeagueTeams.find(t=>t.id===id)!;
+ return season?.circuit==='SPACE'&&spaceTeams[id]?{...team,...spaceTeams[id]}:team;
+};
 
 const additions=rosterDatabase.players.filter(p=>!p.statsId).map(p=>({id:p.id,name:p.name,team:p.team,role:p.registeredPosition==='投手'?'pitcher':'batter',position:({'投手':'投','捕手':'捕','内野手':'内','外野手':'外'}[p.registeredPosition]??'DH'),positions:[] as string[],fielding:[],bats:p.bats,throws:p.throws}));
 const legacy=previous.players.filter(p=>!database.players.some(q=>q.id===p.id)&&!additions.some(q=>q.id===p.id));

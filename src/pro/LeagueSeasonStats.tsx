@@ -33,7 +33,7 @@ export function LeagueSeasonStats({season,club,clubName}:{season:Season;club:str
    <h3>{leagueStatsNames[league]}</h3>
    <table className="s-stats league-stats-table"><caption className="league-stats-sr">{leagueStatsNames[league]}の順位とチーム成績</caption><thead><tr><th scope="col">チーム</th><th scope="col">勝-敗-分</th><th scope="col">勝率</th><th scope="col" title="リーグ首位とのゲーム差">差</th></tr></thead>
     <tbody>{data.rows.filter(t=>t.league===league).map(t=>{
-     const name=t.team===club?clubName:teamById(t.team).short,expanded=expandedTeam===t.team,id=`${detailId}-${t.team}`;
+     const name=t.team===club?clubName:teamById(t.team,season).short,expanded=expandedTeam===t.team,id=`${detailId}-${t.team}`;
      return <Fragment key={t.team}><tr className={t.team===club?'s-mine':''}><th scope="row"><button className="league-team-toggle" onClick={()=>setExpandedTeam(expanded?null:t.team)} aria-expanded={expanded} aria-controls={id} aria-label={`${name}の詳細成績`} title={name}><span className="league-stats-rank">{t.rank??'—'}</span><span className="league-team-name">{name}</span><span className="league-team-chevron" aria-hidden="true">{expanded?'−':'＋'}</span></button></th><td>{t.w}-{t.l}-{t.d}</td><td>{t.pct===null?'—':formatAvg(t.pct)}</td><td>{t.gamesBehind===null||t.rank===1?'—':t.gamesBehind.toFixed(1)}</td></tr>
      {expanded&&<tr className="league-detail-row"><td colSpan={4} id={id}><TeamStatsDetail team={t} name={name}/></td></tr>}</Fragment>;
     })}</tbody>
