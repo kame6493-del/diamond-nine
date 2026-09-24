@@ -259,10 +259,17 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
        recordContact();
        if(amount===3)bs.triples++;if(amount===2)bs.doubles++;
        const advanced:(Runner|null)[]=[null,null,null];
-       for(let base=2;base>=0;base--){const runner=bases[base];if(!runner)continue;const bonus=amount===1&&base>=1&&random.next()<Math.min(.90,extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),defenses[defense].arm,stageFor(side,runner.id))+(out===2?.20:0))?1:0;let target=base+amount+bonus;
-        if(amount===1&&base===1){
-         const d=defenses[defense],advance=(arm:number)=>Math.min(.90,extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),arm,stageFor(side,runner.id))+(out===2?.20:0)),current=advance(d.arm),neutral=advance(61);
-         const slope=Math.abs(d.arm-61)>1e-10?(neutral-current)/(d.arm-61):current>(out===2?.32:.12)&&current<(out===2?.90:.75)?.003:0;
+       for(let base=2;base>=0;base--){
+        const runner=bases[base];if(!runner)continue;
+        // First-to-third singles and first-to-home doubles used to be absent.
+        // Keep occupied destinations protected and let speed/arms and two outs
+        // determine the extra base rather than inflating hits to create runs.
+        const canAdvance=amount===1&&(base===1||base===0&&!advanced[2])||amount===2&&base===0;
+        const advance=(arm:number)=>clamp(extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),arm,stageFor(side,runner.id))+(out===2?.20:0)-(base===0&&amount===1?.16:0),.08,.90);
+        const bonus=canAdvance&&random.next()<advance(defenses[defense].arm)?1:0;let target=base+amount+bonus;
+        if(canAdvance){
+         const d=defenses[defense],current=advance(d.arm),neutral=advance(61);
+         const slope=Math.abs(d.arm-61)>1e-10?(neutral-current)/(d.arm-61):current>.08&&current<.90?.003:0;
          for(const f of d.outfield)f.row.armRuns+=(f.arm-61)/d.outfield.length*slope*.3;
         }
         if(target>=3)run(runner,bs);else{while(advanced[target]&&target>0)target--;advanced[target]=runner;}}

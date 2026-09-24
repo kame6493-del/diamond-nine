@@ -44,11 +44,11 @@ export function matchupProbabilities(batter: Player, pitcher: Player, batBonus =
   // Fixed run-environment factors: lift domestic long balls toward a modern
   // MLB-like game and temper the overseas power prior. Applies equally to CPU
   // and user matchups; never adjusts to standings or forces a final score.
-  const homeRun = clamp(((b?.hr ?? 0)*Math.exp(power*.022)+powerPrior*150)/(pa+150) * ((q?.hr ?? 0) + lgHR * 240) / (bf + 240) / Math.max(.005, lgHR) * Math.exp(-stuff * .012)*traits.homeRun*trajectoryFactor*(1-.15*batTransition)*(1+.16*pitTransition) * (major?.90:1.35) / nonFree, .0002, .12);
-  const babip = clamp(((b?.hits ?? 0) - (b?.hr ?? 0) + lgBabip * 180) / (Math.max(0, ab - (b?.so ?? 0) - (b?.hr ?? 0) + (b?.sf ?? 0)) + 180) + contact * .0012 - stuff * .0004 - defense-.010*batTransition+.006*pitTransition+(major?.007:0), .18, .41);
+  const homeRun = clamp(((b?.hr ?? 0)*Math.exp(power*.022)+powerPrior*150)/(pa+150) * ((q?.hr ?? 0) + lgHR * 240) / (bf + 240) / Math.max(.005, lgHR) * Math.exp(-stuff * .012)*traits.homeRun*trajectoryFactor*(1-.15*batTransition)*(1+.16*pitTransition) * (circuit==='SPACE'?.75:major?.90:1.28) / nonFree, .0002, .12);
+  const babip = clamp(((b?.hits ?? 0) - (b?.hr ?? 0) + lgBabip * 180) / (Math.max(0, ab - (b?.so ?? 0) - (b?.hr ?? 0) + (b?.sf ?? 0)) + 180) + contact * .0012 - stuff * .0004 - defense-.010*batTransition+.006*pitTransition+(major?.007:-.012), .18, .41);
   const hit = homeRun + (1 - strikeout - homeRun) * babip;
   const triple = Math.min((hit - homeRun) * .2, ((b?.triples ?? 0) + 1) / (ab + 150) * Math.exp(speed * .035));
-  const double = Math.min(hit - homeRun - triple, ((b?.doubles ?? 0) + 7) / (ab + 150) * Math.exp(power * .018)*(1-.05*batTransition)*(major?1:1.12));
+  const double = Math.min(hit - homeRun - triple, ((b?.doubles ?? 0) + 7) / (ab + 150) * Math.exp(power * .018)*(1-.05*batTransition)*(circuit==='SPACE'?.94:major?1:1.12));
   return { walk, hbp, strikeout, homeRun, babip, hit, triple, double };
 }
 

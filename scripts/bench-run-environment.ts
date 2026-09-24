@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {initialSandboxState,emptySeason,simulateDays} from '../src/pro/engine';
 import type {Circuit} from '../src/pro/leagues';
-export function measureEnvironment(circuit:Circuit,samples=3){
+export function measureEnvironment(circuit:Circuit,samples=5){
  const totals={games:0,runs:0,ab:0,hits:0,hr:0,bb:0,hbp:0,sf:0,doubles:0,triples:0,outs:0,er:0,so:0,pa:0};
  for(let i=0;i<samples;i++){
   const base=initialSandboxState(),s=simulateDays({...base,seed:17023+i*91991,season:emptySeason(1,circuit,base.club)},circuit==='NPB'?143:162).season;
@@ -22,9 +22,9 @@ export function registerRunEnvironmentTests(test:(name:string,run:()=>void)=>voi
  test('all leagues retain a modern MLB-like scoring environment and consistent sacrifice-fly accounting',()=>{
   for(const circuit of ['NPB','MLB','SPACE'] as const){
    const m=measureEnvironment(circuit);console.log('Run environment:',JSON.stringify(m));
-   assert.ok(m.rpg>4&&m.rpg<5.1);assert.ok(m.avg>.23&&m.avg<.27);
-   assert.ok(m.obp>.30&&m.obp<.34);assert.ok(m.ops>.69&&m.ops<.80);
-   assert.ok(m.era>3.7&&m.era<4.9);assert.ok(m.hrPerTeamGame>1&&m.hrPerTeamGame<1.7);
+   assert.ok(m.rpg>4.2&&m.rpg<4.7);assert.ok(m.avg>.235&&m.avg<.255);
+   assert.ok(m.obp>.305&&m.obp<.325);assert.ok(m.ops>.695&&m.ops<.745);
+   assert.ok(m.era>3.9&&m.era<4.4);assert.ok(m.hrPerTeamGame>1.05&&m.hrPerTeamGame<1.3);
   }
  });
 }
