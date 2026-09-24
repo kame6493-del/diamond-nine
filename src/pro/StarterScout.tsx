@@ -31,7 +31,7 @@ export function StarterScout({state,sound,onPick,onFinish,onPlayer}:{state:GameS
   timer.current=setTimeout(()=>finish.current?.(),scoutDuration(presentation.tier));
  };
  return <section className="starter-event" aria-label="スタートスカウト">
-  <div className="starter-event-label"><Gift size={16}/>初回限定 · スタートスカウト</div>
+  <div className="starter-event-label"><Gift size={16}/>初回限定 · スタートスカウト</div><a className="starter-help" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
   {!player?<>
    <h1>3枚から、1枚選ぼう。</h1><p className="starter-intro">最初の主力選手をプレゼント！<br/>好きなカードをタップして獲得。</p>
    <div className="starter-guarantee"><Crown size={17}/><span>全カード <b>総合 {STARTER_MIN_OVERALL} 以上</b></span></div>
