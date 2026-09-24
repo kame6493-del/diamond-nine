@@ -117,20 +117,6 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
   <AchievementsPanel state={state} season={season} expanded/>
   </div></details>}
   {current&&spaceUnlocked(state)&&!space&&<section className="space-unlock"><div><small>最高難易度 · 新たな挑戦</small><h2>宇宙リーグ、解放。</h2><p>世界一の先へ。育成と編成を極めたチームで、宇宙王座に挑もう。</p></div><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onSwitchLeague?.('SPACE');}}>宇宙リーグに挑戦する<ChevronRight size={18}/></button></section>}
-  {current&&spaceUnlocked(state)&&<details className="s-fold space-strategy">
-   <summary>宇宙リーグ攻略ヒント<span>編成と育成を見直す</span></summary>
-   <div className="space-strategy-body">
-    <p>強打者だけでは勝ち切れない最高難易度。まずはチームの弱点を一つずつ埋めよう。</p>
-    <ol>
-     <li><strong>総合値より、まず適性</strong><p>野手は得意な守備位置へ。守備と肩も失点に影響します。投手も先発・中継ぎ・抑えの適性を確認しよう。</p></li>
-     <li><strong>先発だけでなく、リリーフ8人も強化</strong><p>エース一人に頼らず、先発陣と救援陣をまんべんなく育成。防御率と投球回を見て、失点の多い投手から見直そう。</p></li>
-     <li><strong>打線はパワーだけで選ばない</strong><p>ミートとパワーに加え、走力や特殊能力も確認。シーズンの出塁率・本塁打・OPSを見て、打線に足りない役割を補おう。</p></li>
-     <li><strong>主力の覚醒と、弱い枠の底上げ</strong><p>覚醒は進むほど高コスト。お気に入り一人に集中するだけでなく、出場する選手全体に育成ポイントを回すことも大切です。</p></li>
-     <li><strong>苦戦したら、別のリーグで立て直す</strong><p>「目標・達成記録」から国内・海外リーグへ戻れます。途中の成績を残したまま補強・育成し、準備ができたら再挑戦しよう。</p></li>
-    </ol>
-    <p className="space-strategy-note">十分に育ったチームでも、優勝が確実になるわけではありません。まずはプレーオフ進出を目標に。</p>
-   </div>
-  </details>}
   <div className="season-report-start" ref={report}>
   {endActions}
   <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
