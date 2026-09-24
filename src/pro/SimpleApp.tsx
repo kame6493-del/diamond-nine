@@ -117,6 +117,7 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
   <AchievementsPanel state={state} season={season} expanded/>
   </div></details>}
   <div className="season-report-start" ref={report}>
+  {endActions}
   <section className="s-season-card" aria-label="シーズンの進行"><div className="s-season-top"><div><span>{season.day?`${table.indexOf(mine)+1}位`:'開幕前'}</span><h2>{state.name}</h2><p><b>{mine.w}</b> 勝 <b>{mine.l}</b> 敗 <b>{mine.d}</b> 分</p></div><div className="s-game-count"><b>{season.day}</b><span>/ {total} 試合</span></div></div><div className="s-progress" role="progressbar" aria-label="シーズン進行" aria-valuenow={season.day} aria-valuemin={0} aria-valuemax={total}><i style={{width:`${season.day/total*100}%`}}/></div>
    {current&&!season.completed&&<><p className="s-next-opponent">次の相手：{next&&teamById(next.opponent).short}{next&&<span>先発 {playerMap[next.mine].name}</span>}{major&&next&&<span>相手先発 {playerMap[next.theirs].name}</span>}</p><div className="s-play-actions"><button className="s-primary" disabled={busy} onClick={()=>onPlay(1)}><Play size={17} fill="currentColor"/>1試合進める</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(10)}>10試合</button><button className="s-secondary" disabled={busy} onClick={()=>onPlay(total)}>シーズン終了まで</button></div></>}
    {busy&&<p className="s-working" role="status">試合を計算しています… {progress}%</p>}
@@ -125,7 +126,6 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
   <TeamSeasonStats season={season} club={state.club}/>
   <SimpleStats key={circuitOf(season)+season.number} season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
   </div>
-  {endActions}
   {post?.stage==='complete'&&<details className="s-fold postseason-results"><summary>{major?'プレーオフ':'短期決戦'}の結果を見る</summary>{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{stageLabel(s.stage)}</span><b>{s.higher===state.club?state.name:teamById(s.higher).short} {s.wins[0]} − {s.wins[1]} {s.lower===state.club?state.name:teamById(s.lower).short}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。次のシーズンで再挑戦。</p>}</details>}
   {!current&&<AchievementsPanel state={state} season={season}/>}
   <VictoryShare state={state} season={season}/>
