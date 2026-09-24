@@ -45,7 +45,7 @@ export function registerFieldingStatsTests(test:(name:string,run:()=>void)=>void
   const team=teamSeasonStats(state.season,state.club);assert.equal(team.uzr,rows.reduce((sum,p)=>sum+playerSeasonUZR(state.season,state.club,p.playerId)!,0));
   assert.ok(rows.some(p=>fieldingRuns(p)<0));assert.ok(validState(state));
   // Every in-play ball is one exposure for each of the eight defenders.
-  const oppositionBip=state.season.results.flatMap(g=>g.box!.batting).filter(b=>b.team!==state.club).reduce((n,b)=>n+b.ab-b.so-b.hr,0);
+  const oppositionBip=state.season.results.flatMap(g=>g.box!.batting).filter(b=>b.team!==state.club).reduce((n,b)=>n+b.ab+b.sf-b.so-b.hr,0);
   assert.ok(rows.every(p=>p.ballsInPlay===oppositionBip));
   const html=renderToStaticMarkup(createElement(SimpleStats,{season:state.season,club:state.club,onPlayer:()=>{},lineup:state.lineup,pitchers:state.pitchers}));
   for(const row of rows)assert.ok(html.includes(formatUZR(playerSeasonUZR(state.season,state.club,row.playerId))));

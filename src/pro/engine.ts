@@ -253,10 +253,10 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
        recordContact();
        if(amount===3)bs.triples++;if(amount===2)bs.doubles++;
        const advanced:(Runner|null)[]=[null,null,null];
-       for(let base=2;base>=0;base--){const runner=bases[base];if(!runner)continue;const bonus=amount===1&&base>=1&&random.next()<extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),defenses[defense].arm,stageFor(side,runner.id))?1:0;let target=base+amount+bonus;
+       for(let base=2;base>=0;base--){const runner=bases[base];if(!runner)continue;const bonus=amount===1&&base>=1&&random.next()<Math.min(.90,extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),defenses[defense].arm,stageFor(side,runner.id))+(out===2?.20:0))?1:0;let target=base+amount+bonus;
         if(amount===1&&base===1){
-         const d=defenses[defense],current=extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),d.arm,stageFor(side,runner.id)),neutral=extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),61,stageFor(side,runner.id));
-         const slope=Math.abs(d.arm-61)>1e-10?(neutral-current)/(d.arm-61):current>.12&&current<.75?.003:0;
+         const d=defenses[defense],advance=(arm:number)=>Math.min(.90,extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),arm,stageFor(side,runner.id))+(out===2?.20:0)),current=advance(d.arm),neutral=advance(61);
+         const slope=Math.abs(d.arm-61)>1e-10?(neutral-current)/(d.arm-61):current>(out===2?.32:.12)&&current<(out===2?.90:.75)?.003:0;
          for(const f of d.outfield)f.row.armRuns+=(f.arm-61)/d.outfield.length*slope*.3;
         }
         if(target>=3)run(runner,bs);else{while(advanced[target]&&target>0)target--;advanced[target]=runner;}}
@@ -272,7 +272,15 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
      }else{
       out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);
       if(outcome<hitRate+kRate){bs.so++;ps.so++;}
-      else recordContact();
+      else {
+       recordContact();
+       // A fraction of balls put out in play are deep enough for a sacrifice
+       // fly. The out counts, the plate appearance counts, but the AB does not.
+       // Two-out advancement is already handled on hits, not on this third out.
+       if(out<3&&bases[2]&&random.next()<clamp(.30+(gameRatings(playerMap[bases[2].id],bonusFor(side,bases[2].id),stageFor(side,bases[2].id)).speed-55)*.002-(defenses[defense].arm-61)*.0015,.15,.45)){
+        bs.ab--;bs.sf++;play='犠牲フライ';run(bases[2],bs);bases[2]=null;
+       }
+      }
      }
     }
     if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play,runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
