@@ -9,6 +9,13 @@ export interface FieldingStats {
 export interface FieldingSeason {version:1;games:Record<string,number>;players:Record<string,FieldingStats>}
 export const emptyFielding=():FieldingSeason=>({version:1,games:{},players:{}});
 export const fieldingRuns=(row:FieldingStats)=>row.rangeRuns+row.errorRuns+row.armRuns;
+// The ledger is a marginal simulator estimate, not measured zone-based UZR.
+// Calibrate per opportunity, with a smooth symmetric curve for extreme league
+// ability gaps. No seasonal cap: extra playing time still adds proportionally.
+const calibratedRate=(rate:number,useGames:boolean)=>{
+ const scale=12/(useGames?162:4000);
+ return .65*scale*Math.asinh(rate/scale);
+};
 // Keep the recorded defensive events intact. UZR is relative to the current
 // season's league, not the simulator's fixed neutral ability of 60. Allocate
 // the league baseline by recorded opportunities, including partial seasons.
@@ -19,9 +26,16 @@ export function leagueFieldingBaseline(season:Season,team:string){
  const exposure=rows.reduce((n,p)=>n+p.ballsInPlay,0);
  const useGames=exposure===0;
  const weight=useGames?rows.reduce((n,p)=>n+p.games,0):exposure;
- return {rate:weight?rows.reduce((n,p)=>n+fieldingRuns(p),0)/weight:0,useGames};
+ const rate=weight?rows.reduce((n,p)=>n+fieldingRuns(p),0)/weight:0;
+ // Nonlinear conversion must be centered again, or a league with an outlier
+ // would acquire an artificial positive/negative total.
+ const correction=weight?rows.reduce((n,p)=>{const w=useGames?p.games:p.ballsInPlay;return n+(w?calibratedRate(fieldingRuns(p)/w-rate,useGames)*w:fieldingRuns(p)*.65);},0)/weight:0;
+ return {rate,useGames,correction};
 }
-const relativeRuns=(row:FieldingStats,baseline:ReturnType<typeof leagueFieldingBaseline>)=>fieldingRuns(row)-baseline.rate*(baseline.useGames?row.games:row.ballsInPlay);
+const relativeRuns=(row:FieldingStats,baseline:ReturnType<typeof leagueFieldingBaseline>)=>{
+ const weight=baseline.useGames?row.games:row.ballsInPlay;
+ return weight?(calibratedRate(fieldingRuns(row)/weight-baseline.rate,baseline.useGames)-baseline.correction)*weight:fieldingRuns(row)*.65;
+};
 export function formatUZR(value:number|null):string{
  if(value===null)return '—';
  const rounded=Math.round(value*10)/10;

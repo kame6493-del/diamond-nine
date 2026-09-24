@@ -10,6 +10,19 @@ import {trainPlayer} from '../src/pro/franchise';
 import {leagueTeams} from '../src/pro/leagues';
 
 export function registerFieldingStatsTests(test:(name:string,run:()=>void)=>void){
+ test('extreme defensive deficits soften without caps, lost ledger data or lost league centering',()=>{
+  const season=simulateDays(initialState(812),2).season,rows=Object.values(season.fielding!.players);
+  for(const row of rows){row.ballsInPlay=4000;row.rangeRuns=0;row.errorRuns=0;row.armRuns=0;}
+  const row=rows[0];row.rangeRuns=-80;const before=JSON.stringify(season);
+  const value=playerSeasonUZR(season,row.team,row.playerId)!;
+  assert.ok(value<0&&value>-40);assert.equal(JSON.stringify(season),before);
+  const double=structuredClone(season);for(const p of Object.values(double.fielding!.players)){p.ballsInPlay*=2;p.rangeRuns*=2;}
+  assert.ok(Math.abs(playerSeasonUZR(double,row.team,row.playerId)!-value*2)<1e-9);
+  row.rangeRuns=-120;assert.ok(playerSeasonUZR(season,row.team,row.playerId)!<value);
+  for(const league of new Set(leagueTeams(season).map(t=>t.league))){
+   const total=leagueTeams(season).filter(t=>t.league===league).reduce((n,t)=>n+teamFieldingStats(season,t.id).uzr!,0);assert.ok(Math.abs(total)<1e-8);
+  }
+ });
  test('UZR is zero-centered separately in every domestic and overseas league and preserves saved events',()=>{
   const start=initialState(4617),unlocked={...start,leagueProgress:{npbStreak:3,mlbUnlocked:true,lastSettledSeason:0,basis:'league' as const}};
   for(const base of [start,switchLeague(unlocked,'MLB')]){
