@@ -4,7 +4,7 @@ import {teamBattingStats} from './team-stats';
 import {teamFieldingStats} from './fielding-stats';
 
 export type LeagueStatsScope='ALL'|'CENTRAL'|'PACIFIC'|'AMERICAN'|'NATIONAL';
-export const leagueStatsNames:Record<Exclude<LeagueStatsScope,'ALL'>,string>={CENTRAL:'セ・リーグ',PACIFIC:'パ・リーグ',AMERICAN:'ア・リーグ',NATIONAL:'ナ・リーグ'};
+export const leagueStatsNames:Record<Exclude<LeagueStatsScope,'ALL'>,string>={CENTRAL:'国内Aリーグ',PACIFIC:'国内Bリーグ',AMERICAN:'海外Aリーグ',NATIONAL:'海外Bリーグ'};
 
 // Use all clubs' regular-season records, not the custom club's game log.
 export function leagueSeasonStats(season:Season,scope:LeagueStatsScope='ALL'){

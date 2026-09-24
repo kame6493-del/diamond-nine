@@ -1,7 +1,7 @@
 import {Fragment,useId,useState} from 'react';
 import type {Season} from './engine';
 import {formatAvg,formatIP,teamById} from './data';
-import {circuitOf,leagueFor,playoffSeeds} from './leagues';
+import {circuitLabel,circuitOf,leagueFor,playoffSeeds} from './leagues';
 import {leagueSeasonStats,leagueStatsNames,type LeagueStatsScope,type LeagueTeamStats} from './league-stats';
 import {TeamUZR} from './TeamUZR';
 import './league-stats.css';
@@ -26,7 +26,7 @@ export function LeagueSeasonStats({season,club,clubName}:{season:Season;club:str
  return <details className="s-fold league-stats-panel">
   <summary>リーグ順位・全体成績を見る</summary>
   <div className="league-stats-tabs" aria-label="集計するリーグ">
-   {([...leagues,'ALL'] as LeagueStatsScope[]).map(value=><button key={value} aria-pressed={scope===value} onClick={()=>{setScope(value);setExpandedTeam(null);}}>{value==='ALL'?`${circuitOf(season)}全体`:leagueStatsNames[value]}</button>)}
+   {([...leagues,'ALL'] as LeagueStatsScope[]).map(value=><button key={value} aria-pressed={scope===value} onClick={()=>{setScope(value);setExpandedTeam(null);}}>{value==='ALL'?`${circuitLabel(circuitOf(season))}全体`:leagueStatsNames[value]}</button>)}
   </div>
   <p className="league-stats-caption">チーム名をタップで詳細表示。差はリーグ首位との差。</p>
   {leagues.filter(league=>scope==='ALL'||scope===league).map(league=><section className="league-stats-group" key={league}>

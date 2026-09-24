@@ -3,11 +3,13 @@ import {mlbLeagueTeams} from './mlb-opponents';
 import type {GameState,Season,Standing} from './engine';
 
 export type Circuit='NPB'|'MLB';
+// Keep persisted circuit IDs stable; public league names are presentation only.
+export const circuitLabel=(circuit:Circuit)=>circuit==='MLB'?'海外リーグ':'国内リーグ';
 export const NPB_TITLES_TO_MLB=3;
 export interface LeagueProgress {basis?:'league';npbStreak:number;mlbUnlocked:boolean;lastSettledSeason:number}
 export const circuitOf=(s:Season):Circuit=>s.circuit??'NPB';
 export const seasonGames=(s:Season)=>circuitOf(s)==='MLB'?162:143;
-export const titleFor=(s:Season)=>circuitOf(s)==='MLB'?'ワールドシリーズ優勝':'日本一';
+export const titleFor=(s:Season)=>circuitOf(s)==='MLB'?'世界王座決定戦優勝':'日本一';
 // The custom club occupies the Athletics' AL West slot. The other 29 clubs
 // retain their real divisions. This is a game schedule, not the official slate.
 export const leagueTeams=(s:Season)=>circuitOf(s)==='MLB'?mlbLeagueTeams.map(t=>t.id==='mlb-133'?{...t,id:s.club??'t'}:t):teams.map(t=>({...t,division:t.league==='CENTRAL'?1:2}));

@@ -22,7 +22,7 @@ export function ScoutArrival({tier,overall,major}:{tier:ScoutTier;overall:number
   <div className="scout-arrival-rays animate__animated animate__rotateIn" aria-hidden="true"/>
   <div className="scout-shockwave animate__animated animate__zoomOut" aria-hidden="true"/>
   <div className={'scout-arrival animate__animated '+(tier==='rainbow'?'animate__backInDown':'animate__bounceIn')}>
-   <span>{major?'MLB選手を獲得！':'選手獲得！'}</span>
+   <span>{major?'海外選手を獲得！':'選手獲得！'}</span>
    <div><small>総合</small><strong>{overall}</strong>{tier==='rainbow'?<Crown aria-hidden="true" size={27}/>:<Zap aria-hidden="true" size={23}/>}</div>
   </div>
  </>;

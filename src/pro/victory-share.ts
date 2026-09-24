@@ -1,13 +1,13 @@
 import {formatAvg,playerMap,type Ratings} from './data';
 import {battingAverage,ops,type GameState,type Season} from './engine';
-import {circuitOf,seasonGames,titleFor,wonNpbLeague} from './leagues';
+import {circuitLabel,circuitOf,seasonGames,titleFor,wonNpbLeague} from './leagues';
 import {captureSeasonTeam,type SeasonTeamSnapshot} from './season-team';
 
 export function victoryTitle(season:Season,club:string):string|null{
  if(!season.completed||season.day!==seasonGames(season))return null;
  if(season.postseason?.stage==='complete'&&season.postseason.champion===club)return titleFor(season);
  if(wonNpbLeague(season,club))return 'リーグ優勝';
- if(circuitOf(season)==='MLB'&&season.postseason?.series.some(s=>s.stage==='championship'&&s.winner===club))return 'MLBリーグ優勝';
+ if(circuitOf(season)==='MLB'&&season.postseason?.series.some(s=>s.stage==='championship'&&s.winner===club))return '海外リーグ優勝';
  return null;
 }
 const mean=(values:number[])=>Math.round(values.reduce((a,b)=>a+b,0)/Math.max(1,values.length));
@@ -22,7 +22,7 @@ export function victoryShareData(state:GameState,season:Season){
  if(!team)return null; // Old archives have no record of that year's abilities.
  const standing=season.standings.find(s=>s.team===state.club)!;
  const rows=Object.values(season.batting).filter(b=>b.team===state.club&&b.pa>0).sort((a,b)=>b.pa-a.pa||a.playerId.localeCompare(b.playerId));
- return {title,year:season.number,league:circuitOf(season),name:team.name,record:`${standing.w}勝 ${standing.l}敗 ${standing.d}分`,...shareTeamAbilities(team),
+ return {title,year:season.number,league:circuitLabel(circuitOf(season)),name:team.name,record:`${standing.w}勝 ${standing.l}敗 ${standing.d}分`,...shareTeamAbilities(team),
   abilityLabel:season.shareTeam?'シーズン終了時のチーム能力':'現在のチーム能力',
   playerAbilityLabel:season.shareTeam?'シーズン終了時の選手能力':'現在の選手能力',
   lineupAbilities:team.batters.map((p,i)=>({id:p.id,name:playerMap[p.id].name,order:i+1,position:p.position,overall:p.overall,ratings:{...p.ratings}})),

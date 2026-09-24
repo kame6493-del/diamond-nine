@@ -1,7 +1,7 @@
 import type {GameState} from './engine';
 import {circuitOf,wonNpbLeague} from './leagues';
 
-export const achievementNames={npbLeague:'リーグ優勝',npbChampion:'日本一',mlbEntry:'MLB挑戦',worldChampion:'ワールドシリーズ優勝'} as const;
+export const achievementNames={npbLeague:'リーグ優勝',npbChampion:'日本一',mlbEntry:'海外リーグ挑戦',worldChampion:'世界王座決定戦優勝'} as const;
 export type AchievementId=keyof typeof achievementNames;
 export type Achievements=Partial<Record<AchievementId,number>>;
 // Keep milestones after the rolling season archive expires. Legacy saves only

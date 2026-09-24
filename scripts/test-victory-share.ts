@@ -16,7 +16,7 @@ export function registerVictoryShareTests(test:(name:string,run:()=>void)=>void)
   const s=initialState(),league=winner(12);assert.equal(victoryTitle(s.season,s.club),null);assert.equal(victoryTitle({...league,completed:false},s.club),null);
   assert.equal(victoryTitle(league,s.club),'リーグ優勝');assert.equal(victoryTitle({...league,postseason:post('t')},s.club),'日本一');assert.equal(victoryTitle({...league,postseason:post('g')},s.club),'リーグ優勝');
   const loss={...league,standings:league.standings.map(t=>({...t,w:t.team==='g'?100:60,l:t.team==='g'?43:83}))};assert.equal(victoryTitle({...loss,postseason:post('g')},s.club),null);assert.equal(victoryTitle({...loss,postseason:post('t')},s.club),'日本一');
-  const major={...emptySeason(14,'MLB'),day:162,completed:true,postseason:post('t')};assert.equal(victoryTitle(major,s.club),'ワールドシリーズ優勝');assert.equal(victoryTitle({...major,postseason:post('t','world')},s.club),null);
+  const major={...emptySeason(14,'MLB'),day:162,completed:true,postseason:post('t')};assert.equal(victoryTitle(major,s.club),'世界王座決定戦優勝');assert.equal(victoryTitle({...major,postseason:post('t','world')},s.club),null);
   assert.equal(renderToStaticMarkup(createElement(VictoryShare,{state:s,season:s.season})), '');
   const won={...s,season:league,achievements:{npbLeague:3}};assert.ok(renderToStaticMarkup(createElement(VictoryShare,{state:won,season:league})).includes('優勝の記録をシェア'));
  });

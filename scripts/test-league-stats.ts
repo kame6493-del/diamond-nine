@@ -30,7 +30,7 @@ export function registerLeagueStatsTests(test:(name:string,run:()=>void)=>void){
   assert.equal(all.rows.filter(t=>t.team==='db').length,1);assert.ok(american.rows.some(t=>t.team==='db'));assert.ok(!national.rows.some(t=>t.team==='db'));
   assert.ok(!all.rows.some(t=>t.team==='mlb-133'));assert.equal(all.runsPerTeamGame,null);assert.equal(all.era,null);assert.equal(all.runs,0);assert.equal(all.allowed,0);
   const html=renderToStaticMarkup(createElement(LeagueSeasonStats,{season,club:'db',clubName:'テスト球団'}));
-  for(const label of ['MLB全体','ア・リーグ','ナ・リーグ','得点','失点','勝率','ゲーム差','防御率','開幕前'])assert.ok(html.includes(label));
+  for(const label of ['海外リーグ全体','海外Aリーグ','海外Bリーグ','得点','失点','勝率','ゲーム差','防御率','開幕前'])assert.ok(html.includes(label));
   assert.equal((html.match(/scope="row"/g)??[]).length,15);assert.equal((html.match(/class="s-mine"/g)??[]).length,1);assert.ok(!/NaN|Infinity/.test(html));
   assert.ok(all.rows.every(t=>t.rank===null&&t.gamesBehind===null&&t.pct===null));
  });
@@ -59,7 +59,7 @@ export function registerLeagueStatsTests(test:(name:string,run:()=>void)=>void){
   season.pitching=Object.fromEntries([['t',10],['g',20],['db',5],['h',0]].map(([team,er])=>[team,{team,er,outs:90,so:10,saves:2} as PitStats]));
   const ranks=teamSeasonRanks(season,'t');assert.equal(ranks.league,'CENTRAL');assert.deepEqual(ranks.ranks,{avg:1,hr:1,rbi:2,sb:2,obp:1,era:2});
   assert.equal(teamSeasonRanks(season,'db').ranks.hr,3);assert.equal(teamSeasonRanks(season,'db').ranks.avg,3);
-  const html=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:'t'}));assert.ok(html.includes('セ・リーグ内'));assert.equal((html.match(/team-stat-rank/g)??[]).length,6);
+  const html=renderToStaticMarkup(createElement(TeamSeasonStats,{season,club:'t'}));assert.ok(html.includes('国内Aリーグ内'));assert.equal((html.match(/team-stat-rank/g)??[]).length,6);
   assert.ok(Object.values(teamSeasonRanks(emptySeason(),'t').ranks).every(r=>r===null));
   delete season.pitching.t;assert.equal(teamSeasonRanks(season,'t').ranks.era,null);
  });

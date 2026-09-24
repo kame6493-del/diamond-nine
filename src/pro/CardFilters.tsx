@@ -8,9 +8,9 @@ export function CardFilterControls({prefix,value,onChange,circuit,fields=['sort'
   {fields.includes('role')&&<select aria-label={`${prefix}の種類`} value={value.role} onChange={e=>onChange({...value,role:e.target.value})}><option value="all">野手・投手すべて</option><option value="batter">野手</option><option value="pitcher">投手</option></select>}
   {fields.includes('age')&&<select aria-label={`${prefix}の年齢帯`} value={value.age} onChange={e=>onChange({...value,age:e.target.value})}>{ageBands.map(b=><option key={b.value} value={b.value}>{b.label}</option>)}</select>}
   {fields.includes('team')&&<select aria-label={`${prefix}の球団`} value={value.team} onChange={e=>onChange({...value,team:e.target.value})}>
-   <option value="all">全球団</option>{!circuit&&<option value="mlb">MLB選手すべて</option>}
-   {circuit!=='MLB'&&<optgroup label="NPB">{cardTeams.npb.map(t=><option key={t.id} value={t.id}>{t.short}</option>)}</optgroup>}
-   {circuit!=='NPB'&&<optgroup label="MLB">{cardTeams.mlb.map(t=><option key={t.id} value={t.id}>{t.short}</option>)}</optgroup>}
+   <option value="all">全球団</option>{!circuit&&<option value="mlb">海外選手すべて</option>}
+   {circuit!=='MLB'&&<optgroup label="国内リーグ">{cardTeams.npb.map(t=><option key={t.id} value={t.id}>{t.short}</option>)}</optgroup>}
+   {circuit!=='NPB'&&<optgroup label="海外リーグ">{cardTeams.mlb.map(t=><option key={t.id} value={t.id}>{t.short}</option>)}</optgroup>}
   </select>}
  </div>;
 }

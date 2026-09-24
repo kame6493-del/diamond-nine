@@ -7,7 +7,7 @@ import { emptySeason,playGame,rankings,rng,winPct,type BatStats,type GameResult,
 export type PostStage='first'|'final'|'japan'|'wildcard'|'division'|'championship'|'world'|'complete';
 export interface PostSeries { id:string;stage:Exclude<PostStage,'complete'>;league:'CENTRAL'|'PACIFIC'|'JAPAN'|'AMERICAN'|'NATIONAL'|'WORLD';higher:string;lower:string;wins:[number,number];advantage:number;target:number;maxGames:number|null;results:GameResult[];winner:string|null }
 export interface Postseason { circuit?:Circuit;version:1;stage:PostStage;day:number;series:PostSeries[];batting:Record<string,BatStats>;pitching:Record<string,PitStats>;standings:Standing[];champion:string|null;rewardClaimed:boolean }
-export const stageLabel=(stage:PostStage)=>({first:'CS ファースト',final:'CS ファイナル',japan:'日本シリーズ',wildcard:'ワイルドカード',division:'地区シリーズ',championship:'リーグ優勝決定戦',world:'ワールドシリーズ',complete:'シーズン完結'}[stage]);
+export const stageLabel=(stage:PostStage)=>({first:'プレーオフ 1回戦',final:'プレーオフ 最終戦',japan:'国内王座決定戦',wildcard:'ワイルドカード',division:'地区シリーズ',championship:'リーグ優勝決定戦',world:'世界王座決定戦',complete:'シーズン完結'}[stage]);
 export function finalFormat(higher:Standing,lower:Standing) {
  const gap=(higher.w-lower.w+lower.l-higher.l)/2;
  const advantage=gap>=10||winPct(lower)<.5?2:1;

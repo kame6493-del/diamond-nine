@@ -29,12 +29,12 @@ export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{cele
   <div className="title-stage">
    <p className="title-first animate__animated animate__fadeInDown">{world?'初の世界一':'初のリーグ3連覇'}<span>FIRST ACHIEVEMENT</span></p>
    <div className="title-emblem animate__animated animate__zoomInDown" aria-hidden="true"><div className="title-emblem-frame"/>{world?<Trophy strokeWidth={1.25}/>:<Globe2 strokeWidth={1.2}/>}<span>{world?<Crown size={24}/>:<><Star/><Star/><Star/></>}</span></div>
-   <p className="title-english animate__animated animate__backInDown" aria-hidden="true">{world?<>WORLD<br/>CHAMPIONS</>:<>MLB<br/>UNLOCKED</>}</p>
+   <p className="title-english animate__animated animate__backInDown" aria-hidden="true">{world?<>WORLD<br/>CHAMPIONS</>:<>WORLD<br/>UNLOCKED</>}</p>
    <div className="title-message animate__animated animate__fadeInUp">
     <p className="title-club">{celebration.clubName}</p>
-    <h1 id={`${id}-heading`}>{world?<>ワールドシリーズ<br/>初優勝おめでとう！</>:<>おめでとう！<br/>MLBに挑戦する権利を<br className="title-small-break"/>手に入れた！</>}</h1>
-    <p className="title-year"><strong>{celebration.year}</strong>年目で{world?'世界の頂点へ':'NPBリーグ3連覇を達成'}</p>
-    <p className="title-description" id={`${id}-description`}>{world?'育て、集めた選手たちと、ついに世界一。':<>次の舞台は、世界。<br/>MLBへの挑戦はいつでも選べます。</>}</p>
+    <h1 id={`${id}-heading`}>{world?<>世界王座決定戦<br/>初優勝おめでとう！</>:<>おめでとう！<br/>海外リーグに挑戦する権利を<br className="title-small-break"/>手に入れた！</>}</h1>
+    <p className="title-year"><strong>{celebration.year}</strong>年目で{world?'世界の頂点へ':'国内リーグ3連覇を達成'}</p>
+    <p className="title-description" id={`${id}-description`}>{world?'育て、集めた選手たちと、ついに世界一。':<>次の舞台は、世界。<br/>海外リーグへの挑戦はいつでも選べます。</>}</p>
    </div>
    <button type="button" className="title-continue animate__animated animate__fadeInUp" onClick={onClose}>{world?'優勝の記録を見る':'達成の記録を見る'}<ArrowRight size={20}/></button>
   </div>

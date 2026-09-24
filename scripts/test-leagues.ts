@@ -108,14 +108,14 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   const html=renderToStaticMarkup(createElement(SimpleStats,{season:state.season,club:state.club,onPlayer:()=>{},lineup:state.lineup,pitchers:state.pitchers}));assert.ok(html.includes('<th>盗塁</th>'));assert.ok(html.includes('<td>37</td>'));
   const details=renderToStaticMarkup(createElement(PlayerDetails,{player:playerMap[id],state,onChange:()=>{},onAwaken:()=>{}}));assert.ok(details.includes('盗塁'));assert.ok(details.includes('<b>37</b>'));
   const render=(state:GameState)=>renderToStaticMarkup(createElement(SimpleSeason,{state,busy:false,progress:0,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:''}));
-  for(const text of ['リーグ挑戦','LEAGUE 01','NPB · リーグ優勝3連覇への道','リーグ優勝の連覇','リーグ1位を3年連続'])assert.ok(!render(base).includes(text));
+  for(const text of ['aria-label="リーグ挑戦"','LEAGUE 01','国内リーグ · リーグ優勝3連覇への道','リーグ優勝の連覇','リーグ1位を3年連続'])assert.ok(!render(base).includes(text));
   const firstTitle={...base,season:leagueFinish(1)};
   assert.ok(!render({...firstTitle,season:{...firstTitle.season,day:142,completed:false}}).includes('リーグ優勝3連覇への道'));
-  assert.ok(render(firstTitle).includes('NPB · リーグ優勝3連覇への道'));assert.ok(render(firstTitle).includes('aria-valuenow="1"'));
+  assert.ok(render(firstTitle).includes('国内リーグ · リーグ優勝3連覇への道'));assert.ok(render(firstTitle).includes('aria-valuenow="1"'));
   const retained={...base,season:emptySeason(12),achievements:{npbLeague:1},leagueProgress:{basis:'league' as const,npbStreak:0,mlbUnlocked:false,lastSettledSeason:11}};
   assert.ok(render(retained).includes('リーグ優勝3連覇への道'));assert.ok(render(migrateState(retained)!).includes('リーグ優勝3連覇への道'));
   const legacy={...base,season:emptySeason(3),history:[leagueFinish(2,'g'),leagueFinish(1)]};assert.ok(render(legacy).includes('リーグ優勝3連覇への道'));
-  assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('ワールドシリーズ'));assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('162'));
+  assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('世界王座決定戦'));assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('162'));
   const result=drawSimplePlayer({...base,gems:3000}),opening=renderToStaticMarkup(createElement(SimpleScout,{state:result,drawing:true,hasDrawn:true,onDraw:()=>{},onEquip:()=>{},onSeason:()=>{}}));assert.ok(opening.includes('neon-pack'));assert.ok(opening.includes('スカウト演出中'));for(const text of ['次の主役','新たな物語','次の仲間を、一人ずつ'])assert.ok(!opening.includes(text));
  });
 }

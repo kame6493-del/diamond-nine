@@ -69,6 +69,6 @@ export async function renderVictoryImage(data:VictoryShareData,url=''):Promise<B
  text('選手を集めて、育てて、自分だけのチームを。',540,2354,27,'#7050bb',800,'center');
  if(url)text(url.replace(/^https?:\/\//,''),540,2393,23,'#596886',600,'center',955);
  else text('#DIAMONDNINE  #野球ゲーム',540,2393,24,'#596886',600,'center');
- text('NPB＋日本人MLB選手が登場する非公式シミュレーション',540,2432,19,'#8991a0',500,'center');
+ text('国内・海外の選手が登場する非公式シミュレーション',540,2432,19,'#8991a0',500,'center');
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG unavailable')),'image/png'));
 }

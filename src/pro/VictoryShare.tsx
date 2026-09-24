@@ -15,7 +15,7 @@ export function VictoryShare({state,season}:{state:GameState;season:Season}){
   let cancelled=false,objectUrl='';setImage(null);setError('');setNotice('');setZoomed(false);
   if(data)void renderVictoryImage(data,gameUrl).then(blob=>{
    if(cancelled)return;objectUrl=URL.createObjectURL(blob);
-   setImage({url:objectUrl,file:new File([blob],`diamond-nine-${data.league.toLowerCase()}-season-${data.year}.png`,{type:'image/png'}),key:data});
+   setImage({url:objectUrl,file:new File([blob],`diamond-nine-${data.league}-season-${data.year}.png`,{type:'image/png'}),key:data});
   }).catch(()=>{if(!cancelled)setError('画像を作れませんでした。もう一度お試しください。');});
   return()=>{cancelled=true;if(objectUrl)URL.revokeObjectURL(objectUrl);};
  },[data,gameUrl,attempt]);
