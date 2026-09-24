@@ -1,6 +1,5 @@
 'use strict';
-const publicOrigins=['https://diamond-nine-baseball.mannchikann.chatgpt.site','https://diamond-nine-baseball.com'];
-const gameUrl=(publicOrigins.includes(location.origin)?location.origin:publicOrigins[0])+'/';
+const gameUrl='https://diamond-nine-baseball.com/';
 const introductions=[
  {title:'成績表が好きな人へ',body:'野球の成績表、ずっと見ていられる人へ。\n\n選手を集める→打線を組む→1年進める。\n育てた選手の打率・本塁打・打点・OPSを見る無料ゲーム\n「DIAMOND NINE」⚾\n\nスマホ・PC対応／インストール不要\n'},
  {title:'自分だけの打線を組みたい人へ',body:'俊足を1番に置く？ 強打者を並べる？\n\n選手を集め、打順と守備位置を決めて1シーズン。\n自分の編成がどんな成績になるか楽しめる\n「DIAMOND NINE」⚾\n\n無料・スマホとPCのブラウザで遊べます。\n'},

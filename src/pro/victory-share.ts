@@ -35,6 +35,7 @@ export type VictoryShareData=NonNullable<ReturnType<typeof victoryShareData>>;
 export function publicGameUrl(href:string):string{
  try{
   const url=new URL(href),host=url.hostname.toLowerCase().replace(/\.$/,'');
+  if(['https:','http:'].includes(url.protocol)&&['diamond-nine-baseball.mannchikann.chatgpt.site','diamond-nine-baseball.com'].includes(host))return 'https://diamond-nine-baseball.com/';
   if(!['https:','http:'].includes(url.protocol)||!host.includes('.')||host.endsWith('.localhost')||host.endsWith('.local')||host.endsWith('.test')||host.endsWith('.internal')||host.includes(':'))return '';
   if(/^\d+\.\d+\.\d+\.\d+$/.test(host)){
    const [a,b]=host.split('.').map(Number);

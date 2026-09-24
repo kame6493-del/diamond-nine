@@ -1,6 +1,5 @@
 'use strict';
-const publicOrigins=['https://diamond-nine-baseball.mannchikann.chatgpt.site','https://diamond-nine-baseball.com'];
-const introUrl=(publicOrigins.includes(location.origin)?location.origin:publicOrigins[0])+'/welcome.html';
+const introUrl='https://diamond-nine-baseball.com/welcome.html';
 const shareLink=document.getElementById('welcome-x');
 if(shareLink){const share=new URL(shareLink.href);share.searchParams.set('url',introUrl);shareLink.href=share.href;}
 document.getElementById('welcome-url').value=introUrl;
