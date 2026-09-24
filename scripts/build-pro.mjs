@@ -19,6 +19,7 @@ const html=verify((await readFile('index.html','utf8'))
  .replace('src="/src/main.tsx"','src="/assets/game.js"'));
 await writeFile('dist/index.html',html);
 await writeFile('dist/welcome.html',verify(await readFile('public/welcome.html','utf8')));
+await cp('public/share.html','dist/share.html');
 let privacy=await readFile('public/privacy.html','utf8');
 if(ads.enabled)privacy=privacy.replace(/<!--AD_STATUS-->[\s\S]*?<!--\/AD_STATUS--> 広告を有効にする際は、このページと必要な同意設定を更新します。/,'Google AdSenseの広告枠を設置しています。配信の有無は地域・同意状況・広告の在庫等によって異なります。');
 await writeFile('dist/privacy.html',privacy);
