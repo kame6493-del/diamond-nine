@@ -34,7 +34,7 @@ export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{cele
     <p className="title-club">{celebration.clubName}</p>
     <h1 id={`${id}-heading`}>{space?<>宇宙王座決定戦<br/>初優勝おめでとう！</>:world?<>世界王座決定戦<br/>初優勝おめでとう！</>:<>おめでとう！<br/>海外リーグに挑戦する権利を<br className="title-small-break"/>手に入れた！</>}</h1>
     <p className="title-year"><strong>{celebration.year}</strong>年目で{space?'宇宙の頂点へ':world?'世界の頂点へ':'国内リーグ3連覇を達成'}</p>
-    <p className="title-description" id={`${id}-description`}>{space?'育成と采配を極め、最高難易度を突破。':world?'宇宙リーグに挑戦する権利を手に入れた！':<>次の舞台は、世界。<br/>海外リーグへの挑戦はいつでも選べます。</>}</p>
+    <p className="title-description" id={`${id}-description`}>{space?'未知の野球生命体たちを打ち破り、地球代表が宇宙の頂点に！':world?'宇宙リーグに挑戦する権利を手に入れた！ 次の相手は、未知の野球生命体。':<>次の舞台は、世界。<br/>海外リーグへの挑戦はいつでも選べます。</>}</p>
    </div>
    <button type="button" className="title-continue animate__animated animate__fadeInUp" onClick={onClose}>{world?'優勝の記録を見る':'達成の記録を見る'}<ArrowRight size={20}/></button>
   </div>
