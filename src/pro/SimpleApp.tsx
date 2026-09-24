@@ -66,15 +66,15 @@ function Dialog({title,onClose,children,className=''}:{title:string;onClose:()=>
 
 export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season:Season;club:string;onPlayer:(p:Player)=>void;lineup?:string[];pitchers?:string[]}){
  const [view,setView]=useState<'bat'|'pit'>('bat');
- const statsRef=useRef<HTMLDivElement>(null),viewScroll=useRef<number|null>(null);
- const changeView=(next:'bat'|'pit')=>{if(next!==view){const report=statsRef.current?.closest('.season-report-start');viewScroll.current=report?window.scrollY+report.getBoundingClientRect().top-60:window.scrollY;setView(next);}};
+ const viewScroll=useRef<number|null>(null);
+ const changeView=(next:'bat'|'pit')=>{if(next!==view){viewScroll.current=window.scrollY;setView(next);}};
  useLayoutEffect(()=>{if(viewScroll.current!==null){window.scrollTo({top:viewScroll.current,behavior:'auto'});viewScroll.current=null;}},[view]);
  const bats=Object.values(season.batting).filter(b=>b.team===club);
  const arms=Object.values(season.pitching).filter(p=>p.team===club);
  const batIds=[...new Set([...lineup,...bats.map(b=>b.playerId)])];
  const pitIds=[...new Set([...pitchers,...arms.map(p=>p.playerId)])];
  const batMap=new Map(bats.map(b=>[b.playerId,b])),pitMap=new Map(arms.map(p=>[p.playerId,p]));
- return <div className="season-player-stats" ref={statsRef}>
+ return <div className="season-player-stats">
   <div className="season-stat-switch" role="group" aria-label="表示する個人成績"><button aria-pressed={view==='bat'} onClick={()=>changeView('bat')}>打撃成績</button><button aria-pressed={view==='pit'} onClick={()=>changeView('pit')}>投手成績</button></div>
   <div className="s-stat-columns">
    <section className={'s-panel season-stat-panel'+(view==='bat'?' is-active':'')} aria-label="打撃成績"><h2>打撃成績</h2>
