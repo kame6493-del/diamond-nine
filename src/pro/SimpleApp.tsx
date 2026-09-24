@@ -17,6 +17,7 @@ import {buildByStrategy,trainPlayer} from './franchise';
 import {finishPostseason,stageLabel} from './postseason';
 import {bestUpgrade,equipScoutedPlayer} from './career-roster';
 import {CardAbilities} from './CardAbilities';
+import {ReplacementPreview} from './ReplacementPreview';
 import {PlayerHoverPreview} from './PlayerHoverPreview';
 import {pitchingRoleLabel} from './wiki-players';
 import {SIMPLE_SCOUT_COST,MLB_SCOUT_CHANCE,MLB_GUARANTEE_EVERY,mlbScoutCountdown,collectSimpleRewards,drawSimplePlayer,moveSimplePlayer,replacementPool,replaceSimplePlayer} from './simple-game';
@@ -153,7 +154,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
      <span className="s-new-label">{pull!.isNew?'新しい選手が加入！':pull!.copies<=6?'選手が成長！':'ポイント ＋80'}</span>
      <div className={'scout-reveal animate__animated '+(tier==='rainbow'?'animate__zoomInDown':tier==='gold'?'animate__bounceIn':'animate__flipInY')} key={state.pulls+'-'+state.franchise.tickets+'-'+pull?.copies}><TradingCard player={player} state={state} onPlayer={onPlayer}/></div>
      {!pull!.isNew&&pull!.copies<=6&&<p>重複獲得で能力 ＋1（最大＋5）</p>}
-     {upgrade?<div className="s-equip-offer"><p>{playerMap[upgrade.oldId].name}と入れ替えて起用できます。</p><button className="s-button" onClick={()=>onEquip(player.id)}><Users size={16}/>チームに入れる</button></div>:[...state.lineup,...state.pitchers].includes(player.id)?<p className="s-equipped"><Check size={16}/>チームに編成済み</p>:<p>控えに加入しました。チーム画面で起用できます。</p>}
+     {upgrade?<div className="s-equip-offer"><ReplacementPreview player={playerMap[upgrade.oldId]} state={state} position={upgrade.pitching?upgrade.position:`${upgrade.index+1}番 · ${upgrade.position}`} mode={upgrade.pitching?'pitcher':'batter'} onPlayer={onPlayer}/><button className="s-button" onClick={()=>onEquip(player.id)}><Users size={16}/>この選手と入れ替える</button></div>:[...state.lineup,...state.pitchers].includes(player.id)?<p className="s-equipped"><Check size={16}/>チームに編成済み</p>:<p>控えに加入しました。チーム画面で起用できます。</p>}
     </>:!drawing&&<div className="s-unopened"><div className="s-baseball" aria-hidden="true">⚾</div><h2>選手カードを1枚獲得</h2><p>国内・海外の選手が登場</p></div>}
    </div>
    <button className="s-primary s-draw" disabled={!canDraw||drawing} onClick={onDraw}><Sparkles size={19}/>{drawing?'スカウト中…':hasDrawn?'もう1人引く':'1人引く'}<span>{count(SIMPLE_SCOUT_COST)+' pt'}</span></button>

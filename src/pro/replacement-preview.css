@@ -1,0 +1,17 @@
+.replacement-preview{width:100%;min-width:0;box-sizing:border-box;padding:12px;border:1px solid #dcd5ef;border-radius:12px;background:#fff;text-align:left;color:#25324b}
+.replacement-preview-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.replacement-preview-heading>div:first-child{min-width:0;display:grid;gap:3px}
+.replacement-preview-heading small{font-size:11px;color:#6d6287}
+.replacement-preview-heading strong{font-size:15px;overflow-wrap:anywhere}
+.replacement-preview-heading button{padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.replacement-preview-heading span{font-size:11px;color:#69758a}
+.replacement-preview-overall{display:grid;text-align:right;flex-shrink:0}
+.replacement-preview-overall b{font-size:28px;color:#7952c7;line-height:1.1}
+.replacement-preview .card-abilities{display:grid!important;gap:4px;margin:0}
+.replacement-preview .card-abilities>div{min-width:0;padding:6px 2px}
+.replacement-preview .card-abilities small{font-size:10px}
+.replacement-preview .card-abilities strong{font-size:15px}
+.replacement-preview .card-abilities em{font-size:11px}
+.s-equip-offer .replacement-preview{margin:0 0 10px}
+.deck-picker-current{flex-shrink:0;padding:8px 16px;background:#f8f6ff}
+@media(max-width:600px){.deck-picker-current{padding:8px 12px}.replacement-preview{padding:9px}.replacement-preview-heading{margin-bottom:6px}.replacement-preview-heading strong{font-size:14px}.replacement-preview-overall b{font-size:24px}}
