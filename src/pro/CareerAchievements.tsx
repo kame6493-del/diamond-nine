@@ -2,9 +2,10 @@ import {Flag,Globe2,Trophy} from 'lucide-react';
 import type {GameState,Season} from './engine';
 import {achievementNames,recordAchievements,type AchievementId} from './achievements';
 import './achievements.css';
+import {spaceUnlocked} from './leagues';
 
 export function AchievementsPanel({state,season,expanded=false}:{state:GameState;season:Season;expanded?:boolean}){
- const records=recordAchievements(state).achievements??{},ids=Object.keys(achievementNames) as AchievementId[];
+ const records=recordAchievements(state).achievements??{},ids=(Object.keys(achievementNames) as AchievementId[]).filter(id=>!id.startsWith('space')||spaceUnlocked(state));
  const recent=ids.filter(id=>records[id]===season.number).at(-1);
  return <>
   {recent&&<section className="achievement-banner" role="status"><Trophy size={30}/><div><span>ACHIEVEMENT</span><h2>{achievementNames[recent]}を達成！</h2><p>あなたのチームは、{records[recent]}年目に{achievementNames[recent]}を達成しました。</p></div><b>{records[recent]}<small>年目</small></b></section>}

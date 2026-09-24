@@ -18,7 +18,7 @@ function createSeries(stage:PostSeries['stage'],league:PostSeries['league'],high
  return {id:`${league}-${stage}`,stage,league,higher,lower,...format,wins:[format.advantage,0],results:[],winner:null};
 }
 export function newPostseason(season:Season):Postseason {
- if(circuitOf(season)==='MLB')return newMLBPostseason(season);
+ if(circuitOf(season)!=='NPB')return newMLBPostseason(season);
  return {version:1,stage:'first',day:0,series:(['CENTRAL','PACIFIC'] as const).map(league=>{const ranks=rankings(season,league);return createSeries('first',league,ranks[1].team,ranks[2].team,season);}),batting:{},pitching:{},standings:emptySeason().standings,champion:null,rewardClaimed:false};
 }
 export function seriesWinner(series:PostSeries):string|null {
@@ -35,7 +35,7 @@ export function finishPostseason(input:GameState):GameState {
 }
 export function simulatePostseason(input:GameState,days=1):GameState {
  if(!input.season.completed||input.season.postseason?.stage==='complete')return input;
- if(circuitOf(input.season)==='MLB')return simulateMLBPostseason(input,days);
+ if(circuitOf(input.season)!=='NPB')return simulateMLBPostseason(input,days);
  const state=structuredClone(input),post=state.season.postseason??=newPostseason(state.season),random=rng(state.seed);
  const count=Math.min(60,Math.max(0,Math.floor(days)));
  for(let day=0;day<count&&post.stage!=='complete';day++) {

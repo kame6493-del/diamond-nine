@@ -5,8 +5,8 @@ import { teams } from './data';
 import type { Postseason } from './postseason';
 import { validGameBox } from './game-log';
 export function validPostseason(p:Postseason,season?:Season):boolean {
- if(season&&circuitOf(season)==='MLB')return !!p&&validMLBPostseason(p,season);
- if(p?.circuit==='MLB')return false;
+ if(season&&circuitOf(season)!=='NPB')return !!p&&validMLBPostseason(p,season);
+ if(p?.circuit==='MLB'||p?.circuit==='SPACE')return false;
  const team=(id:unknown)=>typeof id==='string'&&teams.some(t=>t.id===id);
  const int=(n:unknown,max=10000)=>Number.isSafeInteger(n)&&Number(n)>=0&&Number(n)<=max;
  if(!p||p.version!==1||!['first','final','japan','complete'].includes(p.stage)||!int(p.day)||!Array.isArray(p.series)||p.series.length<2||p.series.length>5||typeof p.rewardClaimed!=='boolean'||(p.champion!==null&&!team(p.champion)))return false;

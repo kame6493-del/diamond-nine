@@ -7,7 +7,7 @@ export function victoryTitle(season:Season,club:string):string|null{
  if(!season.completed||season.day!==seasonGames(season))return null;
  if(season.postseason?.stage==='complete'&&season.postseason.champion===club)return titleFor(season);
  if(wonNpbLeague(season,club))return 'リーグ優勝';
- if(circuitOf(season)==='MLB'&&season.postseason?.series.some(s=>s.stage==='championship'&&s.winner===club))return '海外リーグ優勝';
+ if(circuitOf(season)!=='NPB'&&season.postseason?.series.some(s=>s.stage==='championship'&&s.winner===club))return circuitOf(season)==='SPACE'?'宇宙リーグ優勝':'海外リーグ優勝';
  return null;
 }
 const mean=(values:number[])=>Math.round(values.reduce((a,b)=>a+b,0)/Math.max(1,values.length));

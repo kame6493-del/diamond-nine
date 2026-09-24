@@ -19,7 +19,7 @@ export function TeamStatsDetail({team,name}:{team:LeagueTeamStats;name:string}){
 }
 
 export function LeagueSeasonStats({season,club,clubName}:{season:Season;club:string;clubName:string}){
- const [scope,setScope]=useState<LeagueStatsScope>(()=>leagueFor(season,club) as LeagueStatsScope),[expandedTeam,setExpandedTeam]=useState<string|null>(null),detailId=useId(),major=circuitOf(season)==='MLB';
+ const [scope,setScope]=useState<LeagueStatsScope>(()=>leagueFor(season,club) as LeagueStatsScope),[expandedTeam,setExpandedTeam]=useState<string|null>(null),detailId=useId(),major=circuitOf(season)!=='NPB';
  const leagues:Exclude<LeagueStatsScope,'ALL'>[]=major?['AMERICAN','NATIONAL']:['CENTRAL','PACIFIC'];
  const data=leagueSeasonStats(season,scope);
  const values=[['総得点',count(data.runs)],['総失点',count(data.allowed)],['平均得点 / 試合',data.runsPerTeamGame?.toFixed(2)??'—'],['リーグ防御率',data.era?.toFixed(2)??'—']];

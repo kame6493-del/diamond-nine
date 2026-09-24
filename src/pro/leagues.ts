@@ -2,17 +2,17 @@ import {teams} from './data';
 import {mlbLeagueTeams} from './mlb-opponents';
 import type {GameState,Season,Standing} from './engine';
 
-export type Circuit='NPB'|'MLB';
+export type Circuit='NPB'|'MLB'|'SPACE';
 // Keep persisted circuit IDs stable; public league names are presentation only.
-export const circuitLabel=(circuit:Circuit)=>circuit==='MLB'?'海外リーグ':'国内リーグ';
+export const circuitLabel=(circuit:Circuit)=>circuit==='SPACE'?'宇宙リーグ':circuit==='MLB'?'海外リーグ':'国内リーグ';
 export const NPB_TITLES_TO_MLB=3;
 export interface LeagueProgress {basis?:'league';npbStreak:number;mlbUnlocked:boolean;lastSettledSeason:number}
 export const circuitOf=(s:Season):Circuit=>s.circuit??'NPB';
-export const seasonGames=(s:Season)=>circuitOf(s)==='MLB'?162:143;
-export const titleFor=(s:Season)=>circuitOf(s)==='MLB'?'世界王座決定戦優勝':'日本一';
+export const seasonGames=(s:Season)=>circuitOf(s)!=='NPB'?162:143;
+export const titleFor=(s:Season)=>circuitOf(s)==='SPACE'?'宇宙王座決定戦優勝':circuitOf(s)==='MLB'?'世界王座決定戦優勝':'日本一';
 // The custom club occupies the Athletics' AL West slot. The other 29 clubs
 // retain their real divisions. This is a game schedule, not the official slate.
-export const leagueTeams=(s:Season)=>circuitOf(s)==='MLB'?mlbLeagueTeams.map(t=>t.id==='mlb-133'?{...t,id:s.club??'t'}:t):teams.map(t=>({...t,division:t.league==='CENTRAL'?1:2}));
+export const leagueTeams=(s:Season)=>circuitOf(s)!=='NPB'?mlbLeagueTeams.map(t=>t.id==='mlb-133'?{...t,id:s.club??'t'}:t):teams.map(t=>({...t,division:t.league==='CENTRAL'?1:2}));
 export const leagueFor=(s:Season,id:string)=>leagueTeams(s).find(t=>t.id===id)!.league;
 const roundRobin=(ids:string[])=>{
  const ring=[...ids],rounds:[string,string][][]=[];
@@ -69,4 +69,8 @@ export function leagueProgress(state:GameState):LeagueProgress{
 export function settleLeagueProgress(state:GameState):GameState {
  const next=leagueProgress(state);if(state.leagueProgress&&JSON.stringify(next)===JSON.stringify(state.leagueProgress))return state;
  return {...state,leagueProgress:next};
+}
+
+export function spaceUnlocked(state:GameState):boolean{
+ return !!state.achievements?.worldChampion||[...(Array.isArray(state.history)?state.history:[]),...(state.parkedSeason?[state.parkedSeason]:[]),...(state.additionalParkedSeasons??[]),state.season].some(s=>s&&circuitOf(s)==='MLB'&&s.completed&&s.postseason?.stage==='complete'&&s.postseason.champion===state.club);
 }

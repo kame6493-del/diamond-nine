@@ -1,13 +1,13 @@
 import type {Postseason} from './postseason';
 import type {Season} from './engine';
-import {leagueTeams} from './leagues';
+import {circuitOf,leagueTeams} from './leagues';
 import {newMLBPostseason,advanceMLBBracket} from './mlb-postseason';
 import {validGameBox} from './game-log';
 
 export function validMLBPostseason(p:Postseason,season:Season):boolean{
  const stages=['wildcard','division','championship','world','complete'],counts=[4,8,10,11,11],stage=stages.indexOf(p.stage),members=leagueTeams(season);
  const int=(v:unknown)=>Number.isSafeInteger(v)&&Number(v)>=0;
- if(stage<0||p.version!==1||p.circuit!=='MLB'||!int(p.day)||p.day>22||!Array.isArray(p.series)||p.series.length!==counts[stage]||typeof p.rewardClaimed!=='boolean')return false;
+ if(stage<0||p.version!==1||p.circuit!==circuitOf(season)||!int(p.day)||p.day>22||!Array.isArray(p.series)||p.series.length!==counts[stage]||typeof p.rewardClaimed!=='boolean')return false;
  if(new Set(p.series.map(s=>s.id)).size!==p.series.length)return false;
  // Rebuild the bracket from regular-season seeds and validated earlier winners.
  const expected=newMLBPostseason(season);

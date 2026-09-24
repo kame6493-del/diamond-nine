@@ -1,5 +1,5 @@
 import {pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
-import {circuitOf,seasonGames,leagueTeams,leagueFor,mlbSchedule,leagueProgress,settleLeagueProgress,standingOrder,NPB_TITLES_TO_MLB,type Circuit,type LeagueProgress} from './leagues';
+import {spaceUnlocked,circuitOf,seasonGames,leagueTeams,leagueFor,mlbSchedule,leagueProgress,settleLeagueProgress,standingOrder,NPB_TITLES_TO_MLB,type Circuit,type LeagueProgress} from './leagues';
 import {mlbLeagueTeams,mlbOpponentPlayers} from './mlb-opponents';
 import { autoLineup,autoPitchers,canBat,wasLegacyBatter,fitsPosition,clamp,contextFor,findPlayer,playerMap,players,rosterSlots,teams,type Player,type Rarity } from './data';
 import { freshFranchise,type Franchise } from './franchise';
@@ -25,12 +25,12 @@ export interface PlayHighlight { inning:number;team:string;batter:string;pitcher
 export interface GameBox { batting:BatStats[];pitching:PitStats[];highlights:PlayHighlight[] }
 export interface GameResult { day:number;home:string;away:string;homeRuns:number;awayRuns:number;innings:number;line:number[][];stars:string[];errors?:[number,number];box?:GameBox }
 export interface Season { fielding?:FieldingSeason;shareTeam?:SeasonTeamSnapshot;circuit?:Circuit;club?:string;number:number;day:number;standings:Standing[];batting:Record<string,BatStats>;pitching:Record<string,PitStats>;results:GameResult[];trend:number[];completed:boolean;rewardClaimed:boolean;model?:'2026-dips'|'2025-basic';postseason?:Postseason }
-export interface GameState { starterScout?:StarterScoutState;achievements?:Achievements;parkedSeason?:Season;leagueChoice?:Circuit;leagueProgress?:LeagueProgress;version:1;mode?:Profile;name:string;club:string;gems:number;owned:Record<string,number>;lineup:string[];defense:Record<string,string>;pitchers:string[];season:Season;history:Season[];pulls:number;pity:number;seed:number;lastPulls:Pull[];franchise:Franchise;training:Record<string,number> }
+export interface GameState { starterScout?:StarterScoutState;achievements?:Achievements;additionalParkedSeasons?:Season[];parkedSeason?:Season;leagueChoice?:Circuit;leagueProgress?:LeagueProgress;version:1;mode?:Profile;name:string;club:string;gems:number;owned:Record<string,number>;lineup:string[];defense:Record<string,string>;pitchers:string[];season:Season;history:Season[];pulls:number;pity:number;seed:number;lastPulls:Pull[];franchise:Franchise;training:Record<string,number> }
 export interface Pull { playerId:string;isNew:boolean;copies:number;guaranteed:boolean;trainingReward?:number;contract?:boolean }
 export const SAVE_KEY='diamond-dynasty-v1';
 export const CAREER_SAVE_KEY='diamond-dynasty-career-v1';
 export const saveKeyFor=(profile:Profile)=>profile==='career'?CAREER_SAVE_KEY:SAVE_KEY;
-export const emptySeason=(number=1,circuit:Circuit='NPB',club='t'):Season=>({...(circuit==='MLB'?{circuit,club}:{}),number,day:0,model:'2026-dips',standings:leagueTeams({circuit,club} as Season).map(t=>({team:t.id,w:0,l:0,d:0,rf:0,ra:0,form:[]})),batting:{},pitching:{},fielding:emptyFielding(),results:[],trend:[],completed:false,rewardClaimed:false});
+export const emptySeason=(number=1,circuit:Circuit='NPB',club='t'):Season=>({...(circuit!=='NPB'?{circuit,club}:{}),number,day:0,model:'2026-dips',standings:leagueTeams({circuit,club} as Season).map(t=>({team:t.id,w:0,l:0,d:0,rf:0,ra:0,form:[]})),batting:{},pitching:{},fielding:emptyFielding(),results:[],trend:[],completed:false,rewardClaimed:false});
 export function initialSandboxState():GameState{
  const names=['坂倉将吾','大山悠輔','中野拓夢','清宮幸太郎','宗山塁','近本光司','森下翔太','西川愛也','佐野恵太','村上頌樹','才木浩人','東克樹','大関友久','隅田知一郎','九里亜蓮','桐敷拓馬','藤嶋健人','杉浦稔大','木浪聖也','藤原恭大','梅野隆太郎','清水達也','田中正義','杉山一樹'];
  const pool=names.map(n=>findPlayer(n)).filter(Boolean);
@@ -62,30 +62,36 @@ export function initialState(seed=Math.floor(Math.random()*0xffffffff)||428374):
 export function validState(value:unknown):value is GameState{
  if(!value||typeof value!=='object')return false;
  const s=value as GameState;
+ if(!s.season||typeof s.season!=='object'||!Array.isArray(s.history))return false;
  if(s.starterScout!==undefined&&!validStarterScout(s.starterScout,s.owned))return false;
  const finite=(n:unknown)=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
+ if(s.additionalParkedSeasons!==undefined&&(!Array.isArray(s.additionalParkedSeasons)||s.additionalParkedSeasons.length>1||s.additionalParkedSeasons.some(x=>!x||typeof x!=='object')))return false;
  const progress=s.leagueProgress;
- const latestSeason=Math.max(s.season?.number??0,s.parkedSeason?.number??0,...(Array.isArray(s.history)?s.history.map(h=>h?.number??0):[]));
- if(s.leagueChoice!==undefined&&s.leagueChoice!=='NPB'&&s.leagueChoice!=='MLB')return false;
+ const latestSeason=Math.max(s.season?.number??0,s.parkedSeason?.number??0,...(s.additionalParkedSeasons??[]).map(x=>x.number),...(Array.isArray(s.history)?s.history.map(h=>h?.number??0):[]));
+ if(s.leagueChoice!==undefined&&s.leagueChoice!=='NPB'&&s.leagueChoice!=='MLB'&&s.leagueChoice!=='SPACE')return false;
  if((s.leagueChoice==='MLB'||s.parkedSeason?.circuit==='MLB')&&!progress?.mlbUnlocked)return false;
  if(s.achievements!==undefined&&(!s.achievements||typeof s.achievements!=='object'||Array.isArray(s.achievements)||Object.entries(s.achievements).some(([id,year])=>!Object.hasOwn(achievementNames,id)||!Number.isSafeInteger(year)||year<1||year>latestSeason)))return false;
  if(progress&&(!Number.isInteger(progress.npbStreak)||progress.npbStreak<0||progress.npbStreak>5||typeof progress.mlbUnlocked!=='boolean'||!Number.isInteger(progress.lastSettledSeason)||progress.lastSettledSeason<0||progress.lastSettledSeason>latestSeason||progress.npbStreak===5&&!progress.mlbUnlocked))return false;
  if(progress&&((progress.basis!==undefined&&progress.basis!=='league')||(progress.basis==='league'&&(progress.npbStreak>NPB_TITLES_TO_MLB||progress.npbStreak===NPB_TITLES_TO_MLB&&!progress.mlbUnlocked))))return false;
  if(s.season?.circuit==='MLB'&&!progress?.mlbUnlocked)return false;
+ if([s.season,s.parkedSeason,...(s.additionalParkedSeasons??[])].some(x=>x?.circuit==='SPACE')||s.leagueChoice==='SPACE'){if(!progress?.mlbUnlocked||!spaceUnlocked(s))return false;}
  const f=s.franchise;
  if(!f||!Number.isSafeInteger(f.tickets)||f.tickets<0||typeof f.established!=='boolean'||typeof f.city!=='string'||f.city.length>12||!['★','D','⚡','W','S','N'].includes(f.mark)||!/^#[0-9a-fA-F]{6}$/.test(f.color)||typeof f.motto!=='string'||f.motto.length>40||!finite(f.xp)||!finite(f.points)||!Number.isInteger(f.stadium)||f.stadium<1||f.stadium>5||!Array.isArray(f.claimed)||!f.claimed.every(x=>typeof x==='string')||(f.captain!==null&&!playerMap[f.captain])||!s.training||Object.entries(s.training).some(([id,v])=>!s.owned?.[id]||!Number.isInteger(v)||v<0||v>5))return false;
- const validSeason=(x:Season):boolean=>x&&(x.shareTeam===undefined||x.completed&&validSeasonTeam(x.shareTeam))&&(x.circuit===undefined||x.circuit==='NPB'||x.circuit==='MLB')&&(circuitOf(x)!=='MLB'||x.club===s.club)&&validCampaign(x)&&finite(x.number)&&Number.isInteger(x.day)&&x.day>=0&&x.day<=seasonGames(x)&&Array.isArray(x.results)&&x.results.every(validGameBox)&&Array.isArray(x.trend)&&Array.isArray(x.standings)&&x.standings.length===leagueTeams(x).length&&new Set(x.standings.map(t=>t.team)).size===leagueTeams(x).length&&x.standings.every(t=>leagueTeams(x).some(y=>y.id===t.team)&&['w','l','d','rf','ra'].every(k=>finite(t[k as keyof Standing]))&&Array.isArray(t.form))&&x.batting&&Object.values(x.batting).every(b=>b&&playerMap[b.playerId]&&['games','pa','ab','hits','hr','rbi','runs','bb','so','sb','doubles','triples','hbp','sf'].every(k=>finite(b[k as keyof BatStats])))&&x.pitching&&Object.values(x.pitching).every(p=>p&&playerMap[p.playerId]&&['games','starts','wins','losses','saves','outs','hits','er','bb','so','hr','hbp','bf'].every(k=>finite(p[k as keyof PitStats])));
+ const validSeason=(x:Season):boolean=>x&&(x.shareTeam===undefined||x.completed&&validSeasonTeam(x.shareTeam))&&(x.circuit===undefined||x.circuit==='NPB'||x.circuit==='MLB'||x.circuit==='SPACE')&&(circuitOf(x)==='NPB'||x.club===s.club)&&validCampaign(x)&&finite(x.number)&&Number.isInteger(x.day)&&x.day>=0&&x.day<=seasonGames(x)&&Array.isArray(x.results)&&x.results.every(validGameBox)&&Array.isArray(x.trend)&&Array.isArray(x.standings)&&x.standings.length===leagueTeams(x).length&&new Set(x.standings.map(t=>t.team)).size===leagueTeams(x).length&&x.standings.every(t=>leagueTeams(x).some(y=>y.id===t.team)&&['w','l','d','rf','ra'].every(k=>finite(t[k as keyof Standing]))&&Array.isArray(t.form))&&x.batting&&Object.values(x.batting).every(b=>b&&playerMap[b.playerId]&&['games','pa','ab','hits','hr','rbi','runs','bb','so','sb','doubles','triples','hbp','sf'].every(k=>finite(b[k as keyof BatStats])))&&x.pitching&&Object.values(x.pitching).every(p=>p&&playerMap[p.playerId]&&['games','starts','wins','losses','saves','outs','hits','er','bb','so','hr','hbp','bf'].every(k=>finite(p[k as keyof PitStats])));
  function validCampaign(x:Season):boolean {if(!validFieldingSeason(x.fielding,leagueTeams(x).map(t=>t.id),seasonGames(x)))return false;const p=x.postseason;if(!p)return true;if(!x.completed||!validPostseason(p,x))return false;return validSeason({...x,postseason:undefined,batting:p.batting,pitching:p.pitching,standings:p.standings});}
  if(s.parkedSeason&&(!validSeason(s.parkedSeason)||circuitOf(s.parkedSeason)===circuitOf(s.season)||s.parkedSeason.number===s.season.number||s.history?.some(h=>h.number===s.parkedSeason!.number)))return false;
+ const parked=[...(s.parkedSeason?[s.parkedSeason]:[]),...(s.additionalParkedSeasons??[])];
+ if(parked.some(x=>!validSeason(x)||circuitOf(x)===circuitOf(s.season)||s.history?.some(h=>h.number===x.number))||new Set([s.season.number,...parked.map(x=>x.number)]).size!==parked.length+1||new Set(parked.map(circuitOf)).size!==parked.length)return false;
  return s.version===1&&(s.mode===undefined||s.mode==='career'||s.mode==='free')&&typeof s.name==='string'&&s.name.length>0&&s.name.length<=30&&teams.some(t=>t.id===s.club)&&finite(s.gems)&&finite(s.pulls)&&finite(s.pity)&&s.pity<50&&finite(s.seed)&&!!s.owned&&typeof s.owned==='object'&&Object.entries(s.owned).every(([id,c])=>!!playerMap[id]&&!playerMap[id].opponentOnly&&Number.isInteger(c)&&c>0)&&Array.isArray(s.lineup)&&s.lineup.length===9&&new Set(s.lineup).size===9&&s.lineup.every(id=>s.owned[id]&&(canBat(playerMap[id])||wasLegacyBatter(id)))&&!!s.defense&&s.lineup.map(id=>s.defense[id]).sort().join(',')===[...rosterSlots].sort().join(',')&&Array.isArray(s.pitchers)&&s.pitchers.length===12&&new Set(s.pitchers).size===12&&s.pitchers.every(id=>s.owned[id]&&playerMap[id]?.role==='pitcher')&&!!validSeason(s.season)&&Array.isArray(s.history)&&s.history.length<=8&&s.history.every(validSeason)&&Array.isArray(s.lastPulls)&&s.lastPulls.length<=10&&s.lastPulls.every(p=>playerMap[p.playerId]&&finite(p.copies));
 }
 export function migrateState(value:unknown):GameState|null{
  if(!value||typeof value!=='object')return null;
  const data=structuredClone(value) as GameState;
+ if(data.additionalParkedSeasons!==undefined&&(!Array.isArray(data.additionalParkedSeasons)||data.additionalParkedSeasons.length>1||data.additionalParkedSeasons.some(x=>!x||typeof x!=='object')))return null;
  data.franchise??=freshFranchise();
  if(typeof data.franchise==='object'&&!Array.isArray(data.franchise)&&data.franchise.tickets===undefined)data.franchise.tickets=1;
  data.training??={};
- if(data.season&&Array.isArray(data.history))for(const season of [data.season,...data.history,...(data.parkedSeason?[data.parkedSeason]:[])]){
+ if(data.season&&Array.isArray(data.history))for(const season of [data.season,...data.history,...(data.parkedSeason?[data.parkedSeason]:[]),...(data.additionalParkedSeasons??[])]){
   season.model??=season.day===0?'2026-dips':'2025-basic';
   if(season.batting)for(const b of Object.values(season.batting)){b.hbp??=0;b.sf??=0;}
   if(season.pitching)for(const p of Object.values(season.pitching)){p.hbp??=0;p.hr??=0;p.bf??=0;}
@@ -132,7 +138,7 @@ const interDays=Array.from({length:18},(_,day)=>c.map((id,i)=>day%2?[p[(i+Math.f
 export const schedule=[...leagueDays.slice(0,45),...interDays,...leagueDays.slice(45)];
 const defaultTeams=Object.fromEntries([...teams,...mlbLeagueTeams].map(t=>{const pool=(t.id.startsWith('mlb-')?mlbOpponentPlayers:players).filter(p=>p.team===t.id).map(p=>({...p,overall:ratingOverall(p)}));const lineup=autoLineup(pool);return [t.id,{lineup,pitchers:autoPitchers(pool),defense:Object.fromEntries(lineup.map((id,i)=>[id,rosterSlots[i]]))}];}));
 const batKey=(team:string,id:string)=>`${team}|${id}`;
-export const scheduleFor=(state:GameState)=>circuitOf(state.season)==='MLB'?mlbSchedule(state.club):schedule;
+export const scheduleFor=(state:GameState)=>circuitOf(state.season)!=='NPB'?mlbSchedule(state.club):schedule;
 export function nextMatchPreview(state:GameState){
  if(state.season.completed)return null;
  const [home,away]=scheduleFor(state)[state.season.day].find(pair=>pair.includes(state.club))!,opponent=home===state.club?away:home;
@@ -147,23 +153,26 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  const forms=new Map(seasonConditions(state).map(c=>[c.playerId,c.boost]));
  const ids=[away,home];
  const rosters=ids.map(id=>id===state.club?{lineup:state.lineup,pitchers:state.pitchers,defense:state.defense}:defaultTeams[id]);
+ const opponentTraining=circuitOf(season)==='SPACE'?Object.fromEntries(rosters.flatMap(r=>r.lineup).map(id=>[id,4])):{};
  const line:number[][]=[[],[]];const scores=[0,0];const errors:[number,number]=[0,0];const battingOrder=[0,0];
  const usedPitchers=[new Set<string>(),new Set<string>()];const outsByPitcher=new Map<string,number>();
  const start=rosters.map(r=>r.pitchers[season.day%6]);
  // Fixed CPU adjustments keep NPB approachable and soften the jump to MLB.
+ // Space uses the same 30-club schedule with fixed stage-4 opponents and +4 abilities.
+ // Their strength is independent of the player, keeping maximum development viable.
  // MLB's own opponents, run environment and NPB transition still make it harder.
  // Apply it to all CPU matchups, including the postseason. Never scale rivals
  // with the user's record or collection, or alter the source/card abilities.
- const opponentAdjustment=circuitOf(season)==='NPB'?-4:-2;
+ const opponentAdjustment=circuitOf(season)==='SPACE'?4:circuitOf(season)==='NPB'?-4:-2;
  const bonusFor=(side:number,id:string)=>ids[side]===state.club?Math.min(5,Math.max(0,(state.owned[id]??1)-1))+(forms.get(id)??0):opponentAdjustment;
- const stageFor=(side:number,id:string)=>ids[side]===state.club?(state.training[id]??0):0;
+ const stageFor=(side:number,id:string)=>ids[side]===state.club?(state.training[id]??0):circuitOf(season)==='SPACE'?4:0;
  const fielding=season.fielding??=emptyFielding();
  const defenses=rosters.map((r,side)=>{
   const mine=ids[side]===state.club;
-  const f=defenseAdjustment(r.lineup,r.defense,mine?state.owned:{},mine?state.training:{},mine?0:opponentAdjustment);
+  const f=defenseAdjustment(r.lineup,r.defense,mine?state.owned:{},mine?state.training:opponentTraining,mine?0:opponentAdjustment);
   fielding.games[ids[side]]=(fielding.games[ids[side]]??0)+1;
   const fielders=r.lineup.filter(id=>r.defense[id]!=='DH').map(id=>{
-   const player=playerMap[id],ratings=ownedRatings(player,mine?state.owned:{},mine?state.training:{}),adjustment=mine?0:opponentAdjustment;
+   const player=playerMap[id],ratings=ownedRatings(player,mine?state.owned:{},mine?state.training:opponentTraining),adjustment=mine?0:opponentAdjustment;
    const skill=defenseAtPosition(player,r.defense[id],{...ratings,field:ratings.field+adjustment,catching:ratings.catching+adjustment}).skill;
    const arm=defenseAtPosition(player,r.defense[id],gameRatings(player,bonusFor(side,id),stageFor(side,id))).arm;
    const row=fielding.players[batKey(ids[side],id)]??={playerId:id,team:ids[side],games:0,ballsInPlay:0,rangeRuns:0,errorRuns:0,armRuns:0};row.games++;
@@ -187,7 +196,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  };
  rosters.forEach((r,side)=>r.lineup.forEach(id=>getB(side,id).games++));
  type Runner={id:string;pitcher:string;unearned?:boolean};
- for(let inning=0;inning<(circuitOf(season)==='MLB'?100:12);inning++){
+ for(let inning=0;inning<(circuitOf(season)!=='NPB'?100:12);inning++){
   for(let side=0;side<2;side++){
    if(side===1&&inning>=8&&scores[1]>scores[0]){line[1].push(-1);break;}
    const defense=1-side;
@@ -204,7 +213,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
    latestPitcher[defense]=pitcherId;
    const pitchBonus=bonusFor(defense,pitcherId);
    let out=0,errorOuts=0;let bases:(Runner|null)[]=[null,null,null];let runs=0;
-   if(circuitOf(season)==='MLB'&&!season.postseason&&inning>=9)bases[1]={id:rosters[side].lineup[(battingOrder[side]+8)%9],pitcher:pitcherId,unearned:true};
+   if(circuitOf(season)!=='NPB'&&!season.postseason&&inning>=9)bases[1]={id:rosters[side].lineup[(battingOrder[side]+8)%9],pitcher:pitcherId,unearned:true};
    const run=(runner:Runner,batter:BatStats,homeRun=false,creditRbi=true)=>{
     if(side===1&&inning>=8&&scores[1]>scores[0]&&!homeRun)return;
     getB(side,runner.id).runs++;if(!runner.unearned&&out+errorOuts<3)getP(defense,runner.pitcher).er++;if(creditRbi)batter.rbi++;scores[side]++;runs++;
@@ -320,15 +329,16 @@ export function nextSeason(input:GameState):GameState{
  if(!input.season.completed||input.season.postseason?.stage!=='complete')return input;
  const settled=settleLeagueProgress(claimSeasonGoals(input));
  const compact=(season:Season):Season=>({...season,results:season.results.map(({box,...g})=>g),postseason:season.postseason?{...season.postseason,series:season.postseason.series.map(s=>({...s,results:s.results.map(({box,...g})=>g)}))}:undefined});
- const number=nextSeasonNumber(settled),circuit=settled.leagueChoice??(leagueProgress(settled).mlbUnlocked?'MLB':'NPB');
+ const number=nextSeasonNumber(settled),circuit=settled.leagueChoice??(circuitOf(settled.season)==='SPACE'?'SPACE':leagueProgress(settled).mlbUnlocked?'MLB':'NPB');
  return recordAchievements({...settled,season:emptySeason(number,circuit,input.club),history:[input.season,...input.history.filter(s=>s.number!==input.season.number).map(compact)].sort((a,b)=>b.number-a.number).slice(0,8)});
 }
-const nextSeasonNumber=(state:GameState)=>Math.max(state.season.number,state.parkedSeason?.number??0,...state.history.map(s=>s.number))+1;
+const nextSeasonNumber=(state:GameState)=>Math.max(state.season.number,state.parkedSeason?.number??0,...(state.additionalParkedSeasons??[]).map(s=>s.number),...state.history.map(s=>s.number))+1;
 export function switchLeague(input:GameState,target:Circuit):GameState{
- if((target!=='NPB'&&target!=='MLB')||target===circuitOf(input.season)||target==='MLB'&&!leagueProgress(input).mlbUnlocked)return input;
+ if((target!=='NPB'&&target!=='MLB'&&target!=='SPACE')||target===circuitOf(input.season)||target==='SPACE'&&!spaceUnlocked(input)||target==='MLB'&&!leagueProgress(input).mlbUnlocked)return input;
  const settled=recordAchievements(settleLeagueProgress(claimSeasonGoals(input)));
- const season=settled.parkedSeason&&circuitOf(settled.parkedSeason)===target?settled.parkedSeason:emptySeason(nextSeasonNumber(settled),target,settled.club);
- return recordAchievements({...settled,season,parkedSeason:settled.season,leagueChoice:target});
+ const parked=[...(settled.parkedSeason?[settled.parkedSeason]:[]),...(settled.additionalParkedSeasons??[])];
+ const season=parked.find(s=>circuitOf(s)===target)??emptySeason(nextSeasonNumber(settled),target,settled.club);
+ return recordAchievements({...settled,season,parkedSeason:settled.season,additionalParkedSeasons:parked.filter(s=>circuitOf(s)!==target),leagueChoice:target});
 }
 export type ScoutFocus='all'|'power'|'pitching'|'defense';
 export function scoutWeight(p:Player,focus:ScoutFocus){return (focus==='power'&&p.role==='batter'&&p.ratings.power>=70)||(focus==='pitching'&&p.role==='pitcher')||(focus==='defense'&&p.role==='batter'&&p.ratings.field>=70)?3:1;}

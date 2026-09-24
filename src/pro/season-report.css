@@ -62,3 +62,7 @@
  .season-player-stats .s-stat-columns .batting-uzr-table td{font-size:10px}
  .s-season-view.is-complete .s-season-card{padding:10px}
 }
+
+.space-unlock{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;margin:14px 0;border:1px solid #c4b5fd;border-radius:14px;background:linear-gradient(120deg,#f5f3ff,#eff6ff)}
+.space-unlock small{color:#7952c7;font-weight:700}.space-unlock h2{font-size:20px;color:#473175;margin:5px 0}.space-unlock p{font-size:12px;color:#667085;line-height:1.7}
+@media(max-width:600px){.space-unlock{display:grid}.space-unlock button{width:100%}}

@@ -25,7 +25,7 @@ export function matchupProbabilities(batter: Player, pitcher: Player, batBonus =
   const contact = clamp(batting.contact+traits.contact,0,99) - batBase.contact, power = clamp(batting.power+traits.power,0,99) - batBase.power, speed = batting.speed - batBase.speed;
   const control = clamp(pitching.control+traits.control,0,99) - pitBase.control, stuff = .65 * (clamp(pitching.breaking+traits.stuff,0,99) - pitBase.breaking) + .35 * (pitching.velocity - pitBase.velocity);
   const pa = b?.pa ?? 0, ab = b?.ab ?? 0, bf = q?.bf ?? 0;
-  const major=circuit==='MLB',lgK=major?majorEnvironment.k:lg.pitching.kPct??.20,lgBB=major?majorEnvironment.bb:lg.pitching.bbPct??.08,lgHR=major?majorEnvironment.hr:lg.p.hr/Math.max(1,lg.p.bf),lgBabip=major?majorEnvironment.babip:lg.batting.babip??.29;
+  const major=circuit!=='NPB',lgK=major?majorEnvironment.k:lg.pitching.kPct??.20,lgBB=major?majorEnvironment.bb:lg.pitching.bbPct??.08,lgHR=major?majorEnvironment.hr:lg.p.hr/Math.max(1,lg.p.bf),lgBabip=major?majorEnvironment.babip:lg.batting.babip??.29;
   // MLB opponents and their league environment already add a substantial gap.
   // Use a half-strength additional translation so promoted NPB regulars can
   // compete; developed abilities still reduce it, and MLB cards are exempt.

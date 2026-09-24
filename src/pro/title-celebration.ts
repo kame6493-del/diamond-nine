@@ -3,7 +3,7 @@ import {recordAchievements} from './achievements';
 import {circuitOf,leagueProgress,NPB_TITLES_TO_MLB,wonNpbLeague} from './leagues';
 
 export interface TitleCelebration {
- kind:'mlb-unlocked'|'world-champion';
+ kind:'mlb-unlocked'|'world-champion'|'space-champion';
  year:number;
  clubName:string;
 }
@@ -14,7 +14,9 @@ export interface TitleCelebration {
 export function firstTitleCelebration(before:GameState,after:GameState):TitleCelebration|null{
  if(before.club!==after.club||before.season.number!==after.season.number||circuitOf(before.season)!==circuitOf(after.season))return null;
  const season=after.season,common={year:season.number,clubName:after.name};
- if(circuitOf(season)==='MLB'){
+ if(circuitOf(season)==='SPACE'){
+  if(!recordAchievements(before).achievements?.spaceChampion&&season.completed&&season.postseason?.stage==='complete'&&season.postseason.champion===after.club)return {...common,kind:'space-champion'};
+ }else if(circuitOf(season)==='MLB'){
   const alreadyWon=recordAchievements(before).achievements?.worldChampion!==undefined;
   if(!alreadyWon&&season.completed&&season.postseason?.stage==='complete'&&season.postseason.champion===after.club)return {...common,kind:'world-champion'};
  }else{
