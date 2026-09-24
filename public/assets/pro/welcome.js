@@ -1,5 +1,5 @@
 'use strict';
-const introUrl='https://diamond-nine-baseball.mannchikann.chatgpt.site/welcome.html';
+const introUrl='https://diamond-nine-baseball.com/welcome.html';
 const copyButton=document.getElementById('welcome-copy');
 copyButton?.addEventListener('click',async()=>{
  const status=document.getElementById('welcome-status');
