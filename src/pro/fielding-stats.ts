@@ -1,5 +1,6 @@
 import {playerMap} from './data';
 import type {Season} from './engine';
+import {leagueTeams} from './leagues';
 
 export interface FieldingStats {
  playerId:string;team:string;games:number;ballsInPlay:number;
@@ -8,18 +9,32 @@ export interface FieldingStats {
 export interface FieldingSeason {version:1;games:Record<string,number>;players:Record<string,FieldingStats>}
 export const emptyFielding=():FieldingSeason=>({version:1,games:{},players:{}});
 export const fieldingRuns=(row:FieldingStats)=>row.rangeRuns+row.errorRuns+row.armRuns;
+// Keep the recorded defensive events intact. UZR is relative to the current
+// season's league, not the simulator's fixed neutral ability of 60. Allocate
+// the league baseline by recorded opportunities, including partial seasons.
+export function leagueFieldingBaseline(season:Season,team:string){
+ const teams=leagueTeams(season),league=teams.find(t=>t.id===team)?.league;
+ const peers=new Set(teams.filter(t=>t.league===league).map(t=>t.id));
+ const rows=Object.values(season.fielding?.players??{}).filter(p=>peers.has(p.team));
+ const exposure=rows.reduce((n,p)=>n+p.ballsInPlay,0);
+ const useGames=exposure===0;
+ const weight=useGames?rows.reduce((n,p)=>n+p.games,0):exposure;
+ return {rate:weight?rows.reduce((n,p)=>n+fieldingRuns(p),0)/weight:0,useGames};
+}
+const relativeRuns=(row:FieldingStats,baseline:ReturnType<typeof leagueFieldingBaseline>)=>fieldingRuns(row)-baseline.rate*(baseline.useGames?row.games:row.ballsInPlay);
 export function formatUZR(value:number|null):string{
  if(value===null)return '—';
  const rounded=Math.round(value*10)/10;
  return (rounded>0?'+':'')+(Object.is(rounded,-0)?0:rounded).toFixed(1);
 }
 export function playerSeasonUZR(season:Season,team:string,id:string):number|null{
- const row=season.fielding?.players[`${team}|${id}`];return row?fieldingRuns(row):null;
+ const row=season.fielding?.players[`${team}|${id}`];return row?relativeRuns(row,leagueFieldingBaseline(season,team)):null;
 }
 export function teamFieldingStats(season:Season,team:string){
  const games=season.fielding?.games[team]??0;
  const played=season.standings.find(t=>t.team===team),total=played?played.w+played.l+played.d:0;
- const runs=Object.values(season.fielding?.players??{}).filter(p=>p.team===team).reduce((n,p)=>n+fieldingRuns(p),0);
+ const baseline=leagueFieldingBaseline(season,team);
+ const runs=Object.values(season.fielding?.players??{}).filter(p=>p.team===team).reduce((n,p)=>n+relativeRuns(p,baseline),0);
  return {uzr:games||total===0?runs:null,uzrGames:games};
 }
 

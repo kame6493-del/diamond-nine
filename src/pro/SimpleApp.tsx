@@ -83,7 +83,7 @@ export function SimpleStats({season,club,onPlayer,lineup=[],pitchers=[]}:{season
       <th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{b?.ab?formatAvg(battingAverage(b)):'—'}</td><td>{b?.hr??0}</td><td>{b?.rbi??0}</td><td>{b?.pa?formatAvg(ops(b)):'—'}</td><td>{b?.sb??0}</td><td className={'uzr-value '+(uzr!==null&&uzr>0?'positive':uzr!==null&&uzr<0?'negative':'')}>{formatUZR(uzr)}</td>
      </tr>;})}</tbody>
     </table>
-    <p className="s-uzr-note">UZRはゲーム内の守備貢献の推定値。守備なし・未記録は「—」。</p>
+    <p className="s-uzr-note">UZRはリーグ平均を0とした守備貢献。プラスほど失点を防いでいます。守備なし・未記録は「—」。</p>
     {!batIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}
    </section>
    <section className={'s-panel season-stat-panel'+(view==='pit'?' is-active':'')} aria-label="投手成績"><h2>投手成績</h2><table className="s-stats"><thead><tr><th>選手</th>{['奪三振','防御率','投球回','セーブ'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{pitIds.map(id=>{const p=pitMap.get(id);return <tr key={id}><th><button title={playerMap[id].name} data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button></th><td>{p?.so??0}</td><td>{p?.outs?era(p).toFixed(2):'—'}</td><td>{formatIP(p?.outs??0)}</td><td>{p?.saves??0}</td></tr>;})}</tbody></table>{!pitIds.length&&<p className="s-empty">試合を進めると成績が表示されます。</p>}</section>

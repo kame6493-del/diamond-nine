@@ -7,19 +7,48 @@ import {fieldingRuns,formatUZR,playerSeasonUZR,teamFieldingStats} from '../src/p
 import {teamSeasonStats} from '../src/pro/team-stats';
 import {SimpleStats} from '../src/pro/SimpleApp';
 import {trainPlayer} from '../src/pro/franchise';
+import {leagueTeams} from '../src/pro/leagues';
 
 export function registerFieldingStatsTests(test:(name:string,run:()=>void)=>void){
+ test('UZR is zero-centered separately in every domestic and overseas league and preserves saved events',()=>{
+  const start=initialState(4617),unlocked={...start,leagueProgress:{npbStreak:3,mlbUnlocked:true,lastSettledSeason:0,basis:'league' as const}};
+  for(const base of [start,switchLeague(unlocked,'MLB')]){
+   const state=simulateDays(base,5),season=state.season,before=JSON.stringify(season),teams=leagueTeams(season);
+   for(const league of new Set(teams.map(t=>t.league))){
+    const peers=teams.filter(t=>t.league===league),totals=peers.map(t=>teamFieldingStats(season,t.id).uzr!);
+    assert.ok(Math.abs(totals.reduce((a,b)=>a+b,0))<1e-8);
+    assert.ok(totals.some(n=>n>0)&&totals.some(n=>n<0));
+    for(const team of peers){
+     const rows=Object.values(season.fielding!.players).filter(p=>p.team===team.id);
+     assert.equal(teamFieldingStats(season,team.id).uzr,rows.reduce((n,p)=>n+playerSeasonUZR(season,team.id,p.playerId)!,0));
+    }
+   }
+   assert.equal(JSON.stringify(season),before);
+   assert.equal(teamFieldingStats(JSON.parse(before),state.club).uzr,teamFieldingStats(season,state.club).uzr);
+  }
+ });
+ test('UZR centers uniformly negative ledgers by defensive exposure, not equal shares per player',()=>{
+  const state=simulateDays(initialState(113),2),season=state.season;
+  for(const row of Object.values(season.fielding!.players)){
+   row.ballsInPlay=row.games*100;row.rangeRuns=-row.ballsInPlay*.02;row.errorRuns=0;row.armRuns=0;
+  }
+  // Half the exposure must get half the correction, including legacy partial records.
+  const first=Object.values(season.fielding!.players)[0];first.ballsInPlay/=2;first.rangeRuns/=2;
+  for(const row of Object.values(season.fielding!.players))assert.ok(Math.abs(playerSeasonUZR(season,row.team,row.playerId)!)<1e-9);
+  first.rangeRuns+=5;
+  assert.ok(playerSeasonUZR(season,first.team,first.playerId)!>0);
+ });
  test('UZR records the actual fielding roster and in-play exposure, sums individual contributions and excludes DH',()=>{
   const state=simulateDays(initialState(34856),7),f=state.season.fielding!,rows=Object.values(f.players).filter(p=>p.team===state.club);
   assert.equal(rows.length,8);assert.equal(f.games[state.club],7);assert.ok(rows.every(p=>p.games===7&&p.ballsInPlay>0));
   const dh=state.lineup.find(id=>state.defense[id]==='DH')!;assert.equal(playerSeasonUZR(state.season,state.club,dh),null);
-  const team=teamSeasonStats(state.season,state.club);assert.equal(team.uzr,rows.reduce((sum,p)=>sum+fieldingRuns(p),0));
+  const team=teamSeasonStats(state.season,state.club);assert.equal(team.uzr,rows.reduce((sum,p)=>sum+playerSeasonUZR(state.season,state.club,p.playerId)!,0));
   assert.ok(rows.some(p=>fieldingRuns(p)<0));assert.ok(validState(state));
   // Every in-play ball is one exposure for each of the eight defenders.
   const oppositionBip=state.season.results.flatMap(g=>g.box!.batting).filter(b=>b.team!==state.club).reduce((n,b)=>n+b.ab-b.so-b.hr,0);
   assert.ok(rows.every(p=>p.ballsInPlay===oppositionBip));
   const html=renderToStaticMarkup(createElement(SimpleStats,{season:state.season,club:state.club,onPlayer:()=>{},lineup:state.lineup,pitchers:state.pitchers}));
-  for(const row of rows)assert.ok(html.includes(formatUZR(fieldingRuns(row))));
+  for(const row of rows)assert.ok(html.includes(formatUZR(playerSeasonUZR(state.season,state.club,row.playerId))));
  });
  test('UZR reacts to position penalties and awakening without rewriting already played defense',()=>{
   const base={...initialSandboxState(),seed:87642},catcher=base.lineup.find(id=>base.defense[id]==='捕')!,outfielder=base.lineup.find(id=>base.defense[id]==='外')!;
