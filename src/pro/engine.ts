@@ -287,14 +287,10 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
       if(outcome<hitRate+kRate){bs.so++;ps.so++;}
       else {
        recordContact();
-       // Ground-ball double plays remove the forced runner and one extra out.
-       // Faster batters beat out more turns; better defense completes more.
-       const doublePlay=out<3&&!!bases[0]&&random.next()<clamp(.16+(55-gameRatings(pl,bonusFor(side,id),stageFor(side,id)).speed)*.001+defenses[defense].field,.06,.26);
-       if(doublePlay){bases[0]=null;out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);}
        // A fraction of balls put out in play are deep enough for a sacrifice
        // fly. The out counts, the plate appearance counts, but the AB does not.
        // Two-out advancement is already handled on hits, not on this third out.
-       if(!doublePlay&&out<3&&bases[2]&&random.next()<clamp(.30+(gameRatings(playerMap[bases[2].id],bonusFor(side,bases[2].id),stageFor(side,bases[2].id)).speed-55)*.002-(defenses[defense].arm-61)*.0015,.15,.45)){
+       if(out<3&&bases[2]&&random.next()<clamp(.30+(gameRatings(playerMap[bases[2].id],bonusFor(side,bases[2].id),stageFor(side,bases[2].id)).speed-55)*.002-(defenses[defense].arm-61)*.0015,.15,.45)){
         bs.ab--;bs.sf++;play='犠牲フライ';run(bases[2],bs);bases[2]=null;
        }
       }
