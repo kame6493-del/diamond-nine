@@ -13,7 +13,12 @@ await cp('dist',out,{recursive:true});
 await build({absWorkingDir:root,entryPoints:['mobile/main.ts'],outfile:resolve(out,'assets/game.js'),bundle:true,minify:true,format:'esm',platform:'browser',target:'es2022',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','__DIAMOND_ANDROID__':String(android)},external:['/assets/*','https://*'],legalComments:'eof',plugins:[{name:'native-ad-config',setup(b){b.onLoad({filter:/adsense-config\.json$/},()=>({contents:JSON.stringify({enabled:false,publisherId:'',seasonResultSlotId:''}),loader:'json'}));}}]});
 // Native builds use device fonts and never load browser advertising tags.
 const css=resolve(out,'assets/game.css');
-await writeFile(css,(await readFile(css,'utf8')).replace(/@import\s*(?:url\()?['"]https:\/\/fonts\.googleapis\.com[^;]+;/g,''));
+// The font URL itself contains ';' (wght@400;500;...), so stop at the closing quote,
+// not the first ';'. Cutting early leaves an unterminated string that voids all CSS.
+const fontImport=/@import\s*(?:url\()?(['"])https:\/\/fonts\.googleapis\.com[^'"]*\1\)?[^;]*;/g;
+const styled=(await readFile(css,'utf8')).replace(fontImport,'');
+if(styled.includes('fonts.googleapis.com'))throw new Error('Google Fonts import was not removed from game.css');
+await writeFile(css,styled);
 for(const page of ['index.html','welcome.html','guide.html']){
  const path=resolve(out,page);await writeFile(path,(await readFile(path,'utf8')).replace(/<meta name="google-adsense-account"[^>]*>\s*/g,''));
 }
