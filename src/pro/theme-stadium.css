@@ -140,3 +140,25 @@
   .sd-flash{display:none}
 }
 .ui-theme-switch{display:flex;width:100%;min-height:44px;margin:-10px 0 22px}
+
+/* ---- bright variant: the original white page with the new accents ---- */
+.simple-app.stadium.bright{background:linear-gradient(180deg,#fff9e8 0%,#ffffff 180px,#f7f9ff 100%);background-attachment:scroll;color:var(--ink)}
+.simple-app.stadium.bright::before{opacity:.05}
+.simple-app.stadium.bright::after{background:radial-gradient(40% 55% at 12% 0%,#ffd76a33 0%,transparent 70%),radial-gradient(40% 55% at 88% 0%,#9fb7ff33 0%,transparent 70%)}
+.simple-app.stadium.bright .s-header::before{display:none}
+.simple-app.stadium.bright .s-header,.simple-app.stadium.bright .s-brand,.simple-app.stadium.bright .s-icon{color:#172944}
+.simple-app.stadium.bright .s-icon:hover{background:#0000000a}
+.simple-app.stadium.bright .s-brand b{background:linear-gradient(180deg,#1b2d63 40%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent;filter:none}
+.simple-app.stadium.bright .s-brand-icon{box-shadow:0 0 0 2px #ffcf5a,0 4px 12px #1b2d6326}
+.simple-app.stadium.bright .s-wallet{background:linear-gradient(180deg,#fffaf0,#fff1c9);border-color:#f0c35a;color:#6b4a00;box-shadow:0 2px 8px #b8860b26}
+.simple-app.stadium.bright .s-wallet small{color:#8a6a1f}
+.simple-app.stadium.bright .s-nav{background:#ffffffe6;border-color:#e3e8f2;box-shadow:0 6px 20px #1b2d631f}
+.simple-app.stadium.bright .s-nav button{color:#6c798a}
+.simple-app.stadium.bright .s-page-title h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#172944;filter:none;text-shadow:none}
+.simple-app.stadium.bright .s-page-title p{color:#6c798a}
+.simple-app.stadium.bright .s-kicker{color:#b8860b}
+.simple-app.stadium.bright .s-inline-result{color:#526e5c}
+.simple-app.stadium.bright .s-inline-result b{color:#172944}
+.simple-app.stadium.bright .s-footer{color:#83907f}
+.simple-app.stadium.bright .s-footer a{color:inherit}
+.simple-app.stadium.bright .s-panel,.simple-app.stadium.bright .s-fold{border-color:#e3e8f2;box-shadow:0 6px 18px #1b2d6314}
