@@ -13,3 +13,4 @@ deployment/
 *.tar.gz
 .tools/
 marketing/*-video*/
+marketing/promo-vertical/clips/
