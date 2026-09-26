@@ -10,6 +10,9 @@
 - ビルド番号は GitHub Actions の実行回数を使う。バージョン名は 1.0。
 - git だけでウェブ部分がビルドできることを、きれいな複製で確認した。
 
+- リポジトリは https://github.com/kame6493-del/diamond-nine （非公開）。2026-09-26 に「compile_only」で署名なしビルドを流し、Xcode 26.6 で BUILD SUCCEEDED を確認した。
+- 無料枠の注意：非公開リポジトリの macOS は 1 分が 10 分扱い。無料の月 2,000 分は macOS だと約 200 分（ビルド 5〜10 回分）。
+
 ## 持ち主がやること（1 回だけ）
 
 ### 1. Apple Developer Program に登録
@@ -27,8 +30,8 @@ iPhone の「Apple Developer」アプリから個人で登録できる。年額 
 
 キーと ID はチャットに貼らない。
 
-### 4. GitHub に非公開リポジトリを作り、シークレットを 4 つ登録
-リポジトリの Settings → Secrets and variables → Actions → New repository secret。
+### 4. GitHub にシークレットを 4 つ登録
+リポジトリ（作成済み）の Settings → Secrets and variables → Actions → New repository secret。
 
 | 名前 | 中身 |
 |---|---|
