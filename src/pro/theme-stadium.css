@@ -13,7 +13,8 @@
 /* faint infield chalk lines */
 .simple-app.stadium::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.18;
   background:repeating-linear-gradient(45deg,transparent 0 118px,#3f5fb8 118px 120px),repeating-linear-gradient(-45deg,transparent 0 118px,#3f5fb8 118px 120px)}
-.simple-app.stadium>*{position:relative;z-index:1}
+.simple-app.stadium>.s-header,.simple-app.stadium>.s-main,.simple-app.stadium>.s-footer{position:relative;z-index:1}
+.simple-app.stadium>.s-nav{z-index:40}
 
 /* header */
 .simple-app.stadium .s-header,.simple-app.stadium .s-brand{color:var(--sd-ink-on-night)}
@@ -93,3 +94,49 @@
 @media (prefers-reduced-motion:reduce){
   .simple-app.stadium .s-primary::after,.simple-app.stadium .trading-card.tier-legend::after{animation:none;display:none}
 }
+
+/* ---- extra flair ---- */
+/* floodlights sweeping over the stands */
+.simple-app.stadium::after{content:"";position:fixed;inset:-20% -10% auto -10%;height:70vh;pointer-events:none;z-index:0;
+  background:radial-gradient(40% 55% at 12% 0%,#fff6d455 0%,transparent 70%),radial-gradient(40% 55% at 88% 0%,#d8e6ff55 0%,transparent 70%);
+  animation:sd-flood 7s ease-in-out infinite alternate}
+@keyframes sd-flood{0%{opacity:.55;transform:translateX(-2%)}100%{opacity:1;transform:translateX(2%)}}
+/* twinkling stars/flash bulbs in the stands */
+.simple-app.stadium .s-header::before{content:"";position:fixed;left:0;right:0;top:0;height:46vh;pointer-events:none;z-index:-1;opacity:.8;
+  background-image:radial-gradient(1.6px 1.6px at 8% 22%,#fff,transparent),radial-gradient(1.4px 1.4px at 23% 64%,#ffe7a3,transparent),radial-gradient(1.8px 1.8px at 41% 31%,#fff,transparent),radial-gradient(1.3px 1.3px at 57% 12%,#cfe0ff,transparent),radial-gradient(1.7px 1.7px at 72% 48%,#fff,transparent),radial-gradient(1.4px 1.4px at 88% 26%,#ffe7a3,transparent),radial-gradient(1.2px 1.2px at 94% 70%,#fff,transparent),radial-gradient(1.5px 1.5px at 33% 84%,#cfe0ff,transparent);
+  animation:sd-twinkle 3.2s ease-in-out infinite alternate}
+@keyframes sd-twinkle{0%{opacity:.35}50%{opacity:.9}100%{opacity:.5}}
+/* brand: gold gradient lettering */
+.simple-app.stadium .s-brand b{background:linear-gradient(180deg,#fff 0%,#ffe7a3 55%,#ffc93d 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 8px #ffcf5a66)}
+/* coin: slow shine */
+.simple-app.stadium .s-wallet::before{animation:sd-coin 2.6s ease-in-out infinite}
+@keyframes sd-coin{0%,70%,100%{transform:rotateY(0)}85%{transform:rotateY(180deg)}}
+/* active tab breathes */
+.simple-app.stadium .s-nav button[aria-current=page]{animation:sd-breathe 2.4s ease-in-out infinite}
+@keyframes sd-breathe{0%,100%{box-shadow:0 0 14px #ffcf5a55}50%{box-shadow:0 0 26px #ffcf5aaa}}
+/* page titles in gold */
+.simple-app.stadium .s-page-title h1{background:linear-gradient(180deg,#fff 30%,#ffd76a);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 2px 8px #0009)}
+/* sections rise in when a tab opens */
+.simple-app.stadium .s-main>*{animation:sd-rise .5s cubic-bezier(.2,.8,.2,1) both}
+.simple-app.stadium .s-main>*:nth-child(2){animation-delay:.05s}.simple-app.stadium .s-main>*:nth-child(3){animation-delay:.1s}.simple-app.stadium .s-main>*:nth-child(4){animation-delay:.15s}
+@keyframes sd-rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+/* scoreboard: moving light strip on top edge */
+.simple-app.stadium .s-season-card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#ffcf5a,#fff,#ffcf5a,transparent);background-size:50% 100%;background-repeat:no-repeat;animation:sd-strip 2.8s linear infinite}
+@keyframes sd-strip{0%{background-position:-60% 0}100%{background-position:160% 0}}
+/* primary button: stronger glow */
+.simple-app.stadium .s-primary:not(:disabled){animation:sd-cta 2.2s ease-in-out infinite}
+@keyframes sd-cta{0%,100%{box-shadow:0 6px 0 #b97a0f,0 12px 22px #0007,0 0 0 #ffcf5a00}50%{box-shadow:0 6px 0 #b97a0f,0 12px 22px #0007,0 0 28px #ffcf5a88}}
+
+/* rare pull: white flash + camera shake (added by ScoutArrival) */
+.simple-app.stadium.sd-shake .s-main{animation:sd-shake .55s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes sd-shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-7px,3px)}40%,60%{transform:translate(7px,-3px)}}
+.sd-flash{position:fixed;inset:0;z-index:1100;pointer-events:none;background:radial-gradient(circle at 50% 45%,#fff 0%,#fff7d6 35%,transparent 75%);animation:sd-flash .7s ease-out both}
+.sd-flash.rainbow{background:radial-gradient(circle at 50% 45%,#fff 0%,#ffd6f5 30%,#bfefff 50%,transparent 80%)}
+@keyframes sd-flash{0%{opacity:0}12%{opacity:.95}100%{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .simple-app.stadium::after,.simple-app.stadium .s-header::before,.simple-app.stadium .s-wallet::before,.simple-app.stadium .s-nav button[aria-current=page],.simple-app.stadium .s-main>*,.simple-app.stadium .s-season-card::before,.simple-app.stadium .s-primary:not(:disabled),.simple-app.stadium.sd-shake .s-main{animation:none}
+  .sd-flash{display:none}
+}
+.ui-theme-switch{display:flex;width:100%;min-height:44px;margin:-10px 0 22px}

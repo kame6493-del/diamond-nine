@@ -1,0 +1,33 @@
+.season-result-backdrop{position:fixed;inset:0;z-index:1250;display:grid;place-items:center;padding:20px;background:#040a1dcc;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:sr-fade .25s ease-out both}
+.season-result{position:relative;width:min(420px,100%);max-height:92dvh;overflow:auto;text-align:center;color:#eef3ff;border-radius:24px;padding:26px 22px 22px;
+  background:radial-gradient(90% 60% at 50% 0%,#2a4bb0 0%,transparent 70%),linear-gradient(180deg,#101f4d,#08112b);border:1px solid #ffcf5a55;box-shadow:0 30px 70px #000c,0 0 60px #3f64ff33;
+  animation:sr-pop .55s cubic-bezier(.2,1.3,.3,1) both}
+.season-result.tone-gold{border-color:#ffcf5a;box-shadow:0 30px 70px #000c,0 0 70px #ffcf5a55}
+.season-result-close{position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#c9d4f5}
+.season-result-close:hover{background:#ffffff14}
+.sr-kicker{font-size:11px;letter-spacing:.18em;color:#ffcf5acc;font-weight:700}
+.sr-badge{width:74px;height:74px;margin:14px auto 8px;border-radius:50%;display:grid;place-items:center;color:#2a1c00;
+  background:radial-gradient(circle at 35% 30%,#fff6c9,#ffd35c 50%,#c98a12);box-shadow:0 0 0 4px #ffcf5a33,0 0 34px #ffcf5a88;animation:sr-spin 1.1s cubic-bezier(.2,.9,.3,1) .15s both}
+.tone-plain .sr-badge{background:radial-gradient(circle at 35% 30%,#fff,#c9d4ea 55%,#7d8db3);box-shadow:0 0 24px #9fb0d855}
+.sr-headline{font-size:30px;font-weight:900;line-height:1.3;background:linear-gradient(180deg,#fff 30%,#ffd76a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sr-team{font-size:14px;color:#9fb0d8;margin-top:2px}
+.sr-record{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 16px}
+.sr-record>div{background:#ffffff0d;border:1px solid #ffffff1a;border-radius:14px;padding:10px 4px}
+.sr-record b{display:block;font-size:30px;line-height:1.1;color:#ffe38f;font-family:'DIN Alternate','Bahnschrift','Arial Narrow',sans-serif;text-shadow:0 0 12px #ffcf5a66}
+.sr-record span{font-size:11px;color:#9fb0d8}
+.sr-awards{display:grid;gap:8px;text-align:left}
+.sr-awards>div{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:baseline;background:#ffffff0a;border:1px solid #ffffff14;border-radius:14px;padding:11px 14px;animation:sr-rise .45s ease-out both}
+.sr-awards>div:nth-child(2){animation-delay:.12s}.sr-awards>div:nth-child(3){animation-delay:.24s}
+.sr-awards small{grid-row:span 2;font-size:10px;font-weight:800;color:#1b1400;background:linear-gradient(180deg,#ffe28a,#ffc93d);border-radius:999px;padding:3px 9px;white-space:nowrap;align-self:center}
+.sr-awards strong{font-size:17px;color:#fff}
+.sr-awards em{font-style:normal;font-size:12px;color:#9fb0d8}
+.sr-earned{display:flex;align-items:baseline;justify-content:center;gap:8px;margin:16px 0 4px}
+.sr-earned span{font-size:12px;color:#9fb0d8}
+.sr-earned b{font-size:34px;color:#ffe38f;text-shadow:0 0 14px #ffcf5a88}
+.sr-earned small{color:#ffe7a3}
+.sr-ok{width:100%;margin-top:14px}
+@keyframes sr-fade{from{opacity:0}}
+@keyframes sr-pop{from{opacity:0;transform:scale(.8) translateY(30px)}}
+@keyframes sr-spin{from{transform:rotateY(540deg) scale(.4);opacity:0}}
+@keyframes sr-rise{from{opacity:0;transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){.season-result,.season-result-backdrop,.sr-badge,.sr-awards>div{animation:none}}
