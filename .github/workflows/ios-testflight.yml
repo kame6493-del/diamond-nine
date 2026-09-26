@@ -5,6 +5,11 @@ name: iOS TestFlight
 
 on:
   workflow_dispatch:
+    inputs:
+      compile_only:
+        description: "Compile without signing or uploading (no Apple secrets needed)"
+        type: boolean
+        default: false
 
 jobs:
   testflight:
@@ -33,7 +38,18 @@ jobs:
       - name: Build web assets and sync the iOS project
         run: npm --prefix mobile run sync:ios
 
+      - name: Compile without signing
+        if: inputs.compile_only
+        run: |
+          xcodebuild build \
+            -project mobile/ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Check secrets
+        if: ${{ !inputs.compile_only }}
         run: |
           for v in ASC_KEY_ID ASC_ISSUER_ID APPLE_TEAM_ID; do
             if [ -z "${!v}" ]; then echo "::error::Secret $v is not set"; exit 1; fi
@@ -41,11 +57,13 @@ jobs:
           if [ -z "${{ secrets.ASC_KEY_P8_BASE64 }}" ]; then echo "::error::Secret ASC_KEY_P8_BASE64 is not set"; exit 1; fi
 
       - name: Install App Store Connect API key
+        if: ${{ !inputs.compile_only }}
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
           echo "${{ secrets.ASC_KEY_P8_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/keys/AuthKey_$ASC_KEY_ID.p8"
 
       - name: Archive
+        if: ${{ !inputs.compile_only }}
         run: |
           xcodebuild archive \
             -project mobile/ios/App/App.xcodeproj \
@@ -61,6 +79,7 @@ jobs:
             CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
 
       - name: Export and upload to TestFlight
+        if: ${{ !inputs.compile_only }}
         run: |
           plutil -replace teamID -string "$APPLE_TEAM_ID" mobile/ios/ExportOptions.plist
           xcodebuild -exportArchive \
