@@ -1,0 +1,95 @@
+/* Stadium theme: a night-game shell around the existing light panels.
+   Everything is scoped to .simple-app.stadium so the original design stays
+   intact and can be switched back from Settings. Loaded last (main.tsx). */
+.simple-app.stadium{
+  --sd-night:#08112b;--sd-night-2:#122457;--sd-glow:#ffcf5a;--sd-glow-2:#ffe7a3;--sd-ink-on-night:#eef3ff;--sd-muted-on-night:#9fb0d8;
+  min-height:100dvh;color:var(--ink);
+  background:
+    radial-gradient(120% 55% at 50% -8%,#2a4bb0 0%,transparent 60%),
+    radial-gradient(60% 30% at 85% 4%,#ffd76a22 0%,transparent 70%),
+    linear-gradient(180deg,var(--sd-night) 0%,var(--sd-night-2) 42%,#0d1a40 100%);
+  background-attachment:fixed;
+}
+/* faint infield chalk lines */
+.simple-app.stadium::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.18;
+  background:repeating-linear-gradient(45deg,transparent 0 118px,#3f5fb8 118px 120px),repeating-linear-gradient(-45deg,transparent 0 118px,#3f5fb8 118px 120px)}
+.simple-app.stadium>*{position:relative;z-index:1}
+
+/* header */
+.simple-app.stadium .s-header,.simple-app.stadium .s-brand{color:var(--sd-ink-on-night)}
+.simple-app.stadium .s-brand b{letter-spacing:.12em;text-shadow:0 0 18px #6d8bff88}
+.simple-app.stadium .s-brand-icon{border-radius:12px;box-shadow:0 0 0 2px #ffcf5a88,0 6px 18px #0008}
+.simple-app.stadium .s-wallet{display:inline-flex;align-items:center;gap:6px;padding:5px 14px 5px 8px;border-radius:999px;
+  background:linear-gradient(180deg,#1d2f6b,#101d49);border:1px solid #ffcf5a66;color:var(--sd-glow-2);box-shadow:inset 0 1px 0 #ffffff1f,0 4px 14px #0006}
+.simple-app.stadium .s-wallet::before{content:"";width:20px;height:20px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 35% 30%,#fff6c9,#ffd35c 45%,#c98a12 100%);box-shadow:0 0 10px #ffcf5a99}
+.simple-app.stadium .s-wallet small{color:#ffe7a3b3}
+.simple-app.stadium .s-icon{color:var(--sd-ink-on-night)}
+.simple-app.stadium .s-icon:hover{background:#ffffff14}
+
+/* tabs: dark glass bar */
+.simple-app.stadium .s-nav{background:#0b173acc;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid #ffffff14;border-radius:16px;box-shadow:0 8px 24px #0006;padding:4px}
+.simple-app.stadium .s-nav button{color:var(--sd-muted-on-night);border-radius:12px;border-bottom:0;background:none}
+.simple-app.stadium .s-nav button svg{color:inherit!important}
+.simple-app.stadium .s-nav button[aria-current=page]{color:#1b1400;background:linear-gradient(180deg,#ffe28a,#ffc93d);box-shadow:0 0 18px #ffcf5a66;border:0}
+
+/* page text that sits directly on the night background */
+.simple-app.stadium .s-page-title h1{color:#fff;text-shadow:0 2px 12px #0008}
+.simple-app.stadium .s-page-title p{color:var(--sd-muted-on-night)}
+.simple-app.stadium .s-kicker{color:#ffcf5acc}
+.simple-app.stadium .s-inline-result{color:var(--sd-muted-on-night)}
+.simple-app.stadium .s-inline-result b{color:#fff}
+.simple-app.stadium .s-footer{color:#7f8fb8}
+.simple-app.stadium .s-footer a{color:#b9c6ea}
+
+/* light panels float above the stadium */
+.simple-app.stadium .s-panel,.simple-app.stadium .s-fold{border-color:#ffffff33;box-shadow:0 14px 34px #00000059}
+
+/* season card as a scoreboard */
+.simple-app.stadium .s-season-card{position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#0f1c46,#0a1433);border:1px solid #ffcf5a55;border-radius:20px;
+  box-shadow:0 0 0 1px #000 inset,0 18px 40px #0009,0 0 40px #3f64ff22}
+.simple-app.stadium .s-season-card::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(80% 60% at 50% -20%,#ffffff18,transparent 60%)}
+.simple-app.stadium .s-season-card{color:var(--sd-ink-on-night)}
+.simple-app.stadium .s-season-top h2{color:#fff}
+.simple-app.stadium .s-season-top p,.simple-app.stadium .s-game-count>span,.simple-app.stadium .s-next-opponent>span,.simple-app.stadium .s-season-card .s-season-end p{color:var(--sd-muted-on-night)}
+.simple-app.stadium .s-season-top p b,.simple-app.stadium .s-next-opponent{color:#fff}
+.simple-app.stadium .s-season-top>div>span:first-child{background:#ffcf5a1f;border-color:#ffcf5a66;color:var(--sd-glow-2)}
+.simple-app.stadium .s-game-count>b{color:#ffe38f;font-family:'DIN Alternate','Bahnschrift','Arial Narrow',sans-serif;font-size:52px;letter-spacing:0;
+  text-shadow:0 0 12px #ffcf5a99,0 0 26px #ffcf5a44}
+.simple-app.stadium .s-progress{height:8px;background:#ffffff14;box-shadow:inset 0 1px 2px #0008}
+.simple-app.stadium .s-progress>i{background:linear-gradient(90deg,#ffb52e,#ffe58a);box-shadow:0 0 12px #ffcf5acc}
+
+/* primary call to action: gold with a passing shine */
+.simple-app.stadium .s-primary{position:relative;overflow:hidden;border:0;border-radius:14px;color:#241800;font-weight:900;letter-spacing:.04em;
+  background:linear-gradient(180deg,#ffe791 0%,#ffc93d 55%,#f0a91d 100%);box-shadow:0 6px 0 #b97a0f,0 12px 22px #0007}
+.simple-app.stadium .s-primary:hover:not(:disabled){background:linear-gradient(180deg,#fff0b3,#ffd257 55%,#f5b42a)}
+.simple-app.stadium .s-primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px 0 #b97a0f,0 8px 16px #0007}
+.simple-app.stadium .s-primary::after{content:"";position:absolute;top:-30%;left:-40%;width:30%;height:160%;transform:rotate(20deg);
+  background:linear-gradient(90deg,transparent,#ffffffb3,transparent);animation:sd-shine 2.8s ease-in-out infinite}
+.simple-app.stadium .s-primary:disabled::after{display:none}
+@keyframes sd-shine{0%,55%{left:-40%}85%,100%{left:130%}}
+
+/* player cards: frame by overall rating */
+.simple-app.stadium .trading-card.tier-bronze{box-shadow:0 0 0 2px #c98b5a,0 10px 24px #0000004d}
+.simple-app.stadium .trading-card.tier-silver{box-shadow:0 0 0 2px #cfd8e6,0 0 18px #cfd8e666,0 10px 24px #0000004d}
+.simple-app.stadium .trading-card.tier-gold{box-shadow:0 0 0 3px #ffcf5a,0 0 26px #ffcf5a88,0 12px 28px #0000005c}
+.simple-app.stadium .trading-card.tier-legend{box-shadow:0 0 0 3px #ffffff,0 0 32px #b58cffaa,0 0 60px #6dd6ff66,0 12px 30px #00000066;isolation:isolate}
+.simple-app.stadium .trading-card.tier-legend::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;mix-blend-mode:color-dodge;opacity:.45;
+  background:linear-gradient(115deg,transparent 20%,#ff8ad8 35%,#7fe3ff 45%,#fff59a 55%,transparent 70%);background-size:250% 250%;animation:sd-holo 3.6s linear infinite}
+.simple-app.stadium .trading-card{position:relative}
+@keyframes sd-holo{0%{background-position:120% 0}100%{background-position:-120% 0}}
+
+/* phones: tab bar at the bottom, like a native app */
+@media (max-width:760px){
+  .simple-app.stadium .s-nav{position:fixed;left:10px;right:10px;top:auto;bottom:max(10px,env(safe-area-inset-bottom));z-index:60;margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+  .simple-app.stadium .s-nav>button{flex-direction:column;gap:2px;min-height:58px;font-size:11px;padding:6px 2px}
+  .simple-app.stadium .s-nav>button svg{width:22px;height:22px}
+  .simple-app.stadium .s-main{padding-bottom:110px}
+  .simple-app.stadium .s-footer{padding-bottom:120px}
+  .simple-app.stadium .s-game-count>b{font-size:46px}
+}
+@media (prefers-reduced-motion:reduce){
+  .simple-app.stadium .s-primary::after,.simple-app.stadium .trading-card.tier-legend::after{animation:none;display:none}
+}
