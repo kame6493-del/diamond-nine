@@ -1,0 +1,737 @@
+[
+  {
+    "file": "buttons/btn_match_large.png",
+    "category": "buttons",
+    "size": [
+      270,
+      95
+    ],
+    "source_box": [
+      15,
+      265,
+      285,
+      360
+    ],
+    "description": "大きめメニュー：試合へ"
+  },
+  {
+    "file": "buttons/btn_training_large.png",
+    "category": "buttons",
+    "size": [
+      266,
+      95
+    ],
+    "source_box": [
+      292,
+      265,
+      558,
+      360
+    ],
+    "description": "大きめメニュー：練習へ"
+  },
+  {
+    "file": "buttons/btn_players_large.png",
+    "category": "buttons",
+    "size": [
+      270,
+      90
+    ],
+    "source_box": [
+      15,
+      365,
+      285,
+      455
+    ],
+    "description": "大きめメニュー：選手一覧"
+  },
+  {
+    "file": "buttons/btn_schedule_large.png",
+    "category": "buttons",
+    "size": [
+      266,
+      90
+    ],
+    "source_box": [
+      292,
+      365,
+      558,
+      455
+    ],
+    "description": "大きめメニュー：スケジュール"
+  },
+  {
+    "file": "buttons/btn_item_small.png",
+    "category": "buttons",
+    "size": [
+      140,
+      65
+    ],
+    "source_box": [
+      15,
+      460,
+      155,
+      525
+    ],
+    "description": "小ボタン：アイテム"
+  },
+  {
+    "file": "buttons/btn_scout_small.png",
+    "category": "buttons",
+    "size": [
+      140,
+      65
+    ],
+    "source_box": [
+      165,
+      460,
+      305,
+      525
+    ],
+    "description": "小ボタン：スカウト"
+  },
+  {
+    "file": "buttons/btn_data_small.png",
+    "category": "buttons",
+    "size": [
+      140,
+      65
+    ],
+    "source_box": [
+      315,
+      460,
+      455,
+      525
+    ],
+    "description": "小ボタン：データ"
+  },
+  {
+    "file": "buttons/btn_system_small.png",
+    "category": "buttons",
+    "size": [
+      140,
+      65
+    ],
+    "source_box": [
+      465,
+      460,
+      605,
+      525
+    ],
+    "description": "小ボタン：システム"
+  },
+  {
+    "file": "buttons/tabs_primary_row.png",
+    "category": "buttons",
+    "size": [
+      515,
+      85
+    ],
+    "source_box": [
+      720,
+      265,
+      1235,
+      350
+    ],
+    "description": "育成/練習/試合/選手/学校/大会タブ列"
+  },
+  {
+    "file": "buttons/btn_confirm_cancel_pair.png",
+    "category": "buttons",
+    "size": [
+      393,
+      180
+    ],
+    "source_box": [
+      845,
+      905,
+      1238,
+      1085
+    ],
+    "description": "決定・キャンセルボタンセット"
+  },
+  {
+    "file": "buttons/btn_confirm_large.png",
+    "category": "buttons",
+    "size": [
+      188,
+      75
+    ],
+    "source_box": [
+      850,
+      910,
+      1038,
+      985
+    ],
+    "description": "決定ボタン"
+  },
+  {
+    "file": "buttons/btn_cancel_large.png",
+    "category": "buttons",
+    "size": [
+      195,
+      75
+    ],
+    "source_box": [
+      1040,
+      910,
+      1235,
+      985
+    ],
+    "description": "キャンセルボタン"
+  },
+  {
+    "file": "buttons/control_checkboxes.png",
+    "category": "buttons",
+    "size": [
+      190,
+      125
+    ],
+    "source_box": [
+      20,
+      95,
+      210,
+      220
+    ],
+    "description": "チェックボックス群"
+  },
+  {
+    "file": "buttons/control_toggles_sliders.png",
+    "category": "buttons",
+    "size": [
+      245,
+      220
+    ],
+    "source_box": [
+      210,
+      80,
+      455,
+      300
+    ],
+    "description": "トグル・スライダー群"
+  },
+  {
+    "file": "buttons/control_pagination_tabs.png",
+    "category": "buttons",
+    "size": [
+      315,
+      180
+    ],
+    "source_box": [
+      930,
+      20,
+      1245,
+      200
+    ],
+    "description": "ページ送り・タブ系"
+  },
+  {
+    "file": "buttons/badges_notifications.png",
+    "category": "buttons",
+    "size": [
+      445,
+      135
+    ],
+    "source_box": [
+      15,
+      250,
+      460,
+      385
+    ],
+    "description": "NEW/通知/ロックバッジ群"
+  },
+  {
+    "file": "mascots/mascot_standing.png",
+    "category": "mascots",
+    "size": [
+      170,
+      250
+    ],
+    "source_box": [
+      1065,
+      50,
+      1235,
+      300
+    ],
+    "description": "立ちマスコット"
+  },
+  {
+    "file": "mascots/mascot_pointing.png",
+    "category": "mascots",
+    "size": [
+      125,
+      190
+    ],
+    "source_box": [
+      725,
+      940,
+      850,
+      1130
+    ],
+    "description": "指差しマスコット"
+  },
+  {
+    "file": "mascots/mascot_clipboard.png",
+    "category": "mascots",
+    "size": [
+      118,
+      190
+    ],
+    "source_box": [
+      852,
+      940,
+      970,
+      1130
+    ],
+    "description": "クリップボード持ちマスコット"
+  },
+  {
+    "file": "mascots/mascot_cheering.png",
+    "category": "mascots",
+    "size": [
+      125,
+      205
+    ],
+    "source_box": [
+      970,
+      935,
+      1095,
+      1140
+    ],
+    "description": "応援マスコット"
+  },
+  {
+    "file": "mascots/mascot_sweating.png",
+    "category": "mascots",
+    "size": [
+      125,
+      185
+    ],
+    "source_box": [
+      1100,
+      950,
+      1225,
+      1135
+    ],
+    "description": "焦り/汗マスコット"
+  },
+  {
+    "file": "mascots/mascot_faces_strip.png",
+    "category": "mascots",
+    "size": [
+      465,
+      90
+    ],
+    "source_box": [
+      255,
+      990,
+      720,
+      1080
+    ],
+    "description": "マスコット顔アイコン列"
+  },
+  {
+    "file": "mascots/mascot_badge.png",
+    "category": "mascots",
+    "size": [
+      220,
+      315
+    ],
+    "source_box": [
+      20,
+      910,
+      240,
+      1225
+    ],
+    "description": "野球部エンブレム風マスコットバッジ"
+  },
+  {
+    "file": "panels/panel_large_blue_header.png",
+    "category": "panels",
+    "size": [
+      380,
+      210
+    ],
+    "source_box": [
+      20,
+      525,
+      400,
+      735
+    ],
+    "description": "青見出しつき大パネル"
+  },
+  {
+    "file": "panels/panel_notice_list.png",
+    "category": "panels",
+    "size": [
+      245,
+      210
+    ],
+    "source_box": [
+      405,
+      525,
+      650,
+      735
+    ],
+    "description": "お知らせリスト風パネル"
+  },
+  {
+    "file": "panels/panel_note_memo.png",
+    "category": "panels",
+    "size": [
+      310,
+      210
+    ],
+    "source_box": [
+      660,
+      525,
+      970,
+      735
+    ],
+    "description": "メモ/ノート風パネル"
+  },
+  {
+    "file": "panels/panel_goal_checklist.png",
+    "category": "panels",
+    "size": [
+      260,
+      210
+    ],
+    "source_box": [
+      975,
+      525,
+      1235,
+      735
+    ],
+    "description": "目標チェックリスト風パネル"
+  },
+  {
+    "file": "panels/panel_status_group.png",
+    "category": "panels",
+    "size": [
+      575,
+      185
+    ],
+    "source_box": [
+      660,
+      735,
+      1235,
+      920
+    ],
+    "description": "ステータスバー/情報ボックス群"
+  },
+  {
+    "file": "panels/dialog_modal_large.png",
+    "category": "panels",
+    "size": [
+      335,
+      245
+    ],
+    "source_box": [
+      0,
+      45,
+      335,
+      290
+    ],
+    "description": "モーダルウィンドウ大"
+  },
+  {
+    "file": "panels/dialog_modal_small.png",
+    "category": "panels",
+    "size": [
+      125,
+      245
+    ],
+    "source_box": [
+      335,
+      45,
+      460,
+      290
+    ],
+    "description": "確認モーダル小"
+  },
+  {
+    "file": "panels/dialogue_box_mascot_left.png",
+    "category": "panels",
+    "size": [
+      310,
+      180
+    ],
+    "source_box": [
+      460,
+      45,
+      770,
+      225
+    ],
+    "description": "マスコット左の会話ボックス"
+  },
+  {
+    "file": "panels/tutorial_popup.png",
+    "category": "panels",
+    "size": [
+      305,
+      245
+    ],
+    "source_box": [
+      930,
+      45,
+      1235,
+      290
+    ],
+    "description": "チュートリアルポップアップ"
+  },
+  {
+    "file": "cards/player_card_gold.png",
+    "category": "cards",
+    "size": [
+      223,
+      260
+    ],
+    "source_box": [
+      1015,
+      315,
+      1238,
+      575
+    ],
+    "description": "選手カード金/エース風"
+  },
+  {
+    "file": "cards/player_cards_set.png",
+    "category": "cards",
+    "size": [
+      350,
+      410
+    ],
+    "source_box": [
+      900,
+      300,
+      1250,
+      710
+    ],
+    "description": "選手カードセット"
+  },
+  {
+    "file": "cards/roster_table_rows.png",
+    "category": "cards",
+    "size": [
+      575,
+      225
+    ],
+    "source_box": [
+      15,
+      715,
+      590,
+      940
+    ],
+    "description": "選手一覧テーブル行"
+  },
+  {
+    "file": "scoreboards/scoreboard_main.png",
+    "category": "scoreboards",
+    "size": [
+      320,
+      180
+    ],
+    "source_box": [
+      575,
+      725,
+      895,
+      905
+    ],
+    "description": "試合スコアボード"
+  },
+  {
+    "file": "scoreboards/result_stamps.png",
+    "category": "scoreboards",
+    "size": [
+      300,
+      75
+    ],
+    "source_box": [
+      590,
+      905,
+      890,
+      980
+    ],
+    "description": "勝利/敗北/引分スタンプ"
+  },
+  {
+    "file": "scoreboards/training_result_panel.png",
+    "category": "scoreboards",
+    "size": [
+      345,
+      265
+    ],
+    "source_box": [
+      895,
+      725,
+      1240,
+      990
+    ],
+    "description": "練習結果・成長結果パネル"
+  },
+  {
+    "file": "schedule/calendar_month.png",
+    "category": "schedule",
+    "size": [
+      415,
+      310
+    ],
+    "source_box": [
+      10,
+      315,
+      425,
+      625
+    ],
+    "description": "月間カレンダー"
+  },
+  {
+    "file": "schedule/weekly_schedule_cards.png",
+    "category": "schedule",
+    "size": [
+      480,
+      305
+    ],
+    "source_box": [
+      430,
+      315,
+      910,
+      620
+    ],
+    "description": "週間予定カード列"
+  },
+  {
+    "file": "schedule/location_tiles.png",
+    "category": "schedule",
+    "size": [
+      495,
+      280
+    ],
+    "source_box": [
+      15,
+      960,
+      510,
+      1240
+    ],
+    "description": "学校マップ施設タイル"
+  },
+  {
+    "file": "schedule/mission_panel.png",
+    "category": "schedule",
+    "size": [
+      275,
+      280
+    ],
+    "source_box": [
+      515,
+      960,
+      790,
+      1240
+    ],
+    "description": "ミッション一覧パネル"
+  },
+  {
+    "file": "schedule/reward_popup.png",
+    "category": "schedule",
+    "size": [
+      190,
+      280
+    ],
+    "source_box": [
+      790,
+      960,
+      980,
+      1240
+    ],
+    "description": "報酬ポップアップ"
+  },
+  {
+    "file": "schedule/save_slots.png",
+    "category": "schedule",
+    "size": [
+      265,
+      280
+    ],
+    "source_box": [
+      980,
+      960,
+      1245,
+      1240
+    ],
+    "description": "セーブ/ロードスロット"
+  },
+  {
+    "file": "icons/baseball_icons_strip.png",
+    "category": "icons",
+    "size": [
+      290,
+      165
+    ],
+    "source_box": [
+      955,
+      1080,
+      1245,
+      1245
+    ],
+    "description": "野球・学校アイコン列"
+  },
+  {
+    "file": "icons/attribute_icons.png",
+    "category": "icons",
+    "size": [
+      670,
+      250
+    ],
+    "source_box": [
+      150,
+      415,
+      820,
+      665
+    ],
+    "description": "能力・野球アクションアイコン"
+  },
+  {
+    "file": "icons/rank_badges.png",
+    "category": "icons",
+    "size": [
+      430,
+      155
+    ],
+    "source_box": [
+      810,
+      430,
+      1240,
+      585
+    ],
+    "description": "S〜Gランクバッジ"
+  },
+  {
+    "file": "icons/resource_counters.png",
+    "category": "icons",
+    "size": [
+      615,
+      190
+    ],
+    "source_box": [
+      635,
+      830,
+      1250,
+      1020
+    ],
+    "description": "リソースカウンター群"
+  },
+  {
+    "file": "icons/decorations_borders.png",
+    "category": "icons",
+    "size": [
+      1250,
+      215
+    ],
+    "source_box": [
+      0,
+      1035,
+      1250,
+      1250
+    ],
+    "description": "装飾・区切り線・星・リボン"
+  }
+]

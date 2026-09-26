@@ -1,4 +1,5 @@
 import type { GameResult, GameState } from './engine';
+import {matchRewardForPlatform} from './platform-economy';
 
 export type Profile = 'career' | 'free';
 export const SCOUT_COST = 300;
@@ -11,5 +12,5 @@ export function gameReward(state: GameState, game: GameResult): number {
   const stadium = state.franchise.stadium - 1;
   const mine = game.home === state.club ? game.homeRuns : game.awayRuns;
   const opponent = game.home === state.club ? game.awayRuns : game.homeRuns;
-  return 18 + (mine > opponent ? 8 : mine === opponent ? 4 : 0) + stadium;
+  return matchRewardForPlatform(18 + (mine > opponent ? 8 : mine === opponent ? 4 : 0) + stadium);
 }

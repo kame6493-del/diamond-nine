@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "prepare:web": "node ../scripts/build-mobile.mjs",
-    "sync": "npm run prepare:web && cap sync",
+    "sync": "npm run sync:android && npm run sync:ios",
+    "sync:android": "node ../scripts/build-mobile.mjs --android && cap sync android",
+    "sync:ios": "npm run prepare:web && cap sync ios",
     "open:android": "cap open android",
     "open:ios": "cap open ios"
   },

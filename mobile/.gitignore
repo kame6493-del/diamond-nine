@@ -1,5 +1,6 @@
 node_modules/
 www/
+releases/
 *.keystore
 *.jks
 *.p12

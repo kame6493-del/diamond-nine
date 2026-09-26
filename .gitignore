@@ -11,3 +11,5 @@ scripts/data/
 .openai/*.tmp
 deployment/
 *.tar.gz
+.tools/
+marketing/*-video*/

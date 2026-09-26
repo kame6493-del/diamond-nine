@@ -1,4 +1,5 @@
-import {Capacitor} from '@capacitor/core';
+import {Capacitor,registerPlugin} from '@capacitor/core';
+import type {AndroidPointStore} from '../src/pro/point-products';
 import {Filesystem,Directory} from '@capacitor/filesystem';
 import {Share} from '@capacitor/share';
 import {Browser} from '@capacitor/browser';
@@ -7,6 +8,7 @@ const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
  const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);
 });
 if(Capacitor.isNativePlatform()){
+ if(Capacitor.getPlatform()==='android')window.diamondPointStore=registerPlugin<AndroidPointStore>('PointStore');
  const bridge:NativeFiles={async share({files,text,title}){
   const paths:string[]=[],uris:string[]=[];
   try{
