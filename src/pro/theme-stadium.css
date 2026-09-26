@@ -162,3 +162,18 @@
 .simple-app.stadium.bright .s-footer{color:#83907f}
 .simple-app.stadium.bright .s-footer a{color:inherit}
 .simple-app.stadium.bright .s-panel,.simple-app.stadium.bright .s-fold{border-color:#e3e8f2;box-shadow:0 6px 18px #1b2d6314}
+
+/* ---- larger, easier-to-read text in the new themes ---- */
+.simple-app.stadium{zoom:1.1}
+.simple-app.stadium .s-kicker{font-size:12px;letter-spacing:.12em}
+.simple-app.stadium .s-stats{font-size:14px}
+.simple-app.stadium .s-stats thead th{font-size:12px;font-weight:700}
+.simple-app.stadium .s-stats tbody th{font-size:14px}
+.simple-app.stadium .s-inline-result{font-size:14px}
+.simple-app.stadium .s-button{font-size:13px}
+.simple-app.stadium .s-footer{font-size:12px}
+.simple-app.stadium .s-season-top p{font-size:13px}
+.simple-app.stadium .s-next-opponent{font-size:13px}
+@media (max-width:380px){.simple-app.stadium{zoom:1.04}}
+.simple-app.stadium .s-brand b{white-space:nowrap;letter-spacing:.06em}
+@media (max-width:420px){.simple-app.stadium .s-brand{font-size:12px;gap:6px}.simple-app.stadium .s-header{gap:6px}}
