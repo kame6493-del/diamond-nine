@@ -3,6 +3,7 @@ import type {AndroidPointStore} from '../src/pro/point-products';
 import {Filesystem,Directory} from '@capacitor/filesystem';
 import {Share} from '@capacitor/share';
 import {Browser} from '@capacitor/browser';
+import {App} from '@capacitor/app';
 import type {NativeFiles} from '../src/pro/native-files';
 const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
  const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);
@@ -23,6 +24,22 @@ if(Capacitor.isNativePlatform()){
   }
  }};
  window.diamondNativeFiles=bridge;
+ // Android back: close the top dialog, then return to the first tab, then background the
+ // app. Without this the system back gesture quit the app while a dialog was open.
+ void App.addListener('backButton',()=>{
+  const dialogs=Array.prototype.filter.call(document.querySelectorAll('[role=dialog]'),(d:Element)=>d.getClientRects().length>0) as HTMLElement[];
+  const top=dialogs[dialogs.length-1];
+  if(top){
+   const close=top.querySelector('button[aria-label*="閉じる"]') as HTMLButtonElement|null;
+   if(close){close.click();return;}
+   top.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+   document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+   return;
+  }
+  const firstTab=document.querySelector('.s-nav button') as HTMLButtonElement|null;
+  if(firstTab&&!firstTab.disabled&&firstTab.getAttribute('aria-current')!=='page'){firstTab.click();window.scrollTo({top:0});return;}
+  void App.minimizeApp();
+ });
  document.addEventListener('click',event=>{
   const anchor=(event.target as Element)?.closest?.('a');if(!anchor)return;
   const url=new URL(anchor.href,location.href);
