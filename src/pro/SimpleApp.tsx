@@ -163,7 +163,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
     </>:!drawing&&<div className="s-unopened"><div className="s-baseball" aria-hidden="true">⚾</div><h2>選手カードを1枚獲得</h2><p>国内・海外の選手が登場</p></div>}
    </div>
    <button className="s-primary s-draw" disabled={!canDraw||drawing} onClick={onDraw}><Sparkles size={19}/>{drawing?'スカウト中…':hasDrawn?'もう1人引く':'1人引く'}<span>{count(SIMPLE_SCOUT_COST)+' pt'}</span></button>
-   <p className="s-scout-cost">所持 {count(state.gems)} pt</p>
+   <div className={'s-scout-balance '+(canDraw?'ok':'short')}><span>所持ポイント</span><b>{count(state.gems)}<small>pt</small></b><em>{canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回引けます`:`あと${count(SIMPLE_SCOUT_COST-state.gems)} ptで引けます`}</em></div>
    {!canDraw&&<><p className="scout-missing">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p><button className="s-text-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={15}/></button></>}
    <div className="scout-guarantee"><div><span>海外選手確定まで</span><b>あと{remaining}回</b></div><div className="scout-guarantee-track" role="progressbar" aria-label="海外選手確定までのスカウト進行" aria-valuemin={0} aria-valuemax={MLB_GUARANTEE_EVERY} aria-valuenow={MLB_GUARANTEE_EVERY-remaining}><i style={{width:(MLB_GUARANTEE_EVERY-remaining)/MLB_GUARANTEE_EVERY*100+'%'}}/></div><small>ポイントでのスカウトで進行 · シーズンをまたいで引き継ぎ</small></div>
   </div><div className="s-scout-note">1人 3,000 pt。30人目は海外選手確定。<details><summary>獲得できる選手・抽選確率</summary><p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。通常は国内リーグ {100-MLB_SCOUT_CHANCE*100}%・海外リーグ {MLB_SCOUT_CHANCE*100}%で、各グループ内は同じ確率です。30回ごとの確定時は未所持の海外選手から同じ確率で抽選し、全員所持の場合は海外選手全員が対象になります。</p></details></div></section>

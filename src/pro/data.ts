@@ -43,7 +43,7 @@ const previousContexts=Object.fromEntries(['CENTRAL','PACIFIC'].map(league=>[lea
 export const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n));
 const scale=(n:number)=>Math.round(clamp(n,15,99));
 export const grade=(n:number)=>n>=90?'S':n>=80?'A':n>=70?'B':n>=60?'C':n>=50?'D':n>=40?'E':n>=20?'F':'G';
-export const gradeColor=(n:number)=>n>=90?'#edb9ff':n>=80?'#f5bf5d':n>=70?'#eb8497':n>=60?'#68b2eb':n>=50?'#6bc29c':'#97a7ab';
+export const gradeColor=(n:number)=>n>=90?'#a84ad0':n>=80?'#bf7f00':n>=70?'#cf3f5c':n>=60?'#2878c2':n>=50?'#23915f':'#667780';
 export const teamById=(id:string,season?:{circuit?:string})=>{
  const team=teams.find(t=>t.id===id)??mlbTeams.find(t=>t.id===id)??mlbLeagueTeams.find(t=>t.id===id)!;
  return season?.circuit==='SPACE'&&spaceTeams[id]?{...team,...spaceTeams[id]}:team;

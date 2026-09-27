@@ -1,0 +1,49 @@
+/* Readability pass over the original design (loaded last from main.tsx).
+   Same colours and layout; only text size, weight and contrast go up where
+   phones showed 7-10px labels or pale grey text. */
+
+/* Japanese font stack: prefer what Android and iOS actually ship */
+:root{font-family:'Noto Sans JP','Noto Sans CJK JP','Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic UI',Meiryo,sans-serif;--muted:#56637a}
+
+/* team screen: the batting order no longer scrolls inside its own box, so one
+   swipe anywhere moves the whole page (it trapped the swipe at #9 before) */
+.compact-team.show-abilities .lineup-list{max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important}
+
+/* ability letters: grade colours are darker now, so drop the old darkening filter */
+.card-abilities strong{filter:none}
+.card-abilities small{color:#56637a}
+.card-abilities em{color:#34465f}
+
+/* small labels on the team screen (phone rules elsewhere shrink these to 7-10px,
+   so these sizes must win over them) */
+.row-overall small{font-size:10px!important}
+.card-abilities small{font-size:10.5px!important}
+.row-identity-meta small,.player-age,.team-stat-rank,.team-uzr-rank{font-size:11px!important}
+.deck-card-button{font-size:12px!important;font-weight:700}
+.compact-team .team-title-actions .s-button{font-size:11.5px!important}
+.deck-guide span{font-size:12px!important}
+.tutorial-progress>span{font-size:11.5px!important}
+.tutorial-progress b{font-size:11px!important}
+.tutorial-replay-note{font-size:11.5px!important}
+.s-main dt{font-size:11.5px;color:#4d5a70}
+
+/* season screen and tables */
+.s-kicker{font-size:11px}
+.s-game-count>span{font-size:11px}
+.s-stats thead th{font-size:11.5px;font-weight:600;color:#56637a}
+.s-uzr-note,.league-stats-caption{font-size:11.5px;color:#56637a}
+.s-footer{font-size:11px;color:#6b7686}
+.s-public-links a{font-size:12px!important}
+
+/* scout: points you hold, shown as a clear box under the button */
+.s-scout-balance{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:12px auto 0;max-width:420px;padding:10px 14px;border-radius:12px;background:#f4f1ff;border:1px solid #ddd3fb;text-align:left}
+.s-scout-balance>span{font-size:13px;font-weight:700;color:#4b3f73}
+.s-scout-balance>b{font-size:24px;font-weight:900;color:#2c2257;font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:0}
+.s-scout-balance>b small{font-size:13px;font-weight:700;margin-left:3px;color:#4b3f73}
+.s-scout-balance>em{flex-basis:100%;font-style:normal;font-size:13px;font-weight:700;color:#2f7a4f}
+.s-scout-balance.short{background:#fff6ec;border-color:#f2d2a6}
+.s-scout-balance.short>em{color:#b0561a}
+.scout-missing{display:none}
+.scout-guarantee small{font-size:12px;color:#56637a}
+.s-scout-note{color:#5f5475;font-size:13px}
+.s-unopened p{color:#5f5475}
