@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {Smartphone,X} from 'lucide-react';
+import './tester-banner.css';
 
 // Recruits Google Play closed testers from the web version only.
 const KEY='diamond-nine-tester-banner-closed';

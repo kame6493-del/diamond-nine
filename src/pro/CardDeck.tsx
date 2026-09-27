@@ -9,7 +9,6 @@ import {buildByStrategy} from './franchise';
 import {reorderSimplePlayer,replacementPool,replaceSimplePlayer,swapDefense} from './simple-game';
 import {pitchingRoleLabel} from './wiki-players';
 import {ownedRatings,playerAge,ratingOverall} from './development';
-import {cardTier} from './ui-theme';
 import {CardAbilities} from './CardAbilities';
 import {ReplacementPreview} from './ReplacementPreview';
 import {CardFilterControls} from './CardFilters';
@@ -32,7 +31,7 @@ export function JerseyArt({player}:{player:Player}){
 }
 export function TradingCard({player,state,slot,selected=false,compact=false,onPlayer,baseOnly=false}:{player:Player;state:GameState;slot?:string;selected?:boolean;compact?:boolean;onPlayer?:(p:Player)=>void;baseOnly?:boolean}){
  const team=teamById(player.team),level=baseOnly?0:state.training[player.id]??0,ratings=baseOnly?player.ratings:ownedRatings(player,state.owned,state.training);
- return <div className={`trading-card ${cardTier(ratingOverall(player,ratings))} ${player.mlb?'mlb-card':''} ${player.role==='pitcher'?'arm-card':'bat-card'} ${selected?'selected':''} ${compact?'compact-card':''}`} style={{'--team-tint':team.color} as CSSProperties}>
+ return <div className={`trading-card ${player.mlb?'mlb-card':''} ${player.role==='pitcher'?'arm-card':'bat-card'} ${selected?'selected':''} ${compact?'compact-card':''}`} style={{'--team-tint':team.color} as CSSProperties}>
   <div className="tc-top"><span>{slot??(player.mlb?.twoWay?'二刀流 · 投手 / DH':player.role==='pitcher'?pitchingRoleLabel(player):player.positions.join(' / ')||'DH')}</span><small>{player.mlb?'海外':'2026'}</small></div>
   <div className="tc-art"><span className="tc-watermark">{team.mark}</span><JerseyArt player={player}/><div className="tc-overall"><small>総合</small><b>{ratingOverall(player,ratings)}</b></div><span className="tc-team">{team.short}</span></div>
   <div className="tc-name">{onPlayer?<button onClick={e=>{e.stopPropagation();onPlayer(player);}}>{player.name}</button>:<strong>{player.name}</strong>}{selected&&<Check size={15}/>}</div>

@@ -6,7 +6,6 @@ import 'animate.css';
 import './pro/mobile.css';
 import './pro/mobile-readability.css';
 import './pro/player-details.css';
-import './pro/theme-stadium.css';
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
