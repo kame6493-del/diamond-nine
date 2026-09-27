@@ -1,0 +1,92 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>チーム画面 見本</title><style>
+*{box-sizing:border-box;margin:0}
+body{font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic UI',Meiryo,sans-serif;background:#e9eef6;color:#14213d;-webkit-font-smoothing:antialiased}
+.top{background:linear-gradient(180deg,#0e1c44,#16295e);color:#fff;padding:14px 14px 12px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.08em;font-size:14px}
+.brand i{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#ffd35c,#e89b00);display:grid;place-items:center;color:#1b1400;font-style:normal;font-size:18px}
+.pts{display:flex;align-items:baseline;gap:4px;background:#0a1533;border:1px solid #ffd35c88;border-radius:999px;padding:5px 14px}
+.pts b{font-size:22px;color:#ffe08a;font-variant-numeric:tabular-nums} .pts small{font-size:12px;color:#ffe08acc;font-weight:700}
+.summary{background:#16295e;color:#fff;padding:4px 14px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.summary .big{grid-row:span 2;text-align:center;background:#0a1533;border-radius:12px;padding:6px 14px}
+.summary .big small{display:block;font-size:11px;color:#9fb0d8;font-weight:700} .summary .big b{font-size:34px;line-height:1;color:#fff}
+.summary h1{font-size:18px} .summary p{font-size:12px;color:#c9d4f0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px;background:#e9eef6;position:sticky;top:0;z-index:2}
+.tabs button{border:0;border-radius:10px;padding:10px 0;font:inherit;font-size:15px;font-weight:800;background:#fff;color:#4a5875;box-shadow:0 1px 0 #cfd8e8}
+.tabs button.on{background:#16295e;color:#fff}
+.list{padding:0 10px 110px;display:grid;gap:8px}
+.row{background:#fff;border-radius:14px;padding:10px 10px 10px 8px;display:grid;grid-template-columns:40px 34px 1fr auto;grid-template-rows:auto auto;gap:6px 8px;align-items:center;box-shadow:0 2px 0 #d3dbe9}
+.ord{text-align:center;line-height:1} .ord b{font-size:24px;font-weight:900;color:#16295e} .ord span{display:block;font-size:11px;font-weight:700;color:#6a7894}
+.pos{width:34px;height:34px;border-radius:9px;color:#fff;font-weight:900;font-size:15px;display:grid;place-items:center}
+.who{min-width:0} .who strong{display:block;font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .who small{font-size:12px;color:#5c6a85;font-weight:600}
+.ovr{text-align:center;border-radius:12px;padding:4px 10px;min-width:62px} .ovr small{display:block;font-size:10px;font-weight:800;opacity:.85} .ovr b{font-size:28px;line-height:1.05;font-weight:900;font-variant-numeric:tabular-nums}
+.o-gold{background:linear-gradient(180deg,#fff3c4,#ffd66b);color:#6b4600} .o-silver{background:linear-gradient(180deg,#f3f6fb,#d6deea);color:#2b3a55} .o-bronze{background:linear-gradient(180deg,#fbeee4,#efcfb5);color:#6b3a14}
+.abils{grid-column:1 / -1;display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.ab{background:#f3f6fb;border-radius:9px;padding:5px 2px 6px;display:grid;justify-items:center;gap:2px}
+.ab .lbl{font-size:11px;font-weight:700;color:#4a5875}
+.ab .tile{width:30px;height:26px;border-radius:7px;color:#fff;font-size:17px;font-weight:900;display:grid;place-items:center;line-height:1}
+.ab .val{font-size:13px;font-weight:800;color:#14213d;font-variant-numeric:tabular-nums}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 12px 14px;background:#ffffffee;backdrop-filter:blur(8px);display:grid;grid-template-columns:1fr 1.4fr;gap:8px;box-shadow:0 -4px 16px #16295e1f}
+.bar button{border:0;border-radius:14px;min-height:54px;font:inherit;font-size:16px;font-weight:900}
+.bar .sub{background:#fff;color:#16295e;border:2px solid #16295e} .bar .main{background:linear-gradient(180deg,#ffd35c,#f0a91d);color:#241800;box-shadow:0 4px 0 #b97a0f}
+</style></head><body>
+<header class="top"><div class="brand"><i>9</i>DIAMOND NINE</div><div class="pts"><b>4,051</b><small>pt</small></div></header>
+<section class="summary"><div class="big"><small>チーム総合</small><b>54</b></div><h1>東京ルーキーズ</h1><p>打線9人の平均 · 国内リーグ</p></section>
+<nav class="tabs"><button class="on">打線</button><button>投手</button><button>控え</button></nav>
+<main class="list"><article class="row">
+  <div class="ord"><b>1</b><span>番</span></div>
+  <div class="pos" style="background:#1f9a63">外</div>
+  <div class="who"><strong>モ〇セエフ ニキータ</strong><small>東京・新宿 19歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>51</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">20</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">45</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">65</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>2</b><span>番</span></div>
+  <div class="pos" style="background:#2c7be5">二</div>
+  <div class="who"><strong>木〇 聖也</strong><small>兵庫 32歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>49</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">30</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">F</span><span class="val">35</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>3</b><span>番</span></div>
+  <div class="pos" style="background:#c0392b">捕</div>
+  <div class="who"><strong>石〇 彪</strong><small>宮城 27歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>51</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">30</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>4</b><span>番</span></div>
+  <div class="pos" style="background:#2c7be5">一</div>
+  <div class="who"><strong>牧 〇悟</strong><small>横浜 28歳</small></div>
+  <div class="ovr o-gold"><small>総合</small><b>87</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">65</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#d99a00">A</span><span class="val">80</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#e0485f">B</span><span class="val">70</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>5</b><span>番</span></div>
+  <div class="pos" style="background:#1f9a63">外</div>
+  <div class="who"><strong>石〇 慎吾</strong><small>千葉 33歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>49</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">25</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">45</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#8a97a3">F</span><span class="val">30</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>6</b><span>番</span></div>
+  <div class="pos" style="background:#2c7be5">三</div>
+  <div class="who"><strong>小〇寺 暖</strong><small>兵庫 28歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>51</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">20</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">65</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>7</b><span>番</span></div>
+  <div class="pos" style="background:#1f9a63">外</div>
+  <div class="who"><strong>中〇 晃</strong><small>福岡 36歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>51</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">30</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#8a97a3">E</span><span class="val">45</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>8</b><span>番</span></div>
+  <div class="pos" style="background:#8a5cd6">DH</div>
+  <div class="who"><strong>戸〇 恭孝</strong><small>横浜 36歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>49</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">25</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#8a97a3">E</span><span class="val">40</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div></div>
+</article><article class="row">
+  <div class="ord"><b>9</b><span>番</span></div>
+  <div class="pos" style="background:#2c7be5">遊</div>
+  <div class="who"><strong>柴〇 竜拓</strong><small>横浜 32歳</small></div>
+  <div class="ovr o-bronze"><small>総合</small><b>48</b></div>
+  <div class="abils"><div class="ab"><span class="lbl">ミート</span><span class="tile" style="background:#8a97a3">F</span><span class="val">25</span></div><div class="ab"><span class="lbl">パワー</span><span class="tile" style="background:#8a97a3">F</span><span class="val">25</span></div><div class="ab"><span class="lbl">走力</span><span class="tile" style="background:#1f9a63">D</span><span class="val">55</span></div><div class="ab"><span class="lbl">肩</span><span class="tile" style="background:#1f9a63">D</span><span class="val">50</span></div><div class="ab"><span class="lbl">守備</span><span class="tile" style="background:#2f7fd6">C</span><span class="val">60</span></div></div>
+</article></main>
+<div class="bar"><button class="sub">おまかせ編成</button><button class="main">試合へ進む ▶</button></div>
+</body></html>
