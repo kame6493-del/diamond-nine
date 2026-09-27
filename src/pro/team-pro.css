@@ -1,0 +1,65 @@
+/* Team screen: big order numbers, coloured position badges, overall tier boxes, rank tiles and a fixed action bar. */
+.team-pro{padding-bottom:calc(86px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))}
+.team-pro-summary{display:flex;align-items:center;gap:14px;margin:0 0 12px;padding:10px 14px;border-radius:14px;background:linear-gradient(180deg,#16295e,#0e1c44);color:#fff}
+.team-pro-summary>div:first-child{flex:none;text-align:center;background:#0a1533;border-radius:11px;padding:5px 14px}
+.team-pro-summary small{display:block;font-size:11px;font-weight:700;color:#9fb0d8}
+.team-pro-summary b{display:block;font-size:30px;line-height:1.05;font-weight:900;font-variant-numeric:tabular-nums}
+.team-pro-summary>div:last-child{min-width:0}
+.team-pro-summary strong{display:block;font-size:17px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-pro-summary span{font-size:12px;color:#c9d4f0}
+.team-pro-bar{position:fixed;left:0;right:0;bottom:0;z-index:25;display:grid;grid-template-columns:1fr 1.4fr;gap:8px;max-width:620px;margin:0 auto;padding:10px 12px calc(12px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));background:#ffffffee;backdrop-filter:blur(8px);box-shadow:0 -4px 16px #16295e1f}
+.team-pro-bar button{display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;border-radius:14px;font:inherit;font-size:16px;font-weight:900;cursor:pointer}
+.team-pro-bar button:only-child{grid-column:1/-1}
+.team-pro-auto{background:#fff;color:#16295e;border:2px solid #16295e}
+.team-pro-play{border:0;background:linear-gradient(180deg,#ffd35c,#f0a91d);color:#241800;box-shadow:0 4px 0 #b97a0f}
+.team-pro-play:active{transform:translateY(2px);box-shadow:0 2px 0 #b97a0f}
+.team-pro .team-title-actions .deck-auto{display:none}
+
+/* position badges */
+.team-pro .position-handle{color:#fff!important;font-weight:900;border:0!important;border-radius:9px}
+.team-pro .position-handle.pos-c{background:#c0392b!important}
+.team-pro .position-handle.pos-if{background:#2c7be5!important}
+.team-pro .position-handle.pos-of{background:#1f9a63!important}
+.team-pro .position-handle.pos-dh{background:#8a5cd6!important}
+.team-pro .position-handle.unfit{outline:3px solid #ff9f1c;outline-offset:1px}
+.team-pro .position-handle.picked{outline:3px solid #16295e;outline-offset:1px}
+
+/* overall tier boxes */
+.team-pro .row-overall{border-radius:11px;text-align:center;border-right:0!important}
+.team-pro .row-overall.ovr-gold{background:linear-gradient(180deg,#fff3c4,#ffd66b);color:#6b4600}
+.team-pro .row-overall.ovr-silver{background:linear-gradient(180deg,#f3f6fb,#d6deea);color:#2b3a55}
+.team-pro .row-overall.ovr-bronze{background:linear-gradient(180deg,#fbeee4,#efcfb5);color:#6b3a14}
+.team-pro .row-overall b,.team-pro .row-overall small{color:inherit!important}
+.team-pro .row-overall b{font-size:23px;line-height:1.05;font-weight:900;font-variant-numeric:tabular-nums}
+
+/* rank tiles: white letter on the grade colour */
+.team-pro .lineup-row .card-abilities>div{background:#f3f6fb;border-radius:9px}
+.team-pro .lineup-row .card-abilities strong{display:grid;place-items:center;min-width:23px;height:22px;padding:0 3px;border-radius:6px;background:var(--grade,#8a97a3);color:#fff!important;font-size:15px!important;font-weight:900;line-height:1}
+.team-pro .lineup-row .card-abilities em{font-size:13px!important;font-weight:800;color:#14213d;font-style:normal;font-variant-numeric:tabular-nums}
+
+@media(max-width:600px){
+ .simple-app .team-pro .lineup-row,.simple-app .team-pro .pitching-board .lineup-row{grid-template-columns:30px 32px minmax(0,1fr) auto auto;column-gap:7px;row-gap:6px;padding:8px 8px 8px 6px;min-height:0;border-radius:14px}
+ .simple-app .team-pro .lineup-row>.order-handle{grid-column:1;grid-row:1;min-height:40px;padding:0;background:none;border:0;flex-direction:column;justify-content:center}
+ .simple-app .team-pro .lineup-row>.order-handle svg{display:none}
+ .simple-app .team-pro .lineup-row>.order-handle b{font-size:20px;font-weight:900;color:#16295e;line-height:1}
+ .simple-app .team-pro .lineup-row>.position-cell{grid-column:2;grid-row:1}
+ .simple-app .team-pro .lineup-row .position-handle{width:32px;min-height:32px;height:32px;font-size:15px;padding:0}
+ .simple-app .team-pro .lineup-row>.row-jersey{display:none}
+ .simple-app .team-pro .lineup-row>.row-identity{grid-column:3;grid-row:1;min-width:0}
+ .simple-app .team-pro .pitching-board .lineup-row>.row-identity{grid-column:2/4}
+ .simple-app .team-pro .row-identity>button{font-size:16px!important;font-weight:900;min-height:24px}
+ .simple-app .team-pro .lineup-row>.row-overall,.simple-app .team-pro .pitching-board .lineup-row>.row-overall{grid-column:4;grid-row:1;min-width:52px;padding:3px 6px}
+ .simple-app .team-pro .lineup-row>.row-actions,.simple-app .team-pro .pitching-board .lineup-row>.row-actions{grid-column:5;grid-row:1;gap:0}
+ .simple-app .team-pro .row-actions>div{display:none}
+ .simple-app .team-pro .row-actions .deck-card-button{min-height:40px;min-width:44px;padding:0 8px;font-size:12px}
+ .simple-app .team-pro .lineup-row>.card-abilities,.simple-app .team-pro .pitching-board .lineup-row>.card-abilities{grid-column:1/-1;grid-row:2}
+ .simple-app .team-pro.show-abilities .lineup-row .card-abilities>div{grid-template-columns:auto auto;column-gap:4px;padding:4px 2px}
+}
+.team-pro .lineup-row .card-abilities>.card-speed strong{background:none;color:#14213d!important;min-width:0;padding:0;font-size:17px!important}
+@media(max-width:600px){
+ .simple-app .team-pro .pitching-board .lineup-row{grid-template-columns:46px minmax(0,1fr) auto auto}
+ .simple-app .team-pro .pitching-board .lineup-row>.order-handle b{font-size:15px;white-space:nowrap}
+ .simple-app .team-pro .pitching-board .lineup-row>.row-identity{grid-column:2}
+ .simple-app .team-pro .pitching-board .lineup-row>.row-overall{grid-column:3}
+ .simple-app .team-pro .pitching-board .lineup-row>.row-actions{grid-column:4}
+}
