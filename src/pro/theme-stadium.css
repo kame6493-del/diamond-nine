@@ -177,3 +177,18 @@
 @media (max-width:380px){.simple-app.stadium{zoom:1.04}}
 .simple-app.stadium .s-brand b{white-space:nowrap;letter-spacing:.06em}
 @media (max-width:420px){.simple-app.stadium .s-brand{font-size:12px;gap:6px}.simple-app.stadium .s-header{gap:6px}}
+
+/* tester recruitment banner (web version only) */
+.tester-banner{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;margin:0 0 16px;padding:14px 14px 14px 16px;border-radius:14px;
+  background:linear-gradient(135deg,#fff8e1,#fff2c6);border:1px solid #f0c35a;color:#4a3700;box-shadow:0 4px 14px #b8860b1f}
+.tester-banner>svg{color:#b8860b;margin-top:2px}
+.tester-banner strong{display:block;font-size:15px}
+.tester-banner p{font-size:12px;line-height:1.7;margin:2px 0 8px;color:#6b5418}
+.tester-banner-steps{display:flex;flex-wrap:wrap;gap:8px}
+.tester-banner-steps a{display:inline-flex;align-items:center;min-height:38px;padding:6px 14px;border-radius:999px;font-weight:800;font-size:13px;text-decoration:none;color:#241800;
+  background:linear-gradient(180deg,#ffe791,#ffc93d);box-shadow:0 3px 0 #b97a0f}
+.tester-banner>button{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;color:#8a6a1f}
+.tester-banner>button:hover{background:#0000000d}
+.simple-app.stadium:not(.bright) .tester-banner{background:linear-gradient(135deg,#1d2f6b,#101d49);border-color:#ffcf5a66;color:#eef3ff}
+.simple-app.stadium:not(.bright) .tester-banner p{color:#b9c6ea}
+.simple-app.stadium:not(.bright) .tester-banner>button{color:#b9c6ea}
