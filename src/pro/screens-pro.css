@@ -1,0 +1,33 @@
+/* Season and scout screens in the same look as the team screen: navy header cards, gold main buttons. */
+.simple-app .s-season-view .s-primary,.simple-app .mobile-scout .s-primary,.simple-app .beginner-tutorial .s-primary,.simple-app .s-season-end .s-primary{background:linear-gradient(180deg,#ffd35c,#f0a91d);color:#241800;border:0;border-radius:14px;min-height:52px;font-size:16px;font-weight:900;box-shadow:0 4px 0 #b97a0f}
+.simple-app .s-season-view .s-primary:hover:not(:disabled),.simple-app .mobile-scout .s-primary:hover:not(:disabled),.simple-app .beginner-tutorial .s-primary:hover:not(:disabled){background:linear-gradient(180deg,#ffdc78,#f3b235)}
+.simple-app .s-season-view .s-primary:active:not(:disabled),.simple-app .mobile-scout .s-primary:active:not(:disabled),.simple-app .beginner-tutorial .s-primary:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #b97a0f}
+.simple-app .s-season-view .s-primary:disabled,.simple-app .mobile-scout .s-primary:disabled{background:#d7dde8;color:#6b7890;box-shadow:none}
+.simple-app .mobile-scout .s-draw span{color:#241800;border-color:#24180033}
+
+/* season card: navy, white numbers */
+.simple-app .s-season-card{background:linear-gradient(180deg,#16295e,#0e1c44);border:0;color:#fff;border-radius:16px}
+.simple-app .s-season-card h2{color:#fff}
+.simple-app .s-season-top p,.simple-app .s-season-card .s-game-count>span,.simple-app .s-season-card .s-next-opponent>span,.simple-app .s-season-card .s-season-end p{color:#c9d4f0}
+.simple-app .s-season-top p b,.simple-app .s-season-card .s-game-count b,.simple-app .s-season-card .s-next-opponent{color:#fff}
+.simple-app .s-season-card .s-game-count b{font-size:34px;font-weight:900}
+.simple-app .s-season-top>div>span:first-child{background:#ffd35c;border:0;color:#3a2800;font-weight:900}
+.simple-app .s-season-card .s-progress{background:#ffffff26;height:6px}
+.simple-app .s-season-card .s-progress>i{background:linear-gradient(90deg,#ffd35c,#f0a91d)}
+
+/* team stat tiles: navy numbers */
+.simple-app .s-team-stats dd,.simple-app .s-team-stats dd>b,.simple-app .s-team-stats dd strong{color:#16295e}
+.simple-app .season-stat-switch button[aria-pressed=true],.simple-app .season-stat-switch button.is-active{color:#16295e}
+.simple-app .s-stats th{color:#4a5875}
+
+/* scout: points in a navy card, gold numbers */
+.simple-app .mobile-scout .s-scout-balance.ok{background:linear-gradient(180deg,#16295e,#0e1c44);border:0}
+.simple-app .mobile-scout .s-scout-balance.ok>span{color:#c9d4f0}
+.simple-app .mobile-scout .s-scout-balance.ok>b{color:#ffe08a}
+.simple-app .mobile-scout .s-scout-balance.ok>b small{color:#ffe08acc}
+.simple-app .mobile-scout .s-scout-balance.ok>em{color:#8ee0b0}
+.simple-app .mobile-scout .scout-guarantee b{color:#b97a0f}
+.simple-app .mobile-scout .scout-guarantee-track{background:#e3e8f2;height:8px;border-radius:8px}
+.simple-app .mobile-scout .scout-guarantee-track>i,.simple-app .mobile-scout .scout-guarantee-track>span{background:linear-gradient(90deg,#ffd35c,#f0a91d);border-radius:8px}
+.simple-app .mobile-scout .s-page-title h1{color:#16295e}
+.simple-app .s-season-view .s-page-title h1{color:#16295e}
