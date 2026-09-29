@@ -68,7 +68,10 @@ export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  const [filters,setFilters]=useState<CardFilters>({...defaultCardFilters}),[notice,setNotice]=useState('');
  const [view,setView]=useState<Slot['kind']>('bat'),[showAbilities,setShowAbilities]=useState(true),[benchOpen,setBenchOpen]=useState(false);
  const [dragging,setDragging]=useState<Payload|null>(null),[over,setOver]=useState(''),[ghost,setGhost]=useState<{x:number;y:number;name:string}|null>(null);
- const pointer=useRef<{payload:Payload;x:number;y:number;moved:boolean}|null>(null),ignoreClick=useRef(false);
+ const pointer=useRef<{payload:Payload;x:number;y:number;lastX:number;lastY:number;moved:boolean;touch:boolean;timer:number;el:HTMLElement;id:number}|null>(null),ignoreClick=useRef(false),autoScroll=useRef(0);
+ // While a finger drag is live, stop the page from panning under it (touch-action is pan-y so a plain swipe still scrolls).
+ useEffect(()=>{const block=(e:TouchEvent)=>{if(pointer.current?.moved&&e.cancelable)e.preventDefault();};document.addEventListener('touchmove',block,{passive:false});return()=>document.removeEventListener('touchmove',block);},[]);
+ useEffect(()=>()=>{cancelAnimationFrame(autoScroll.current);if(pointer.current)clearTimeout(pointer.current.timer);},[]);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),3600);return()=>clearTimeout(timer);},[notice]);
  const roster=new Set([...state.lineup,...state.pitchers]);
  const bench=Object.keys(state.owned).map(id=>playerMap[id]).filter(p=>!roster.has(p.id)||(selected&&p.mlb?.twoWay&&!(selected.kind==='bat'?state.lineup:state.pitchers).includes(p.id)));
@@ -88,14 +91,30 @@ export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
   else if(payload.mode==='order'&&payload.kind===slot.kind)commit(reorderSimplePlayer(state,slot.kind,ids.indexOf(payload.id),slot.index),'順番を変更しました。');
  };
  const targetAt=(x:number,y:number)=>{const el=document.elementFromPoint(x,y)?.closest<HTMLElement>('[data-deck-kind]');return el?{kind:el.dataset.deckKind as Slot['kind'],index:Number(el.dataset.deckIndex)}:null;};
+ // Near the top or bottom edge the page scrolls by itself, faster the closer the finger is to the edge.
+ const edgeScroll=()=>{const p=pointer.current;if(!p?.moved){autoScroll.current=0;return;}
+  const top=120,bottom=innerHeight-160;const speed=p.lastY<top?-Math.min(22,4+(top-p.lastY)/5):p.lastY>bottom?Math.min(22,4+(p.lastY-bottom)/5):0;
+  if(speed){const before=scrollY;scrollBy(0,speed);if(scrollY!==before){const t=targetAt(p.lastX,p.lastY);setOver(t?`${t.kind}-${t.index}`:'');}}
+  autoScroll.current=requestAnimationFrame(edgeScroll);};
+ const beginDrag=(p:NonNullable<typeof pointer.current>)=>{p.moved=true;setDragging(p.payload);setGhost({x:p.lastX,y:p.lastY,name:playerMap[p.payload.id].name});if(!autoScroll.current)autoScroll.current=requestAnimationFrame(edgeScroll);};
+ const endDrag=()=>{const p=pointer.current;if(p)clearTimeout(p.timer);pointer.current=null;cancelAnimationFrame(autoScroll.current);autoScroll.current=0;setDragging(null);setOver('');setGhost(null);};
  const dragProps=(payload:Payload)=>({
   draggable:true,
   onDragStart:(e:DragEvent<HTMLElement>)=>{if(pointer.current){e.preventDefault();return;}e.dataTransfer.setData('text/plain',JSON.stringify(payload));e.dataTransfer.effectAllowed='move';setDragging(payload);},
   onDragEnd:()=>{setDragging(null);setOver('');},
-  onPointerDown:(e:PointerEvent<HTMLElement>)=>{if(e.button!==0||((e.target as HTMLElement).closest('button')&&e.currentTarget.tagName!=='BUTTON'))return;e.preventDefault();ignoreClick.current=false;pointer.current={payload,x:e.clientX,y:e.clientY,moved:false};e.currentTarget.setPointerCapture(e.pointerId);},
-  onPointerMove:(e:PointerEvent<HTMLElement>)=>{const p=pointer.current;if(!p)return;if(!p.moved&&Math.hypot(e.clientX-p.x,e.clientY-p.y)<8)return;p.moved=true;setDragging(p.payload);setGhost({x:e.clientX,y:e.clientY,name:playerMap[p.payload.id].name});const t=targetAt(e.clientX,e.clientY);setOver(t?`${t.kind}-${t.index}`:'');},
-  onPointerUp:(e:PointerEvent<HTMLElement>)=>{const p=pointer.current;pointer.current=null;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);if(p?.moved){ignoreClick.current=true;setTimeout(()=>{ignoreClick.current=false;},0);const t=targetAt(e.clientX,e.clientY);if(t)drop(p.payload,t);}setDragging(null);setOver('');setGhost(null);},
-  onPointerCancel:()=>{pointer.current=null;setDragging(null);setOver('');setGhost(null);},
+  onPointerDown:(e:PointerEvent<HTMLElement>)=>{if(e.button!==0||((e.target as HTMLElement).closest('button')&&e.currentTarget.tagName!=='BUTTON'))return;
+   const touch=e.pointerType!=='mouse',el=e.currentTarget,id=e.pointerId;ignoreClick.current=false;
+   if(!touch){e.preventDefault();el.setPointerCapture(id);}
+   const p={payload,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false,touch,el,id,timer:0};
+   // On a phone a drag starts after a short hold, so a quick swipe on the handle scrolls the page instead.
+   if(touch)p.timer=window.setTimeout(()=>{if(pointer.current!==p)return;try{el.setPointerCapture(id);}catch{}navigator.vibrate?.(12);beginDrag(p);},220);
+   pointer.current=p;},
+  onPointerMove:(e:PointerEvent<HTMLElement>)=>{const p=pointer.current;if(!p)return;p.lastX=e.clientX;p.lastY=e.clientY;
+   if(!p.moved){if(Math.hypot(e.clientX-p.x,e.clientY-p.y)<8)return;if(p.touch){clearTimeout(p.timer);pointer.current=null;return;}beginDrag(p);}
+   setGhost({x:e.clientX,y:e.clientY,name:playerMap[p.payload.id].name});const t=targetAt(e.clientX,e.clientY);setOver(t?`${t.kind}-${t.index}`:'');},
+  onPointerUp:(e:PointerEvent<HTMLElement>)=>{const p=pointer.current;if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);if(p?.moved){ignoreClick.current=true;setTimeout(()=>{ignoreClick.current=false;},0);const t=targetAt(e.clientX,e.clientY);if(t)drop(p.payload,t);}endDrag();},
+  onPointerCancel:()=>endDrag(),
+  onContextMenu:(e:{preventDefault:()=>void})=>{if(pointer.current)e.preventDefault();},
  });
  const tapOrder=(slot:Slot)=>{if(ignoreClick.current)return;if(order?.kind===slot.kind){drop({mode:'order',kind:slot.kind,id:(slot.kind==='bat'?state.lineup:state.pitchers)[order.index]},slot);setOrder(null);}else{clear();setOrder(slot);}};
  const tapDefense=(id:string)=>{if(ignoreClick.current)return;if(defender){commit(swapDefense(state,defender,id),'守備位置を交換しました。');setDefender(null);}else{clear();setDefender(id);}};

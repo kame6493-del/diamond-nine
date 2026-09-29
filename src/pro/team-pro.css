@@ -63,3 +63,6 @@
  .simple-app .team-pro .pitching-board .lineup-row>.row-overall{grid-column:3}
  .simple-app .team-pro .pitching-board .lineup-row>.row-actions{grid-column:4}
 }
+
+/* A plain swipe on the order number or position badge scrolls the page; a short hold starts the drag (CardDeck). */
+.lineup-row .order-handle,.lineup-row .position-handle{touch-action:pan-y!important;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
