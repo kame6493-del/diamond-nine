@@ -8,6 +8,8 @@ await build({
  bundle:true,minify:true,format:'esm',platform:'browser',target:'es2022',jsx:'automatic',
  define:{'process.env.NODE_ENV':'"production"'},external:['/assets/*','https://*'],
  logLevel:'info',legalComments:'eof',
+ // bundled game fonts (@fontsource): copied next to game.css
+ loader:{'.woff':'file','.woff2':'file'},assetNames:'fonts/[name]-[hash]',publicPath:'/assets/',
 });
 const ads=JSON.parse(await readFile('src/pro/adsense-config.json','utf8'));
 const publisherReady=/^ca-pub-\d{16}$/.test(ads.publisherId);

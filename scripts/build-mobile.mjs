@@ -10,7 +10,7 @@ execFileSync(process.execPath,['scripts/build-pro.mjs'],{stdio:'inherit'});
 const out=resolve('mobile/www');
 await mkdir(out,{recursive:true});
 await cp('dist',out,{recursive:true});
-await build({absWorkingDir:root,entryPoints:['mobile/main.ts'],outfile:resolve(out,'assets/game.js'),bundle:true,minify:true,format:'esm',platform:'browser',target:'es2022',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','__DIAMOND_ANDROID__':String(android)},external:['/assets/*','https://*'],legalComments:'eof',plugins:[{name:'native-ad-config',setup(b){b.onLoad({filter:/adsense-config\.json$/},()=>({contents:JSON.stringify({enabled:false,publisherId:'',seasonResultSlotId:''}),loader:'json'}));}}]});
+await build({absWorkingDir:root,entryPoints:['mobile/main.ts'],outfile:resolve(out,'assets/game.js'),bundle:true,minify:true,format:'esm',platform:'browser',target:'es2022',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"','__DIAMOND_ANDROID__':String(android)},external:['/assets/*','https://*'],legalComments:'eof',loader:{'.woff':'file','.woff2':'file'},assetNames:'fonts/[name]-[hash]',publicPath:'/assets/',plugins:[{name:'native-ad-config',setup(b){b.onLoad({filter:/adsense-config\.json$/},()=>({contents:JSON.stringify({enabled:false,publisherId:'',seasonResultSlotId:''}),loader:'json'}));}}]});
 // Native builds use device fonts and never load browser advertising tags.
 const css=resolve(out,'assets/game.css');
 // The font URL itself contains ';' (wght@400;500;...), so stop at the closing quote,

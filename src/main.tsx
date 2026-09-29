@@ -8,6 +8,7 @@ import './pro/mobile-readability.css';
 import './pro/player-details.css';
 import './pro/readability.css';
 import './pro/screens-pro.css';
+import './pro/game-look.css';
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

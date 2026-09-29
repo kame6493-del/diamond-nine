@@ -1,0 +1,76 @@
+/* Game look: sporty letters and numbers, rank tiles with a raised face, metallic overall boxes and a light sweep on the top ranks.
+   Layout and the white background stay as they are. Fonts are bundled (the app must not fetch Google Fonts). */
+@import '@fontsource/russo-one/400.css';
+@import '@fontsource/dela-gothic-one/400.css';
+
+:root{--game-num:'Russo One',system-ui,sans-serif;--game-head:'Dela Gothic One','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif}
+
+@keyframes game-sweep{0%,55%{transform:translateX(-120%) skewX(-20deg)}85%,100%{transform:translateX(220%) skewX(-20deg)}}
+
+/* ---- rank letters (S A B C D E F G) ---- */
+.card-abilities strong[data-grade],.ability-row b[data-grade],.team-pro .lineup-row .card-abilities strong[data-grade]{
+ position:relative;overflow:hidden;display:inline-grid;place-items:center;
+ min-width:24px;height:23px;padding:0 4px;border-radius:6px;
+ font-family:var(--game-num);font-weight:400;font-style:italic;font-size:16px!important;line-height:1;letter-spacing:0;
+ color:#fff!important;-webkit-text-stroke:.6px #0006;text-shadow:0 1.5px 0 #0005;
+ background:linear-gradient(180deg,color-mix(in srgb,var(--g) 55%,#fff) 0%,var(--g) 48%,color-mix(in srgb,var(--g) 78%,#000) 100%)!important;
+ box-shadow:inset 0 1px 0 #fff9,inset 0 -2px 0 #0003,0 1px 2px #0003;
+}
+.ability-row b[data-grade]{min-width:26px}
+[data-grade=S]{--g:#e0a400}
+[data-grade=A]{--g:#e0245e}
+[data-grade=B]{--g:#f05a1a}
+[data-grade=C]{--g:#f0a000}
+[data-grade=D]{--g:#b4ab00}
+[data-grade=E]{--g:#23a04f}
+[data-grade=F]{--g:#2a7fe0}
+[data-grade=G]{--g:#8a97a3}
+/* S: gold with a rainbow edge */
+.card-abilities strong[data-grade=S],.ability-row b[data-grade=S]{
+ background:linear-gradient(180deg,#fff6c2 0%,#ffd33d 40%,#e09a00 75%,#b36b00 100%)!important;
+ color:#fffbe6!important;-webkit-text-stroke:.7px #7a4300;text-shadow:0 1.5px 0 #7a4300aa;
+ box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 #0002,0 0 0 1.5px #ffe27a,0 0 7px #ffc83d99;
+}
+/* light sweep on S and A */
+.card-abilities strong[data-grade=S]::after,.ability-row b[data-grade=S]::after,
+.card-abilities strong[data-grade=A]::after,.ability-row b[data-grade=A]::after{
+ content:'';position:absolute;inset:-2px auto -2px 0;width:45%;
+ background:linear-gradient(90deg,#fff0,#fffc,#fff0);animation:game-sweep 2.8s ease-in-out infinite;pointer-events:none;
+}
+.card-abilities strong[data-grade=A]::after,.ability-row b[data-grade=A]::after{animation-duration:3.6s;opacity:.7}
+
+/* ---- numbers ---- */
+.card-abilities em,.ability-row>strong,
+.team-pro .row-overall b,.team-pro-summary b,
+.simple-app .team-pro .lineup-row>.order-handle b,
+.s-wallet,.s-scout-balance>b{font-family:var(--game-num)!important;font-weight:400!important;letter-spacing:0}
+.team-pro .lineup-row .card-abilities em{font-size:14px!important}
+.simple-app .team-pro .lineup-row>.order-handle b{font-style:italic;font-size:21px!important}
+.team-pro-summary b{font-size:32px!important;font-style:italic;background:linear-gradient(180deg,#fff 20%,#ffd84d 60%,#f2a900);-webkit-background-clip:text;background-clip:text;color:transparent!important;filter:drop-shadow(0 2px 0 #0006)}
+.s-scout-balance>b{font-size:26px!important}
+
+/* ---- overall boxes: metal ---- */
+.team-pro .row-overall{position:relative;overflow:hidden;box-shadow:inset 0 1px 0 #fffb,inset 0 -2px 0 #0002,0 1px 3px #0002}
+.team-pro .row-overall b{font-size:25px!important;font-style:italic}
+.team-pro .row-overall.ovr-gold{background:linear-gradient(160deg,#fff8d6 0%,#ffe07a 30%,#f5b82a 62%,#ffe9a3 80%,#d69412 100%)!important;color:#5c3a00!important;box-shadow:inset 0 1px 0 #fff,0 0 0 1.5px #f0c24a,0 0 10px #ffc83d80}
+.team-pro .row-overall.ovr-silver{background:linear-gradient(160deg,#ffffff 0%,#e3e9f2 35%,#b9c4d4 62%,#eef2f8 80%,#a5b1c2 100%)!important}
+.team-pro .row-overall.ovr-bronze{background:linear-gradient(160deg,#fff1e6 0%,#f0c7a3 35%,#c98a5c 62%,#f3d2b8 80%,#b0744a 100%)!important}
+.team-pro .row-overall.ovr-gold::after,.team-pro .row-overall.ovr-silver::after{
+ content:'';position:absolute;inset:-4px auto -4px 0;width:40%;
+ background:linear-gradient(90deg,#fff0,#fffd,#fff0);animation:game-sweep 3.2s ease-in-out infinite;pointer-events:none;
+}
+.team-pro .row-overall.ovr-silver::after{animation-duration:4.4s;opacity:.6}
+
+/* ---- headings and main buttons ---- */
+.s-page-title h1,.team-pro-summary strong,.team-pro-bar button,.s-nav button,.s-brand b{font-family:var(--game-head)!important;font-weight:400!important;letter-spacing:.02em}
+.s-page-title h1{font-size:26px}
+.s-kicker{font-family:var(--game-num)!important;font-style:italic;letter-spacing:.08em}
+.team-pro-play{text-shadow:0 1px 0 #fff8}
+
+@media (prefers-reduced-motion:reduce){
+ .card-abilities strong[data-grade]::after,.ability-row b[data-grade]::after,.team-pro .row-overall::after{animation:none;display:none}
+}
+
+/* big numbers on cards, scout results and the season counter */
+.scout-arrival strong,.starter-card-back>b,.s-game-count>b,.card-ovr,
+.simple-app [class*=overall]>b,.simple-app [class*=overall]>strong,.simple-app [class*=ovr]>b,.simple-app [class*=ovr]>strong{font-family:var(--game-num)!important;font-weight:400!important;font-style:italic;letter-spacing:0!important}
