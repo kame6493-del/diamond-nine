@@ -78,6 +78,17 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
 
+      # Vendor frameworks (Google Mobile Ads, UMP) arrive with their own signature, which the
+      # unsigned archive keeps and App Store Connect rejects. Strip it so export signs them with ours.
+      - name: Strip vendor signatures from embedded frameworks
+        if: ${{ !inputs.compile_only }}
+        run: |
+          FW="$RUNNER_TEMP/App.xcarchive/Products/Applications/App.app/Frameworks"
+          if [ -d "$FW" ]; then
+            find "$FW" -maxdepth 1 -name "*.framework" -print -exec codesign --remove-signature {} \;
+            find "$FW" -maxdepth 2 -name "_CodeSignature" -type d -prune -exec rm -rf {} +
+          fi
+
       - name: Export and upload to TestFlight
         if: ${{ !inputs.compile_only }}
         run: |
