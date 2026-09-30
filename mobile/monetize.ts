@@ -90,7 +90,8 @@ function claimPremiumDaily(){
 }
 
 // ---------- ads ----------
-const adOptions=(adId:string)=>({adId,isTesting:config.useTestAds,npa:config.nonPersonalizedAds});
+// iOS never asks for tracking permission (no ATT), and the App Store privacy label says no tracking, so iOS always requests non-personalized ads.
+const adOptions=(adId:string)=>({adId,isTesting:config.useTestAds,npa:config.nonPersonalizedAds||platform==='ios'});
 let rewardLoaded=false,rewardLoading:Promise<void>|null=null,interstitialLoaded=false,interstitialLoading:Promise<void>|null=null,fullscreen=false,lastFullscreenAt=0,adsInit:Promise<void>|null=null;
 function initAds():Promise<void>{
  return adsInit??=(async()=>{
