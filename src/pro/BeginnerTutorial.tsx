@@ -6,6 +6,7 @@ import {starterScoutActive} from './starter-scout';
 import {SIMPLE_SCOUT_COST} from './simple-game';
 import {awakeningCosts} from './development';
 import './beginner-tutorial.css';
+import {track} from './analytics';
 
 type Phase='starter'|'team'|'season'|'finish';
 type Progress={phase:Phase;season:number;day:number};
@@ -50,7 +51,8 @@ export function BeginnerTutorial({state,profile,page,replay,busy,onPage,onAuto,o
   else if(progress.phase==='season'&&!busy&&(state.season.number!==progress.season||state.season.day>progress.day))setProgress(progressFor('finish',state));
  },[progress,starter,state,busy,onPage]);
  useEffect(()=>{
-  if(progress?.phase&&previousPhase.current!==progress.phase)panel.current?.scrollIntoView({block:'start',behavior:'auto'});
+  if(progress?.phase&&previousPhase.current!==progress.phase){panel.current?.scrollIntoView({block:'start',behavior:'auto'});track('tutorial_step',{phase:progress.phase});}
+  if(!progress&&previousPhase.current)track('tutorial_end',{phase:previousPhase.current});
   previousPhase.current=progress?.phase;
  },[progress?.phase]);
  if(!progress)return null;

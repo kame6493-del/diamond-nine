@@ -12,6 +12,7 @@ import {
  PREMIUM_DAILY_POINTS,REWARD_AD_DAILY_LIMIT,REWARD_AD_POINTS,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,
  type MonetizeBridge,type MonetizeSnapshot,type PremiumSnapshot,type RewardOutcome,
 } from '../src/pro/monetization';
+import {track} from '../src/pro/analytics';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
 const ids=config[platform];
@@ -62,15 +63,15 @@ function refreshPremium():Promise<void>{
 }
 async function buyPremium(){
  if(premium.busy||premium.status!=='ready'||premium.owned)return;
- setPremium({busy:true,message:''});
+ setPremium({busy:true,message:''});track('premium_begin',{price:premium.price??''});
  try{
   const t=await NativePurchases.purchaseProduct({productIdentifier:PRODUCT,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:true});
   if(validPurchase(t)){
    if(platform==='android'&&t.isAcknowledged===false&&t.purchaseToken)await NativePurchases.acknowledgePurchase({purchaseToken:t.purchaseToken}).catch(()=>{});
-   write(KEY.premium,'1');setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});
+   write(KEY.premium,'1');setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
   }else setPremium({message:'お支払いの完了を待っています。完了すると自動で有効になります。'});
  }catch(e){
-  const text=String((e as {message?:string})?.message??e);
+  const text=String((e as {message?:string})?.message??e);track('premium_fail',{cancelled:/cancel/i.test(text)});
   setPremium({message:/cancel/i.test(text)?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると自動で有効になります。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
  }finally{
   setPremium({busy:false});void refreshPremium();
@@ -135,6 +136,7 @@ async function showRewardAd(onReward:(points:number)=>void):Promise<RewardOutcom
   },()=>done());
   await Promise.race([closed,sleep(180000)]);
   await sleep(500);// a reward callback may land just after dismissal
+  track('reward_ad',{outcome:granted?'rewarded':'dismissed'});
   return granted?'rewarded':'dismissed';
  }catch{rewardLoaded=false;return 'failed';}
  finally{
@@ -157,7 +159,7 @@ async function showInterstitial(reason:'season'|'scout'){
   handles.push(await AdMob.addListener(InterstitialAdPluginEvents.FailedToShow,()=>done()));
   interstitialLoaded=false;fullscreen=true;
   await AdMob.showInterstitial();
-  write(KEY.pacing,JSON.stringify({lastShownAt:Date.now(),scoutsSince:0}));
+  write(KEY.pacing,JSON.stringify({lastShownAt:Date.now(),scoutsSince:0}));track('interstitial_ad',{reason});
   await Promise.race([closed,sleep(120000)]);
   return true;
  }catch{return false;}

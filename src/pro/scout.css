@@ -53,3 +53,16 @@
 .scout-tier-rainbow .scout-reveal .tc-overall>b{color:#864cc7}
 @media(max-width:600px){.scout-arrival strong{font-size:52px}.scout-tier-gold.neon-scout,.scout-tier-rainbow.neon-scout{min-height:425px}.neon-pack{width:148px;height:215px}.scout-tier-gold .scout-reveal,.scout-tier-rainbow .scout-reveal{padding:4px}}
 @media(prefers-reduced-motion:reduce){.scout-arrival-rays,.scout-shockwave,.scout-spotlight,.scout-ring-outer{display:none}.scout-reveal,.scout-arrival{animation:none!important}}
+
+/* Share the pull (scout result) */
+.scout-share{display:flex;flex-direction:column;align-items:center;gap:6px;margin:12px 0 4px}
+.scout-share-button{min-width:220px;font-size:13px}
+.scout-share-button.is-shiny{background:linear-gradient(100deg,#fff4c7,#ffe08a 45%,#fff8e3);border-color:#e5bb63;color:#5a3d00;position:relative;overflow:hidden}
+.scout-share-button.is-shiny::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,#ffffffb0 50%,transparent 70%);transform:translateX(-100%);animation:game-sweep 2.6s ease-in-out infinite}
+.scout-share-notice{font-size:11px;color:#526e5c}
+/* Limited-time draft week */
+.draft-week-banner{margin:0 0 16px;padding:14px 16px;border-radius:14px;color:#fff;background:linear-gradient(120deg,#1f3f8f,#3f63d1 55%,#c9a227);box-shadow:0 6px 18px #1f3f8f33}
+.draft-week-banner span{display:inline-block;font-size:10px;font-weight:800;background:#ffffff26;border:1px solid #ffffff40;border-radius:999px;padding:2px 10px}
+.draft-week-banner h2{font-family:var(--game-head);font-weight:400;font-size:19px;margin:6px 0 4px;letter-spacing:.02em}
+.draft-week-banner p{font-size:12px;line-height:1.7;color:#eef2ff}
+@media (prefers-reduced-motion:reduce){.scout-share-button.is-shiny::after{animation:none}}

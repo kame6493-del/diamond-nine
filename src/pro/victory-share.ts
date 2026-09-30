@@ -1,6 +1,7 @@
 import {formatAvg,playerMap,type Ratings} from './data';
-import {battingAverage,ops,type GameState,type Season} from './engine';
-import {circuitLabel,circuitOf,seasonGames,titleFor,wonNpbLeague} from './leagues';
+import {battingAverage,ops,rankings,type GameState,type Season} from './engine';
+import {shareTags} from './share-kit';
+import {circuitLabel,circuitOf,leagueFor,seasonGames,titleFor,wonNpbLeague} from './leagues';
 import {captureSeasonTeam,type SeasonTeamSnapshot} from './season-team';
 
 export function victoryTitle(season:Season,club:string):string|null{
@@ -10,6 +11,14 @@ export function victoryTitle(season:Season,club:string):string|null{
  if(circuitOf(season)!=='NPB'&&season.postseason?.series.some(s=>s.stage==='championship'&&s.winner===club))return circuitOf(season)==='SPACE'?'宇宙リーグ優勝':'海外リーグ優勝';
  return null;
 }
+// Every finished season can be shared, not only championships. Without a title the
+// headline is the final league rank.
+export function seasonShareTitle(season:Season,club:string):{title:string;champion:boolean}|null{
+ const title=victoryTitle(season,club);if(title)return {title,champion:true};
+ if(!season.completed||season.day!==seasonGames(season)||season.postseason?.stage!=='complete')return null;
+ const rank=rankings(season,leagueFor(season,club)).findIndex(t=>t.team===club)+1;
+ return rank>0?{title:`リーグ${rank}位`,champion:false}:null;
+}
 const mean=(values:number[])=>Math.round(values.reduce((a,b)=>a+b,0)/Math.max(1,values.length));
 export function shareTeamAbilities(team:SeasonTeamSnapshot){
  const fielders=team.batters.filter(p=>p.position!=='DH'),unique=[...new Map([...team.batters,...team.pitchers].map(p=>[p.id,p])).values()];
@@ -17,12 +26,12 @@ export function shareTeamAbilities(team:SeasonTeamSnapshot){
  return {overall:mean(unique.map(p=>p.overall)),metrics:[['ミート',average('contact')],['パワー',average('power')],['走力',average('speed')],['肩',average('arm',true)],['守備',average('field',true)],['投手総合',mean(team.pitchers.map(p=>p.overall))]] as [string,number][]};
 }
 export function victoryShareData(state:GameState,season:Season){
- const title=victoryTitle(season,state.club);if(!title)return null;
+ const headline=seasonShareTitle(season,state.club);if(!headline)return null;const {title,champion}=headline;
  const team=season.shareTeam??(season===state.season?captureSeasonTeam(state):null);
  if(!team)return null; // Old archives have no record of that year's abilities.
  const standing=season.standings.find(s=>s.team===state.club)!;
  const rows=Object.values(season.batting).filter(b=>b.team===state.club&&b.pa>0).sort((a,b)=>b.pa-a.pa||a.playerId.localeCompare(b.playerId));
- return {title,year:season.number,league:circuitLabel(circuitOf(season)),name:team.name,record:`${standing.w}勝 ${standing.l}敗 ${standing.d}分`,...shareTeamAbilities(team),
+ return {title,champion,year:season.number,league:circuitLabel(circuitOf(season)),name:team.name,record:`${standing.w}勝 ${standing.l}敗 ${standing.d}分`,...shareTeamAbilities(team),
   abilityLabel:season.shareTeam?'シーズン終了時のチーム能力':'現在のチーム能力',
   playerAbilityLabel:season.shareTeam?'シーズン終了時の選手能力':'現在の選手能力',
   lineupAbilities:team.batters.map((p,i)=>({id:p.id,name:playerMap[p.id].name,order:i+1,position:p.position,overall:p.overall,ratings:{...p.ratings}})),
@@ -44,8 +53,9 @@ export function publicGameUrl(href:string):string{
   url.username='';url.password='';url.search='';url.hash='';return url.href;
  }catch{return '';}
 }
-export function victoryPostText(data:VictoryShareData,url=''){
- return `DIAMOND NINEで${data.year}年目に${data.title}！\n「${data.name.replace(/\s+/g,' ')}」 ${data.record}／チーム総合${data.overall}\n選手を集めて育てる野球シミュレーション⚾\n#DIAMONDNINE #野球ゲーム${url?'\n'+url:''}`;
+export function victoryPostText(data:VictoryShareData,url='',now:Date|null=new Date()){
+ const head=data.champion?`DIAMOND NINEで${data.year}年目に${data.title}！`:`DIAMOND NINE ${data.year}年目は${data.title}。来季こそ優勝へ！`;
+ return `${head}\n「${data.name.replace(/\s+/g,' ')}」 ${data.record}／チーム総合${data.overall}\n選手を集めて育てる野球シミュレーション⚾\n${shareTags(now)}${url?'\n'+url:''}`;
 }
 export const xPostIntent=(text:string)=>'https://twitter.com/intent/tweet?'+new URLSearchParams({text}).toString();
 export function canShareVictory(navigator:Pick<Navigator,'share'|'canShare'>,file:File,secure:boolean):boolean{

@@ -5,6 +5,7 @@ import type {GameState,Season} from './engine';
 import {canShareVictory,publicGameUrl,victoryShareData,victoryPostText,xPostIntent} from './victory-share';
 import {renderVictoryImage,VICTORY_IMAGE_WIDTH,VICTORY_IMAGE_HEIGHT} from './victory-image';
 import './victory-share.css';
+import {track} from './analytics';
 
 export function VictoryShare({state,season}:{state:GameState;season:Season}){
  const data=useMemo(()=>victoryShareData(state,season),[season,state.club,state.name,state.lineup,state.pitchers,state.defense,state.owned,state.training]);
@@ -26,17 +27,17 @@ export function VictoryShare({state,season}:{state:GameState;season:Season}){
  const download=()=>{if(!ready)return;void saveGameFile(ready.file).catch(()=>setNotice('画像を保存できませんでした。もう一度お試しください。'));};
  const share=async()=>{
   if(!ready||shareLock.current)return;shareLock.current=true;setSharing(true);setNotice('');
-  try{await (window.diamondNativeFiles?window.diamondNativeFiles.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}):navigator.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}));setNotice('共有先に画像と投稿文を渡しました。');}
+  try{await (window.diamondNativeFiles?window.diamondNativeFiles.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}):navigator.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}));setNotice('共有先に画像と投稿文を渡しました。');track('share',{content:data.champion?'victory':'season',method:window.diamondNativeFiles?'native':'web_share'});}
   catch(error){if((error as Error)?.name!=='AbortError')setNotice('この端末では画像を共有できませんでした。画像を保存してXに添付できます。');}
   finally{shareLock.current=false;setSharing(false);}
  };
  const copy=async()=>{try{await navigator.clipboard.writeText(text);setNotice('投稿文をコピーしました。');}catch{textArea.current?.focus();textArea.current?.select();setNotice('投稿文を選択しました。コピーしてお使いください。');}};
- return <section className="victory-share" aria-label="優勝の記録をシェア">
-  <div className="victory-share-heading"><Camera size={23}/><div><h2>優勝の記録をシェア</h2><p>打撃成績・チーム能力・選手一人ひとりの能力を、1枚の記念画像に。</p></div></div>
+ return <section className="victory-share" aria-label={data.champion?'優勝の記録をシェア':'シーズンの記録をシェア'}>
+  <div className="victory-share-heading"><Camera size={23}/><div><h2>{data.champion?'優勝の記録をシェア':'シーズンの記録をシェア'}</h2><p>打撃成績・チーム能力・選手一人ひとりの能力を、1枚の記念画像に。</p></div></div>
   {!ready&&!error&&<p role="status">記念画像を作っています…</p>}
   {error&&<p role="alert">{error}<button className="s-text-link" onClick={()=>setAttempt(n=>n+1)}>画像を作り直す</button></p>}
   {ready&&<><div className="victory-share-actions">
-   {native?<button className="s-primary" disabled={sharing} onClick={share}><Share2 size={17}/>{sharing?'共有メニューを開いています…':'画像付きで共有する'}</button>:<a className="s-primary" href={intent} target="_blank" rel="noopener noreferrer" onClick={()=>{download();setNotice('保存した画像をXの投稿画面に添付してください。');}}><Share2 size={17}/>画像を保存してXへ</a>}
+   {native?<button className="s-primary" disabled={sharing} onClick={share}><Share2 size={17}/>{sharing?'共有メニューを開いています…':'画像付きで共有する'}</button>:<a className="s-primary" href={intent} target="_blank" rel="noopener noreferrer" onClick={()=>{download();setNotice('保存した画像をXの投稿画面に添付してください。');track('share',{content:data.champion?'victory':'season',method:'x_intent'});}}><Share2 size={17}/>画像を保存してXへ</a>}
    <button className="s-button" onClick={download}><Download size={16}/>画像を保存</button>
   </div><p className="victory-share-help">{native?'共有先でXを選んで投稿できます。':'Xの投稿画面で、保存した画像を添付してください。'}{!gameUrl&&' 公開後はゲームのURLも自動で入ります。'}</p></>}
   <details className="victory-share-preview"><summary>画像・投稿文を確認</summary>

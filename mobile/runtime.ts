@@ -6,11 +6,13 @@ import {Browser} from '@capacitor/browser';
 import {App} from '@capacitor/app';
 import type {NativeFiles} from '../src/pro/native-files';
 import {installMonetize} from './monetize';
+import {installAnalytics} from './analytics';
 const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
  const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);
 });
 if(Capacitor.isNativePlatform()){
  if(Capacitor.getPlatform()==='android')window.diamondPointStore=registerPlugin<AndroidPointStore>('PointStore');
+ try{installAnalytics();}catch{/* analytics is optional */}
  try{installMonetize();}catch{/* ads and the pass are optional; the game must still start */}
  const bridge:NativeFiles={async share({files,text,title}){
   const paths:string[]=[],uris:string[]=[];

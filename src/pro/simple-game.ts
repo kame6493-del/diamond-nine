@@ -2,6 +2,7 @@ import {canBat,fitsPosition,playerMap,players,type Player} from './data';
 import {rng,type GameState} from './engine';
 import {claimAllMilestones} from './franchise';
 import {claimSeasonGoals} from './ambitions';
+import {DRAFT_ROOKIE_CHANCE,draftEventActive,draftRookiePool} from './draft-event';
 
 export const SIMPLE_SCOUT_COST=3000;
 export const MLB_SCOUT_CHANCE=.02;
@@ -17,13 +18,15 @@ export function collectSimpleRewards(input:GameState):GameState {
  return state.franchise.tickets?{...state,franchise:{...state.franchise,tickets:0}}:state;
 }
 
-export function drawSimplePlayer(input:GameState):GameState {
+// `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
+export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  if(input.gems<SIMPLE_SCOUT_COST)return input;
  const state=structuredClone(input),random=rng(state.seed);
  const guaranteed=(state.pulls+1)%MLB_GUARANTEE_EVERY===0;
  const major=guaranteed||random.next()<MLB_SCOUT_CHANCE;
  const missing=majorPool.filter(p=>!state.owned[p.id]);
- const pool=major?(guaranteed&&missing.length?missing:majorPool):domesticPool;
+ const rookie=!major&&draftEventActive(now)&&random.next()<DRAFT_ROOKIE_CHANCE;
+ const pool=major?(guaranteed&&missing.length?missing:majorPool):rookie?draftRookiePool:domesticPool;
  const player=pool[Math.floor(random.next()*pool.length)];
  const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?80:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
