@@ -1,0 +1,16 @@
+{
+  "_comment": "The one place to swap AdMob IDs. Values below are Google's public TEST IDs. Replace all six with the IDs from your AdMob account and set useTestAds to false before release. Android reads this via app/build.gradle; iOS Info.plist is rewritten from it by scripts/build-mobile.mjs (npm --prefix mobile run sync:ios).",
+  "useTestAds": true,
+  "nonPersonalizedAds": false,
+  "android": {
+    "appId": "ca-app-pub-3940256099942544~3347511713",
+    "rewardedId": "ca-app-pub-3940256099942544/5224354917",
+    "interstitialId": "ca-app-pub-3940256099942544/1033173712"
+  },
+  "ios": {
+    "appId": "ca-app-pub-3940256099942544~1458002511",
+    "rewardedId": "ca-app-pub-3940256099942544/1712485313",
+    "interstitialId": "ca-app-pub-3940256099942544/4411468910"
+  },
+  "premiumProductId": "premium_pass"
+}
