@@ -18,6 +18,8 @@ New-Item -ItemType Directory -Force $stage | Out-Null
 if ($LASTEXITCODE -ge 8) { throw 'Android staging failed' }
 & robocopy "$repo/mobile/node_modules" "$stage/node_modules" /E /NFL /NDL /NJH /NJS /NP | Out-Null
 if ($LASTEXITCODE -ge 8) { throw 'Dependencies staging failed' }
+# app/build.gradle reads the AdMob app ID from ../ads-config.json (relative to android/).
+Copy-Item "$repo/mobile/ads-config.json" "$stage/ads-config.json" -Force
 if (!$Unsigned) {
  $secretDir = Join-Path $buildRoot 'signing'
  New-Item -ItemType Directory -Force $secretDir | Out-Null

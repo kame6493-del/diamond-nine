@@ -1,3 +1,17 @@
+# 広告とプレミアムパス（2026-09-30 実装・ブランチ monetize）
+
+アプリ版（iOS/Android）のみ。ブラウザ版は変更なし（広告・課金コードは読み込まれない）。
+
+- 設定の一本化：mobile/ads-config.json。現在はGoogle公式のテスト用ID。本番IDに差し替えて useTestAds を false に。Androidは app/build.gradle がこのJSONからAndroidManifestの APPLICATION_ID を埋める。iOSは sync:ios（build-mobile.mjs）が Info.plist の GADApplicationIdentifier を書き換える。
+- 広告：@capacitor-community/admob 8.1.0（Google Mobile Ads Android 25.4.0 / iOS 13.6.0、UMP同梱）。ATTは出さない（NSUserTrackingUsageDescription なし）。
+ - リワード「広告を見て ＋600pt」：スカウト画面の所持ポイントの下。1日5回（端末ローカル日付、localStorage diamond-nine-reward-ads）。付与はSDKの報酬コールバックのみ・1回の視聴で1回だけ。
+ - インタースティシャル：レギュラーシーズン終了時と、スカウト3回ごと（スカウト画面から別タブへ移るとき）。3分間は連続表示しない。パス所有者には出さない。
+- プレミアムパス：@capgo/native-purchases 8.8.1（iOS StoreKit 2 / Android Play Billing 9.1.0）。非消耗型 premium_pass。
+ - 効果：試合報酬2倍（アプリの0.8倍に掛ける）・毎日ログイン+300pt（1日1回、ストア確認済みのときのみ）・インタースティシャルなし。スカウト確率と試合結果は変えない。
+ - 所有判定は起動時・復帰時にストアへ問い合わせ（iOS Transaction.currentEntitlements、Android queryPurchases）。localStorageはキャッシュ。Androidは未承認の購入を必ず acknowledge。
+ - 商品がストアに無い間は「販売準備中」で購入ボタン無効。価格はストアの表示価格のみ。
+- 経済の実測：node scripts/check-app-economy.mjs（4シード×2シーズン）。
+
 # Androidポイント販売・実装状況
 
 2026-09-25。**販売は未開始。購入ボタンも決済呼び出しも無効。**
@@ -7,7 +21,7 @@
 - 国内60勝83敗、目標達成・完走・通常ポストシーズン報酬込みの例：4,129→3,437pt（約16.8%減）。初回の追加達成報酬はこの計算に含めない。
 - スカウト3,000pt、覚醒600/1,800/5,400/16,200/48,600ptを維持。課金有無で対戦結果やガチャ確率は変えない。
 - 設定画面のAndroid専用ショップ。Play Billing 9.1.0による商品照会のみ。販売準備中は価格を捏造せず表示する。
-- ブラウザ・iOSの報酬は従来通り。Android専用ビルドフラグで分離。
+- ブラウザの報酬は従来通り。2026-09-30からiOSアプリもAndroidと同じ0.8倍（__DIAMOND_APP__ビルドフラグ）。
 
 ## 商品案（Play Consoleには未登録）
 | 商品ID | ポイント | 日本向け価格案 |

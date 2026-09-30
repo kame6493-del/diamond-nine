@@ -9,10 +9,13 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "runtime.ts",
+    "monetize.ts",
     "../src/pro/native-files.ts"
   ]
 }
