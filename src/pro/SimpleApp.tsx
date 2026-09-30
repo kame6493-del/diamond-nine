@@ -104,12 +104,9 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
  const post=season.postseason,champion=post?.champion,space=circuitOf(season)==='SPACE',major=circuitOf(season)!=='NPB',total=seasonGames(season),career=leagueProgress(state);
  const challengeRevealed=major||career.mlbUnlocked||career.npbStreak>0||recordAchievements(state).achievements?.npbLeague!==undefined;
  const achievements=recordAchievements(state).achievements??{},recentAchievement=(Object.keys(achievementNames) as Array<keyof typeof achievementNames>).filter(id=>achievements[id]===season.number).at(-1);
- const report=useRef<HTMLDivElement>(null),wasComplete=useRef(season.completed);
- useEffect(()=>{
-  if(season.completed&&!wasComplete.current)report.current?.scrollIntoView({block:'start',behavior:'auto'});
-  wasComplete.current=season.completed;
- },[season.completed]);
- const endActions=current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion,season).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();window.scrollTo({top:0,behavior:'auto'});}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'海外リーグ挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>王座決定戦の終了まで<ChevronRight size={18}/></button></>}</div>;
+ // The page stays where the player left it when a season ends or the next one starts (no forced scrolling).
+ const report=useRef<HTMLDivElement>(null);
+ const endActions=current&&season.completed&&<div className="s-season-end">{post?.stage==='complete'?<><p>{champion===state.club?`${titleFor(season)}、おめでとう！`:`${titleFor(season)}：${champion?teamById(champion,season).short:'—'}`}</p><button className="s-primary" disabled={busy} onClick={()=>{setArchive(0);onNext();}}>{!major&&career.mlbUnlocked&&state.leagueChoice!=='NPB'?'海外リーグ挑戦へ進む':'次のシーズンへ'}<ChevronRight size={18}/></button></>:<><p>{total}試合が終了しました。</p><button className="s-primary" disabled={busy} onClick={onPost}>王座決定戦の終了まで<ChevronRight size={18}/></button></>}</div>;
  return <div className={'s-season-view'+(season.completed?' is-complete':'')}>
   <div className="s-page-title"><div><p className="s-kicker">{circuitLabel(circuitOf(season))} · SEASON {String(season.number).padStart(2,'0')}</p><h1>{season.completed?'シーズンの成績':'試合を進めよう。'}</h1></div>{state.history.length>0&&<select aria-label="表示するシーズン" value={archive} onChange={e=>setArchive(Number(e.target.value))}><option value={0}>今シーズン</option>{state.history.map(s=><option value={s.number} key={s.number}>{s.number}年目 · {circuitLabel(circuitOf(s))}</option>)}</select>}</div>
   {current&&<details className="season-goals"><summary><span><small>目標・達成記録</small><strong>{space?'宇宙王座決定戦優勝':major?'世界王座決定戦優勝':career.mlbUnlocked?'海外リーグ挑戦が解放！':challengeRevealed?'リーグ優勝3連覇':'リーグ初優勝'}</strong>{recentAchievement&&<span className="goal-new-record" role="status">{season.number}年目に{achievementNames[recentAchievement]}を達成！</span>}</span><b>{!major&&challengeRevealed&&!career.mlbUnlocked?`${career.npbStreak} / ${NPB_TITLES_TO_MLB} 連覇`:season.day?`現在 ${table.indexOf(mine)+1}位`:'開幕前'}</b><ChevronRight size={18}/></summary><div className="season-goals-body">
@@ -142,8 +139,10 @@ export function SimpleSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,
 export function SimplePlayerCard({player,state}:{player:Player;state:GameState}){return <div className="s-player-card"><TradingCard player={player} state={state}/></div>;}
 
 export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlayer,onSkip}:{state:GameState;onDraw:()=>void;onEquip:(id:string)=>void;drawing:boolean;hasDrawn:boolean;onSeason:()=>void;onPlayer?:(p:Player)=>void;onSkip?:()=>void}){
- const panel=useRef<HTMLElement>(null);
- useEffect(()=>{if(drawing)panel.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});},[drawing]);
+ const panel=useRef<HTMLElement>(null),result=useRef<HTMLDivElement>(null);
+ // Keep the page still while drawing: no auto-scroll, and the result area holds its height until the new card is in.
+ const [holdHeight,setHoldHeight]=useState<number|null>(null);
+ const draw=()=>{setHoldHeight(result.current?.offsetHeight??null);onDraw();};
  const pull=hasDrawn?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
  const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
  const remaining=mlbScoutCountdown(state),major=!!player?.mlb&&!drawing;
@@ -151,7 +150,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
  return <div className="mobile-scout">
   <div className="s-page-title"><div><p className="s-kicker">SCOUT</p><h1>スカウト</h1><p>新たな選手を獲得しよう！</p></div></div>
   <section ref={panel} className={'s-scout-panel scout-tier-'+tier+' '+(major?'major-reveal':'')}><div className="s-scout-main">
-   <div className={'s-scout-result '+(drawing?'drawing':'')} aria-live="polite" aria-busy={drawing}>
+   <div ref={result} className={'s-scout-result '+(drawing?'drawing':'')} style={drawing&&holdHeight?{minHeight:holdHeight}:undefined} aria-live="polite" aria-busy={drawing}>
     {drawing&&<ScoutCharge tier={tier} onSkip={onSkip}/>}
     {player&&!drawing?<>
      
@@ -162,7 +161,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
      {upgrade?<div className="s-equip-offer"><ReplacementPreview player={playerMap[upgrade.oldId]} state={state} position={upgrade.pitching?upgrade.position:`${upgrade.index+1}番 · ${upgrade.position}`} mode={upgrade.pitching?'pitcher':'batter'} onPlayer={onPlayer}/><button className="s-button" onClick={()=>onEquip(player.id)}><Users size={16}/>この選手と入れ替える</button></div>:[...state.lineup,...state.pitchers].includes(player.id)?<p className="s-equipped"><Check size={16}/>チームに編成済み</p>:<p>控えに加入しました。チーム画面で起用できます。</p>}
     </>:!drawing&&<div className="s-unopened"><div className="s-baseball" aria-hidden="true">⚾</div><h2>選手カードを1枚獲得</h2><p>国内・海外の選手が登場</p></div>}
    </div>
-   <button className="s-primary s-draw" disabled={!canDraw||drawing} onClick={onDraw}><Sparkles size={19}/>{drawing?'スカウト中…':hasDrawn?'もう1人引く':'1人引く'}<span>{count(SIMPLE_SCOUT_COST)+' pt'}</span></button>
+   <button className="s-primary s-draw" disabled={!canDraw||drawing} onClick={draw}><Sparkles size={19}/>{drawing?'スカウト中…':hasDrawn?'もう1人引く':'1人引く'}<span>{count(SIMPLE_SCOUT_COST)+' pt'}</span></button>
    <div className={'s-scout-balance '+(canDraw?'ok':'short')}><span>所持ポイント</span><b>{count(state.gems)}<small>pt</small></b><em>{canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回引けます`:`あと${count(SIMPLE_SCOUT_COST-state.gems)} ptで引けます`}</em></div>
    {!canDraw&&<><p className="scout-missing">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p><button className="s-text-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={15}/></button></>}
    <div className="scout-guarantee"><div><span>海外選手確定まで</span><b>あと{remaining}回</b></div><div className="scout-guarantee-track" role="progressbar" aria-label="海外選手確定までのスカウト進行" aria-valuemin={0} aria-valuemax={MLB_GUARANTEE_EVERY} aria-valuenow={MLB_GUARANTEE_EVERY-remaining}><i style={{width:(MLB_GUARANTEE_EVERY-remaining)/MLB_GUARANTEE_EVERY*100+'%'}}/></div><small>ポイントでのスカウトで進行 · シーズンをまたいで引き継ぎ</small></div>
