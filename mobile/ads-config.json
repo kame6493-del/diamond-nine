@@ -1,16 +1,16 @@
 {
-  "_comment": "The one place to swap AdMob IDs. Values below are Google's public TEST IDs. Replace all six with the IDs from your AdMob account and set useTestAds to false before release. Android reads this via app/build.gradle; iOS Info.plist is rewritten from it by scripts/build-mobile.mjs (npm --prefix mobile run sync:ios).",
-  "useTestAds": true,
+  "_comment": "AdMob IDs for DIAMOND NINE (publisher pub-9843093495011329). Android reads this via app/build.gradle; iOS Info.plist is rewritten from it by scripts/build-mobile.mjs. Set useTestAds to true to get Google test ads while developing.",
+  "useTestAds": false,
   "nonPersonalizedAds": false,
   "android": {
-    "appId": "ca-app-pub-3940256099942544~3347511713",
-    "rewardedId": "ca-app-pub-3940256099942544/5224354917",
-    "interstitialId": "ca-app-pub-3940256099942544/1033173712"
+    "appId": "ca-app-pub-9843093495011329~2728506545",
+    "rewardedId": "ca-app-pub-9843093495011329/8259111383",
+    "interstitialId": "ca-app-pub-9843093495011329/1717668046"
   },
   "ios": {
-    "appId": "ca-app-pub-3940256099942544~1458002511",
-    "rewardedId": "ca-app-pub-3940256099942544/1712485313",
-    "interstitialId": "ca-app-pub-3940256099942544/4411468910"
+    "appId": "ca-app-pub-9843093495011329~8091504704",
+    "rewardedId": "ca-app-pub-9843093495011329/5019627965",
+    "interstitialId": "ca-app-pub-9843093495011329/7983693494"
   },
   "premiumProductId": "premium_pass"
 }

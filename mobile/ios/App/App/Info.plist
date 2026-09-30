@@ -24,7 +24,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<!-- AdMob app ID: synced from mobile/ads-config.json by scripts/build-mobile.mjs. -->
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-9843093495011329~8091504704</string>
 	<!-- Google-recommended SKAdNetwork IDs (developers.google.com/admob/ios/quick-start). -->
 	<key>SKAdNetworkItems</key>
 	<array>
