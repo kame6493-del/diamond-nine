@@ -4,7 +4,7 @@ import {isRookie} from './development';
 // Limited-time "draft week" around the real NPB draft meeting. While it runs, a
 // domestic scout picks from last year's draft class with DRAFT_ROOKIE_CHANCE.
 // Dates are the player's local calendar days, inclusive.
-export const DRAFT_EVENT={id:'draft-2026',start:'2026-10-16',end:'2026-11-03',name:'ドラフト会議ウィーク',tag:'#ドラフト会議'} as const;
+export const DRAFT_EVENT={id:'draft-2026',start:'2026-10-16',end:'2026-11-03',name:'ドラフト会議ウィーク',tag:'#ドラフト会議',campaignTag:'#DIAMONDNINEドラフト'} as const;
 export const DRAFT_ROOKIE_CHANCE=.3;
 export const draftRookiePool:Player[]=players.filter(p=>!p.mlb&&isRookie(p));
 

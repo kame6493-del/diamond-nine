@@ -38,7 +38,7 @@ export function registerGrowthFeatureTests(test:(name:string,run:()=>void)=>void
  });
  test('every post carries the brand and genre hashtags, adds the draft tag only during the event, and fits X\'s 280 limit',()=>{
   for(const tag of SHARE_TAGS)assert.ok(shareTags(beforeEvent).includes(tag));
-  assert.ok(!shareTags(beforeEvent).includes(DRAFT_EVENT.tag));assert.ok(shareTags(inEvent).includes(DRAFT_EVENT.tag));
+  assert.ok(!shareTags(beforeEvent).includes(DRAFT_EVENT.tag));assert.ok(shareTags(inEvent).includes(DRAFT_EVENT.tag));assert.ok(shareTags(inEvent).includes(DRAFT_EVENT.campaignTag));
   assert.equal(xWeightedLength('abc'),3);assert.equal(xWeightedLength('野球'),4);assert.equal(xWeightedLength('https://example.com/very/long/path?x=1'),23);
   const url='https://diamond-nine-baseball.com/';
   const longest=[...players].sort((a,b)=>b.name.length-a.name.length)[0];

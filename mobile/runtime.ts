@@ -5,8 +5,10 @@ import {Share} from '@capacitor/share';
 import {Browser} from '@capacitor/browser';
 import {App} from '@capacitor/app';
 import type {NativeFiles} from '../src/pro/native-files';
+import type {} from '../src/pro/review';
 import {installMonetize} from './monetize';
 import {installAnalytics} from './analytics';
+import {InAppReview} from '@capacitor-community/in-app-review';
 const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
  const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);
 });
@@ -28,6 +30,7 @@ if(Capacitor.isNativePlatform()){
   }
  }};
  window.diamondNativeFiles=bridge;
+ window.diamondReview={request:()=>InAppReview.requestReview()};
  // Android back: close the top dialog, then return to the first tab, then background the
  // app. Without this the system back gesture quit the app while a dialog was open.
  void App.addListener('backButton',()=>{

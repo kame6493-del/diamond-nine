@@ -7,7 +7,8 @@ import type {ScoutTier} from './scout-presentation';
 // reach people who follow baseball and phone games. The draft tag is added only
 // while the draft event runs.
 export const SHARE_TAGS=['#DIAMONDNINE','#ダイヤモンドナイン','#野球ゲーム','#プロ野球','#スマホゲーム'] as const;
-export const shareTags=(now:Date|null=new Date())=>[...SHARE_TAGS,...(draftEventActive(now)?[DRAFT_EVENT.tag]:[])].join(' ');
+// During the draft week the campaign tags take the place of #スマホゲーム so posts stay within 280.
+export const shareTags=(now:Date|null=new Date())=>(draftEventActive(now)?[...SHARE_TAGS.filter(t=>t!=='#スマホゲーム'),DRAFT_EVENT.campaignTag,DRAFT_EVENT.tag]:[...SHARE_TAGS]).join(' ');
 
 // X counts most CJK characters and emoji as 2 and every URL as 23. Posts must stay
 // within 280 or the intent page refuses to post them.
