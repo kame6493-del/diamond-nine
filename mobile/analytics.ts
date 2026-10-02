@@ -26,16 +26,24 @@ export function installAnalytics():void{
  let session:{id:string;last:number;count:number}=(()=>{try{return JSON.parse(read(KEY.session)??'')}catch{return {id:'',last:0,count:0};}})();
  let lastEvent=Date.now(),queue:Pending[]=[],timer:ReturnType<typeof setTimeout>|null=null;
  const url=`https://www.google-analytics.com/mp/collect?measurement_id=${encodeURIComponent(config.measurementId)}&api_secret=${encodeURIComponent(config.apiSecret)}`;
- const flush=()=>{
+ // Only "simple" cross-origin requests reach GA from the web view. With an
+ // application/json body the browser sends a CORS preflight, the collect endpoint
+ // answers it with 405, and no event was ever sent (found 2026-10-03). Measured in
+ // Chrome: no-cors text/plain fetch and sendBeacon arrive; the same fetch with
+ // keepalive did not. GA accepts the JSON body as text.
+ const send=(body:string,leaving:boolean)=>{
+  if(leaving&&typeof navigator.sendBeacon==='function'&&navigator.sendBeacon(url,new Blob([body],{type:'text/plain;charset=UTF-8'})))return;
+  void fetch(url,{method:'POST',body,mode:'no-cors',headers:{'Content-Type':'text/plain;charset=UTF-8'}}).catch(()=>{});
+ };
+ const flush=(leaving=false)=>{
   if(timer){clearTimeout(timer);timer=null;}
   while(queue.length){
    const events=queue.splice(0,MAX_BATCH).map(e=>({name:e.name,params:e.params,timestamp_micros:e.timestamp_micros}));
-   const body=JSON.stringify({client_id:install,user_properties:{
-    app_platform:{value:platform},app_version:{value:appVersion||'unknown'},first_launch_day:{value:firstLaunch}},events});
-   void fetch(url,{method:'POST',body,keepalive:true,headers:{'Content-Type':'application/json'}}).catch(()=>{});
+   send(JSON.stringify({client_id:install,user_properties:{
+    app_platform:{value:platform},app_version:{value:appVersion||'unknown'},first_launch_day:{value:firstLaunch}},events}),leaving);
   }
  };
- const schedule=()=>{if(queue.length>=MAX_BATCH)flush();else if(!timer)timer=setTimeout(flush,FLUSH_MS);};
+ const schedule=()=>{if(queue.length>=MAX_BATCH)flush();else if(!timer)timer=setTimeout(()=>flush(),FLUSH_MS);};
  const push=(name:string,params:Record<string,AnalyticsValue>={})=>{
   const now=Date.now();
   if(!session.id||now-session.last>SESSION_GAP_MS){
@@ -54,6 +62,6 @@ export function installAnalytics():void{
  push('app_open',{});
  void App.addListener('appStateChange',({isActive})=>{
   if(isActive){lastEvent=Date.now();push('app_resume',{});}
-  else{push('app_background',{});flush();}
+  else{push('app_background',{});flush(true);}
  }).catch(()=>{});
 }
