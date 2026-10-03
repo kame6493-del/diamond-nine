@@ -20,6 +20,7 @@ export function collectSimpleRewards(input:GameState):GameState {
 
 // `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
 export const SCOUT_BATTER_SHARE=.6;
+export const SCOUT_BATCH_MAX=10;
 export const SCOUT_UPGRADE_CHANCE=.35;
 // Average overall of the regulars: the nine-man lineup for batters, the 14-arm staff for pitchers.
 export const upgradeFloor=(state:GameState,arm:boolean)=>{const o=(arm?state.pitchers:state.lineup).map(id=>playerMap[id]?.overall??0);return o.reduce((n,x)=>n+x,0)/Math.max(1,o.length);};
