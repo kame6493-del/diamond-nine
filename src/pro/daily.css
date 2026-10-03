@@ -37,3 +37,16 @@
 .batch-dialog .batch-list li em{font-style:normal;font-size:11px;font-weight:800;color:#fff;background:#e2462f;border-radius:999px;padding:2px 8px}
 .batch-dialog .batch-list li i{font-style:normal;font-size:11px;color:#6b7280}
 .batch-dialog .s-primary{width:100%;justify-content:center}
+.season-card-dialog .season-card{display:grid;gap:10px;text-align:center;padding:2px 4px 6px}
+.season-card-rank{margin:0;color:#22345e;font-weight:800;font-size:18px}
+.season-card-rank b{font-family:var(--game-head);font-size:56px;line-height:1;margin-right:4px;color:#1b2b5c}
+.season-card-rank small{display:block;font-size:12px;font-weight:600;color:#6b7280}
+.season-card-record{margin:0;font-size:20px;font-weight:800;color:#2d3a6b;display:grid;gap:4px}
+.season-card-record em{font-style:normal;font-size:12px;font-weight:700;color:#6b7280}
+.season-card-record em.up{color:#23853f}
+.season-card-record em.down{color:#b4452f}
+.season-card-star{margin:0;font-size:13px;color:#3a3f52}
+.season-card-points{margin:0;font-size:14px;color:#6b4a00}
+.season-card-points b{font-family:var(--game-head);font-size:28px;color:#b07a00}
+.season-card-hint{margin:0;font-size:12px;color:#6b7280}
+.season-card-dialog .s-primary{justify-content:center}
