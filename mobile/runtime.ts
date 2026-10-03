@@ -6,6 +6,7 @@ import {Browser} from '@capacitor/browser';
 import {App} from '@capacitor/app';
 import type {NativeFiles} from '../src/pro/native-files';
 import type {} from '../src/pro/review';
+import type {} from '../src/pro/feedback';
 import {installMonetize} from './monetize';
 import {installAnalytics} from './analytics';
 import {InAppReview} from '@capacitor-community/in-app-review';
@@ -31,6 +32,7 @@ if(Capacitor.isNativePlatform()){
  }};
  window.diamondNativeFiles=bridge;
  window.diamondReview={request:()=>InAppReview.requestReview()};
+ void App.getInfo().then(i=>{window.diamondAppVersion=`${i.version} (${i.build})`;}).catch(()=>{});
  // Android back: close the top dialog, then return to the first tab, then background the
  // app. Without this the system back gesture quit the app while a dialog was open.
  void App.addListener('backButton',()=>{

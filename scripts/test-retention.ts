@@ -4,6 +4,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {DAILY_ALL_BONUS,DAILY_LOGIN_POINTS,DAILY_MISSIONS,LAUNCH_GIFT,claimLogin,claimMission,freshDay,launchGiftOpen,markMission,noteDailyMission,parseDailyRecord,takeDailyLogin,takeLaunchGift} from '../src/pro/daily';
 import {DailyPanel} from '../src/pro/DailyPanel';
 import {REVIEW_GAP_DAYS,maybeAskReview,notePlayDay,parseReview,reviewDue} from '../src/pro/review';
+import {FEEDBACK_FORM,deviceLabel,feedbackUrl} from '../src/pro/feedback';
 
 const memoryStorage=()=>{const m=new Map<string,string>();return {getItem:(k:string)=>m.get(k)??null,setItem:(k:string,v:string)=>{m.set(k,String(v));},removeItem:(k:string)=>{m.delete(k);},clear:()=>m.clear(),key:()=>null,length:0};};
 const withStorage=<T,>(run:()=>T)=>{const g=globalThis as {localStorage?:unknown};const old=g.localStorage;g.localStorage=memoryStorage();try{return run();}finally{g.localStorage=old;}};
@@ -56,5 +57,12 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
     assert.equal(maybeAskReview('rainbow',now),true);assert.equal(maybeAskReview('title',now+DAY),false);assert.equal(asked,1);
    }finally{g.window=oldW;}
   });
+ });
+ test('feedback form link names the build and device and nothing else',()=>{
+  const android=deviceLabel({Capacitor:{getPlatform:()=>'android'},diamondAppVersion:'1.1 (11)',navigator:{userAgent:'Mozilla/5.0 (Linux; Android 15; 2506BPN68R) Chrome/130'}});
+  assert.equal(android,'Androidアプリ / 1.1 (11) / Android 15');
+  assert.equal(deviceLabel({navigator:{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X)'}}),'ブラウザ版 / iPhone; CPU iPhone OS 18.1');
+  const url=new URL(feedbackUrl(android));assert.equal(url.origin+url.pathname,FEEDBACK_FORM);assert.equal(url.searchParams.get('entry.896994809'),android);
+  assert.deepEqual([...url.searchParams.keys()].sort(),['entry.896994809','usp']);
  });
 }

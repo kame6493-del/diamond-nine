@@ -16,3 +16,7 @@
 .daily-claim:disabled{opacity:.6;animation:none}
 @keyframes daily-pulse{0%,100%{box-shadow:0 0 0 0 #ffcf5a80}50%{box-shadow:0 0 0 6px #ffcf5a00}}
 @media (prefers-reduced-motion:reduce){.daily-claim{animation:none}}
+.feedback-card{position:relative;display:flex;gap:10px;align-items:flex-start;margin:0 0 16px;padding:14px 36px 14px 14px;border-radius:14px;background:#f2f6ff;border:1px solid #c9d8ff;color:#22345e}
+.feedback-card strong{display:block;font-size:13px;margin-bottom:4px}
+.feedback-card p{font-size:12px;line-height:1.7;margin:0 0 8px;color:#3d4f78}
+.feedback-card>button{position:absolute;top:8px;right:8px;background:none;border:0;color:#6b7aa0;padding:4px}
