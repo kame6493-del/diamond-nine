@@ -7,7 +7,7 @@ export type DailyMission='play'|'scout'|'share';
 export const DAILY_MISSIONS:{id:DailyMission;label:string;points:number}[]=[
  {id:'play',label:'試合を進める',points:300},
  {id:'scout',label:'スカウトを1回引く',points:300},
- {id:'share',label:'記録や当たりをシェアする',points:500},
+ {id:'share',label:'記録や当たりをシェア（画像の保存でもOK）',points:500},
 ];
 export const DAILY_LOGIN_POINTS=500;
 export const DAILY_ALL_BONUS=500;

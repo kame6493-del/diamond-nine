@@ -25,7 +25,7 @@ export function VictoryShare({state,season}:{state:GameState;season:Season}){
  if(!data)return null;
  const ready=image?.key===data?image:null,text= victoryPostText(data,gameUrl),intent=xPostIntent(text);
  const native=!!ready&&(!!window.diamondNativeFiles||canShareVictory(navigator,ready.file,window.isSecureContext));
- const download=()=>{if(!ready)return;void saveGameFile(ready.file).catch(()=>setNotice('画像を保存できませんでした。もう一度お試しください。'));};
+ const download=()=>{if(!ready)return;void saveGameFile(ready.file).then(()=>{noteDailyMission('share');track('share',{content:data.champion?'victory':'season',method:'save'});},()=>setNotice('画像を保存できませんでした。もう一度お試しください。'));};
  const share=async()=>{
   if(!ready||shareLock.current)return;shareLock.current=true;setSharing(true);setNotice('');
   try{await (window.diamondNativeFiles?window.diamondNativeFiles.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}):navigator.share({files:[ready.file],text,title:`DIAMOND NINE · ${data.title}`}));setNotice('共有先に画像と投稿文を渡しました。');noteDailyMission('share');track('share',{content:data.champion?'victory':'season',method:window.diamondNativeFiles?'native':'web_share'});}
