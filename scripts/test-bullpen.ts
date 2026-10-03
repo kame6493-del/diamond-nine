@@ -14,6 +14,15 @@ export function registerBullpenTests(test:(name:string,run:()=>void)=>void){
   const s=initialState(22),onlyStarters={...s,owned:Object.fromEntries(Object.keys(s.owned).filter(id=>playerMap[id].role!=='pitcher'||pitcherRolePenalty(playerMap[id],'先')===0).map(id=>[id,1]))};
   assert.equal(buildByStrategy(onlyStarters,'balanced'),onlyStarters);
  });
+ test('automatic formation puts the strongest in-role arms in the rotation, ace first',()=>{
+  for(let seed=1;seed<=60;seed++){
+   const auto=buildByStrategy(initialState(seed),'balanced'),ids=auto.pitchers,ovr=(id:string)=>playerMap[id].overall,fit=(id:string,i:number)=>pitcherRolePenalty(playerMap[id],pitcherSlotRole(i))===0;
+   const starters=ids.slice(0,6);
+   for(const r of ids.slice(6,13))for(const st of starters)assert.ok(!(ovr(r)>ovr(st)&&fit(r,starters.indexOf(st))&&fit(st,ids.indexOf(r))),`seed ${seed}: reliever ${r} (${ovr(r)}) outranks starter ${st} (${ovr(st)})`);
+   const ace=Object.keys(auto.owned).map(id=>playerMap[id]).filter(p=>p.role==='pitcher'&&fit(p.id,0)).sort((a,b)=>b.overall-a.overall)[0];
+   assert.equal(ovr(ids[0]),ace.overall,`seed ${seed}: opening starter is not the best starter`);
+  }
+ });
  test('legacy staff expansion retains the closer, season and points and is idempotent',()=>{
   const s=initialState(54),old={...s,pitchers:[...s.pitchers.slice(0,11),s.pitchers[13]]};
   for(const id of s.pitchers.slice(11,13))delete old.owned[id];

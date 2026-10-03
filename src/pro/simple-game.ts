@@ -19,6 +19,7 @@ export function collectSimpleRewards(input:GameState):GameState {
 }
 
 // `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
+export const SCOUT_BATTER_SHARE=.6;
 export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  if(input.gems<SIMPLE_SCOUT_COST)return input;
  const state=structuredClone(input),random=rng(state.seed);
@@ -27,7 +28,10 @@ export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  const missing=majorPool.filter(p=>!state.owned[p.id]);
  const rookie=!major&&draftEventActive(now)&&random.next()<DRAFT_ROOKIE_CHANCE;
  const pool=major?(guaranteed&&missing.length?missing:majorPool):rookie?draftRookiePool:domesticPool;
- const player=pool[Math.floor(random.next()*pool.length)];
+ // Starting clubs are weakest at the plate, and half of the domestic pool is arms,
+ // so ordinary draws lean toward batters. Guaranteed and rookie draws keep their pools.
+ const wantArm=random.next()>=SCOUT_BATTER_SHARE,leaned=major||rookie?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
+ const from=leaned.length?leaned:pool,player=from[Math.floor(random.next()*from.length)];
  const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?80:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
  state.owned[player.id]=copies;state.gems+=trainingReward;

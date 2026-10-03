@@ -186,6 +186,18 @@ export function autoPitchers(pool:Player[],strict=false):string[]{
  };
  const order=Array.from({length:14},(_,i)=>i).sort((a,b)=>choices[a].length-choices[b].length||a-b);
  for(const slot of order)if(!assign(slot,new Set())&&strict)return [];
+ // The matching only proves every slot can be filled in role; it does not care
+ // who goes where, so an ace with both aptitudes could end up as the 7th reliever.
+ // Climb toward the strongest in-role arms in the most-used slots, keeping fits.
+ const byId=new Map(pitchers.map(p=>[p.id,p])),fits=(id:string|undefined,slot:number)=>!!id&&pitcherRolePenalty(byId.get(id)!,pitcherSlotRole(slot))===0;
+ const ovr=(id:string|undefined)=>id?byId.get(id)!.overall:-Infinity,priority=[0,1,2,3,4,5,13,6,7,8,9,10,11,12];
+ for(let changed=true,rounds=0;changed&&rounds<50;rounds++){changed=false;
+  for(const slot of priority){if(!slots[slot])continue;
+   const spare=pitchers.find(p=>!slots.includes(p.id)&&p.overall>ovr(slots[slot])&&fits(p.id,slot));
+   if(spare){slots[slot]=spare.id;changed=true;}}
+  for(let a=0;a<priority.length;a++)for(let b=a+1;b<priority.length;b++){const x=priority[a],y=priority[b];
+   if(slots[x]&&slots[y]&&ovr(slots[y])>ovr(slots[x])&&fits(slots[y],x)&&fits(slots[x],y)){[slots[x],slots[y]]=[slots[y],slots[x]];changed=true;}}
+ }
  // CPU/reference rosters may lack enough published role grades. Keep games
  // playable there; user auto-formation always opts into the strict path.
  if(!strict)for(let i=0;i<14;i++)if(!slots[i]){const available=pitchers.filter(p=>!slots.includes(p.id)).sort((a,b)=>pitcherRolePenalty(a,pitcherSlotRole(i))-pitcherRolePenalty(b,pitcherSlotRole(i))||b.overall-a.overall);if(available[0])slots[i]=available[0].id;}

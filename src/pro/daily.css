@@ -20,3 +20,9 @@
 .feedback-card strong{display:block;font-size:13px;margin-bottom:4px}
 .feedback-card p{font-size:12px;line-height:1.7;margin:0 0 8px;color:#3d4f78}
 .feedback-card>button{position:absolute;top:8px;right:8px;background:none;border:0;color:#6b7aa0;padding:4px}
+.gift-dialog .gift-body{display:grid;gap:10px;text-align:center;padding:4px 4px 8px}
+.gift-dialog .gift-body p{margin:0;font-size:13px;line-height:1.7;color:#3a3f52}
+.gift-dialog .gift-body>b{font-family:var(--game-head);font-size:44px;line-height:1.1;color:#b07a00;letter-spacing:.02em}
+.gift-dialog .gift-body>b small{font-size:18px;margin-left:4px}
+.gift-dialog .gift-hint{font-weight:700}
+.gift-dialog .s-primary{justify-content:center}

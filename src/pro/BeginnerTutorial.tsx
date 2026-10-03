@@ -30,12 +30,13 @@ function readProgress(profile:Profile,state:GameState):Progress|null{
  return starterScoutActive(state)?progressFor('starter',state):null;
 }
 
-export function BeginnerTutorial({state,profile,page,replay,busy,onPage,onAuto,onPlay}:{state:GameState;profile:Profile;page:Page;replay:number;busy:boolean;onPage:(page:Page)=>void;onAuto:()=>void;onPlay:()=>void}){
+export function BeginnerTutorial({state,profile,page,replay,busy,onPage,onAuto,onPlay,onActive}:{state:GameState;profile:Profile;page:Page;replay:number;busy:boolean;onPage:(page:Page)=>void;onAuto:()=>void;onPlay:()=>void;onActive?:(active:boolean)=>void}){
  const [progress,setProgress]=useState<Progress|null>(()=>readProgress(profile,state));
  const replaySeen=useRef(replay),panel=useRef<HTMLElement>(null),previousPhase=useRef(progress?.phase);
  const starter=starterScoutActive(state);
  useEffect(()=>{
   try{localStorage.setItem(keyFor(profile),progress?JSON.stringify(progress):'done');}catch{}
+  onActive?.(!!progress);
  },[profile,progress]);
  useEffect(()=>{
   if(replay===replaySeen.current)return;
