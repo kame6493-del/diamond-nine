@@ -1,7 +1,7 @@
 /* Team screen: big order numbers, coloured position badges, overall tier boxes, rank tiles and a fixed action bar. */
 .team-pro{padding-bottom:calc(86px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)))}
 .team-pro-summary{display:flex;align-items:center;gap:14px;margin:0 0 12px;padding:10px 14px;border-radius:14px;background:linear-gradient(180deg,#16295e,#0e1c44);color:#fff}
-.team-pro-summary>div:first-child{flex:none;text-align:center;background:#0a1533;border-radius:11px;padding:5px 14px}
+.team-pro-summary>div:first-child,.team-pro-summary>.team-pro-staff{flex:none;text-align:center;background:#0a1533;border-radius:11px;padding:5px 14px}
 .team-pro-summary small{display:block;font-size:11px;font-weight:700;color:#9fb0d8}
 .team-pro-summary b{display:block;font-size:30px;line-height:1.05;font-weight:900;font-variant-numeric:tabular-nums}
 .team-pro-summary>div:last-child{min-width:0}
