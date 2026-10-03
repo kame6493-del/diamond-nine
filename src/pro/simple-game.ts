@@ -20,6 +20,9 @@ export function collectSimpleRewards(input:GameState):GameState {
 
 // `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
 export const SCOUT_BATTER_SHARE=.6;
+export const SCOUT_UPGRADE_CHANCE=.35;
+// Average overall of the regulars: the nine-man lineup for batters, the 14-arm staff for pitchers.
+export const upgradeFloor=(state:GameState,arm:boolean)=>{const o=(arm?state.pitchers:state.lineup).map(id=>playerMap[id]?.overall??0);return o.reduce((n,x)=>n+x,0)/Math.max(1,o.length);};
 export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  if(input.gems<SIMPLE_SCOUT_COST)return input;
  const state=structuredClone(input),random=rng(state.seed);
@@ -31,7 +34,11 @@ export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  // Starting clubs are weakest at the plate, and half of the domestic pool is arms,
  // so ordinary draws lean toward batters. Guaranteed and rookie draws keep their pools.
  const wantArm=random.next()>=SCOUT_BATTER_SHARE,leaned=major||rookie?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
- const from=leaned.length?leaned:pool,player=from[Math.floor(random.next()*from.length)];
+ // An upgrade draw picks only from players better than the club's weakest regular
+ // of that kind, so scouting keeps paying off after the roster stops being bad.
+ const upgrade=!major&&!rookie&&random.next()<SCOUT_UPGRADE_CHANCE,floor=upgradeFloor(state,wantArm);
+ const better=upgrade?leaned.filter(p=>p.overall>floor):[];
+ const from=better.length?better:leaned.length?leaned:pool,player=from[Math.floor(random.next()*from.length)];
  const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?80:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
  state.owned[player.id]=copies;state.gems+=trainingReward;

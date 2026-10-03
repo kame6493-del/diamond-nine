@@ -25,7 +25,7 @@ import {CardAbilities} from './CardAbilities';
 import {ReplacementPreview} from './ReplacementPreview';
 import {PlayerHoverPreview} from './PlayerHoverPreview';
 import {pitchingRoleLabel} from './wiki-players';
-import {SIMPLE_SCOUT_COST,MLB_SCOUT_CHANCE,MLB_GUARANTEE_EVERY,mlbScoutCountdown,collectSimpleRewards,drawSimplePlayer,moveSimplePlayer,replacementPool,replaceSimplePlayer} from './simple-game';
+import {SCOUT_BATTER_SHARE,SCOUT_UPGRADE_CHANCE,SIMPLE_SCOUT_COST,MLB_SCOUT_CHANCE,MLB_GUARANTEE_EVERY,mlbScoutCountdown,collectSimpleRewards,drawSimplePlayer,moveSimplePlayer,replacementPool,replaceSimplePlayer} from './simple-game';
 import type {Profile} from './progression';
 import './simple.css';
 import {DeckTeam,TradingCard} from './CardDeck';
@@ -183,7 +183,7 @@ export function SimpleScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPl
    {adSlot}
    {!canDraw&&<><p className="scout-missing">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p><button className="s-text-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={15}/></button></>}
    <div className="scout-guarantee"><div><span>海外選手確定まで</span><b>あと{remaining}回</b></div><div className="scout-guarantee-track" role="progressbar" aria-label="海外選手確定までのスカウト進行" aria-valuemin={0} aria-valuemax={MLB_GUARANTEE_EVERY} aria-valuenow={MLB_GUARANTEE_EVERY-remaining}><i style={{width:(MLB_GUARANTEE_EVERY-remaining)/MLB_GUARANTEE_EVERY*100+'%'}}/></div><small>ポイントでのスカウトで進行 · シーズンをまたいで引き継ぎ</small></div>
-  </div><div className="s-scout-note">1人 3,000 pt。30人目は海外選手確定。<details><summary>獲得できる選手・抽選確率</summary><p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。通常は国内リーグ {100-MLB_SCOUT_CHANCE*100}%・海外リーグ {MLB_SCOUT_CHANCE*100}%で、各グループ内は同じ確率です。{draftWeek&&`${DRAFT_EVENT.name}の期間中（〜${draftEventEndLabel()}）は、国内リーグの抽選のうち${Math.round(DRAFT_ROOKIE_CHANCE*100)}%をルーキー${draftRookiePool.length}人から、残り${100-Math.round(DRAFT_ROOKIE_CHANCE*100)}%を国内リーグ全員から同じ確率で選びます。`}30回ごとの確定時は未所持の海外選手から同じ確率で抽選し、全員所持の場合は海外選手全員が対象になります。</p></details></div></section>
+  </div><div className="s-scout-note">1人 3,000 pt。30人目は海外選手確定。<details><summary>獲得できる選手・抽選確率</summary><p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。通常は国内リーグ {100-MLB_SCOUT_CHANCE*100}%・海外リーグ {MLB_SCOUT_CHANCE*100}%です。国内リーグの抽選は、先に野手 {Math.round(SCOUT_BATTER_SHARE*100)}%・投手 {100-Math.round(SCOUT_BATTER_SHARE*100)}%で分け、そのうち{Math.round(SCOUT_UPGRADE_CHANCE*100)}%は「補強チャンス」として、今の主力の平均（野手は打線9人、投手は投手14人の総合の平均）より総合が高い選手だけから選びます（該当者がいないときは通常の抽選）。それぞれのグループ内は同じ確率です。{draftWeek&&`${DRAFT_EVENT.name}の期間中（〜${draftEventEndLabel()}）は、国内リーグの抽選のうち${Math.round(DRAFT_ROOKIE_CHANCE*100)}%をルーキー${draftRookiePool.length}人から、残り${100-Math.round(DRAFT_ROOKIE_CHANCE*100)}%を国内リーグ全員から同じ確率で選びます。`}30回ごとの確定時は未所持の海外選手から同じ確率で抽選し、全員所持の場合は海外選手全員が対象になります。</p></details></div></section>
  </div>;
 }
 

@@ -21,7 +21,7 @@ const record=(s:GameState)=>{
  const table=rankings(s.season,leagueFor(s.season,s.club));const i=table.findIndex(r=>r.team===s.club);
  return {w:table[i].w,l:table[i].l,rank:i+1};
 };
-const sums=Array.from({length:seasons},()=>({w:0,last:0,above:0,earned:0,draws:0,first:0}));
+const sums=Array.from({length:seasons},()=>({w:0,last:0,above:0,earned:0,draws:0,first:0,mlb:0,ovr:0}));
 for(let seed=1;seed<=seeds;seed++){
  let s=initialState(seed);
  const best=s.starterScout!.choices.map((id,i)=>({i,o:playerMap[id].overall})).sort((a,b)=>b.o-a.o)[0].i;
@@ -33,9 +33,9 @@ for(let seed=1;seed<=seeds;seed++){
   const before=s.gems;
   s=collectSimpleRewards(finishPostseason(simulateDays(s,seasonGames(s.season))));
   const r=record(s);
-  const t=sums[y];t.w+=r.w;t.last+=+(r.rank===6);t.above+=+(r.w>r.l);t.first+=+(r.rank===1);t.earned+=s.gems-before;t.draws+=draws;
+  const t=sums[y];t.w+=r.w;t.last+=+(r.rank===6);t.above+=+(r.w>r.l);t.first+=+(r.rank===1);t.mlb+=+((s.season.circuit??"NPB")!=="NPB");t.earned+=s.gems-before;t.ovr+=[...s.lineup,...s.pitchers].reduce((n,id)=>n+playerMap[id].overall,0)/(s.lineup.length+s.pitchers.length);t.draws+=draws;
   s=nextSeason(s);s={...s,gems:s.gems+extra};
  }
 }
 console.log(`app=${appEdition} premium=${process.env.PREMIUM==='1'} extra/season=${extra}`);
-for(const [y,t] of sums.entries())console.log(`${y+1}年目: 平均${(t.w/seeds).toFixed(1)}勝 最下位${t.last}/${seeds} 勝ち越し${t.above}/${seeds} 1位${t.first}/${seeds} 獲得pt平均${Math.round(t.earned/seeds)} その年のスカウト平均${(t.draws/seeds).toFixed(1)}回`);
+for(const [y,t] of sums.entries())console.log(`${y+1}年目: 平均${(t.w/seeds).toFixed(1)}勝 最下位${t.last}/${seeds} 勝ち越し${t.above}/${seeds} 1位${t.first}/${seeds} 海外${t.mlb}/${seeds} チーム平均${(t.ovr/seeds).toFixed(1)} 獲得pt平均${Math.round(t.earned/seeds)} その年のスカウト平均${(t.draws/seeds).toFixed(1)}回`);

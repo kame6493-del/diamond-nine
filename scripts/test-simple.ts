@@ -4,7 +4,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialState,simulateDays,validState,migrateState,rng,nextSeason} from '../src/pro/engine';
 import {players,playerMap} from '../src/pro/data';
 import {finishPostseason,simulatePostseason} from '../src/pro/postseason';
-import {SCOUT_BATTER_SHARE,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
+import {SCOUT_BATTER_SHARE,SCOUT_UPGRADE_CHANCE,upgradeFloor,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
 import SimpleApp,{SimpleSeason,SimpleStats,SimpleScout} from '../src/pro/SimpleApp';
 import {scoutPresentation,scoutDuration} from '../src/pro/scout-presentation';
 import {ratingOverall} from '../src/pro/development';
@@ -49,8 +49,9 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
   const base=initialState();base.gems=10000;
   for(const seed of [1,99,44321,2026,999999,4294967295]){
    const random=rng(seed),major=random.next()<.02,pool=players.filter(p=>!!p.mlb===major);
-   const wantArm=!major&&random.next()>=SCOUT_BATTER_SHARE,from=major?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
-   const expected=from[Math.floor(random.next()*from.length)].id;
+   const wantArm=random.next()>=SCOUT_BATTER_SHARE,leaned=major?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
+   const upgrade=!major&&random.next()<SCOUT_UPGRADE_CHANCE,better=upgrade?leaned.filter(p=>p.overall>upgradeFloor(base,wantArm)):[];
+   const from=better.length?better:leaned,expected=from[Math.floor(random.next()*from.length)].id;
    for(const [pulls,pity] of [[0,0],[4,49],[9,42],[49,49]]){
     const start={...base,seed,pulls,pity},snapshot=JSON.stringify(start),next=drawSimplePlayer(start);
     assert.equal(next.lastPulls[0].playerId,expected);assert.equal(next.lastPulls.length,1);
