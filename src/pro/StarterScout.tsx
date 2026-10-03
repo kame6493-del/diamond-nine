@@ -34,8 +34,7 @@ export function StarterScout({state,sound,onPick,onFinish,onPlayer}:{state:GameS
   timer.current=setTimeout(()=>finish.current?.(),scoutDuration(presentation.tier));
  };
  return <section className="starter-event" aria-label="スタートスカウト">
-  <div className="starter-event-label"><Gift size={16}/>初回限定 · スタートスカウト</div><a className="starter-help" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
-  {!opening&&<label className="starter-team-name">チーム名<input value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="starter-name-help" onChange={e=>setTeamName(e.target.value)}/><small id="starter-name-help">20文字まで。あとから設定でも変更できます。</small></label>}
+  <div className="starter-event-label"><Gift size={16}/>初回限定 · スタートスカウト</div>
   {!player?<>
    <h1>3枚から、1枚選ぼう。</h1><p className="starter-intro">最初の主力選手をプレゼント！<br/>好きなカードをタップして獲得。</p>
    <div className="starter-guarantee"><Crown size={17}/><span>全カード <b>総合 {STARTER_MIN_OVERALL} 以上</b></span></div>
@@ -43,11 +42,11 @@ export function StarterScout({state,sound,onPick,onFinish,onPlayer}:{state:GameS
     <span className="starter-card-back"><span className="starter-card-crown"><Crown/></span><b>9</b><span className="starter-card-brand">DIAMOND<br/>NINE</span><span className="starter-card-stars" aria-hidden="true">✦ ✦ ✦</span></span>
     <span className="starter-choice-number">0{index+1}<ArrowRight size={15}/></span>
    </button>)}</div>
-   <div className="starter-event-note"><Sparkles size={16}/><p>ポイント消費なし · 選べるのは1枚<br/><small>初期チームに、選んだ選手が加わります。</small></p></div>
+   <div className="starter-event-note"><Sparkles size={16}/><p>ポイント消費なし · 選べるのは1枚<br/><small>初期チームに、選んだ選手が加わります。</small></p></div><a className="starter-help" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
   </>:<div className={'starter-reward s-scout-panel scout-tier-'+tier}>
    {opening?<><h1>カードをオープン！</h1><ScoutCharge tier={tier} onSkip={()=>finish.current?.()}/></>:<div className="s-scout-main">
     <div className="s-scout-result"><ScoutArrival tier={tier} overall={overall} major={false}/><p className="starter-joined">最初の主力が加入！</p><div className={'scout-reveal animate__animated '+(tier==='rainbow'?'animate__zoomInDown':'animate__bounceIn')}><TradingCard player={player} state={state} onPlayer={onPlayer}/></div></div>
-    <button className="s-primary starter-begin" disabled={!validName} onClick={()=>onFinish(teamName.trim())}>チームに入れて開幕する<ArrowRight size={18}/></button><p className="starter-continue-note">適性に合った位置へ自動で編成します。</p>
+    <label className="starter-team-name">チーム名<input value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="starter-name-help" onChange={e=>setTeamName(e.target.value)}/><small id="starter-name-help">20文字まで。あとから設定でも変更できます。</small></label><button className="s-primary starter-begin" disabled={!validName} onClick={()=>onFinish(teamName.trim())}>チームに入れて開幕する<ArrowRight size={18}/></button><p className="starter-continue-note">適性に合った位置へ自動で編成します。</p>
    </div>}
   </div>}
  </section>;
