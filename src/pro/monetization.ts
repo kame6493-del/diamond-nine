@@ -3,11 +3,14 @@ import {useSyncExternalStore} from 'react';
 // App-only monetization. The native bridge (mobile/monetize.ts) sets
 // window.diamondMonetize; the browser build never has it, so nothing here
 // loads ad or billing code on the web.
-export const REWARD_AD_POINTS = 600;
+export const REWARD_AD_POINTS = 1000;
 export const REWARD_AD_DAILY_LIMIT = 5;
-export const PREMIUM_DAILY_POINTS = 300;
+export const PREMIUM_DAILY_POINTS = 1000;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
-export const INTERSTITIAL_COOLDOWN_MS = 3 * 60 * 1000;
+export const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
+// New players see no full-screen ads until they have finished this many seasons.
+export const INTERSTITIAL_GRACE_SEASONS = 2;
+export const interstitialGraceOver = (seasonsPlayed: number) => seasonsPlayed >= INTERSTITIAL_GRACE_SEASONS;
 export const PREMIUM_PRODUCT_ID = 'premium_pass';
 
 export type PremiumStatus = 'checking' | 'unavailable' | 'ready';

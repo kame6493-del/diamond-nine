@@ -2,7 +2,7 @@ import {saveGameFile} from './native-files';
 import {androidEdition} from './platform-economy';
 import {PointShop} from './PointShop';
 import {PremiumPassCard,RewardAdButton} from './MonetizePanel';
-import {monetizeBridge,useMonetize} from './monetization';
+import {interstitialGraceOver,monetizeBridge,useMonetize} from './monetization';
 import {spaceUnlocked,circuitLabel,circuitOf,seasonGames,leagueFor,leagueProgress,titleFor,NPB_TITLES_TO_MLB,type Circuit} from './leagues';
 import {switchLeague} from './engine';
 import {AchievementsPanel} from './CareerAchievements';
@@ -281,7 +281,7 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
    return true;
   }catch{setSaveError('保存できませんでした。空き容量を確認して、もう一度お試しください。設定からデータを書き出すこともできます。');return false;}
  };
- const go=(p:Page)=>{if(starter)return;if(p!==page)track('page_open',{page:p});if(page==='scout'&&p!==page){stopGameAudio();if(!lock.current)void monetizeBridge()?.showInterstitial('scout');}setPage(p);window.scrollTo({top:0,behavior:'smooth'});};
+ const go=(p:Page)=>{if(starter)return;if(p!==page)track('page_open',{page:p});if(page==='scout'&&p!==page){stopGameAudio();if(!lock.current&&interstitialGraceOver(state.history.length))void monetizeBridge()?.showInterstitial('scout');}setPage(p);window.scrollTo({top:0,behavior:'smooth'});};
  const play=(days:number)=>{
   if(lock.current||state.season.completed)return;
   if(soundRef.current)void prepareGameAudio();
@@ -289,7 +289,7 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
   const step=()=>{try{
    current=simulateDays(current,Math.min(7,target-current.season.day));setProgress(Math.round((current.season.day-from)/(target-from)*100));
    if(current.season.day<target)timer.current=setTimeout(step,20);
-   else{current=collectSimpleRewards(finishPostseason(current));const a=state.season.standings.find(t=>t.team===state.club)!,b=current.season.standings.find(t=>t.team===state.club)!;const game=current.season.results.at(-1)!;const score=game.home===state.club?`${game.homeRuns} − ${game.awayRuns}`:`${game.awayRuns} − ${game.homeRuns}`;setMessage(`${target-from===1?`${teamById(game.home===state.club?game.away:game.home,current.season).short}戦 ${score}`:`${target-from}試合：${b.w-a.w}勝 ${b.l-a.l}敗 ${b.d-a.d}分`}　獲得ポイント ＋${count(current.gems-state.gems)} pt${current.season.completed?` · ${circuitOf(current.season)==='SPACE'?'宇宙王座決定戦':circuitOf(current.season)==='MLB'?'世界王座決定戦':'プレーオフ・国内王座決定戦'}まで終了！`:''}`);noteDailyMission('play');track('games_played',{games:target-from,season:current.season.number,league:circuitOf(current.season),completed:current.season.completed});if(current.season.completed&&!state.season.completed)setTimeout(()=>{void monetizeBridge()?.showInterstitial('season');},800);const earned=commitPlayedSeason(current);if(!earned&&(b.w>a.w||current.season.completed)&&soundRef.current)gameSound('win');lock.current=false;setBusy(false);}
+   else{current=collectSimpleRewards(finishPostseason(current));const a=state.season.standings.find(t=>t.team===state.club)!,b=current.season.standings.find(t=>t.team===state.club)!;const game=current.season.results.at(-1)!;const score=game.home===state.club?`${game.homeRuns} − ${game.awayRuns}`:`${game.awayRuns} − ${game.homeRuns}`;setMessage(`${target-from===1?`${teamById(game.home===state.club?game.away:game.home,current.season).short}戦 ${score}`:`${target-from}試合：${b.w-a.w}勝 ${b.l-a.l}敗 ${b.d-a.d}分`}　獲得ポイント ＋${count(current.gems-state.gems)} pt${current.season.completed?` · ${circuitOf(current.season)==='SPACE'?'宇宙王座決定戦':circuitOf(current.season)==='MLB'?'世界王座決定戦':'プレーオフ・国内王座決定戦'}まで終了！`:''}`);noteDailyMission('play');track('games_played',{games:target-from,season:current.season.number,league:circuitOf(current.season),completed:current.season.completed});if(current.season.completed&&!state.season.completed&&interstitialGraceOver(state.history.length+1))setTimeout(()=>{void monetizeBridge()?.showInterstitial('season');},800);const earned=commitPlayedSeason(current);if(!earned&&(b.w>a.w||current.season.completed)&&soundRef.current)gameSound('win');lock.current=false;setBusy(false);}
   }catch{setMessage('試合を進められませんでした。編成をご確認ください。');setBusy(false);lock.current=false;}};
   timer.current=setTimeout(step,30);
  };

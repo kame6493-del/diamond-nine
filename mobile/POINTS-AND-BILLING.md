@@ -4,10 +4,10 @@
 
 - 設定の一本化：mobile/ads-config.json。現在はGoogle公式のテスト用ID。本番IDに差し替えて useTestAds を false に。Androidは app/build.gradle がこのJSONからAndroidManifestの APPLICATION_ID を埋める。iOSは sync:ios（build-mobile.mjs）が Info.plist の GADApplicationIdentifier を書き換える。
 - 広告：@capacitor-community/admob 8.1.0（Google Mobile Ads Android 25.4.0 / iOS 13.6.0、UMP同梱）。ATTは出さない（NSUserTrackingUsageDescription なし）。
- - リワード「広告を見て ＋600pt」：スカウト画面の所持ポイントの下。1日5回（端末ローカル日付、localStorage diamond-nine-reward-ads）。付与はSDKの報酬コールバックのみ・1回の視聴で1回だけ。
+ - リワード「広告を見て ＋1,000pt」：スカウト画面の所持ポイントの下。1日5回（端末ローカル日付、localStorage diamond-nine-reward-ads）。付与はSDKの報酬コールバックのみ・1回の視聴で1回だけ。
  - インタースティシャル：レギュラーシーズン終了時と、スカウト3回ごと（スカウト画面から別タブへ移るとき）。3分間は連続表示しない。パス所有者には出さない。
 - プレミアムパス：@capgo/native-purchases 8.8.1（iOS StoreKit 2 / Android Play Billing 9.1.0）。非消耗型 premium_pass。
- - 効果：試合報酬2倍（アプリの0.8倍に掛ける）・毎日ログイン+300pt（1日1回、ストア確認済みのときのみ）・インタースティシャルなし。スカウト確率と試合結果は変えない。
+ - 効果：試合報酬2倍（アプリの通常は1.0倍）・毎日ログイン+1,000pt（1日1回、ストア確認済みのときのみ）・インタースティシャルなし。スカウト確率と試合結果は変えない。
  - 所有判定は起動時・復帰時にストアへ問い合わせ（iOS Transaction.currentEntitlements、Android queryPurchases）。localStorageはキャッシュ。Androidは未承認の購入を必ず acknowledge。
  - 商品がストアに無い間は「販売準備中」で購入ボタン無効。価格はストアの表示価格のみ。
 - 経済の実測：node scripts/check-app-economy.mjs（4シード×2シーズン）。
@@ -48,3 +48,11 @@
 https://developer.android.com/google/play/billing/backend
 
 この段階のPointStorePluginは商品照会専用。決済完成と誤認しないこと。
+
+## 2026-10-03 課金バランスの見直し（v12）
+- アプリの通常の試合報酬 0.8倍 → 1.0倍（ブラウザ版と同じ。アプリだけ損をする形をやめた）。
+- リワード広告 600pt → 1,000pt（1日5回のまま。3回でスカウト1回分）。
+- プレミアムパスの毎日ボーナス 300pt → 1,000pt。試合報酬2倍・全画面広告なしは据え置き。
+- 全画面広告：間隔 3分 → 5分。2シーズン終えるまでは出さない（新規の人の初回体験を守る）。
+- 計測（scripts/_first_seasons.ts）：無課金は1シーズン約3,400pt＝スカウト約1回。ポイントを3倍にしても勝ち数はほぼ変わらず、伸びの壁はポイント量よりスカウトの当たり方。課金で勝敗やガチャ確率は変えない方針は維持。
+- ストアの課金アイテム説明（審査中）は「300pt」のまま。実際の方が多いので誤解は生まないが、次に掲載を触るときに 1,000pt へ直す。

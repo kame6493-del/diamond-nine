@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {INTERSTITIAL_COOLDOWN_MS,REWARD_AD_DAILY_LIMIT,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot} from '../src/pro/monetization';
+import {INTERSTITIAL_COOLDOWN_MS,INTERSTITIAL_GRACE_SEASONS,PREMIUM_DAILY_POINTS,REWARD_AD_POINTS,interstitialGraceOver,REWARD_AD_DAILY_LIMIT,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot} from '../src/pro/monetization';
 import {PremiumPassCard,RewardAdButton} from '../src/pro/MonetizePanel';
 import {appEdition,setPremiumMatchBonus} from '../src/pro/platform-economy';
 import {gameReward} from '../src/pro/progression';
 
 const fakeBridge=(snapshot:MonetizeSnapshot):MonetizeBridge=>({snapshot:()=>snapshot,subscribe:()=>()=>{},buyPremium:async()=>{},restorePremium:async()=>{},showRewardAd:async()=>'failed',noteScout:()=>{},showInterstitial:async()=>false,claimPremiumDaily:()=>0,showPrivacyOptions:async()=>{}});
-const snapshot=(premium:Partial<MonetizeSnapshot['premium']>={}):MonetizeSnapshot=>({privacyOptions:false,reward:{available:true,busy:false,left:5,limit:5,points:600},premium:{status:'unavailable',owned:false,verified:true,price:null,busy:false,message:'',...premium}});
+const snapshot=(premium:Partial<MonetizeSnapshot['premium']>={}):MonetizeSnapshot=>({privacyOptions:false,reward:{available:true,busy:false,left:5,limit:5,points:REWARD_AD_POINTS},premium:{status:'unavailable',owned:false,verified:true,price:null,busy:false,message:'',...premium}});
 const withBridge=<T,>(bridge:MonetizeBridge|undefined,run:()=>T)=>{
  const g=globalThis as {window?:unknown};const old=g.window;g.window={diamondMonetize:bridge};
  try{return run();}finally{g.window=old;}
@@ -34,6 +34,13 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(interstitialDue('scout',{...base,scoutsSince:3}),true);
   assert.equal(interstitialDue('scout',{...base,scoutsSince:3,premium:true}),false);
  });
+ test('ad pacing leaves new players alone and keeps a five-minute gap; ads and the pass are worth a scout',()=>{
+  assert.equal(INTERSTITIAL_COOLDOWN_MS,5*60*1000);
+  assert.equal(interstitialGraceOver(0),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS-1),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS),true);
+  const now=INTERSTITIAL_COOLDOWN_MS*10;
+  assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-4*60*1000,now,scoutsSince:0}),false);
+  assert.equal(REWARD_AD_POINTS*3,3000,'three rewarded ads buy one scout');assert.equal(PREMIUM_DAILY_POINTS,1000);
+ });
  test('browser rewards ignore the premium flag and render no ad or pass UI',()=>{
   assert.equal(appEdition,false);
   const s={club:'t',franchise:{stadium:3}} as never,game={home:'t',away:'g',homeRuns:4,awayRuns:1} as never;
@@ -52,6 +59,6 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   const owned=withBridge(fakeBridge(snapshot({status:'ready',price:'￥480',owned:true})),()=>renderToStaticMarkup(createElement(PremiumPassCard)));
   assert.match(owned,/購入済み/);assert.doesNotMatch(owned,/で購入する/);
   const ad=withBridge(fakeBridge(snapshot()),()=>renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})));
-  assert.match(ad,/広告を見て ＋600 pt/);assert.match(ad,/今日あと 5 \/ 5 回/);
+  assert.match(ad,/広告を見て ＋1,000 pt/);assert.match(ad,/今日あと 5 \/ 5 回/);
  });
 }

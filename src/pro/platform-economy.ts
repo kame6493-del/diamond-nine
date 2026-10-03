@@ -3,9 +3,10 @@
 declare const __DIAMOND_ANDROID__: boolean;
 declare const __DIAMOND_APP__: boolean;
 export const androidEdition = typeof __DIAMOND_ANDROID__ !== 'undefined' && __DIAMOND_ANDROID__;
-// iOS and Android apps share one economy (ads + premium pass). The browser keeps 1.0x.
+// iOS and Android apps share one economy (ads + premium pass). Ordinary match pay
+// matches the browser; the premium pass doubles it.
 export const appEdition = androidEdition || (typeof __DIAMOND_APP__ !== 'undefined' && __DIAMOND_APP__);
-export const APP_MATCH_RATE = .8;
+export const APP_MATCH_RATE = 1;
 export const PREMIUM_MATCH_MULTIPLIER = 2;
 // Set by the native monetization bridge from the store entitlement (cached until confirmed).
 // Only per-game match rewards change; goals, season, postseason and scout odds do not.
