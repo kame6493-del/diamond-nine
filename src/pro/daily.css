@@ -52,3 +52,7 @@
 .season-card-dialog .s-primary{justify-content:center}
 .s-play-steps{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;width:100%}
 .s-play-steps .s-button{justify-content:center;width:100%}
+.season-card-goals{list-style:none;margin:0;padding:8px 10px;display:grid;gap:4px;border-radius:10px;background:#f1fbf3;border:1px solid #bfe5c8}
+.season-card-goals li{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#23653a}
+.season-card-goals li span{margin-left:auto;color:#8a6a1c}
+.season-card-next{margin:0;font-size:12px;color:#4b5573}

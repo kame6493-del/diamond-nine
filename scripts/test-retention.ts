@@ -5,6 +5,9 @@ import {DAILY_ALL_BONUS,DAILY_LOGIN_POINTS,DAILY_MISSIONS,LAUNCH_GIFT,claimLogin
 import {DailyPanel} from '../src/pro/DailyPanel';
 import {REVIEW_GAP_DAYS,maybeAskReview,notePlayDay,parseReview,reviewDue} from '../src/pro/review';
 import {FEEDBACK_FORM,deviceLabel,feedbackUrl} from '../src/pro/feedback';
+import {seasonGoals} from '../src/pro/ambitions';
+import {initialState,simulateDays} from '../src/pro/engine';
+import {seasonGames} from '../src/pro/leagues';
 
 const memoryStorage=()=>{const m=new Map<string,string>();return {getItem:(k:string)=>m.get(k)??null,setItem:(k:string,v:string)=>{m.set(k,String(v));},removeItem:(k:string)=>{m.delete(k);},clear:()=>m.clear(),key:()=>null,length:0};};
 const withStorage=<T,>(run:()=>T)=>{const g=globalThis as {localStorage?:unknown};const old=g.localStorage;g.localStorage=memoryStorage();try{return run();}finally{g.localStorage=old;}};
@@ -64,5 +67,13 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   assert.equal(deviceLabel({navigator:{userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X)'}}),'ブラウザ版 / iPhone; CPU iPhone OS 18.1');
   const url=new URL(feedbackUrl(android));assert.equal(url.origin+url.pathname,FEEDBACK_FORM);assert.equal(url.searchParams.get('entry.896994809'),android);
   assert.deepEqual([...url.searchParams.keys()].sort(),['entry.896994809','usp']);
+ });
+ test('rank goals wait for the end of the regular season and match the final table',()=>{
+  const start=initialState(7),mid=simulateDays(start,40),end=simulateDays(start,seasonGames(start.season));
+  const rankGoals=['out-of-last','winning-record','a-class'],pick=(st:typeof start)=>Object.fromEntries(seasonGoals(st).filter(g=>rankGoals.includes(g.key)).map(g=>[g.key,g.value]));
+  assert.deepEqual(pick(mid),{'out-of-last':0,'winning-record':0,'a-class':0});
+  assert.equal(end.season.completed,true);
+  const me=end.season.standings.find(t=>t.team===end.club)!;assert.equal(pick(end)['winning-record'],me.w>me.l?1:0);
+  assert.ok(seasonGoals(end).every(g=>g.id.startsWith('season-1-')));
  });
 }
