@@ -6,6 +6,7 @@ import {DailyPanel} from '../src/pro/DailyPanel';
 import {REVIEW_GAP_DAYS,maybeAskReview,notePlayDay,parseReview,reviewDue} from '../src/pro/review';
 import {FEEDBACK_FORM,deviceLabel,feedbackUrl} from '../src/pro/feedback';
 import {seasonGoals} from '../src/pro/ambitions';
+import {REMINDER_HOUR,nextReminders,reminderAskDue} from '../src/pro/reminder';
 import {initialState,simulateDays} from '../src/pro/engine';
 import {seasonGames} from '../src/pro/leagues';
 
@@ -75,5 +76,12 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   assert.equal(end.season.completed,true);
   const me=end.season.standings.find(t=>t.team===end.club)!;assert.equal(pick(end)['winning-record'],me.w>me.l?1:0);
   assert.ok(seasonGoals(end).every(g=>g.id.startsWith('season-1-')));
+ });
+ test('daily reminders land at 19:00 tomorrow and three days out, and the ask waits for a native app and a finished season',()=>{
+  const now=new Date(2026,9,31,23,50),[a,b]=nextReminders(now);
+  assert.deepEqual([a.at.getMonth(),a.at.getDate(),a.at.getHours(),a.at.getMinutes()],[10,1,REMINDER_HOUR,0]);
+  assert.deepEqual([b.at.getMonth(),b.at.getDate(),b.at.getHours()],[10,3,REMINDER_HOUR]);
+  assert.ok(a.at>now&&b.at>a.at);assert.ok(a.body.includes('500pt'));
+  assert.equal(reminderAskDue(3),false,'no bridge outside the app');
  });
 }

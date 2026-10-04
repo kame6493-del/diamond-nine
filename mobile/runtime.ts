@@ -9,6 +9,7 @@ import type {} from '../src/pro/review';
 import type {} from '../src/pro/feedback';
 import {installMonetize} from './monetize';
 import {installAnalytics} from './analytics';
+import {installReminders} from './reminder';
 import {InAppReview} from '@capacitor-community/in-app-review';
 const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
  const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);
@@ -16,6 +17,7 @@ const toBase64=(file:File)=>new Promise<string>((resolve,reject)=>{
 if(Capacitor.isNativePlatform()){
  if(Capacitor.getPlatform()==='android')window.diamondPointStore=registerPlugin<AndroidPointStore>('PointStore');
  try{installAnalytics();}catch{/* analytics is optional */}
+ try{installReminders();}catch{/* reminders are optional */}
  try{installMonetize();}catch{/* ads and the pass are optional; the game must still start */}
  const bridge:NativeFiles={async share({files,text,title}){
   const paths:string[]=[],uris:string[]=[];
