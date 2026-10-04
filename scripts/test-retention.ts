@@ -6,6 +6,7 @@ import {DailyPanel} from '../src/pro/DailyPanel';
 import {REVIEW_GAP_DAYS,maybeAskReview,notePlayDay,parseReview,reviewDue} from '../src/pro/review';
 import {FEEDBACK_FORM,deviceLabel,feedbackUrl} from '../src/pro/feedback';
 import {seasonGoals} from '../src/pro/ambitions';
+import {AUTUMN_EVENT,autumnEventActive,claimAutumnBonus} from '../src/pro/autumn-event';
 import {REMINDER_HOUR,nextReminders,reminderAskDue} from '../src/pro/reminder';
 import {initialState,simulateDays} from '../src/pro/engine';
 import {seasonGames} from '../src/pro/leagues';
@@ -83,5 +84,14 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   assert.deepEqual([b.at.getMonth(),b.at.getDate(),b.at.getHours()],[10,3,REMINDER_HOUR]);
   assert.ok(a.at>now&&b.at>a.at);assert.ok(a.body.includes('500pt'));
   assert.equal(reminderAskDue(3),false,'no bridge outside the app');
+ });
+ test('autumn showdown week pays its bonus once per finished season, only inside the window',()=>{
+  assert.equal(autumnEventActive(new Date(2026,10,3,23,59)),false);assert.equal(autumnEventActive(new Date(2026,10,4,0,0)),true);
+  assert.equal(autumnEventActive(new Date(2026,10,16,23,59)),true);assert.equal(autumnEventActive(new Date(2026,10,17,0,0)),false);assert.equal(autumnEventActive(null),false);
+  const inside=new Date(2026,10,10,12),start=initialState(5),mid=simulateDays(start,30),end=simulateDays(start,seasonGames(start.season));
+  assert.deepEqual(claimAutumnBonus(mid,inside)[1],0,'not before the season ends');
+  assert.equal(claimAutumnBonus(end,new Date(2026,10,20))[1],0,'not after the window');
+  const [paid,pts]=claimAutumnBonus(end,inside);assert.equal(pts,AUTUMN_EVENT.bonus);assert.equal(paid.gems,end.gems+AUTUMN_EVENT.bonus);
+  assert.equal(claimAutumnBonus(paid,inside)[1],0,'once per season');assert.equal(JSON.stringify(end.franchise.claimed).includes('autumn'),false,'input untouched');
  });
 }

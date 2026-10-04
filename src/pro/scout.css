@@ -66,3 +66,4 @@
 .draft-week-banner h2{font-family:var(--game-head);font-weight:400;font-size:19px;margin:6px 0 4px;letter-spacing:.02em}
 .draft-week-banner p{font-size:12px;line-height:1.7;color:#eef2ff}
 @media (prefers-reduced-motion:reduce){.scout-share-button.is-shiny::after{animation:none}}
+.autumn-banner{background:linear-gradient(120deg,#7a1f1f,#c4472d 55%,#e0a526)}
