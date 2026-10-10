@@ -9,6 +9,10 @@ import './pro/player-details.css';
 import './pro/readability.css';
 import './pro/screens-pro.css';
 import './pro/game-look.css';
+import './pro/pawa/pawa.css';
+import {applyLook,readLook} from './pro/look';
+
+applyLook(readLook());
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

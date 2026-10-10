@@ -18,7 +18,7 @@ export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{cele
   return stopGameAudio;
  },[sound,world]);
  const mute=()=>{if(!sound)void prepareGameAudio();onToggleSound();};
- return <dialog ref={ref} className={`title-celebration ${world?'title-world':'title-unlock'}`} aria-labelledby={`${id}-heading`} aria-describedby={`${id}-description`} onCancel={e=>{e.preventDefault();onClose();}} onKeyDown={e=>{
+ return <dialog ref={ref} data-kind={celebration.kind} className={`title-celebration ${world?'title-world':'title-unlock'}`} aria-labelledby={`${id}-heading`} aria-describedby={`${id}-description`} onCancel={e=>{e.preventDefault();onClose();}} onKeyDown={e=>{
   if(e.key!=='Tab')return;
   const buttons=Array.from(ref.current!.querySelectorAll<HTMLButtonElement>('button:not([disabled])')),first=buttons[0],last=buttons.at(-1)!;
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
