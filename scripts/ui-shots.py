@@ -37,7 +37,7 @@ with sync_playwright() as p:
 
     def close_dialogs():
         for _ in range(4):
-            d = page.locator('.simple-dialog header .s-icon, .nv-result-screen .nv-close')
+            d = page.locator('.simple-dialog header .s-icon, .pw-result-screen .pw-close')
             if not d.count():
                 break
             d.first.evaluate('e=>e.click()'); page.wait_for_timeout(300)
@@ -51,20 +51,20 @@ with sync_playwright() as p:
     page.goto(base + '/')
     page.wait_for_timeout(1800)
     shot('01_初回ガイド_スタートスカウト')
-    if page.locator('.nv-back-card').count():
-        page.locator('.nv-back-card').nth(1).click(); page.wait_for_timeout(300)
-        page.locator('.nv-starter').evaluate('e=>e.scrollIntoView()')
+    if page.locator('.pw-back-card').count():
+        page.locator('.pw-back-card').nth(1).click(); page.wait_for_timeout(300)
+        page.locator('.pw-starter').evaluate('e=>e.scrollIntoView()')
         shot('01b_スタートスカウト_選択')
-        js_click('.nv-starter > .nv-gold')
+        js_click('.pw-start')
     else:
         page.locator('.starter-choice').first.click()
     page.wait_for_timeout(500)
-    pick('.nv-charge', '.scout-charge').evaluate('e=>e.scrollIntoView({block:"center"})')
+    pick('.pw-charge', '.scout-charge').evaluate('e=>e.scrollIntoView({block:"center"})')
     shot('02_スタートスカウト演出')
     page.wait_for_timeout(1000)
     shot('02b_スタートスカウト演出_後半')
     page.wait_for_timeout(5000)
-    pick('.nv-result, .starter-reward').evaluate('e=>e.scrollIntoView()')
+    pick('.pw-result, .starter-reward').evaluate('e=>e.scrollIntoView()')
     shot('03_最初の主力')
     js_click('.starter-begin')
     page.wait_for_timeout(1200); top()
@@ -89,12 +89,17 @@ with sync_playwright() as p:
     shot('08b_試合タブ_全体', full=True)
     try:
         close_dialogs()
-        js_click('.nv-season-end .nv-gold', '.s-season-end .s-primary'); page.wait_for_timeout(1500)
+        js_click('.pw-season-end .pw-btn', '.s-season-end .s-primary'); page.wait_for_timeout(1500)
         celebration(); close_dialogs(); top()
         shot('08c_新シーズン')
-        js_click('.nv-play .nv-gold:last-child', '.s-play-actions .s-primary')
+        if page.locator('.pw-year').count():
+            js_click('.pw-year'); page.wait_for_timeout(400)
+            shot('08d_1年進める確認')
+            js_click('.pw-confirm-ok')
+        else:
+            js_click('.s-play-actions .s-primary')
         page.wait_for_timeout(700)
-        shot('08d_試合中')
+        shot('08e_試合中')
         page.wait_for_selector(complete, timeout=120000)
         page.wait_for_timeout(1500)
         celebration()
@@ -102,7 +107,7 @@ with sync_playwright() as p:
         shot('11a_シーズン結果_全体', full=True)
         close_dialogs(); top()
         shot('11b_シーズン終了後の試合タブ')
-        st = page.locator('.nv-standings, .league-stats-panel')
+        st = page.locator('.pw-standings, .league-stats-panel')
         if st.count():
             st.first.evaluate('e=>{if(e.tagName==="DETAILS")e.open=true;e.scrollIntoView()}'); page.wait_for_timeout(500)
             shot('09_順位表')
@@ -112,30 +117,37 @@ with sync_playwright() as p:
     page.locator('.s-nav button').nth(1).evaluate('e=>e.click()'); page.wait_for_timeout(900); top()
     shot('12_編成')
     shot('12b_編成_全体', full=True)
-    if page.locator('.nv-tabs button').count():
-        page.locator('.nv-tabs button').nth(1).click(); page.wait_for_timeout(500); top()
-        shot('12c_編成_投手')
-        page.locator('.nv-tabs button').nth(0).click(); page.wait_for_timeout(300)
-        page.locator('.nv-swap').first.click(); page.wait_for_timeout(500)
-        shot('12d_編成_入替')
-        page.locator('.nv-sheet header button').click(); page.wait_for_timeout(300)
+    if page.locator('.pw-tabs button').count():
+        # drag the 1st batter onto the 4th slot (mouse) and check the order changed
+        rows = page.locator('.pw-lineup .pw-row')
+        before = rows.nth(0).locator('.pw-name button').inner_text()
+        rows.nth(1).evaluate('e=>e.scrollIntoView({block:"center"})'); page.wait_for_timeout(300)
+        h = rows.nth(0).locator('.pw-order').bounding_box(); t = rows.nth(2).bounding_box()
+        page.mouse.move(h['x']+h['width']/2, h['y']+h['height']/2); page.mouse.down()
+        page.mouse.move(h['x']+20, h['y']+40, steps=5); page.mouse.move(t['x']+t['width']/2, t['y']+t['height']/2, steps=10)
+        shot('12a_編成_ドラッグ中'); page.mouse.up(); page.wait_for_timeout(400)
+        after = page.locator('.pw-lineup .pw-row').nth(2).locator('.pw-name button').inner_text()
+        print('DRAG', 'ok' if before == after else 'NG', before, '->', after)
+        top()
+        page.locator('.pw-tabs button').nth(1).click(); page.wait_for_timeout(500); top()
+        shot('12c_編成_先発')
+        page.locator('.pw-tabs button').nth(2).click(); page.wait_for_timeout(400); top()
+        shot('12d_編成_中継ぎ')
+        page.locator('.pw-tabs button').nth(0).click(); page.wait_for_timeout(300)
+        page.locator('.pw-bench').evaluate('e=>e.scrollIntoView()'); page.wait_for_timeout(300)
+        shot('12e_編成_ベンチ')
     try:
         js_click('[data-player-id]'); page.wait_for_timeout(800)
         shot('13_選手詳細')
-        tabs = page.locator('.nv-player .nv-tabs button')
-        if tabs.count() > 1:
-            tabs.nth(1).click(); page.wait_for_timeout(400)
-            shot('13b_選手詳細_覚醒')
-            tabs.nth(3).click(); page.wait_for_timeout(300)
-            shot('13c_選手詳細_特殊能力')
-        else:
-            page.locator('.simple-dialog').first.evaluate('e=>e.scrollTo(0,9999)'); page.wait_for_timeout(300)
-            shot('13b_選手詳細_下')
+        page.locator('.simple-dialog').first.evaluate('e=>e.scrollTo(0,520)'); page.wait_for_timeout(300)
+        shot('13b_選手詳細_中')
+        page.locator('.simple-dialog').first.evaluate('e=>e.scrollTo(0,9999)'); page.wait_for_timeout(300)
+        shot('13c_選手詳細_下')
         close_dialogs()
     except Exception as e:
         print('detail', e)
     try:
-        js_click('.nv-team-links .nv-navy', '.catalog-open'); page.wait_for_timeout(900); top()
+        js_click('.pw-links .pw-btn', '.catalog-open'); page.wait_for_timeout(900); top()
         shot('14_カタログ')
         page.evaluate('window.scrollTo(0,520)')
         shot('14b_カタログ_下')
@@ -145,13 +157,17 @@ with sync_playwright() as p:
     shot('15_スカウト')
     shot('15b_スカウト_全体', full=True)
     try:
-        js_click('.nv-draws .nv-gold', '.s-draw')
+        js_click('.pw-draw-btn', '.s-draw')
         page.wait_for_timeout(350); shot('16_スカウト演出_1')
         page.wait_for_timeout(700); shot('16_スカウト演出_2')
         page.wait_for_timeout(5500); top(); shot('17_スカウト結果')
         shot('17b_スカウト結果_全体', full=True)
     except Exception as e:
         print('scout', e)
-    page.locator('button[aria-label="設定を開く"]').click(); page.wait_for_timeout(600)
+    if page.locator('.s-nav-menu').count():
+        page.locator('.s-nav-menu').click()
+    else:
+        page.locator('button[aria-label="設定を開く"]').click()
+    page.wait_for_timeout(600)
     shot('18_設定')
     b.close()

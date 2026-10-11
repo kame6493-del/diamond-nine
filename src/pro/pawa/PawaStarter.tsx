@@ -1,5 +1,4 @@
 import {useEffect,useRef,useState} from 'react';
-import {ChevronRight} from 'lucide-react';
 import {playerMap,type Player} from '../data';
 import type {GameState} from '../engine';
 import {scoutDuration,scoutPresentation} from '../scout-presentation';
@@ -33,22 +32,24 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
   };
   timer.current=setTimeout(()=>finish.current?.(),scoutDuration(presentation.tier));
  };
- return <section className="nv-starter" aria-label="スタートスカウト">
-  <header className="nv-starter-head"><h1>スタートスカウト</h1><span>{player?'2':'1'}/3</span></header>
+ return <section className="pw-starter" aria-label="スタートスカウト">
+  <div className="pw-titlebar"><h1>スタートスカウト</h1><span className="pw-must">必ず <b>OVR{STARTER_MIN_OVERALL}</b> 以上の選手が登場！</span></div>
   {!player?<>
-   <p className="nv-starter-lead">最初の1枚を選んで、チームの歴史をはじめよう。<br/>あなたのチームの核となる特別な選手カードです。</p>
-   <div className="nv-backs">{offer.choices.map((id,index)=><button key={id} className={'nv-back-card nv-back-'+index+(chosen===index?' is-chosen':'')} aria-label={`${index+1}枚目のカードを選ぶ`} aria-pressed={chosen===index} onClick={()=>setChosen(index)} disabled={opening||!validName}><img src="/assets/pro/pawa/card-back.webp" alt=""/></button>)}</div>
-   <p className="nv-pick-hint">{chosen===null?'カードを1枚選んでください':`${chosen+1}枚目を選択中`}</p>
-   <div className="nv-panel nv-promise"><img src="/assets/pro/pawa/card-back.webp" alt=""/><p>選ばれたカードは<br/><b>OVR <strong>{STARTER_MIN_OVERALL}</strong> 以上</b><br/>の選手が確定！</p></div>
-   <ul className="nv-fine"><li>※3枚の中から1枚を選ぶと、選手が確定して獲得できます</li><li>※ポイントは使いません。選べるのは1枚です</li></ul>
-   <button className="nv-gold nv-wide" disabled={chosen===null||opening||!validName} onClick={()=>chosen!==null&&choose(chosen)}>このカードを選ぶ<ChevronRight size={18}/></button>
-   <a className="nv-link" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
-  </>:opening?<PawaScoutCharge tier={tier} title="カードをオープン！" onSkip={()=>finish.current?.()}/>:<div className={'nv-panel nv-result nv-tier-'+tier}>
+   <p className="pw-lead">好きな選手を1人選んで、チームに迎えよう。</p>
+   <div className="pw-stage-field">
+    <div className="pw-backs">{offer.choices.map((id,index)=><button key={id} className={'pw-back-card'+(chosen===index?' is-chosen':'')} aria-label={`${index+1}枚目のカードを選ぶ`} aria-pressed={chosen===index} onClick={()=>setChosen(index)} disabled={opening||!validName}><img src="/assets/pro/pawa/card-back.webp" alt=""/></button>)}</div>
+    <p className="pw-pick-hint">{chosen===null?'カードをタップして、1人選んでください。':`${chosen+1}枚目を選んでいます`}</p>
+   </div>
+   <div className="pw-panel pw-about"><h2>スタートスカウトについて</h2><p>この中から好きな選手を1人選んで、チームに迎えることができます。</p><p>登場する選手は すべて <b>OVR{STARTER_MIN_OVERALL} 以上</b>！ キミのチームの核となる選手を選ぼう。ポイントは使いません。</p></div>
+   <button className="pw-btn pw-yellow pw-wide pw-start" disabled={chosen===null||opening||!validName} onClick={()=>chosen!==null&&choose(chosen)}><span className="pw-ball" aria-hidden="true"/>このカードに決める</button>
+   <a className="pw-link" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
+  </>:opening?<PawaScoutCharge tier={tier} title="カードをオープン！" onSkip={()=>finish.current?.()}/>:<div className={'pw-panel pw-result pw-tier-'+tier}>
    <PawaArrival tier={tier} overall={overall} major={false} title="最初の主力が加入！"/>
-   <div className="nv-result-solo"><PawaCard player={player} state={state} size="l" onClick={()=>onPlayer(player)}/></div>
-   <label className="nv-field">チーム名<input value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="nv-name-help" onChange={e=>setTeamName(e.target.value)}/><small id="nv-name-help">20文字まで。あとから設定でも変更できます。</small></label>
-   <button className="nv-gold nv-wide starter-begin" disabled={!validName} onClick={()=>onFinish(teamName.trim())}>チームに入れて開幕する<ChevronRight size={18}/></button>
-   <p className="nv-note">適性に合った位置へ自動で編成します。</p>
+   <div className="pw-result-solo"><PawaCard player={player} state={state} size="l" onClick={()=>onPlayer(player)}/></div>
+   <div className="pw-namebox"><label htmlFor="pw-team-name">チーム名</label><input id="pw-team-name" value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="pw-name-help" onChange={e=>setTeamName(e.target.value)}/></div>
+   <small id="pw-name-help" className="pw-note">※あと{Math.max(0,20-teamName.length)}文字まで入力できます。あとから設定でも変更できます。</small>
+   <button className="pw-btn pw-yellow pw-wide starter-begin" disabled={!validName} onClick={()=>onFinish(teamName.trim())}><span className="pw-ball" aria-hidden="true"/>チームに入れて開幕する</button>
+   <p className="pw-note">適性に合った位置へ自動で編成します。</p>
   </div>}
  </section>;
 }

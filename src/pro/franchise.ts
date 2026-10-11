@@ -1,4 +1,4 @@
-import { autoLineup,autoPitchers,playerMap,players,rosterSlots } from './data';
+import { autoLineup,autoPitchers,canBat,fitsPosition,playerMap,players,rosterSlots,type Player } from './data';
 import type { GameState } from './engine';
 import { isCareer } from './progression';
 import {gameRatings} from './matchup';
@@ -49,13 +49,34 @@ export function claimMilestone(input:GameState,id:string):GameState{
  if(!m||input.franchise.claimed.includes(id)||m.value(input)<m.goal)return input;
  const state=structuredClone(input);state.franchise.claimed.push(id);state.gems+=m.gems;state.franchise.xp+=100;return state;
 }
+// Assigns the nine field slots so that everyone fits their position when the owned cards allow it.
+// The greedy lineup is kept if it already fits; otherwise slots are matched (scarcest first),
+// trying the greedy nine before bench bats, each in order of the strategy's score.
+function fitLineup(greedy:string[],pool:Player[]):[string[],Record<string,string>]{
+ const keep:[string[],Record<string,string>]=[greedy,Object.fromEntries(greedy.map((id,i)=>[id,rosterSlots[i]]))];
+ if(greedy.every((id,i)=>!id||fitsPosition(playerMap[id],rosterSlots[i])))return keep;
+ const score=new Map(pool.map(p=>[p.id,p.overall])),first=new Set(greedy);
+ const bats=pool.filter(p=>canBat(p)).sort((a,b)=>Number(first.has(b.id))-Number(first.has(a.id))||(score.get(b.id)??0)-(score.get(a.id)??0)||a.id.localeCompare(b.id));
+ const choices=rosterSlots.map(pos=>bats.filter(p=>fitsPosition(p,pos)));
+ const owner=new Map<string,number>(),slots=Array<string>(rosterSlots.length);
+ const assign=(slot:number,seen:Set<string>):boolean=>{
+  for(const p of choices[slot]){if(seen.has(p.id))continue;seen.add(p.id);const old=owner.get(p.id);
+   if(old===undefined||assign(old,seen)){owner.set(p.id,slot);slots[slot]=p.id;return true;}}
+  return false;
+ };
+ const order=rosterSlots.map((_,i)=>i).sort((a,b)=>choices[a].length-choices[b].length||a-b);
+ for(const slot of order)if(!assign(slot,new Set()))return keep;
+ return [slots,Object.fromEntries(slots.map((id,i)=>[id,rosterSlots[i]]))];
+}
+
 export function buildByStrategy(input:GameState,strategy:'balanced'|'onbase'|'power'|'defense'):GameState{
  const pool=Object.keys(input.owned).map(id=>{const p=playerMap[id],ratings=ownedRatings(p,input.owned,input.training);return {...p,overall:ratingOverall(p,ratings),ratings};});
  const pitchers=autoPitchers(pool,true);if(pitchers.length!==14)return input;
  const ranked=pool.map(p=>({...p,overall:p.role==='pitcher'?p.overall:strategy==='onbase'?(p.batting?.obp??.28)*150+p.ratings.contact*.35:strategy==='power'?p.ratings.power:strategy==='defense'?p.ratings.field*.8+p.ratings.catching*.2:p.overall}));
- const lineup=autoLineup(ranked);
+ // The greedy fill can spend the only shortstop on second base and leave short to someone
+ // without the aptitude. When it does, re-match positions so no one plays out of position.
+ const [lineup,defense]=fitLineup(autoLineup(ranked),ranked);
  // Reserve the strongest power bat for cleanup. Speed leads off, contact bats second.
- const defense=Object.fromEntries(lineup.map((id,i)=>[id,rosterSlots[i]]));
  const rated=new Map(pool.map(p=>[p.id,p]));
  const remaining=new Set(lineup);
  const take=(score:(p:typeof pool[number])=>number)=>{const id=[...remaining].sort((a,b)=>score(rated.get(b)!)-score(rated.get(a)!)||a.localeCompare(b))[0];remaining.delete(id);return id;};

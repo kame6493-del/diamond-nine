@@ -1,14 +1,13 @@
-# パワプロ風の参考画像(marketing/ui_ref_pawapuro_2026-10-11/ref_01〜10.png)から使える絵を切り出し、
+# パワプロ風の参考画像 第2弾(marketing/ui_ref_pawapuro_v2_2026-10-11/ref_01〜10.png)から使える絵を切り出し、
 # 白地を透過にして public/assets/pro/pawa/ に webp で置く。
-# 人の絵・実在の球団名やロゴ風の物は切り出さない(ロゴ・ランク札・OVR札・アイコン・◎○△・パック・裏向きカード・
-# 覚醒の星・帽子・球場の背景・お祝いの紋章だけ)。
+# 人の絵(参考画像のカードやスカウト画面の選手)・実在の球団名やロゴ風の物は切り出さない。
 import os
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 from scipy import ndimage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'marketing', 'ui_ref_pawapuro_2026-10-11')
+SRC = os.path.join(ROOT, 'marketing', 'ui_ref_pawapuro_v2_2026-10-11')
 OUT = os.path.join(ROOT, 'public', 'assets', 'pro', 'pawa')
 os.makedirs(OUT, exist_ok=True)
 R = {i: Image.open(os.path.join(SRC, f'ref_{i:02d}.png')).convert('RGB') for i in range(1, 11)}
@@ -24,77 +23,85 @@ def fit(im, w):
     return im if im.width <= w else im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
 
 
-def keyed(ref, box, thr=24, soft=36, holes=False, trim=True, satmax=40):
-    """明るい地(白〜ごく薄い水色)のうち、外側とつながった部分だけを透かす。"""
+def keyed(ref, box, light=215, satmax=45, trim=True):
+    """白〜ごく薄い色の地のうち、外側とつながった部分だけを透かす(縁は少しぼかす)。"""
     a = np.asarray(R[ref].crop(box)).astype(np.float32)
-    light = a.min(2)                       # 白に近いほど大きい
-    sat = a.max(2) - a.min(2)
-    bgish = (light > 255 - thr - soft) & (sat < satmax)
+    lo, sat = a.min(2), a.max(2) - a.min(2)
+    bgish = (lo > light) & (sat < satmax)
     lab, _ = ndimage.label(bgish)
     edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
-    outside = np.isin(lab, list(edge)) if not holes else bgish
-    dist = np.clip((255 - light - thr) / soft, 0, 1)   # 0=真っ白 1=色あり
-    alpha = np.where(outside, dist, 1.0)
-    alpha = ndimage.uniform_filter(alpha, 2)
+    outside = np.isin(lab, list(edge))
+    outside = ndimage.binary_dilation(outside, iterations=1) & (lo > light - 40)
+    alpha = np.where(outside, 0.0, 1.0)
+    alpha = ndimage.gaussian_filter(alpha, 0.7)
     im = Image.fromarray(np.dstack([a, alpha * 255]).astype(np.uint8))
     return im.crop(im.getbbox()) if trim else im
 
 
-def segs(ref, box, gap=4):
-    """box の中で横に並ぶ部品ごとの範囲を返す。"""
-    a = np.asarray(R[ref].crop(box)).astype(np.int16)
-    col = ((a.min(2) < 225) | ((a.max(2) - a.min(2)) > 40)).any(0)
-    out, s = [], None
-    for x, v in enumerate(col):
-        if v and s is None: s = x
-        if not v and s is not None:
-            if x - s > 12: out.append((box[0] + s, box[1], box[0] + x, box[3]))
-            s = None
-    if s is not None: out.append((box[0] + s, box[1], box[2], box[3]))
-    return out
+def sky_keyed(ref, box):
+    """空・雲・球場の写真の上にあるロゴを抜く。紺の太い縁の外側を外側からの塗りつぶしで透かす。"""
+    a = np.asarray(R[ref].crop(box)).astype(np.float32)
+    lum = a.mean(2)
+    navy = (a[..., 2] > a[..., 0] + 30) & (lum < 95)          # ロゴの縁取り
+    lab, _ = ndimage.label(~navy)
+    edge = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    outside = np.isin(lab, list(edge))
+    alpha = ndimage.gaussian_filter(np.where(outside, 0.0, 1.0), 0.8)
+    im = Image.fromarray(np.dstack([a, alpha * 255]).astype(np.uint8))
+    return im.crop(im.getbbox())
 
 
-# ランク札 S〜G (ref_10)
-for row, letters in (((410, 100, 935, 238), 'SABC'), ((410, 290, 935, 412), 'DEFG')):
-    for k, b in zip(letters, segs(10, row)):
-        save(fit(keyed(10, b), 120), f'rank-{k}')
+def tiles(ref, y0, y1, xs):
+    return [(x0, y0, x1, y1) for x0, x1 in xs]
 
-# OVR 札(金・銀・銅) ref_10
-for name, b in zip(('ovr-gold', 'ovr-silver', 'ovr-bronze'), segs(10, (520, 888, 910, 990))):
-    save(fit(keyed(10, b), 120), name)
 
-# ◎○△ ref_10 (地の薄い四角も抜く)
-for name, b in zip(('apt-double', 'apt-circle', 'apt-triangle'), [(42, 905, 145, 978), (188, 905, 290, 978), (332, 905, 438, 978)]):
-    save(fit(keyed(10, b, thr=20, soft=50, holes=True), 96), name)
+# ロゴ(DIAMOND NINE ダイヤモンドナイン)ref_02 の左上
+logo = R[2].crop((40, 0, 588, 126)).convert('RGBA')
+w, h = logo.size
+yy, xx = np.mgrid[0:h, 0:w]
+edge = np.minimum.reduce([xx, w - 1 - xx, yy * 3, (h - 1 - yy) * 3]).astype(np.float32)
+logo.putalpha(Image.fromarray((np.clip(edge / 18, 0, 1) * 255).astype(np.uint8)))
+save(fit(logo, 520), 'logo')  # 空の写真ごと切り、縁をぼかして空色のヘッダーに馴染ませる
+# アプリアイコン ref_10
+save(fit(keyed(10, (28, 192, 248, 418)), 300), 'app-icon')
 
-# 下タブのアイコン ref_10
-for name, b in zip(('tab-season', 'tab-team', 'tab-scout'), [(580, 728, 632, 775), (700, 728, 755, 775), (825, 728, 885, 775)]):
-    save(fit(keyed(10, b), 96), name)
+# 能力ランク S〜G ref_10(パワプロ風の色の角丸の札)
+xs = [(30, 105), (113, 188), (196, 271), (279, 354), (362, 437), (445, 520), (528, 603), (611, 686)]
+for k, b in zip('SABCDEFG', tiles(10, 682, 752, xs)):
+    save(fit(keyed(10, b), 96), f'rank-{k}')
 
-# ロゴ ref_01
-save(fit(keyed(1, (38, 0, 340, 158), thr=40, soft=50, satmax=75), 360), 'logo')
-# アプリアイコン ref_10(角丸の正方形)
-save(fit(keyed(10, (22, 105, 388, 462)), 320), 'app-icon')
+# 適性 ◎○△ ref_10
+for name, b in zip(('apt-double', 'apt-circle', 'apt-triangle'), [(757, 838, 812, 895), (812, 838, 867, 895), (867, 838, 924, 895)]):
+    save(fit(keyed(10, b), 80), name)
 
-# パック ref_08(左の通常の演出から)・裏向きカード ref_01
-save(fit(R[8].crop((95, 240, 245, 500)), 220), 'pack-scene')
-save(fit(R[1].crop((743, 547, 826, 682)), 160), 'card-back')
+# 下のタブのアイコン(試合・成績=バット、チーム=帽子、スカウト=巻物、メニュー=歯車)ref_07 / ref_10
+save(fit(keyed(7, (52, 275, 100, 318)), 96), 'tab-season')
+save(fit(keyed(7, (155, 275, 210, 318)), 96), 'tab-team')
+save(fit(keyed(10, (733, 205, 785, 258)), 96), 'tab-scout')
+save(fit(keyed(10, (843, 208, 895, 258)), 96), 'tab-menu')
 
-# 覚醒の星 5段階 ref_09
-for i, b in enumerate([(60, 1228, 108, 1290), (131, 1228, 178, 1290), (202, 1228, 249, 1290), (275, 1228, 322, 1290), (352, 1226, 412, 1292)], 1):
-    save(fit(keyed(9, b, thr=30, soft=40, satmax=50), 80), f'awaken-{i}')
+# 覚醒5段階のバッジ ref_09
+for i, (x0, x1) in enumerate([(30, 98), (120, 188), (210, 278), (300, 368), (388, 462)], 1):
+    save(fit(keyed(9, (x0, 1027, x1, 1093)), 96), f'awaken-{i}')
 
-# 帽子(D・W)ref_02 — 対戦カードの絵に使う
-save(fit(keyed(2, (348, 445, 450, 515)), 140), 'cap-blue')
-save(fit(keyed(2, (500, 445, 600, 515)), 140), 'cap-red')
+# OVR の盾は数字が焼き込まれているため切り出さず、SVG で描く(src/pro/pawa/PawaCard.tsx の OvrShield)
 
-# コイン ref_10 のヘッダーにある金貨
-save(fit(keyed(7, (78, 1112, 108, 1140), thr=10, soft=30), 48), 'coin')
+# スタートスカウトの裏向きカード ref_01
+save(fit(R[1].crop((93, 862, 239, 1049)), 200), 'card-back')
 
-# 背景: 晴れた昼の球場(ref_01 タイトル画面の上半分、空と球場だけ)
-save(fit(R[1].crop((15, 585, 305, 712)), 600), 'bg-stadium', q=80)
+# スカウトのパック(通常・金・虹)ref_08
+for name, b in zip(('pack-normal', 'pack-gold', 'pack-rainbow'), [(100, 335, 240, 588), (405, 335, 545, 588), (708, 335, 848, 588)]):
+    save(fit(R[8].crop(b), 220), name)
 
-# お祝いの紋章(海外挑戦権・世界一・宇宙リーグ)
-save(fit(R[4].crop((335, 540, 605, 800)), 320), 'emblem-overseas')
-save(fit(R[4].crop((655, 360, 925, 590)), 320), 'emblem-world')
-save(fit(R[4].crop((645, 760, 930, 1105)), 320), 'emblem-space')
+# シーズン終了: トロフィー・ホームラン王 ref_04
+save(fit(keyed(4, (30, 185, 215, 420), light=200, satmax=60), 240), 'trophy')
+save(fit(keyed(4, (30, 755, 235, 955)), 240), 'hr-king')
+# お祝い・達成の絵(海外挑戦権・世界一・宇宙リーグ)ref_04 下段。文字の帯は入れない
+save(fit(R[4].crop((28, 1250, 312, 1440)), 340), 'emblem-overseas')
+save(fit(R[4].crop((333, 1250, 612, 1440)), 340), 'emblem-world')
+save(fit(R[4].crop((633, 1250, 917, 1440)), 340), 'emblem-space')
+
+# コイン ref_02
+save(fit(keyed(2, (750, 95, 800, 140)), 48), 'coin')
+
+# 背景の球場(bg-stadium.webp)は第1弾の参考画像から切り出した物をそのまま使う
