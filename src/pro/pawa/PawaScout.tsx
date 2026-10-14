@@ -10,7 +10,7 @@ import {DRAFT_EVENT,DRAFT_ROOKIE_CHANCE,draftEventActive,draftEventEndLabel,draf
 import {ScoutShare} from '../ScoutShare';
 import {scoutShareData} from '../share-kit';
 import {isRookie,ownedRatings} from '../development';
-import {PawaCard,GradeRow,Rank,cardRatings} from './PawaCard';
+import {PawaCard,Rank,StatList,cardRatings} from './PawaCard';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
 const packOf=(tier:ScoutTier)=>`/assets/pro/pawa/pack-${tier==='standard'?'normal':tier}.webp`;
@@ -63,8 +63,10 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <PawaArrival tier={tier} overall={overall} major={major}/>
    <div className="pw-result-main">
     <PawaCard player={player!} state={state} size="l" onClick={()=>onPlayer?.(player!)}/>
-    <div className="pw-result-side"><b>{player!.name}</b><small>{pull!.isNew?'新しい選手が加入！':pull!.copies<=6?'重複獲得で能力 ＋1（最大＋5）':'ポイント ＋80'}</small><GradeRow player={player!} ratings={cardRatings(player!,state)}/></div>
+    <div className="pw-result-side"><b>{player!.name}</b><small>{pull!.isNew?'新しい選手が加入！':pull!.copies<=6?'重複獲得で能力 ＋1（最大＋5）':'ポイント ＋80'}</small></div>
    </div>
+   <StatList player={player!} ratings={cardRatings(player!,state)}/>
+   {player!.mlb?.twoWay&&<StatList player={player!} ratings={cardRatings(player!,state)} mode="batter"/>}
    {upgrade&&old&&kept!==state.pulls?<div className="pw-compare">
     <h3>今の{upgrade.pitching?upgrade.position:`${upgrade.index+1}番(${upgrade.position})`}より強い選手です</h3>
     <div className="pw-compare-cards">

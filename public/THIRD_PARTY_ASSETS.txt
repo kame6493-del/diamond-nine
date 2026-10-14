@@ -1,5 +1,11 @@
 DIAMOND NINE — external audio and animation credits
 
+Sound effects (in use from 2026-10-11): 効果音ラボ https://soundeffect-lab.info/
+Terms: https://soundeffect-lab.info/agreement/ (free for commercial use; credit optional; no redistribution of the files)
+Files and their original names: /audio/selab/LICENSE.txt
+
+The Kenney and Freesound recordings below were used until 2026-10-10 and remain listed for the previous look.
+
 Sound recordings: Kenney
 Casino Audio (CC0 1.0): https://kenney.nl/assets/casino-audio
  - cards-pack-open-1.ogg → audio/kenney/pack-open.ogg

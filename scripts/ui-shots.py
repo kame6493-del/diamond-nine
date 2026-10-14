@@ -87,6 +87,10 @@ with sync_playwright() as p:
     js_click('.s-nav button'); page.wait_for_timeout(900); top()
     shot('08_試合タブ')
     shot('08b_試合タブ_全体', full=True)
+    if page.locator('.pw-goals-open').count():
+        js_click('.pw-goals-open'); page.wait_for_timeout(500)
+        shot('08g_目標・達成記録')
+        js_click('.pw-sheet-head .pw-close'); page.wait_for_timeout(300)
     try:
         close_dialogs()
         js_click('.pw-season-end .pw-btn', '.s-season-end .s-primary'); page.wait_for_timeout(1500)
@@ -107,6 +111,10 @@ with sync_playwright() as p:
         shot('11a_シーズン結果_全体', full=True)
         close_dialogs(); top()
         shot('11b_シーズン終了後の試合タブ')
+        if page.locator('.pw-season-select select').count():
+            page.locator('.pw-season-select select').select_option(index=1); page.wait_for_timeout(500); top()
+            shot('11c_過去のシーズンを振り返る')
+            page.locator('.pw-season-select select').select_option(index=0); page.wait_for_timeout(300)
         st = page.locator('.pw-standings, .league-stats-panel')
         if st.count():
             st.first.evaluate('e=>{if(e.tagName==="DETAILS")e.open=true;e.scrollIntoView()}'); page.wait_for_timeout(500)

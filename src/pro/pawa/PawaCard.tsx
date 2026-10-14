@@ -64,3 +64,12 @@ export function GradeRow({player,ratings,mode=player.role,big=false,values=true}
   ?<div key={label} className="nv-grade nv-velocity"><small>{label}</small><b>{player.ratings.velocity}</b><em>km/h</em></div>
   :<div key={label} className="nv-grade"><small>{label}</small><Rank value={value} label={label} showValue={values}/></div>)}</div>;
 }
+
+/** 能力を1行ずつ大きく見せる一覧(スカウト結果など、すぐ読みたい所)。項目名・ランク・数値・目盛り。 */
+export function StatList({player,ratings,mode=player.role}:{player:Player;ratings:Ratings;mode?:'batter'|'pitcher'}){
+ const rows=mode==='pitcher'?[['制球',ratings.control],['スタミナ',ratings.stamina],['変化',ratings.breaking]] as const:[['ミート',ratings.contact],['パワー',ratings.power],['走力',ratings.speed],['肩',ratings.arm],['守備',ratings.field]] as const;
+ return <dl className="pw-statlist">
+  {mode==='pitcher'&&<div><dt>球速</dt><dd><b className="pw-statlist-velo">{player.ratings.velocity}<small>km/h</small></b></dd></div>}
+  {rows.map(([label,v])=>{const n=cap(v);return <div key={label}><dt>{label}</dt><dd><Rank value={n} label={label}/><b>{n}</b><span className="pw-statbar" aria-hidden="true"><i data-rank={grade(n)} style={{width:`${n}%`}}/></span></dd></div>;})}
+ </dl>;
+}

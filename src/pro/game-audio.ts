@@ -1,5 +1,6 @@
-// CC0 recordings by Kenney and Leszek Szary; credits in THIRD_PARTY_ASSETS.txt.
-const files={draw:'kenney/pack-open',join:'kenney/card-place',win:'kenney/confirm',awaken:'kenney/awaken',reveal:'kenney/confirm',impact:'kenney/scout-impact',gold:'freesound/scout-gold-success-171671',rainbow:'kenney/scout-rainbow',voice:'kenney/scout-congratulations'} as const;
+// 効果音ラボ(https://soundeffect-lab.info/)の効果音。ゲーム内での利用は商用・クレジット不要で可、素材の再配布は不可。
+// 出典と元のファイル名は THIRD_PARTY_ASSETS.txt と /audio/selab/LICENSE.txt。音量だけ揃えて(loudnorm)使っている。
+const files={draw:'selab/draw.mp3',join:'selab/join.mp3',win:'selab/win.mp3',awaken:'selab/awaken.mp3',reveal:'selab/reveal.mp3',impact:'selab/impact.mp3',gold:'selab/gold.mp3',rainbow:'selab/rainbow.mp3',voice:'selab/voice.mp3'} as const;
 type Sound=keyof typeof files;
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
 const active=new Set<AudioBufferSourceNode>();
@@ -7,7 +8,7 @@ let context:AudioContext|null=null,epoch=0;
 async function load(file:string){
  if(buffers.has(file))return;
  if(!loading.has(file))loading.set(file,(async()=>{
-  try{const response=await fetch(`/audio/${file}.wav`);if(response.ok)buffers.set(file,await context!.decodeAudioData(await response.arrayBuffer()));}
+  try{const response=await fetch(`/audio/${file}`);if(response.ok)buffers.set(file,await context!.decodeAudioData(await response.arrayBuffer()));}
   catch{/* Optional audio. */}finally{loading.delete(file);}
  })());
  await loading.get(file);

@@ -89,7 +89,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <button className={'pw-posbtn'+(defender===id?' is-picked':'')} aria-label={`${p.name}の守備位置 ${pos}(タップで交換)`} aria-pressed={defender===id} onClick={()=>tapDefense(id)}><PosChip pos={pos}/></button>
    <div className="pw-name"><button data-player-id={id} onClick={()=>onPlayer(p)}>{p.name}</button><small>{age===null?'':`${age}歳`}{!fit&&<em> 適性外</em>}</small></div>
    <OvrShield value={ovr(id)} size="s"/>
-   <div className="pw-ranks">{([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]] as const).map(([l,v])=><Rank key={l} value={v} label={l}/>)}</div>
+   <div className="pw-ranks">{([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]] as const).map(([l,v])=><span key={l} className="pw-rcell"><small>{l}</small><Rank value={v} label={l} showValue/></span>)}</div>
    <GripVertical className="pw-grip" size={16} aria-hidden="true"/>
   </li>;
  };
@@ -100,8 +100,8 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <button className="pw-handle pw-order pw-order-role" aria-label={`${p.name} ${slotName('pit',i)}(ドラッグで移動、タップで交換)`} onClick={()=>tapOrder({kind:'pit',index:i})}><RoleChip role={role}/><small>{role==='先'?i+1:role==='中'?i-5:''}</small></button>
    <div className="pw-name"><button data-player-id={id} onClick={()=>onPlayer(p)}>{p.name}</button><small>{p.ratings.velocity}km/h{!fit&&<em> 役割適性外</em>}</small></div>
    <OvrShield value={ovr(id)} size="s"/>
-   <div className="pw-ranks pw-ranks-3">{([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]] as const).map(([l,v])=><Rank key={l} value={v} label={l}/>)}</div>
-   <div className="pw-apts">{(['先','中','抑'] as const).map(x=><AptMark key={x} mark={aptitudeMark(p,x)}/>)}</div>
+   <div className="pw-ranks pw-ranks-3">{([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]] as const).map(([l,v])=><span key={l} className="pw-rcell"><small>{l}</small><Rank value={v} label={l} showValue/></span>)}</div>
+   <div className="pw-apts">{(['先','中','抑'] as const).map(x=><span key={x} className="pw-aptcell">{x==='先'?'先発':x==='中'?'中継ぎ':'抑え'}<AptMark mark={aptitudeMark(p,x)}/></span>)}</div>
   </li>;
  };
  const benchRow=(p:Player)=>{const pitcher=p.role==='pitcher',r=ratingsOf(p.id);
