@@ -1,0 +1,12 @@
+効果音ラボ (https://soundeffect-lab.info/) — 利用規約 https://soundeffect-lab.info/agreement/
+商用利用無料・クレジット表記任意。ゲームの効果音としての利用は可。素材ファイルそのものの再配布は禁止。
+このフォルダの音は、下記の元ファイルの音量を揃え(loudnorm)、冒頭の無音を切っただけのもの(2026-10-11 取得)。
+ draw.mp3    ← battle/mp3/magic-circle1.mp3「魔法陣を展開」
+ impact.mp3  ← anime/mp3/drum-japanese2.mp3「和太鼓でドドン」
+ reveal.mp3  ← anime/mp3/kira1.mp3「キラッ1」
+ gold.mp3    ← anime/mp3/jajean1.mp3「ジャジャーン」
+ rainbow.mp3 ← anime/mp3/trumpet1.mp3「ラッパのファンファーレ」
+ voice.mp3   ← voice/mp3/people/people-stadium-cheer1.mp3「スタジアムの歓声」
+ join.mp3    ← button/mp3/decision7.mp3「決定ボタンを押す7」
+ win.mp3     ← various/mp3/metal-bat1.mp3「カキーンと打つ」
+ awaken.mp3  ← battle/mp3/magic-statusup1.mp3「ステータス上昇魔法1」
