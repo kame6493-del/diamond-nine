@@ -41,16 +41,21 @@ export function OvrShield({value,size='m'}:{value:number;size?:'s'|'m'|'l'}){
  </span>;
 }
 
+/** 総合値の箱(一覧の左端に大きく)。色: 95以上=虹・85以上(海外)=金・70以上=銀・それ未満=銅。文字でも「総合」と出す。 */
+export function OvrBox({value,player,size='m'}:{value:number;player?:Player;size?:'m'|'l'}){
+ const metal=value>=95?'rainbow':value>=85||player?.mlb?'gold':value>=70?'silver':'bronze';
+ return <span className={'pw-ovrbox pw-ovrbox-'+size} data-metal={metal} aria-label={`総合 ${value}`}><small aria-hidden="true">総合</small><b aria-hidden="true">{value}</b></span>;
+}
+
 /** 選手カード: 枠の色(通常=青・金・虹)、総合のランク札、チーム色のユニフォームの絵、背番号と名前。人の絵は描かない。 */
 export function PawaCard({player,state,base=false,size='m',onClick,label}:{player:Player;state:GameState;base?:boolean;size?:'s'|'m'|'l';onClick?:()=>void;label?:string}){
  const ratings=cardRatings(player,state,base),overall=ratingOverall(player,ratings),tier=tierFor(player,overall);
  const team=teamById(player.team),pos=roleLabel(player),number=player.mlb?.number??player.roster?.number;
  const body=<>
-  <i className="pw-rank nc-rank" data-rank={grade(cap(overall))} aria-hidden="true">{grade(cap(overall))}</i>
+  <span className="nc-ovrtop"><small>総合</small><b>{overall}</b></span>
   <span className="nc-pos">{pos.length>2?pos.slice(0,2):pos}</span>
   <span className="nc-art"><JerseyArt player={player}/></span>
   <span className="nc-plate"><b>{player.name}</b>{size!=='s'&&<small>{team.short}{player.mlb?' · 海外':''}</small>}</span>
-  {size!=='s'&&<span className="nc-ovr"><small>OVR</small><b>{overall}</b></span>}
  </>;
  const cls=`nv-card nc-${size} nc-${tier}`;
  const style={'--team-tint':team.color} as CSSProperties;

@@ -1,12 +1,14 @@
 効果音ラボ (https://soundeffect-lab.info/) — 利用規約 https://soundeffect-lab.info/agreement/
 商用利用無料・クレジット表記任意。ゲームの効果音としての利用は可。素材ファイルそのものの再配布は禁止。
-このフォルダの音は、下記の元ファイルの音量を揃え(loudnorm)、冒頭の無音を切っただけのもの(2026-10-11 取得)。
- draw.mp3    ← battle/mp3/magic-circle1.mp3「魔法陣を展開」
- impact.mp3  ← anime/mp3/drum-japanese2.mp3「和太鼓でドドン」
+このフォルダの音は、下記の元ファイルの冒頭の無音を切り、長さを詰め、音量を揃えた(loudnorm)だけのもの。
+2026-10-15 カードを引く流れに合わせて差し替え(カードを置く→ドラムロール→めくる→当たりの音)。
+ deal.mp3    ← various/mp3/card-put1.mp3「カードを場に出す」
+ flip.mp3    ← various/mp3/card-turn-over1.mp3「カードをめくる」
+ roll.mp3    ← anime/mp3/drum-roll1.mp3「ドラムロール」(金・虹のときだけ)
+ cymbal.mp3  ← anime/mp3/roll-finish1.mp3「ロールの閉め」
  reveal.mp3  ← anime/mp3/kira1.mp3「キラッ1」
- gold.mp3    ← anime/mp3/jajean1.mp3「ジャジャーン」
- rainbow.mp3 ← anime/mp3/trumpet1.mp3「ラッパのファンファーレ」
- voice.mp3   ← voice/mp3/people/people-stadium-cheer1.mp3「スタジアムの歓声」
- join.mp3    ← button/mp3/decision7.mp3「決定ボタンを押す7」
- win.mp3     ← various/mp3/metal-bat1.mp3「カキーンと打つ」
- awaken.mp3  ← battle/mp3/magic-statusup1.mp3「ステータス上昇魔法1」
+ gold.mp3    ← anime/mp3/shakin3.mp3「シャキーン3」
+ rainbow.mp3 ← anime/mp3/shine4.mp3「きらきら輝く4」
+ awaken.mp3  ← anime/mp3/levelup1.mp3「レベルアップ」
+ join.mp3    ← button/mp3/decision7.mp3「決定ボタンを押す7」(2026-10-11)
+ win.mp3     ← various/mp3/metal-bat1.mp3「カキーンと打つ」(2026-10-11)

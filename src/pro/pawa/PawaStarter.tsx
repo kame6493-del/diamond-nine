@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {playerMap,type Player} from '../data';
 import type {GameState} from '../engine';
 import {scoutDuration,scoutPresentation} from '../scout-presentation';
-import {gameSound,prepareGameAudio,stopGameAudio} from '../game-audio';
+import {drawSounds,prepareGameAudio,revealSounds,stopGameAudio} from '../game-audio';
 import {STARTER_MIN_OVERALL} from '../starter-scout';
 import {PawaCard} from './PawaCard';
 import {PawaArrival,PawaScoutCharge} from './PawaScout';
@@ -24,10 +24,11 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
   if(!onPick(index,teamName.trim())){locked.current=false;return;}
   setOpening(true);
   const id=offer.choices[index],presentation=scoutPresentation(playerMap[id],{...state.owned,[id]:(state.owned[id]??0)+1},state.training);
-  stopGameAudio();if(soundRef.current){void prepareGameAudio();gameSound('draw');gameSound('impact',.65);}
+  stopGameAudio();if(soundRef.current){void prepareGameAudio();drawSounds(presentation.tier,0);}
+  let flipped=false;const flipTimer=setTimeout(()=>{flipped=true;if(soundRef.current)revealSounds(presentation.tier);},Math.round(scoutDuration(presentation.tier)*.68));
   finish.current=()=>{
-   if(!finish.current)return;finish.current=null;if(timer.current)clearTimeout(timer.current);timer.current=null;
-   stopGameAudio();if(soundRef.current){gameSound(presentation.tier==='rainbow'?'rainbow':'gold');if(presentation.tier==='rainbow')gameSound('voice',.5);}
+   if(!finish.current)return;finish.current=null;if(timer.current)clearTimeout(timer.current);timer.current=null;clearTimeout(flipTimer);
+   if(!flipped){stopGameAudio();if(soundRef.current)revealSounds(presentation.tier);}
    setOpening(false);
   };
   timer.current=setTimeout(()=>finish.current?.(),scoutDuration(presentation.tier));
@@ -43,8 +44,8 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
    <div className="pw-panel pw-about"><h2>スタートスカウトについて</h2><p>この中から好きな選手を1人選んで、チームに迎えることができます。</p><p>登場する選手は すべて <b>OVR{STARTER_MIN_OVERALL} 以上</b>！ キミのチームの核となる選手を選ぼう。ポイントは使いません。</p></div>
    <button className="pw-btn pw-yellow pw-wide pw-start" disabled={chosen===null||opening||!validName} onClick={()=>chosen!==null&&choose(chosen)}><span className="pw-ball" aria-hidden="true"/>このカードに決める</button>
    <a className="pw-link" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
-  </>:opening?<PawaScoutCharge tier={tier} title="カードをオープン！" onSkip={()=>finish.current?.()}/>:<div className={'pw-panel pw-result pw-tier-'+tier}>
-   <PawaArrival tier={tier} overall={overall} major={false} title="最初の主力が加入！"/>
+  </>:opening?<PawaScoutCharge tier={tier} player={player} state={state} onSkip={()=>finish.current?.()}/>:<div className={'pw-panel pw-result pw-tier-'+tier}>
+   <h2 className="pw-starter-got">最初の主力が加入</h2><PawaArrival tier={tier} overall={overall} major={false}/>
    <div className="pw-result-solo"><PawaCard player={player} state={state} size="l" onClick={()=>onPlayer(player)}/></div>
    <div className="pw-namebox"><label htmlFor="pw-team-name">チーム名</label><input id="pw-team-name" value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="pw-name-help" onChange={e=>setTeamName(e.target.value)}/></div>
    <small id="pw-name-help" className="pw-note">※あと{Math.max(0,20-teamName.length)}文字まで入力できます。あとから設定でも変更できます。</small>

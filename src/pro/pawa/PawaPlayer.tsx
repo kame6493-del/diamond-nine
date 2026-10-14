@@ -1,8 +1,8 @@
 import {useEffect,useRef,useState} from 'react';
 import {Sparkles} from 'lucide-react';
-import {formatAvg,formatIP,positionLabel,teamById,type Player} from '../data';
+import {formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from '../engine';
-import {awakeningCosts,growthProfile,ratingOverall,stageNames} from '../development';
+import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames} from '../development';
 import {trainPlayer} from '../franchise';
 import {traitDescriptions} from '../wiki-traits';
 import {equipTwoWayPlayer} from '../simple-game';
@@ -15,9 +15,10 @@ const traitKind=(t:string)=>/盗塁|走塁|走/.test(t)?'run':/守備|送球|捕
 
 /** 選手詳細(ref_09 左)。覚醒・二刀流起用は PlayerDetails と同じ関数を呼ぶ。 */
 export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{player:Player;state:GameState;onChange:(s:GameState)=>void;onAwaken:()=>void;catalog?:boolean}){
- const [result,setResult]=useState<{before:number;after:number;stage:number}|null>(null);
+ const [result,setResult]=useState<{before:number;after:number;stage:number;changes:{label:string;before:number;after:number}[]}|null>(null);
  const success=useRef<HTMLDivElement>(null);
  useEffect(()=>{if(result)success.current?.focus({preventScroll:true});},[result]);
+ useEffect(()=>setResult(null),[player.id]);
  const owned=!!state.owned[player.id],level=state.training[player.id]??0,cost=awakeningCosts[level];
  const growth=growthProfile(player),overall=effectiveOverall(player,state.owned,state.training),ratings=cardRatings(player,state,catalog);
  const b=state.season.batting[`${state.club}|${player.id}`],p=state.season.pitching[`${state.club}|${player.id}`];
@@ -29,7 +30,10 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  const pitStats=[['奪三振',p?.so??0],['防御率',p?.outs?era(p).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['セーブ',p?.saves??0]];
  const awaken=()=>{
   const updated=trainPlayer(state,player.id);if(updated===state)return;
-  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training),stage:updated.training[player.id]});
+  const a=ownedRatings(player,state.owned,state.training),b=ownedRatings(player,updated.owned,updated.training);
+  const keys:[string,keyof Ratings][]=pitcher?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking'],...(twoWay?[['ミート','contact'],['パワー','power']] as [string,keyof Ratings][]:[])]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']];
+  const changes=keys.map(([label,k])=>({label,before:a[k] as number,after:b[k] as number})).filter(c=>c.after!==c.before);
+  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training),stage:updated.training[player.id],changes});
   onChange(updated);onAwaken();
  };
  const shown=catalog?ratingOverall(player,player.ratings):overall;
@@ -62,19 +66,23 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
 
   {!catalog&&<section className="pw-sec pw-awaken" aria-label="選手の覚醒"><h4>覚醒 <span>{level} / 5 · {stageNames[level]}</span></h4>
    <ol className="pw-awaken-steps" aria-label={`覚醒 ${level} / 5`}>{[1,2,3,4,5].map(n=><li key={n} className={n<=level?'done':n===level+1?'next':''}><b>{stageNames[n]}</b><img src={`/assets/pro/pawa/awaken-${n}.webp`} alt=""/><small>Lv.{n}</small><em>{awakeningCosts[n-1].toLocaleString('ja-JP')}<br/>pt</em></li>)}</ol>
-   {owned?<>
-    {level<5&&<><div className="pw-budget"><div><small>必要ポイント</small><strong>{cost.toLocaleString('ja-JP')} pt</strong></div><div><small>所持ポイント</small><strong>{state.gems.toLocaleString('ja-JP')} pt</strong></div></div>
-     <div className="pw-bar" role="progressbar" aria-label={`第${level+1}段階へのポイント`} aria-valuemin={0} aria-valuemax={cost} aria-valuenow={Math.min(cost,state.gems)}><i style={{width:`${Math.min(100,state.gems/cost*100)}%`}}/></div>
-     <p className={'pw-afford '+(state.gems<cost?'short':'ready')}>{state.gems<cost?`あと${(cost-state.gems).toLocaleString('ja-JP')}ptで覚醒`:`覚醒後の所持ポイント ${(state.gems-cost).toLocaleString('ja-JP')} pt`}</p></>}
-    <button className="pw-btn pw-red pw-wide" disabled={level>=5||state.gems<cost} onClick={awaken}><Sparkles size={20}/>{level>=5?'完全覚醒しました':`覚醒する(第${level+1}段階)`}</button>
-    {level<5&&<p className="pw-note">スカウトと共通のポイントを使います。覚醒すると能力が上がります。</p>}
-   </>:<p className="pw-note">入手した選手だけ覚醒できます。</p>}
-   {result&&<div key={result.stage} ref={success} tabIndex={-1} className="pw-awaken-success" role="status"><strong>第{result.stage}段階へ覚醒成功！</strong><span>総合 {result.before} → <b>{result.after}</b></span></div>}
+   {!owned&&<p className="pw-note">入手した選手だけ覚醒できます。</p>}
   </section>}
 
   {!catalog&&twoWay&&owned&&<div className="pw-two-way"><p>1枚で先発とDHの両方に起用できます。</p><button className="pw-btn pw-blue" disabled={bothEquipped} onClick={()=>onChange(equipTwoWayPlayer(state,player.id))}>{bothEquipped?'投手＋DHで二刀流起用中':'投手＋DHで二刀流起用'}</button></div>}
 
   {!catalog&&<section className="pw-sec"><h4>今シーズンの成績{twoWay?' · 投手':''}</h4><dl className="pw-pstats">{(pitcher?pitStats:batStats).map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
    {twoWay&&<><h4>今シーズンの成績 · 打撃</h4><dl className="pw-pstats">{batStats.map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl></>}</section>}
+
+  {/* 覚醒ボタンは画面の下に固定。押した結果(変わった能力の前→後)はボタンのすぐ上に出るので、特能が多い選手でもスクロールせずに見える。 */}
+  {!catalog&&owned&&<div className="pw-awaken-bar">
+   {result&&<div key={result.stage} ref={success} tabIndex={-1} className="pw-awaken-success" role="status">
+    <strong>第{result.stage}段階「{stageNames[result.stage]}」へ覚醒！</strong>
+    <p className="pw-awaken-ovr">総合 {result.before} → <b>{result.after}</b>{result.after>result.before&&<em>＋{result.after-result.before}</em>}</p>
+    {result.changes.length>0&&<ul className="pw-awaken-changes">{result.changes.map(c=><li key={c.label}><small>{c.label}</small><span>{c.before}</span><i aria-hidden="true">→</i><b>{c.label==='球速'?`${c.after}km/h`:c.after}</b><em>＋{c.after-c.before}</em></li>)}</ul>}
+   </div>}
+   {level<5&&<p className={'pw-afford '+(state.gems<cost?'short':'ready')}><span>必要 <b>{cost.toLocaleString('ja-JP')} pt</b></span><span>{state.gems<cost?`あと ${(cost-state.gems).toLocaleString('ja-JP')} pt`:`所持 ${state.gems.toLocaleString('ja-JP')} pt`}</span></p>}
+   <button className="pw-btn pw-red pw-wide" disabled={level>=5||state.gems<cost} onClick={awaken}><Sparkles size={20}/>{level>=5?'完全覚醒しました':`覚醒する(第${level+1}段階「${stageNames[level+1]}」)`}</button>
+  </div>}
  </div>;
 }

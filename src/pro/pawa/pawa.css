@@ -710,3 +710,218 @@ html[data-look=pawa] .nv-app .pw-summary .pw-wld{grid-template-columns:repeat(4,
 html[data-look=pawa] .nv-app .pw-summary .pw-wld dd{font-size:24px}
 html[data-look=pawa] .nv-app .pw-summary-progress{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;font:900 13px system-ui;color:var(--mu)}
 html[data-look=pawa] .nv-app .pw-summary-progress b{font:400 18px var(--num);color:var(--ink)}
+
+/* ===================== 2026-10-15 持ち主の指摘での直し(押しやすさ・見やすさ優先) ===================== */
+/* ---- 総合値の箱: 一覧の左端に大きく。色(虹・金・銀・銅)と「総合」の文字の両方で分かる ---- */
+html[data-look=pawa] .nv-app .pw-ovrbox{display:flex;flex-direction:column;align-items:center;justify-content:center;width:58px;height:60px;flex:none;border-radius:12px;border:2px solid rgba(0,0,0,.15);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 2px 0 rgba(16,38,79,.18);line-height:1}
+html[data-look=pawa] .nv-app .pw-ovrbox small{font:900 11px/1 system-ui;opacity:.85}
+html[data-look=pawa] .nv-app .pw-ovrbox b{font:400 28px/1.05 var(--num);letter-spacing:-.5px}
+html[data-look=pawa] .nv-app .pw-ovrbox[data-metal=bronze]{background:linear-gradient(180deg,#f3c9a4,#c9844e);color:#4a2307}
+html[data-look=pawa] .nv-app .pw-ovrbox[data-metal=silver]{background:linear-gradient(180deg,#ffffff,#c5d1e0);color:#1d2f4f}
+html[data-look=pawa] .nv-app .pw-ovrbox[data-metal=gold]{background:linear-gradient(180deg,#fff6bf,#ffc928 60%,#e99a00);color:#4d2b00;border-color:#c98500}
+html[data-look=pawa] .nv-app .pw-ovrbox[data-metal=rainbow]{background:linear-gradient(135deg,#ffd1ec,#fff3b0 30%,#c9f7d6 55%,#c8e4ff 78%,#e3d1ff);color:#3a1f6b;border-color:#9b4dff}
+html[data-look=pawa] .nv-app .pw-ovrbox-l{width:84px;height:88px;border-radius:16px}html[data-look=pawa] .nv-app .pw-ovrbox-l b{font-size:42px}html[data-look=pawa] .nv-app .pw-ovrbox-l small{font-size:13px}
+
+/* ---- カード: 総合を左上に大きく ---- */
+html[data-look=pawa] .nv-app .nc-ovrtop{position:absolute;left:4%;top:3%;z-index:3;display:flex;flex-direction:column;align-items:center;min-width:30%;padding:3px 6px 4px;border-radius:9px;background:var(--navy);box-shadow:0 2px 0 rgba(0,0,0,.25);line-height:1}
+html[data-look=pawa] .nv-app .nc-ovrtop small{font:900 9px/1.2 system-ui;color:#bcd3ff}
+html[data-look=pawa] .nv-app .nc-ovrtop b{font:400 24px/1 var(--num);color:#ffd23b}
+html[data-look=pawa] .nv-app .nc-l .nc-ovrtop{padding:4px 8px 6px;border-radius:11px}html[data-look=pawa] .nv-app .nc-l .nc-ovrtop small{font-size:12px}html[data-look=pawa] .nv-app .nc-l .nc-ovrtop b{font-size:36px}
+html[data-look=pawa] .nv-app .nc-s .nc-ovrtop{padding:2px 3px;border-radius:6px}html[data-look=pawa] .nv-app .nc-s .nc-ovrtop small{font-size:7px}html[data-look=pawa] .nv-app .nc-s .nc-ovrtop b{font-size:15px}
+html[data-look=pawa] .nv-app .nc-gold .nc-ovrtop{background:linear-gradient(180deg,#8a4b00,#5a3000)}
+html[data-look=pawa] .nv-app .nc-rainbow .nc-ovrtop{background:linear-gradient(135deg,#ff4fa3,#9b4dff,#1f9cff)}html[data-look=pawa] .nv-app .nc-rainbow .nc-ovrtop b{color:#fff}
+
+/* ---- 編成の行(打線・投手・控えで同じ形): [打順と守備][総合][名前・年齢・能力][つかみ] ---- */
+html[data-look=pawa] .nv-app .pw-row.pw-r2{display:grid;grid-template-columns:40px 58px minmax(0,1fr) 18px;grid-template-areas:none;gap:8px;align-items:center;padding:8px 6px;border-radius:12px}
+html[data-look=pawa] .nv-app .pw-row.pw-r2>*{grid-area:auto}
+html[data-look=pawa] .nv-app .pw-r2-slot{display:flex;flex-direction:column;align-items:center;gap:6px}
+html[data-look=pawa] .nv-app .pw-r2-slot .pw-order{width:40px;height:40px;font-size:20px;border-radius:10px}
+html[data-look=pawa] .nv-app .pw-r2-slot .pw-order-role{height:auto;min-height:44px;display:flex;flex-direction:column;gap:2px;padding:4px 0}
+html[data-look=pawa] .nv-app .pw-r2-slot .pw-posbtn{min-width:40px;min-height:40px;display:grid;place-items:center}
+html[data-look=pawa] .nv-app .pw-r2-slot .pw-pos{width:34px;height:34px;font-size:17px}
+html[data-look=pawa] .nv-app .pw-r2-main{min-width:0;display:grid;gap:6px}
+html[data-look=pawa] .nv-app .pw-r2-name{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-width:0}
+html[data-look=pawa] .nv-app .pw-r2-name>button{padding:4px 0;min-height:32px;border:0;background:none;text-align:left;font:900 17px/1.25 system-ui;color:var(--ink);cursor:pointer;word-break:keep-all;overflow-wrap:anywhere}
+html[data-look=pawa] .nv-app .pw-age{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--sky);border:1px solid var(--sky2);color:var(--blue2);font:900 14px/1.3 system-ui;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-awk{display:inline-flex;padding:2px 8px;border-radius:999px;background:#fff0f4;border:1px solid #ffb3c9;color:#c2185b;font:900 12px/1.3 system-ui}
+html[data-look=pawa] .nv-app .pw-unfit-tag{font-style:normal;padding:2px 8px;border-radius:999px;background:#ffe3e3;color:var(--red2);font:900 12px/1.3 system-ui}
+html[data-look=pawa] .nv-app .pw-r2-ranks{display:flex;flex-wrap:wrap;gap:4px 6px}
+html[data-look=pawa] .nv-app .pw-r2-ranks .pw-rcell{min-width:38px}
+html[data-look=pawa] .nv-app .pw-r2-ranks .pw-rcell small{font:900 11px/1.2 system-ui}
+html[data-look=pawa] .nv-app .pw-r2-ranks .pw-rank{width:30px;height:29px}
+html[data-look=pawa] .nv-app .pw-r2-ranks .pw-rcell .pw-rank-wrap em{font-size:13px}
+html[data-look=pawa] .nv-app .pw-velo-cell b{display:flex;flex-direction:column;align-items:center;font:400 20px/1.1 var(--num);color:var(--ink)}html[data-look=pawa] .nv-app .pw-velo-cell b em{font:900 10px/1 system-ui;color:var(--mu);font-style:normal}
+html[data-look=pawa] .nv-app .pw-r2 .pw-apts{display:flex;flex-wrap:wrap;gap:4px 12px;justify-items:start}
+html[data-look=pawa] .nv-app .pw-r2 .pw-aptcell{display:inline-flex;align-items:center;gap:4px;font:800 13px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-r2 .pw-grip{color:#9fb0c8}
+html[data-look=pawa] .nv-app .pw-r2-extra{padding-top:4px;border-top:1px dashed var(--line)}
+/* 控えの行: [総合][名前・年齢・球団・能力・特能] の下に大きな「編成する」 */
+html[data-look=pawa] .nv-app .pw-row.pw-bench2{grid-template-columns:58px minmax(0,1fr);grid-template-areas:"ovr main" "ovr btn";align-items:start}
+html[data-look=pawa] .nv-app .pw-row.pw-bench2>.pw-ovrbox{grid-area:ovr}html[data-look=pawa] .nv-app .pw-row.pw-bench2>.pw-r2-main{grid-area:main}
+html[data-look=pawa] .nv-app .pw-row.pw-bench2>.pw-btn{grid-area:btn;justify-self:end;min-height:44px;min-width:132px;font-size:15px}
+html[data-look=pawa] .nv-app .pw-bench-sub{display:flex;align-items:center;gap:6px;font:800 14px/1.3 system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-bench-sub .pw-pos,html[data-look=pawa] .nv-app .pw-bench-sub .pw-role{width:28px;height:28px;font-size:14px}
+html[data-look=pawa] .nv-app .pw-bench-traits{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+html[data-look=pawa] .nv-app .pw-bench-traits li{padding:3px 8px;border-radius:7px;background:#eef5ff;border:1px solid #cfe0f7;color:#1b4b9a;font:800 12px/1.3 system-ui}
+html[data-look=pawa] .nv-app .pw-bench-traits li.is-more{background:#fff;color:var(--mu)}
+/* チームの総合 */
+html[data-look=pawa] .nv-app .pw-team-power{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 10px}
+html[data-look=pawa] .nv-app .pw-team-power span{display:flex;flex-direction:column;align-items:center;padding:6px 4px;border-radius:12px;background:#f1f6fd;border:1px solid var(--line)}
+html[data-look=pawa] .nv-app .pw-team-power small{font:900 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-team-power b{font:400 26px/1.1 var(--num);color:var(--ink)}html[data-look=pawa] .nv-app .pw-team-power b em{font:900 12px system-ui;font-style:normal;margin-left:2px}
+html[data-look=pawa] .nv-app .pw-tabs button{min-height:46px}
+html[data-look=pawa] .nv-app .pw-hint-jump{margin-left:6px;min-height:36px;padding:0 10px;border-radius:8px;border:2px solid var(--yellow2)!important;background:#fff;color:#5a3d00;font:900 13px system-ui;cursor:pointer}
+/* 控えの絞り込み */
+html[data-look=pawa] .nv-app .pw-filters{display:grid;gap:8px;margin:0 0 10px}
+html[data-look=pawa] .nv-app .pw-filters .pw-search{margin:0}
+html[data-look=pawa] .nv-app .pw-role-seg{margin:0}html[data-look=pawa] .nv-app .pw-role-seg button{min-height:44px}
+html[data-look=pawa] .nv-app .pw-role-seg button.is-on{border-color:#0b3fa3;background:linear-gradient(180deg,#4b95ff,var(--blue) 55%,var(--blue2));box-shadow:0 2px 0 #072c78}
+html[data-look=pawa] .nv-app .pw-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+html[data-look=pawa] .nv-app .pw-filter{display:grid;gap:2px;font:900 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-filter select{min-height:44px;width:100%;padding:0 10px;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink);font:800 15px system-ui}
+html[data-look=pawa] .nv-app .pw-filter-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+html[data-look=pawa] .nv-app .pw-filter-foot .pw-btn{min-height:44px}
+html[data-look=pawa] .nv-app .pw-check{display:inline-flex;align-items:center;gap:8px;min-height:44px;font:900 14px system-ui;color:var(--ink)}
+html[data-look=pawa] .nv-app .pw-check input{width:22px;height:22px}
+@media (min-width:560px){html[data-look=pawa] .nv-app .pw-filter-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* ---- 選手詳細: 覚醒ボタンは下に固定、結果はそのすぐ上 ---- */
+html[data-look=pawa] .nv-app .nv-player-dialog{padding-bottom:0!important}
+html[data-look=pawa] .nv-app .pw-awaken-bar{position:sticky;bottom:0;z-index:5;margin:6px -16px 0;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.97);border-top:2px solid var(--line);box-shadow:0 -6px 16px rgba(16,38,79,.12);display:grid;gap:8px}
+html[data-look=pawa] .nv-app .pw-awaken-bar .pw-afford{display:flex;justify-content:space-between;margin:0;font:800 14px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-awaken-bar .pw-afford b{font:400 17px var(--num);color:var(--ink)}
+html[data-look=pawa] .nv-app .pw-awaken-bar .pw-afford.short span:last-child{color:var(--red2)}
+html[data-look=pawa] .nv-app .pw-awaken-bar .pw-btn{min-height:54px;font-size:17px}
+html[data-look=pawa] .nv-app .pw-awaken-bar .pw-awaken-success{margin:0;padding:10px 12px;animation:pw-awk-pop .5s ease-out both}
+html[data-look=pawa] .nv-app .pw-awaken-ovr{margin:4px 0 0!important;font:900 16px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-awaken-ovr b{font:400 28px var(--num);color:var(--red2)}html[data-look=pawa] .nv-app .pw-awaken-ovr em{margin-left:6px;font:900 15px system-ui;color:var(--green2);font-style:normal}
+html[data-look=pawa] .nv-app .pw-awaken-changes{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:4px}
+html[data-look=pawa] .nv-app .pw-awaken-changes li{display:flex;align-items:baseline;gap:5px;padding:4px 8px;border-radius:8px;background:#fff;border:1px solid #ffd666;font:800 14px system-ui}
+html[data-look=pawa] .nv-app .pw-awaken-changes small{font:900 12px system-ui;color:var(--mu);min-width:4em}
+html[data-look=pawa] .nv-app .pw-awaken-changes span{color:var(--mu)}html[data-look=pawa] .nv-app .pw-awaken-changes i{font-style:normal;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-awaken-changes b{font:400 18px var(--num);color:var(--ink)}html[data-look=pawa] .nv-app .pw-awaken-changes em{font-style:normal;color:var(--green2);font-weight:900;margin-left:auto}
+@keyframes pw-awk-pop{0%{transform:scale(.85);opacity:0;box-shadow:0 0 0 0 rgba(255,194,26,.9)}60%{transform:scale(1.03);opacity:1;box-shadow:0 0 0 10px rgba(255,194,26,0)}100%{transform:none}}
+
+/* ---- カードを引く演出(画像: ChatGPT で作った場面・裏面・光) ---- */
+html[data-look=pawa] .nv-app .pw-rv{position:relative;height:min(560px,calc(100dvh - 210px));min-height:420px;margin:0 0 12px;border-radius:18px;overflow:hidden;cursor:pointer;background:#08163d;isolation:isolate;
+ --glow:rgba(120,190,255,.85);--glow2:rgba(80,150,255,0)}
+html[data-look=pawa] .nv-app .pw-rv.pw-tier-gold{--glow:rgba(255,205,60,.95);--glow2:rgba(255,160,0,0)}
+html[data-look=pawa] .nv-app .pw-rv.pw-tier-rainbow{--glow:rgba(255,255,255,.95);--glow2:rgba(180,120,255,0)}
+html[data-look=pawa] .nv-app .pw-rv-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1;animation:pw-rv-bgzoom var(--nv-time) ease-out both}
+html[data-look=pawa] .nv-app .pw-rv-card{position:absolute;left:50%;top:50%;width:min(210px,54vw);aspect-ratio:3/4;margin-left:calc(min(210px,54vw)/-2);transform:translateY(-50%);perspective:900px;z-index:3;animation:pw-rv-in var(--nv-time) cubic-bezier(.2,.8,.2,1) both}
+html[data-look=pawa] .nv-app .pw-tier-gold .pw-rv-card,html[data-look=pawa] .nv-app .pw-tier-rainbow .pw-rv-card{animation:pw-rv-in var(--nv-time) cubic-bezier(.2,.8,.2,1) both,pw-rv-shake var(--nv-time) linear both}
+html[data-look=pawa] .nv-app .pw-rv-flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:pw-rv-turn var(--nv-time) ease-in-out both}
+html[data-look=pawa] .nv-app .pw-rv-back,html[data-look=pawa] .nv-app .pw-rv-front{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px}
+html[data-look=pawa] .nv-app .pw-rv-back{width:100%;height:100%;object-fit:cover;border:3px solid #fff;animation:pw-rv-edge var(--nv-time) ease-in both}
+html[data-look=pawa] .nv-app .pw-rv-front{transform:rotateY(180deg)}
+html[data-look=pawa] .nv-app .pw-rv-front .nv-card.nc-l{width:100%;margin:0}
+html[data-look=pawa] .nv-app .pw-rv-aura{position:absolute;left:50%;top:50%;width:min(520px,140vw);aspect-ratio:1;transform:translate(-50%,-50%) scale(.3);border-radius:50%;z-index:1;opacity:0;background:radial-gradient(circle,var(--glow) 0,var(--glow2) 62%);animation:pw-rv-aura var(--nv-time) ease-out both}
+html[data-look=pawa] .nv-app .pw-tier-rainbow .pw-rv-aura{background:conic-gradient(from 0deg,#ff4fa3,#ffc21a,#2bd06a,#1f9cff,#9b4dff,#ff4fa3);-webkit-mask:radial-gradient(circle,#000 0,#000 25%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 25%,transparent 62%);animation:pw-rv-aura var(--nv-time) ease-out both,pw-rv-spin 2.4s linear infinite}
+html[data-look=pawa] .nv-app .pw-rv-burst{position:absolute;left:50%;top:50%;width:min(560px,150vw);aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);z-index:2;opacity:0;mix-blend-mode:screen;pointer-events:none;animation:pw-rv-burst var(--nv-time) ease-out both}
+html[data-look=pawa] .nv-app .pw-tier-standard .pw-rv-burst{filter:hue-rotate(185deg) saturate(1.3)}
+html[data-look=pawa] .nv-app .pw-tier-rainbow .pw-rv-burst{animation:pw-rv-burst var(--nv-time) ease-out both,pw-rv-hue 1.2s linear infinite}
+html[data-look=pawa] .nv-app .pw-rv-flash{position:absolute;inset:0;z-index:4;background:#fff;opacity:0;pointer-events:none;animation:pw-rv-flash var(--nv-time) ease-out both}
+html[data-look=pawa] .nv-app .pw-tier-standard .pw-rv-flash{animation-name:pw-rv-flash-soft}
+html[data-look=pawa] .nv-app .pw-rv-sparks{position:absolute;left:50%;top:50%;z-index:5;pointer-events:none}
+html[data-look=pawa] .nv-app .pw-rv-sparks i{position:absolute;width:10px;height:10px;margin:-5px;border-radius:50%;background:#fff6c2;box-shadow:0 0 10px 3px rgba(255,210,60,.9);opacity:0;--a:calc(var(--i) * 25.7deg);animation:pw-rv-spark var(--nv-time) ease-out both}
+html[data-look=pawa] .nv-app .pw-tier-rainbow .pw-rv-sparks i{background:hsl(calc(var(--i) * 26),100%,80%);box-shadow:0 0 10px 3px hsl(calc(var(--i) * 26),100%,65%)}
+html[data-look=pawa] .nv-app .pw-rv .pw-skip{top:auto;bottom:12px;right:12px;min-height:44px}
+@keyframes pw-rv-bgzoom{0%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes pw-rv-in{0%{transform:translateY(-160%) rotate(-14deg) scale(.7);opacity:0}16%{transform:translateY(-50%) rotate(0) scale(1);opacity:1}100%{transform:translateY(-50%)}}
+@keyframes pw-rv-shake{0%,36%{translate:0 0}40%{translate:-3px 0}44%{translate:3px 1px}48%{translate:-4px -1px}52%{translate:4px 0}56%{translate:-5px 1px}60%{translate:5px 0}64%,100%{translate:0 0}}
+@keyframes pw-rv-turn{0%,62%{transform:rotateY(0)}74%{transform:rotateY(180deg) scale(1.1)}84%{transform:rotateY(180deg) scale(.98)}100%{transform:rotateY(180deg) scale(1)}}
+@keyframes pw-rv-edge{0%,22%{box-shadow:0 8px 24px rgba(0,0,0,.45)}62%{box-shadow:0 0 22px 8px var(--glow),0 8px 24px rgba(0,0,0,.45)}100%{box-shadow:0 0 22px 8px var(--glow)}}
+@keyframes pw-rv-aura{0%,18%{opacity:0;transform:translate(-50%,-50%) scale(.3)}60%{opacity:.75;transform:translate(-50%,-50%) scale(.7)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:.7;transform:translate(-50%,-50%) scale(1)}}
+@keyframes pw-rv-burst{0%,62%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.05) rotate(10deg)}100%{opacity:.55;transform:translate(-50%,-50%) scale(1.2) rotate(30deg)}}
+@keyframes pw-rv-flash{0%,64%{opacity:0}68%{opacity:.9}82%,100%{opacity:0}}
+@keyframes pw-rv-flash-soft{0%,64%{opacity:0}68%{opacity:.45}80%,100%{opacity:0}}
+@keyframes pw-rv-spark{0%,66%{opacity:0;transform:rotate(var(--a)) translateX(0)}74%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateX(min(210px,52vw))}}
+@keyframes pw-rv-spin{to{rotate:360deg}}
+@keyframes pw-rv-hue{to{filter:hue-rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){html[data-look=pawa] .nv-app .pw-rv *{animation-duration:1ms!important}}
+
+/* 結果の見出し(レア度の札と総合) */
+html[data-look=pawa] .nv-app .pw-arrival{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px}
+html[data-look=pawa] .nv-app .pw-tierchip{display:inline-flex;align-items:center;min-height:32px;padding:2px 14px;border-radius:999px;font:900 15px system-ui;background:var(--sky);color:var(--blue2);border:2px solid var(--sky2)}
+html[data-look=pawa] .nv-app .pw-arrival.pw-tier-gold .pw-tierchip{background:linear-gradient(180deg,#fff2b3,#ffc928);color:#5a3300;border-color:#d99a00}
+html[data-look=pawa] .nv-app .pw-arrival.pw-tier-rainbow .pw-tierchip{background:linear-gradient(90deg,#ff4fa3,#ffb300,#22c55e,#1a8cff,#8b3dff);color:#fff;border-color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+html[data-look=pawa] .nv-app .pw-newchip,html[data-look=pawa] .nv-app .pw-dupchip{display:inline-flex;align-items:center;min-height:32px;padding:2px 12px;border-radius:999px;font:400 15px var(--num)}
+html[data-look=pawa] .nv-app .pw-newchip{background:var(--red);color:#fff}html[data-look=pawa] .nv-app .pw-dupchip{background:#e9eef6;color:var(--mu);font:900 14px system-ui}
+html[data-look=pawa] .nv-app .pw-arrival strong{flex-basis:100%;display:block;margin:0}
+html[data-look=pawa] .nv-app .pw-starter-got{text-align:center;font:400 22px/1.4 var(--head);color:var(--blue2);margin:0 0 4px}
+
+/* スカウト: 引くボタンは画面の下(親指の届く所)に固定 */
+html[data-look=pawa] .nv-app .pw-draw-dock{position:sticky;bottom:calc(84px + var(--bottom));z-index:30;padding:10px!important;box-shadow:0 -4px 18px rgba(16,38,79,.16)!important}
+html[data-look=pawa] .nv-app .pw-draw-dock .pw-draw-btn{min-height:72px}
+html[data-look=pawa] .nv-app .pw-draw-dock .pw-draw-btn b{font-size:26px}
+html[data-look=pawa] .nv-app .pw-draw-dock .pw-balance{font-size:15px;margin-top:6px}html[data-look=pawa] .nv-app .pw-draw-dock .pw-balance b{font:400 17px var(--num);color:var(--ink)}
+@media (min-width:900px){html[data-look=pawa] .nv-app .pw-draw-dock{bottom:8px}}
+html[data-look=pawa] .nv-app .pw-collect-top{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 6px;font:900 16px system-ui}
+html[data-look=pawa] .nv-app .pw-collect-top strong{font:400 26px var(--num);color:var(--blue2)}
+html[data-look=pawa] .nv-app .pw-collect-team{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-top:8px;font:800 14px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-collect-team b{font:400 20px var(--num);color:var(--ink)}
+html[data-look=pawa] .nv-app .pw-tier-legend{display:flex;align-items:center;gap:12px;margin-top:10px}
+html[data-look=pawa] .nv-app .pw-tier-legend img{width:70px;height:auto;border-radius:8px;box-shadow:0 3px 8px rgba(16,38,79,.3)}
+html[data-look=pawa] .nv-app .pw-tier-legend ul{list-style:none;margin:0;padding:0;display:grid;gap:5px;flex:1}
+html[data-look=pawa] .nv-app .pw-tier-legend li{display:flex;align-items:center;gap:8px;font:800 14px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-tier-legend li b{display:inline-flex;min-width:5.5em;justify-content:center;padding:3px 8px;border-radius:999px;font:900 13px system-ui;background:var(--sky);color:var(--blue2)}
+html[data-look=pawa] .nv-app .pw-tier-legend li[data-tier=gold] b{background:linear-gradient(180deg,#fff2b3,#ffc928);color:#5a3300}
+html[data-look=pawa] .nv-app .pw-tier-legend li[data-tier=rainbow] b{background:linear-gradient(90deg,#ff4fa3,#ffb300,#22c55e,#1a8cff,#8b3dff);color:#fff}
+
+/* ---- シーズン終了の帯(全面の画面は自動で出さない) ---- */
+html[data-look=pawa] .nv-app .pw-endband{position:fixed;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);z-index:1300;width:min(94vw,600px);display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:14px;background:var(--navy);color:#fff;font:900 15px/1.4 system-ui;box-shadow:0 8px 24px rgba(16,38,79,.35);animation:pw-band-in .35s ease-out both}
+html[data-look=pawa] .nv-app .pw-endband span{flex:1}
+html[data-look=pawa] .nv-app .pw-endband button{min-height:44px;padding:0 14px;border-radius:10px;border:0;background:var(--yellow);color:#4d2b00;font:900 15px system-ui;cursor:pointer;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-endband .pw-endband-x{min-width:44px;padding:0;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center}
+@keyframes pw-band-in{from{transform:translate(-50%,-120%)}to{transform:translate(-50%,0)}}
+html[data-look=pawa] .nv-app .pw-result-open{margin-bottom:8px;min-height:48px}
+
+/* ---- 個人成績 ---- */
+html[data-look=pawa] .nv-app .pw-stats-switch button{min-height:48px;font-size:17px}
+html[data-look=pawa] .nv-app .pw-stats-switch button.is-on{border-color:#0b3fa3;background:linear-gradient(180deg,#4b95ff,var(--blue) 55%,var(--blue2));box-shadow:0 2px 0 #072c78}
+html[data-look=pawa] .nv-app .pw-leaders{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 8px}
+html[data-look=pawa] .nv-app .pw-leader{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;background:linear-gradient(180deg,#fff,#eef5ff);border:1px solid var(--line);text-align:center;min-width:0}
+html[data-look=pawa] .nv-app .pw-leader small{font:900 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-leader b{font:400 28px/1.1 var(--num);color:var(--ink)}html[data-look=pawa] .nv-app .pw-leader b em{font:900 13px system-ui;font-style:normal;margin-left:2px}
+html[data-look=pawa] .nv-app .pw-leader button{max-width:100%;min-height:32px;padding:0 4px;border:0;background:none;color:var(--blue2);font:900 14px/1.2 system-ui;cursor:pointer;text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-st-hint{margin:0 0 6px!important;font:800 13px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-st-scroll{max-height:min(70vh,640px);overflow:auto;border-radius:12px;border:1px solid var(--line);background:#fff;overscroll-behavior:contain}
+html[data-look=pawa] .nv-app .pw-st-table{border-collapse:separate;border-spacing:0;min-width:100%;font:800 15px/1.3 system-ui;font-variant-numeric:tabular-nums}
+html[data-look=pawa] .nv-app .pw-st-table th,html[data-look=pawa] .nv-app .pw-st-table td{padding:0;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-st-table thead th{position:sticky;top:0;z-index:2;background:var(--navy);color:#fff}
+html[data-look=pawa] .nv-app .pw-st-table thead th button{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;min-width:56px;min-height:46px;padding:0 8px;border:0;background:none;color:#fff;font:900 14px system-ui;cursor:pointer}
+html[data-look=pawa] .nv-app .pw-st-table thead th button[aria-pressed=true]{background:var(--blue);box-shadow:inset 0 -3px 0 var(--yellow)}
+html[data-look=pawa] .nv-app .pw-st-table thead th button i{font-style:normal;font-size:10px}
+html[data-look=pawa] .nv-app .pw-st-table .pw-st-name{position:sticky;left:0;z-index:1;text-align:left;background:#fff;box-shadow:2px 0 0 var(--line)}
+html[data-look=pawa] .nv-app .pw-st-table thead .pw-st-name{z-index:3;background:var(--navy)}
+html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name button{display:flex;flex-direction:column;align-items:flex-start;min-width:8.5em;max-width:10em;min-height:48px;padding:4px 8px;border:0;background:none;text-align:left;cursor:pointer}
+html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name b{font:900 15px/1.25 system-ui;color:var(--ink);white-space:normal}
+html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name small{font:800 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-st-table td{padding:0 10px;text-align:right;color:var(--ink);font:400 16px var(--num)}
+html[data-look=pawa] .nv-app .pw-st-table tbody tr:nth-child(even) td,html[data-look=pawa] .nv-app .pw-st-table tbody tr:nth-child(even) .pw-st-name{background:#f3f8ff}
+html[data-look=pawa] .nv-app .pw-st-table tbody tr.is-starter .pw-st-name{box-shadow:inset 4px 0 0 var(--blue),2px 0 0 var(--line)}
+html[data-look=pawa] .nv-app .pw-st-table td.is-plus{color:var(--green2)}html[data-look=pawa] .nv-app .pw-st-table td.is-minus{color:var(--red2)}
+html[data-look=pawa] .nv-app .pw-mystats>header{margin-bottom:8px}
+html[data-look=pawa] .nv-app .pw-r2-main{justify-items:stretch;text-align:left}
+html[data-look=pawa] .nv-app .pw-r2-name{justify-content:flex-start}
+html[data-look=pawa] .nv-app .pw-r2-ranks{justify-content:flex-start}
+@media (max-width:520px){
+ html[data-look=pawa] .nv-app .pw-row.pw-r2{grid-template-columns:40px 56px minmax(0,1fr);gap:6px;padding:8px 5px}
+ html[data-look=pawa] .nv-app .pw-row.pw-r2>.pw-grip{display:none}
+ html[data-look=pawa] .nv-app .pw-row.pw-bench2{grid-template-columns:56px minmax(0,1fr)}
+ html[data-look=pawa] .nv-app .pw-r2 .pw-ovrbox{width:56px}
+ html[data-look=pawa] .nv-app .pw-r2-ranks{gap:4px 3px}
+ html[data-look=pawa] .nv-app .pw-r2-ranks .pw-rcell{min-width:36px}
+ html[data-look=pawa] .nv-app .pw-lineup{padding-left:8px!important;padding-right:8px!important}
+}
+html[data-look=pawa] .nv-app .pw-awaken-bar{background:#fff}
+html[data-look=pawa] .nv-app .pw-awaken-changes{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}
+html[data-look=pawa] .nv-app .pw-awaken-changes li{white-space:nowrap;padding:4px 9px;gap:4px}
+html[data-look=pawa] .nv-app .pw-awaken-changes small{min-width:0}
+html[data-look=pawa] .nv-app .pw-awaken-changes b{font-size:17px}
+html[data-look=pawa] .nv-app .pw-awaken-changes em{margin-left:2px}
+html[data-look=pawa] .nv-app .pw-check{display:inline-flex!important;flex-direction:row!important;align-items:center}
+html[data-look=pawa] .nv-app .pw-tier-legend{padding:0 12px 12px}
+html[data-look=pawa] .nv-app:has(.pw-draw-dock) .daily-toast,html[data-look=pawa] .nv-app:has(.pw-draw-dock) .pw-toast{bottom:calc(var(--bottom) + 220px)!important}
+html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name button{min-width:7.5em;max-width:9em}
+@media (min-width:560px){html[data-look=pawa] .nv-app .pw-row.pw-bench2{grid-template-columns:58px minmax(0,1fr) 140px;grid-template-areas:"ovr main btn";align-items:center}html[data-look=pawa] .nv-app .pw-row.pw-bench2>.pw-btn{justify-self:stretch;min-width:0}}

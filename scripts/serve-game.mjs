@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root=fileURLToPath(new URL('../dist/',import.meta.url));
 const port=Number(process.env.DIAMOND_NINE_PORT)||4173;
-const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.ico':'image/x-icon','.wav':'audio/wav','.ogg':'audio/ogg'};
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2','.ico':'image/x-icon','.wav':'audio/wav','.ogg':'audio/ogg','.mp3':'audio/mpeg','.webp':'image/webp','.webmanifest':'application/manifest+json','.txt':'text/plain; charset=utf-8'};
 const server=createServer(async(req,res)=>{
  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405).end();return;}
  try{

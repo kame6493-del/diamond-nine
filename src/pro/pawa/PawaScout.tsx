@@ -10,32 +10,35 @@ import {DRAFT_EVENT,DRAFT_ROOKIE_CHANCE,draftEventActive,draftEventEndLabel,draf
 import {ScoutShare} from '../ScoutShare';
 import {scoutShareData} from '../share-kit';
 import {isRookie,ownedRatings} from '../development';
+import {collectionProgress} from '../player-browser';
 import {PawaCard,Rank,StatList,cardRatings} from './PawaCard';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
 const packOf=(tier:ScoutTier)=>`/assets/pro/pawa/pack-${tier==='standard'?'normal':tier}.webp`;
 
-/** パックが回って閃光 → 裏向きのカード → 選手が登場。長さは scoutDuration(tier)。演出が派手なのはここだけ。 */
-export function PawaScoutCharge({tier,onSkip,title}:{tier:ScoutTier;onSkip?:()=>void;title?:string}){
- return <div className={'pw-charge pw-tier-'+tier} style={{'--nv-time':`${scoutDuration(tier,false)}ms`} as CSSProperties} role="status" aria-label="スカウト演出中">
-  <p className="pw-charge-kind">{tier==='rainbow'?'虹':tier==='gold'?'金':'通常'}</p>
-  {title&&<h2 className="pw-charge-title">{title}</h2>}
-  <div className="pw-charge-stage" aria-hidden="true">
-   <span className="pw-rays"/>
-   <img className="pw-charge-pack" src={packOf(tier)} alt=""/>
-   <span className="pw-flash"/>
-   <img className="pw-charge-back" src="/assets/pro/pawa/card-back.webp" alt=""/>
-  </div>
-  <p className="pw-charge-step"><span>パックを開封！</span><span>カードがめくれる…</span><span>選手が登場！</span></p>
-  {onSkip&&<button className="pw-skip" onClick={onSkip}>スキップ ▶▶</button>}
+/** カードを1枚引く演出: 裏向きのカードが場に置かれ → 当たりほど縁が金・虹に光り揺れる → 68%の所でめくれて光が弾け、選手カードの表が出る。
+ *  文字は出さない(画面のどこを押してもスキップ)。長さは scoutDuration(tier)、音は SimpleApp の drawSounds/revealSounds が同じ時刻で鳴らす。 */
+export function PawaScoutCharge({tier,onSkip,player,state}:{tier:ScoutTier;onSkip?:()=>void;player?:Player|null;state?:GameState;title?:string}){
+ return <div className={'pw-rv pw-tier-'+tier} style={{'--nv-time':`${scoutDuration(tier,false)}ms`} as CSSProperties} role="status" aria-label={tier==='rainbow'?'虹カードを引いています':tier==='gold'?'金カードを引いています':'カードを引いています'} onClick={onSkip}>
+  <img className="pw-rv-bg" src="/assets/pro/pawa/draw-stage.webp" alt=""/>
+  <span className="pw-rv-aura" aria-hidden="true"/>
+  {tier!=='standard'&&<span className="pw-rv-sparks" aria-hidden="true">{Array.from({length:14},(_,i)=><i key={i} style={{'--i':i} as CSSProperties}/>)}</span>}
+  <img className="pw-rv-burst" src="/assets/pro/pawa/draw-burst.webp" alt="" aria-hidden="true"/>
+  <div className="pw-rv-card" aria-hidden="true"><div className="pw-rv-flip">
+   <img className="pw-rv-back" src="/assets/pro/pawa/draw-card-back.webp" alt=""/>
+   <div className="pw-rv-front">{player&&state&&<PawaCard player={player} state={state} size="l"/>}</div>
+  </div></div>
+  <span className="pw-rv-flash" aria-hidden="true"/>
+  {onSkip&&<button className="pw-skip" onClick={e=>{e.stopPropagation();onSkip();}}>スキップ ▶▶</button>}
  </div>;
 }
 
-export function PawaArrival({tier,overall,major,title}:{tier:ScoutTier;overall:number;major:boolean;title?:string}){
+/** 結果の見出し: レア度の札と総合値だけ(「選手登場」のような文字は出さない)。 */
+export function PawaArrival({tier,overall,major,isNew}:{tier:ScoutTier;overall:number;major:boolean;isNew?:boolean;title?:string}){
  return <div className={'pw-arrival pw-tier-'+tier}>
-  <p>{title??(tier==='rainbow'?'虹カードきた!!':major?'海外選手を獲得！':'選手獲得！')}</p>
+  <span className="pw-tierchip">{tier==='rainbow'?'虹カード':tier==='gold'?(major?'海外選手・金カード':'金カード'):'カード'}</span>
+  {isNew!==undefined&&<span className={isNew?'pw-newchip':'pw-dupchip'}>{isNew?'NEW':'重複'}</span>}
   <strong><small>総合</small>{overall}</strong>
-  {tier!=='standard'&&<span>{tier==='rainbow'?'総合95以上の超大当たり！':major?'海外選手が登場！':'総合85以上の当たり！'}</span>}
  </div>;
 }
 
@@ -55,12 +58,14 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
  const equipped=player&&[...state.lineup,...state.pitchers].includes(player.id);
  const old=upgrade?playerMap[upgrade.oldId]:null;
  const showResult=!!player&&!!pull&&!drawing;
+ const cards=players.filter(p=>!p.opponentOnly),progress=collectionProgress(cards,state.owned);
+ const avg=(ids:string[])=>Math.round(ids.reduce((n,id)=>n+effectiveOverall(playerMap[id],state.owned,state.training),0)/Math.max(1,ids.length));
+ const collection=<section className="pw-panel pw-collect" aria-label="カードの集まり具合"><div className="pw-collect-top"><b>カード収集</b><span><strong>{progress.collected}</strong> / {progress.total} 枚</span></div><div className="pw-bar pw-bar-green" role="progressbar" aria-label="カード収集" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.collected}><i style={{width:`${progress.collected/progress.total*100}%`}}/></div><div className="pw-collect-team"><span>打線の総合 <b>{avg(state.lineup)}</b></span><span>投手陣の総合 <b>{avg(state.pitchers)}</b></span></div></section>;
  return <div className="pw-scout">
   {draftWeek&&<section className="pw-event" aria-label={DRAFT_EVENT.name}><span>期間限定 〜{draftEventEndLabel()}</span><h2>{DRAFT_EVENT.name} 開催中！</h2><p>国内選手のうち{Math.round(DRAFT_ROOKIE_CHANCE*100)}%がルーキー（昨年のドラフト指名{draftRookiePool.length}人）から登場。</p></section>}
 
-  {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip}/>:showResult?<section className={'pw-panel pw-result pw-tier-'+tier} aria-live="polite">
-   <header><h2>スカウト結果</h2>{pull!.isNew&&<span className="pw-new">NEW</span>}</header>
-   <PawaArrival tier={tier} overall={overall} major={major}/>
+  {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult?<section className={'pw-panel pw-result pw-tier-'+tier} aria-live="polite">
+   <PawaArrival tier={tier} overall={overall} major={major} isNew={pull!.isNew}/>
    <div className="pw-result-main">
     <PawaCard player={player!} state={state} size="l" onClick={()=>onPlayer?.(player!)}/>
     <div className="pw-result-side"><b>{player!.name}</b><small>{pull!.isNew?'新しい選手が加入！':pull!.copies<=6?'重複獲得で能力 ＋1（最大＋5）':'ポイント ＋80'}</small></div>
@@ -81,14 +86,13 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <ScoutShare key={'share-'+state.pulls} data={scoutShareData(player!,state.owned,state.training,tier,pull!.isNew,isRookie(player!))}/>
   </section>:<section className="pw-panel pw-scout-top">
    <div className="pw-banner"><img src="/assets/pro/pawa/emblem-overseas.webp" alt=""/><div><b>選手スカウト</b><span>国内・海外の選手カードを1枚獲得</span><em>海外選手 出現率 {MLB_SCOUT_CHANCE*100}%！</em></div></div>
-   <div className="pw-packs" aria-hidden="true"><img src="/assets/pro/pawa/pack-normal.webp" alt=""/><img src="/assets/pro/pawa/pack-gold.webp" alt=""/><img src="/assets/pro/pawa/pack-rainbow.webp" alt=""/></div>
-   <p className="pw-packs-note">演出の色で当たりがわかる！ 通常・金(総合85以上か海外)・虹(総合95以上)</p>
+   <div className="pw-tier-legend"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={70} height={98}/><ul><li data-tier="standard"><b>カード</b><span>ふつうの当たり</span></li><li data-tier="gold"><b>金カード</b><span>総合85以上・海外選手</span></li><li data-tier="rainbow"><b>虹カード</b><span>総合95以上</span></li></ul></div>
   </section>}
 
-  <section className="pw-panel pw-draw">
+  {!drawing&&!showResult&&collection}
+  <section className="pw-panel pw-draw pw-draw-dock">
    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1人スカウト':'1人スカウト'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
-   <div className="pw-wallet-row"><span>所持ポイント</span><b><i className="pw-p">P</i>{count(state.gems)} pt</b></div>
-   <p className={'pw-balance '+(canDraw?'ok':'short')}>{canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回スカウトできます`:`あと${count(SIMPLE_SCOUT_COST-state.gems)} ptでスカウトできます`}</p>
+   <p className={'pw-balance '+(canDraw?'ok':'short')}>所持 <b>{count(state.gems)} pt</b> · {canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回引けます`:`あと${count(SIMPLE_SCOUT_COST-state.gems)} ptで引けます`}</p>
    {!canDraw&&<button className="pw-link" onClick={onSeason}>試合を進めてポイントを貯める<ChevronRight size={16}/></button>}
   </section>
   {adSlot}

@@ -1,6 +1,13 @@
 DIAMOND NINE — external audio and animation credits
 
-Sound effects (in use from 2026-10-11): 効果音ラボ https://soundeffect-lab.info/
+Music (from 2026-10-15): 魔王魂 (MaouDamashii) https://maou.audio/  — 音楽：魔王魂
+Terms: https://maou.audio/rule/ (free for commercial use; credit "音楽：魔王魂" required; no redistribution of the track by itself)
+ - アコースティック34 ループ版 (maou_loop_bgm_acoustic34.mp3) → audio/maou/maoudamashii-bgm-acoustic34-loop.mp3 (volume normalized)
+
+Card draw images (from 2026-10-15): made with ChatGPT image generation for this game (no people, no real teams or logos)
+ - assets/pro/pawa/draw-card-back.webp, draw-stage.webp, draw-burst.webp (originals: marketing/ui_ref_draw_2026-10-15/)
+
+Sound effects (in use from 2026-10-11, card-draw set replaced 2026-10-15): 効果音ラボ https://soundeffect-lab.info/
 Terms: https://soundeffect-lab.info/agreement/ (free for commercial use; credit optional; no redistribution of the files)
 Files and their original names: /audio/selab/LICENSE.txt
 
