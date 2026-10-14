@@ -9,6 +9,7 @@ import './pro/player-details.css';
 import './pro/readability.css';
 import './pro/screens-pro.css';
 import './pro/game-look.css';
+import '@fontsource/barlow-condensed/700.css';
 import './pro/pawa/pawa.css';
 import {applyLook,readLook} from './pro/look';
 

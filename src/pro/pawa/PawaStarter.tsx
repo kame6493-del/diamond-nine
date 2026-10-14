@@ -4,8 +4,9 @@ import type {GameState} from '../engine';
 import {scoutDuration,scoutPresentation} from '../scout-presentation';
 import {drawSounds,prepareGameAudio,revealSounds,stopGameAudio} from '../game-audio';
 import {STARTER_MIN_OVERALL} from '../starter-scout';
-import {PawaCard} from './PawaCard';
-import {PawaArrival,PawaScoutCharge} from './PawaScout';
+import {PawaCard,cardRatings} from './PawaCard';
+import {playerAge} from '../development';
+import {AbilityRow,PawaScoutCharge} from './PawaScout';
 
 /** スタートスカウト(ref_01 右)。保存・演出の順番は StarterScout と同じ。 */
 export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameState;sound:boolean;onPick:(index:number,name:string)=>boolean;onFinish:(name:string)=>void;onPlayer:(p:Player)=>void}){
@@ -34,7 +35,7 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
   timer.current=setTimeout(()=>finish.current?.(),scoutDuration(presentation.tier));
  };
  return <section className="pw-starter" aria-label="スタートスカウト">
-  <div className="pw-titlebar"><h1>スタートスカウト</h1><span className="pw-must">必ず <b>OVR{STARTER_MIN_OVERALL}</b> 以上の選手が登場！</span></div>
+  {!player&&<div className="pw-titlebar"><h1>スタートスカウト</h1><span className="pw-must">必ず <b>OVR{STARTER_MIN_OVERALL}</b> 以上の選手が登場！</span></div>}
   {!player?<>
    <p className="pw-lead">好きな選手を1人選んで、チームに迎えよう。</p>
    <div className="pw-stage-field">
@@ -45,12 +46,14 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
    <button className="pw-btn pw-yellow pw-wide pw-start" disabled={chosen===null||opening||!validName} onClick={()=>chosen!==null&&choose(chosen)}><span className="pw-ball" aria-hidden="true"/>このカードに決める</button>
    <a className="pw-link" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
   </>:opening?<PawaScoutCharge tier={tier} player={player} state={state} onSkip={()=>finish.current?.()}/>:<div className={'pw-panel pw-result pw-tier-'+tier}>
-   <h2 className="pw-starter-got">最初の主力が加入</h2><PawaArrival tier={tier} overall={overall} major={false}/>
-   <div className="pw-result-solo"><PawaCard player={player} state={state} size="l" onClick={()=>onPlayer(player)}/></div>
+   <h2 className="pw-starter-got">最初の主力が加入</h2>
+   <div className="pw-sc-head pw-starter-head"><button className="pw-sc-card" onClick={()=>onPlayer(player)} aria-label={`${player.name}の詳細`}><PawaCard player={player} state={state} size="m"/></button>
+    <div className="pw-sc-id"><h2>{player.name}</h2><p className="pw-sc-meta">{player.role==='pitcher'?'投手':player.positions.join('・')||'DH'}{playerAge(player)!==null?` · ${playerAge(player)}歳`:''}</p><p className="pw-sc-ovr"><small>総合</small><b>{overall}</b></p></div></div>
+   <AbilityRow player={player} ratings={cardRatings(player,state)} mode={player.role==='pitcher'?'pitcher':'batter'}/>
+   {(()=>{const t=player.traits.filter(x=>!['暫定査定','基本能力型','実戦派'].includes(x));return t.length>0&&<ul className="pw-bench-traits pw-starter-traits" aria-label="特殊能力">{t.slice(0,8).map((x,i)=><li key={x+i}>{x}</li>)}{t.length>8&&<li className="is-more">ほか{t.length-8}</li>}</ul>;})()}
    <div className="pw-namebox"><label htmlFor="pw-team-name">チーム名</label><input id="pw-team-name" value={teamName} maxLength={20} placeholder="チーム名を入力" autoComplete="off" enterKeyHint="done" aria-describedby="pw-name-help" onChange={e=>setTeamName(e.target.value)}/></div>
-   <small id="pw-name-help" className="pw-note">※あと{Math.max(0,20-teamName.length)}文字まで入力できます。あとから設定でも変更できます。</small>
+   <small id="pw-name-help" className="pw-note">あと{Math.max(0,20-teamName.length)}文字 · 設定で変更可</small>
    <button className="pw-btn pw-yellow pw-wide starter-begin" disabled={!validName} onClick={()=>onFinish(teamName.trim())}><span className="pw-ball" aria-hidden="true"/>チームに入れて開幕する</button>
-   <p className="pw-note">適性に合った位置へ自動で編成します。</p>
   </div>}
  </section>;
 }

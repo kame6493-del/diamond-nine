@@ -1,8 +1,7 @@
 DIAMOND NINE — external audio and animation credits
 
-Music (from 2026-10-15): 魔王魂 (MaouDamashii) https://maou.audio/  — 音楽：魔王魂
-Terms: https://maou.audio/rule/ (free for commercial use; credit "音楽：魔王魂" required; no redistribution of the track by itself)
- - アコースティック34 ループ版 (maou_loop_bgm_acoustic34.mp3) → audio/maou/maoudamashii-bgm-acoustic34-loop.mp3 (volume normalized)
+Number font (from 2026-10-15): Barlow Condensed 700 by Jeremy Tribby, SIL Open Font License 1.1 (bundled via @fontsource/barlow-condensed)
+ https://github.com/jpt/barlow  — license: https://openfontlicense.org/
 
 Card draw images (from 2026-10-15): made with ChatGPT image generation for this game (no people, no real teams or logos)
  - assets/pro/pawa/draw-card-back.webp, draw-stage.webp, draw-burst.webp (originals: marketing/ui_ref_draw_2026-10-15/)
