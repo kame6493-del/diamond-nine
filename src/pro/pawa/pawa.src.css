@@ -1360,3 +1360,46 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 .pw-slot-cands li.pw-cand button.pw-cand-in{color:#3a2200;background:linear-gradient(180deg,#fff3a6 0%,#ffd43a 35%,var(--yellow) 60%,#f5a800 100%);border:2px solid #c27c00;font:900 15px system-ui}
 /* 先頭のすき間(高さ0): 残りの高さに入らない箱は、途中で切れずに丸ごと隠れる */
 .pw-side-spacer{display:block;height:0;width:100%;flex:none}
+/* ===== 第3弾 その4(10-15): 1年進めるだけ・広告で1回引く ===== */
+.pw-year-btn{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:20px}
+.pw-year-btn small{font:800 12px system-ui;color:#6b4300}
+.pw-sc-dock{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) auto}
+.pw-sc-dock:not(:has(.pw-sc-adbtn)){grid-template-columns:minmax(0,1fr) auto}
+.pw-sc-adbtn .reward-ad{margin:0;display:grid;gap:2px}
+.pw-sc-adbtn .reward-ad-button{width:100%;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 6px;border-radius:14px;border:2px solid #0b3fa3;background:linear-gradient(180deg,#4b95ff,var(--blue) 55%,var(--blue2));color:#fff;font:900 15px/1.2 system-ui;box-shadow:0 4px 0 #072c78;cursor:pointer}
+.pw-sc-adbtn .reward-ad-button svg{display:none}
+.pw-sc-adbtn .reward-ad-button small{font:800 11px system-ui;color:#dbe8ff}
+.pw-sc-adbtn .reward-ad-button:disabled{filter:grayscale(.6);opacity:.7}
+.pw-sc-adbtn .reward-ad p{margin:0;font:800 11px/1.3 system-ui;color:var(--mu);text-align:center}
+.pw-sc-dock .pw-draw-btn b{font-size:21px}
+/* 引く操作: スマホは「引く」「広告で引く」を横に並べ、所持ptと提供割合はその下の1行 */
+.pw-sc-dock:has(.pw-sc-adbtn){grid-template-columns:minmax(0,1fr) minmax(0,1fr);row-gap:4px}
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo .pw-balance br{display:none}
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo .pw-balance{display:flex;align-items:baseline;gap:6px}
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo .pw-mini{min-height:36px}
+.pw-sc-dock .pw-draw-btn b{white-space:nowrap}
+.pw-cmp.is-info{background:#f4f8fe;border-color:var(--line)}
+@media (min-width:1000px){.pw-sc-dock:has(.pw-sc-adbtn){grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto}.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo{grid-column:auto;display:grid}}
+.pw-sc-adbtn .reward-ad-button.s-button{border:2px solid #0b3fa3!important;background:linear-gradient(180deg,#4b95ff,var(--blue) 55%,var(--blue2))!important;color:#fff!important;flex-wrap:nowrap;white-space:nowrap}
+.pw-sc-adbtn .reward-ad-button small{flex-basis:auto}
+@media (min-width:1000px){
+ .pw-sc-head{grid-template-columns:150px minmax(0,1fr)}
+ .pw-sc-card .nv-card{width:150px}
+ .pw-sc-id h2{font-size:24px}
+ .pw-sc-traits li{font-size:14px}
+ .pw-cmp{padding:10px;gap:8px}
+ .pw-cmp-q{font-size:17px}
+ .pw-cmp-table th,.pw-cmp-table td{padding:7px 6px;font-size:15px}
+ .pw-cmp-table .pw-rank{width:30px;height:29px}.pw-cmp-table .pw-rank-wrap em{font-size:20px}
+ .pw-cmp-acts .pw-btn{min-height:52px;font-size:17px}
+}
+.pw-cmp-table .pw-rank-wrap{display:inline-flex;flex-direction:row;align-items:center;vertical-align:middle}
+.pw-cmp-table td,.pw-cmp-table tbody th{padding:1px 4px;line-height:1.15}
+.pw-cmp-table .pw-rank{width:22px;height:21px}
+.pw-cmp-table thead th{padding:2px 4px}
+@media (max-width:999px){.pw-sc-traits{max-height:58px;overflow:hidden}}
+@media (min-width:1000px){.pw-cmp-table td,.pw-cmp-table tbody th{padding:8px 6px}.pw-cmp-table .pw-rank{width:30px;height:29px}}
+.pw-sc-pass{margin:0;padding:6px 10px;border-radius:10px;background:#f4f0ff;border:1px solid #d9ccff;font:800 12px/1.45 system-ui;color:#4b2a8f}
+.pw-sc-dockinfo .pw-balance b{margin-right:4px}
+.pw-sc-dock .pw-draw-btn em{white-space:nowrap}

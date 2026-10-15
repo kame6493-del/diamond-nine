@@ -12,6 +12,6 @@ export function PointShop(){
    <strong>{p.points.toLocaleString('ja-JP')} <small>pt</small></strong>
    <button type="button" disabled>{products.find(v=>v.id===p.id)?.price??'販売準備中'}</button>
   </div>)}</div>
-  <p role="status">ポイントの販売は準備中のため、ここでは購入できません。ポイントは試合・目標達成・スカウト画面の「広告を見て ＋pt」で貯められます。買い切りのプレミアムパスは上の欄から購入できます。</p>
+  <p role="status">ポイントの販売は準備中のため、ここでは購入できません。ポイントは試合・目標達成で貯められます。スカウト画面の「広告を見て1回引く」なら1日3回までポイントを使わずに引けます。買い切りのプレミアムパスは上の欄から購入できます。</p>
  </section>;
 }

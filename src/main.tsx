@@ -12,8 +12,10 @@ import './pro/game-look.css';
 import '@fontsource/barlow-condensed/700.css';
 import './pro/pawa/pawa.css';
 import {applyLook,readLook} from './pro/look';
+import {installAdDemo} from './pro/ad-demo';
 
 applyLook(readLook());
+installAdDemo();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

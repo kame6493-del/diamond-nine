@@ -16,12 +16,12 @@ export function RewardAdButton({disabled,onStart,onReward,onEnd}:{disabled:boole
   setNote('');onStart();
   try{
    const result=await bridge.showRewardAd(onReward);
-   setNote(result==='rewarded'?`＋${count(reward.points)} pt を受け取りました。`:result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。時間をおいてお試しください。':'');
+   setNote(result==='rewarded'?'広告のお礼に1回引きます。':result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。時間をおいてお試しください。':'');
   }finally{onEnd();}
  };
  return <div className="reward-ad">
   <button type="button" className="s-button reward-ad-button" disabled={disabled||reward.busy||none} onClick={()=>void watch()}>
-   <PlayCircle size={18}/>{reward.busy?'広告を読み込み中…':none?'今日の広告ボーナスは終了':`広告を見て ＋${count(reward.points)} pt`}
+   <PlayCircle size={18}/>{reward.busy?'広告を読み込み中…':none?'今日の広告で引ける分は終了':'広告を見て1回引く'}
    <small>今日あと {reward.left} / {reward.limit} 回</small>
   </button>
   {note&&<p role="status">{note}</p>}
@@ -40,7 +40,7 @@ export function PremiumPassCard(){
    <li>毎日のログインで ＋{count(PREMIUM_DAILY_POINTS)} pt（1日1回）</li>
    <li>シーズン終了時・スカウト{INTERSTITIAL_EVERY_SCOUTS}回ごとの広告を表示しない</li>
   </ul>
-  <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て ＋pt」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>
+  <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て1回引く」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>
   {premium.owned?<p className="premium-pass-owned" role="status">購入済み・有効です{premium.verified?'':'（前回の確認結果）'}</p>:
    <button type="button" className="s-primary premium-pass-buy" disabled={premium.status!=='ready'||premium.busy} onClick={()=>void bridge?.buyPremium()}>
     {premium.status==='checking'?'ストアを確認中…':premium.status==='ready'&&premium.price?`${premium.price} で購入する`:'販売準備中'}

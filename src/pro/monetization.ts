@@ -3,8 +3,9 @@ import {useSyncExternalStore} from 'react';
 // App-only monetization. The native bridge (mobile/monetize.ts) sets
 // window.diamondMonetize; the browser build never has it, so nothing here
 // loads ad or billing code on the web.
-export const REWARD_AD_POINTS = 1000;
-export const REWARD_AD_DAILY_LIMIT = 5;
+// 2026-10-15: a rewarded ad is one free scout (worth SIMPLE_SCOUT_COST = 3,000 pt), up to 3 a day.
+export const REWARD_AD_POINTS = 3000;
+export const REWARD_AD_DAILY_LIMIT = 3;
 export const PREMIUM_DAILY_POINTS = 1000;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
 export const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
