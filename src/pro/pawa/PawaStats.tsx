@@ -59,7 +59,7 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   const col=cols.find(c=>c.key===sort.key)!;
   return [...rows].sort((a,b)=>{const x=col.value(a),y=col.value(b);if(x===null)return y===null?0:1;if(y===null)return -1;return sort.desc?y-x:x-y;});
  };
- const head=<T,>(cols:Col<T>[])=><tr><th className="pw-st-name"><button onClick={()=>setSort({key:'order',desc:false})} aria-pressed={sort.key==='order'}>{view==='bat'?'打順':'役割'}</button></th>{cols.map(c=><th key={c.key}><button aria-pressed={sort.key===c.key} onClick={()=>setSort(sort.key===c.key?{key:c.key,desc:!sort.desc}:{key:c.key,desc:!c.low})}>{c.label}{sort.key===c.key&&<i aria-hidden="true">{sort.desc?'▼':'▲'}</i>}</button></th>)}</tr>;
+ const head=<T,>(cols:Col<T>[])=><tr><th className="pw-st-name"><button onClick={()=>setSort({key:'order',desc:false})} aria-pressed={sort.key==='order'}>{view==='bat'?'打順':'役割'}</button></th>{cols.map(c=><th key={c.key} data-k={c.key}><button aria-pressed={sort.key===c.key} onClick={()=>setSort(sort.key===c.key?{key:c.key,desc:!sort.desc}:{key:c.key,desc:!c.low})}>{c.label}{sort.key===c.key&&<i aria-hidden="true">{sort.desc?'▼':'▲'}</i>}</button></th>)}</tr>;
  const nameCell=(p:Player,tag:string)=><th className="pw-st-name"><button data-player-id={p.id} onClick={()=>onPlayer(p)}><i>{tag}</i><b>{p.name}</b></button></th>;
  const leader=(label:string,r:{p:Player}|undefined,shown:string)=><div className="pw-leader"><small>{label}</small><b>{r?shown:'—'}</b>{r&&<button onClick={()=>onPlayer(r.p)}>{r.p.name}</button>}</div>;
  const extra=view==='bat'?bats.length-(lineup.length||9):pits.length-(pitchers.length||14);
@@ -69,7 +69,7 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   if(!bats.some(b=>b.pa))return <p className="pw-note">試合を進めると成績が表示されます。</p>;
   return <div className="pw-stats">
    <div className="pw-leaders">{leader('打率',avgTop,avgTop?.avg!=null?formatAvg(avgTop.avg):'—')}{leader('本塁打',hrTop,String(hrTop?.hr??0))}{leader('打点',rbiTop,String(rbiTop?.rbi??0))}{leader('OPS',opsTop,opsTop?.ops!=null?formatAvg(opsTop.ops):'—')}</div>
-   <div className="pw-st-scroll"><table className="pw-st-table"><thead>{head(batCols)}</thead><tbody>{ordered(bats,batCols,lineup,r=>r.pa).map(r=>{const i=lineup.indexOf(r.id);return <tr key={r.id} className={i>=0?'is-starter':''}>{nameCell(r.p,i>=0?String(i+1):'控')}{batCols.map(c=><td key={c.key} className={c.key==='uzr'?(r.uzr!==null&&r.uzr>0?'is-plus':r.uzr!==null&&r.uzr<0?'is-minus':''):''}>{c.show(r)}</td>)}</tr>;})}</tbody></table></div>
+   <div className="pw-st-scroll"><table className="pw-st-table"><thead>{head(batCols)}</thead><tbody>{ordered(bats,batCols,lineup,r=>r.pa).map(r=>{const i=lineup.indexOf(r.id);return <tr key={r.id} className={i>=0?'is-starter':''}>{nameCell(r.p,i>=0?String(i+1):'控')}{batCols.map(c=><td key={c.key} data-k={c.key} className={c.key==='uzr'?(r.uzr!==null&&r.uzr>0?'is-plus':r.uzr!==null&&r.uzr<0?'is-minus':''):''}>{c.show(r)}</td>)}</tr>;})}</tbody></table></div>
    {extra>0&&<button className="pw-btn pw-white pw-mini pw-st-more" onClick={()=>setAll(v=>!v)}>{all?'スタメンだけにする':`ほかの選手も表示(${extra}人)`}</button>}
   </div>;
  }
@@ -79,7 +79,7 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
  const roleTag=(id:string)=>{const i=pitchers.indexOf(id);return i<0?'控':i<6?`先${i+1}`:i===13?'抑':'中';};
  return <div className="pw-stats">
   <div className="pw-leaders">{leader('防御率',eraTop,eraTop?.era!=null?eraTop.era.toFixed(2):'—')}{leader('勝利',winTop,String(winTop?.w??0))}{leader('奪三振',soTop,String(soTop?.so??0))}{leader('セーブ',svTop,String(svTop?.sv??0))}</div>
-  <div className="pw-st-scroll"><table className="pw-st-table"><thead>{head(pitCols)}</thead><tbody>{ordered(pits,pitCols,pitchers,r=>r.outs).map(r=><tr key={r.id} className={pitchers.indexOf(r.id)>=0&&pitchers.indexOf(r.id)<6?'is-starter':''}>{nameCell(r.p,roleTag(r.id))}{pitCols.map(c=><td key={c.key}>{c.show(r)}</td>)}</tr>)}</tbody></table></div>
+  <div className="pw-st-scroll"><table className="pw-st-table"><thead>{head(pitCols)}</thead><tbody>{ordered(pits,pitCols,pitchers,r=>r.outs).map(r=><tr key={r.id} className={pitchers.indexOf(r.id)>=0&&pitchers.indexOf(r.id)<6?'is-starter':''}>{nameCell(r.p,roleTag(r.id))}{pitCols.map(c=><td key={c.key} data-k={c.key}>{c.show(r)}</td>)}</tr>)}</tbody></table></div>
   {extra>0&&<button className="pw-btn pw-white pw-mini pw-st-more" onClick={()=>setAll(v=>!v)}>{all?'投手陣だけにする':`ほかの投手も表示(${extra}人)`}</button>}
  </div>;
 }

@@ -17,6 +17,7 @@ import {seasonGoals} from '../ambitions';
 import {PawaStats} from './PawaStats';
 import {leagueGoal} from '../league-goal';
 import {LeagueGoalCard} from './PawaGoals';
+import {DAILY_MISSIONS,useDaily} from '../daily';
 import {formatUZR} from '../fielding-stats';
 import {seasonConditions} from '../conditions';
 import {leagueSeasonStats} from '../league-stats';
@@ -35,7 +36,7 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
  const [teamSheet,setTeamSheet]=useState<string|null>(null);
  const [archive,setArchive]=useState(0),[view,setView]=useState<string|null>(null),[goalsOpenLocal,setGoalsOpenLocal]=useState(false);
  const goalsOpen=goalsOpenProp??goalsOpenLocal,setGoalsOpen=onGoals??setGoalsOpenLocal;
- const lgGoal=leagueGoal(state);
+ const lgGoal=leagueGoal(state),dailyRec=useDaily();
  const season:Season=state.history.find(s=>s.number===archive)??state.season;
  const current=season===state.season,league=leagueFor(season,state.club),table=rankings(season,league),mine=table.find(t=>t.team===state.club)!,rank=table.indexOf(mine)+1;
  const circuit=circuitOf(season),space=circuit==='SPACE',major=circuit!=='NPB',total=seasonGames(season),career=leagueProgress(state);
@@ -105,6 +106,7 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
    <section className="pw-panel pw-mini-stand" aria-label="リーグ順位">{standings(true)}</section>
    </div><div className="pw-game-side"><i className="pw-side-spacer" aria-hidden="true"/>
    {current&&<LeagueGoalCard goal={lgGoal} onOpen={()=>setGoalsOpen(true)}/>}
+   {current&&<button className="pw-today-line" onClick={()=>setGoalsOpen(true)} aria-label="今日の目標を開く"><span className="pw-lg-tag">今日</span>{DAILY_MISSIONS.map(m=>{const ok=dailyRec.claimed.includes(m.id)||dailyRec.done.includes(m.id);return <span key={m.id} className={ok?'is-ok':''}><i aria-hidden="true">{ok?'✓':''}</i>{({play:'試合',scout:'スカウト',share:'シェア'} as Record<string,string>)[m.id]??m.label}</span>;})}<em>{DAILY_MISSIONS.filter(m=>dailyRec.done.includes(m.id)||dailyRec.claimed.includes(m.id)).length}/{DAILY_MISSIONS.length}</em></button>}
    {season.day>0&&<section className="pw-panel pw-side-box" aria-label="チーム成績"><h3>チーム成績<small>{leagueName(league)}内の順位</small></h3>{teamStrip}</section>}
    {season.day>0&&<section className="pw-panel pw-side-box" aria-label="チームの主力"><h3>チームの主力<small>今季</small></h3><div className="pw-tleads">{leaderBtn('打率',avgTop?.playerId,avgTop?formatAvg(battingAverage(avgTop)):'—')}{leaderBtn('本塁打',hrTop?.playerId,String(hrTop?.hr??0))}{leaderBtn('勝利',winTop?.playerId,String(winTop?.wins??0))}{leaderBtn('防御率',eraTop?.playerId,eraTop?era(eraTop).toFixed(2):'—')}</div></section>}
    {conds.length>0&&<section className="pw-panel pw-side-box pw-conds" aria-label="今の調子"><h3>今の調子<small>第{conds[0].from}〜{conds[0].through}戦</small></h3><ul>{conds.map(c=><li key={c.playerId} className={c.boost<0?'is-cold':'is-hot'}><button data-player-id={c.playerId} onClick={()=>onPlayer(playerMap[c.playerId])}>{playerMap[c.playerId]?.name}</button><em>{c.boost===5?'絶好調':c.boost>0?'好調':'不調'} {c.boost>0?'+':''}{c.boost}</em></li>)}</ul></section>}

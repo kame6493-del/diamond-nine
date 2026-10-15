@@ -1485,3 +1485,104 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 .title-celebration .title-year strong{color:#ffd34d!important}
 .title-celebration .title-controls span{color:#bcd3ff!important}
 .title-celebration .title-controls button{color:#fff!important}
+
+/* ===== 第5弾(10-15): スマホ縦に合わせる ===== */
+.pw-b4-key{display:none}
+.pw-today-line{width:100%;display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:6px 8px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;min-height:40px;white-space:nowrap;overflow:hidden;font:800 13px system-ui;color:var(--mu)}
+.pw-today-line .pw-lg-tag{flex:none;padding:2px 7px;border-radius:6px;background:var(--green);color:#fff;font:900 11px system-ui}
+.pw-today-line>span:not(.pw-lg-tag){display:inline-flex;align-items:center;gap:3px}
+.pw-today-line i{display:grid;place-items:center;width:16px;height:16px;border-radius:4px;border:2px solid #c5d3e8;font:900 10px system-ui;font-style:normal;color:#fff}
+.pw-today-line .is-ok{color:var(--ink)}.pw-today-line .is-ok i{background:var(--green);border-color:var(--green2)}
+.pw-today-line em{margin-left:auto;font:700 16px var(--num);font-style:normal;color:var(--blue2)}
+.pw-sc-odds{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.pw-sc-odds li{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:10px;background:#f4f8fe;border:1px solid var(--line);font:700 17px/1.2 var(--num);color:var(--ink)}
+.pw-sc-odds b{font:900 11px system-ui;color:var(--mu);white-space:nowrap}
+@media (max-width:999px){
+ /* チーム編成: 名前・守備/役割・総合・主な能力3つ・今季の主な成績1つ。残りは名前を押した詳細で */
+ .pw-board{gap:4px}
+ .pw-board-col h3{margin:0 2px;font-size:13px;line-height:17px}
+ .pw-board-sec ol{gap:2px}
+ .pw-b4-row{padding:2px 3px 2px 2px;gap:3px}
+ .pw-b4-left{width:24px;gap:1px}
+ .pw-b4-main{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:4px;row-gap:1px;align-items:center}
+ .pw-b4-top{grid-column:1/-1}
+ .pw-b4-top>small,.pw-b4-top .pw-awk,.pw-b4-top .pw-cond{display:none}
+ .pw-b4-name{font-size:14px;min-height:20px;text-decoration-thickness:1px}
+ .pw-b4-ovr{height:21px;min-width:28px;font-size:18px}
+ .pw-b4-stat{display:none}
+ .pw-b4-key{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+ .pw-b4-key small{font:800 9px system-ui;color:var(--mu)}
+ .pw-b4-key b{font:700 15px/1 var(--num);color:var(--ink)}
+ .pw-b4-tiles .pw-b4-t:nth-child(n+4),.pw-b4-head small:nth-child(n+4){display:none}
+ .pw-b4-head{padding:0 3px 0 2px;gap:3px}
+ .pw-b4-head .pw-b4-tiles{margin-right:44px}
+ .pw-b4-head small{font-size:10px}
+ .pw-b4-t{padding:1px 0}
+ .pw-b4-t i{width:16px;height:17px;font-size:11px}
+ .pw-b4-t b{font-size:15px}
+ .pw-board-tip{display:none}
+ .pw-board-actions{margin:4px 0 8px}.pw-board-actions .pw-btn{min-height:44px}
+ /* 打者・投手: 横にはみ出さない列だけ。残りは名前を押した詳細で */
+ .pw-split-stats.is-bat .pw-st-table [data-k]:not([data-k=avg]):not([data-k=hr]):not([data-k=rbi]):not([data-k=ops]):not([data-k=h]):not([data-k=sb]){display:none}
+ .pw-split-stats.is-pit .pw-st-table [data-k]:not([data-k=era]):not([data-k=w]):not([data-k=l]):not([data-k=sv]):not([data-k=so]):not([data-k=whip]){display:none}
+ .pw-split-stats .pw-st-table{width:100%}
+ .pw-split-stats .pw-st-table thead th button{min-width:0;padding:0 2px;font-size:12px}
+ .pw-split-stats .pw-st-table td{padding:0 3px;font-size:16px}
+ .pw-split-stats .pw-st-table tbody .pw-st-name button{width:7.4em;max-width:7.4em}
+ .pw-split-stats.is-bat .pw-st-table td{line-height:clamp(30px,calc((100dvh - 640px) / 9),46px)}
+ .pw-split-stats.is-pit .pw-st-table td{line-height:clamp(26px,calc((100dvh - 470px) / 14),40px)}
+ /* スカウト待ち: カードを大きく、確率のあらまし */
+ .pw-sc-idle2{justify-content:space-evenly;gap:8px;padding:10px}
+ .pw-sc-idle-top img{width:min(150px,38vw)}
+}
+/* 低い画面(iPhone SE など): 編成の行は1行に(名前・成績・総合)。能力は名前を押した詳細で */
+@media (max-width:999px) and (max-height:760px){
+ .pw-b4-tiles,.pw-b4-head{display:none!important}
+ .pw-b4-main{grid-template-columns:minmax(0,1fr) auto auto}
+ .pw-b4-top{grid-column:1;grid-row:1}
+ .pw-b4-key{grid-column:2;grid-row:1;flex-direction:row;align-items:baseline;gap:2px}
+ .pw-b4-ovr{order:9}
+ .pw-b4-left{flex-direction:row;width:auto;gap:2px}
+ .pw-b4-left .pw-b3-no{min-width:14px;font-size:14px}
+ .pw-b4-left .pw-pos{width:20px;height:20px;font-size:11px}
+ .pw-b4-row{min-height:30px;align-items:center}
+}
+@media (max-width:999px){
+ .pw-b4-key{flex-direction:row;align-items:baseline;gap:2px}
+ .pw-b4-name{min-height:18px;line-height:18px}
+ .pw-b4-ovr{height:19px}
+ .pw-b4-row{padding:1px 3px 1px 2px}
+ .pw-b4-main{row-gap:0}
+}
+/* 低い画面: 優先度の低い箱を隠して1画面に */
+@media (max-width:999px) and (max-height:760px){
+ .pw-split-stats .pw-lgtop,.pw-split-stats.is-pit .pw-stats-team{display:none!important}
+ .pw-split-stats.is-bat .pw-st-table td{line-height:26px}
+ .pw-split-stats.is-pit .pw-st-table td{line-height:24px}
+ .pw-fit-season .pw-leader b{font-size:20px}
+ .pw-team-stats .pw-tstrip-split,.pw-team-stats .pw-sub-h:has(+.pw-tstrip-split),.pw-team-stats .pw-vs-table~.pw-note-left{display:none!important}
+ .pw-team-stats .pw-note-left{display:none}
+ .pw-fit-season .pw-team-stats dl div{padding:2px 6px}
+ .pw-standings .pw-stand td{line-height:1.1}
+ .pw-lgstats td{font-size:14px}
+}
+@media (max-width:389px){
+ .pw-stand td{font-size:15px;padding:2px 1px}
+ .pw-stand th{padding:2px 1px}
+ .pw-stand td:nth-child(2){max-width:5.5em}
+ .pw-lgstats td{font-size:13px}
+}
+@media (max-width:999px) and (max-height:760px){
+ .pw-year-btn{min-height:50px}
+ .pw-standings .pw-split2>div:nth-child(2){display:none}
+ .pw-split-stats.is-bat .pw-st-table td{line-height:25px}
+ .pw-split-stats.is-pit .pw-leaders{display:none}
+ .pw-split-stats.is-pit .pw-st-table td{line-height:24px}
+}
+@media (max-width:999px) and (max-height:760px){
+ .pw-sum2-main .pw-sub{display:none}
+ .pw-split-stats.is-bat .pw-st-table td{line-height:24px!important}
+ .pw-vs-table td{line-height:1.15}
+}
+@media (max-width:999px) and (max-height:760px){.pw-split-stats .pw-st-table tbody .pw-st-name button{min-height:26px}}
+@media (max-width:999px) and (min-height:761px){.pw-board-tip{display:block;margin:8px 4px 0;padding:8px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:13px;line-height:1.5}}

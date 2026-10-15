@@ -139,6 +139,8 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  const labelHead=(labels:string[])=><li className="pw-b4-head" aria-hidden="true"><span className="pw-b4-left"/><span className="pw-b4-tiles">{labels.map(l=><small key={l}>{l}</small>)}</span></li>;
  const batHead=labelHead(['ミート','パワー','走力','肩','守備']),pitHead=labelHead(['球速','制球','スタミナ','変化']);
  const tiles=(vals:[string,number][])=><span className="pw-b4-tiles">{tileItems(vals,false)}</span>;
+ // スマホ縦で出す今季の主な成績1つ(打者は打率、投手は防御率)
+ const keyStat=(kind:Kind,id:string)=>{if(kind==='bat'){const b=state.season.batting[`${state.club}|${id}`];return <span className="pw-b4-key"><small>打率</small><b>{b?.ab?formatAvg(battingAverage(b)):'—'}</b></span>;}const p=state.season.pitching[`${state.club}|${id}`];return <span className="pw-b4-key"><small>防御率</small><b>{p?.outs?era(p).toFixed(2):'—'}</b></span>;};
  const batLine=(id:string)=>{const b=state.season.batting[`${state.club}|${id}`];return b?.pa?<>打率<b>{b.ab?formatAvg(battingAverage(b)):'—'}</b><b>{b.hr}</b>本<b>{b.rbi}</b>点 OPS<b>{formatAvg(ops(b))}</b></>:<>今季の打席なし</>;};
  const pitLine=(id:string)=>{const p=state.season.pitching[`${state.club}|${id}`];return p?.outs?<>防<b>{era(p).toFixed(2)}</b><b>{p.wins}</b>勝<b>{p.losses}</b>敗{p.saves>0&&<><b>{p.saves}</b>S</>}<b>{p.so}</b>K</>:<>今季の登板なし</>;};
  const rowShell=(kind:Kind,i:number,id:string,extra:string,label:string,left:JSX.Element,body:JSX.Element)=>{
@@ -156,12 +158,12 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  const batRow=(id:string,i:number)=>{
   const p=playerMap[id],pos=state.defense[id],fit=fitsPosition(p,pos),r=ratingsOf(id);
   return rowShell('bat',i,id,fit?'':' is-unfit',`${i+1}番 ${pos} ${p.name} 総合${ovr(id)}`,<><span className="pw-b3-no">{i+1}</span><PosChip pos={pos}/></>,
-   <>{tiles([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]])}<span className="pw-b4-stat">{!fit&&<em>適性外 </em>}{batLine(id)}</span></>);
+   <>{tiles([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]])}<span className="pw-b4-stat">{!fit&&<em>適性外 </em>}{batLine(id)}</span>{keyStat('bat',id)}</>);
  };
  const pitRow=(id:string,i:number)=>{
   const p=playerMap[id],role=pitcherSlotRole(i),fit=pitcherRolePenalty(p,role)===0,r=pitchingRatingsForRole(p,ratingsOf(id),role);
   return rowShell('pit',i,id,' pw-b4-p'+(fit?'':' is-unfit'),`${slotName('pit',i)} ${p.name} 総合${ovr(id)}`,<span className={'pw-b3-no pw-b3-role pw-role-'+role}>{role==='先'?`先${i+1}`:role==='中'?`中${i-5}`:'抑'}</span>,
-   <><span className="pw-b4-tiles"><span className="pw-b4-t pw-b4-velo" title={`球速 ${p.ratings.velocity}km/h`}><b>{p.ratings.velocity}</b><em>km</em></span>{tileItems([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]],false)}</span><span className="pw-b4-stat">{!fit&&<em>適性外 </em>}{pitLine(id)}</span></>);
+   <><span className="pw-b4-tiles"><span className="pw-b4-t pw-b4-velo" title={`球速 ${p.ratings.velocity}km/h`}><b>{p.ratings.velocity}</b><em>km</em></span>{tileItems([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]],false)}</span><span className="pw-b4-stat">{!fit&&<em>適性外 </em>}{pitLine(id)}</span>{keyStat('pit',id)}</>);
  };
  const benchRow=(p:Player)=>{const pitcher=p.role==='pitcher',r=ratingsOf(p.id),traits=traitsOf(p),canTake=!!picked&&!!eligible?.has(p.id);
   return <li key={p.id} className={'pw-row pw-r2 pw-bench2'+(hand===p.id?' is-picked':'')} {...dragProps({from:'bench',kind:pitcher?'pit':'bat',index:-1,id:p.id})}>
