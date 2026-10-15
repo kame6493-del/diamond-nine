@@ -1745,3 +1745,13 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 .pw-cand .pw-b4-velo{display:flex!important;flex-wrap:wrap;align-items:baseline;justify-content:center}
 .pw-cand .pw-b4-velo small{flex-basis:100%;text-align:center}
 .pw-slot-cands .pw-cand .pw-b4-velo em{background:none;padding:0 0 0 1px;border-radius:0;color:var(--mu);font:800 10px system-ui}
+/* ===== 第7弾(10-15): 名前を「…」で切らない(スマホは欄に収まる大きさに縮める) ===== */
+@media (max-width:999px){
+ .pw-b5-top .pw-b4-name,.pw-st-table tbody .pw-st-name b,.pw-leader button,.pw-tlead button,.pw-conds button,.pw-lgtop button,.pw-sc-weak li button{font-size:var(--nm,inherit)!important;text-overflow:clip!important;overflow:visible!important;max-width:none!important;white-space:nowrap}
+ .pw-b5-top .pw-b4-name{font-size:var(--nm,15px)!important}
+ .pw-b5-plist .pw-b4-t:not(.pw-b4-velo) b{display:none!important}
+ .pw-b5-plist .pw-b4-tiles,.pw-b5-plist .pw-b5-head .pw-b4-tiles{width:110px!important}
+ .pw-b5-plist .pw-b5-top{overflow:visible}
+ .pw-st-table tbody .pw-st-name button{overflow:visible}
+ .pw-lgtop td{overflow:visible}
+}

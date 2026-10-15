@@ -2,6 +2,7 @@ import {useMemo,useState} from 'react';
 import {formatAvg,formatIP,playerMap,type Player} from '../data';
 import {battingAverage,era,ops,type Season} from '../engine';
 import {formatUZR,playerSeasonUZR} from '../fielding-stats';
+import {fitName} from './PawaCard';
 
 type Col<T>={key:string;label:string;value:(r:T)=>number|null;show:(r:T)=>string;low?:boolean};
 type Bat={id:string;p:Player;pa:number;ab:number;h:number;d2:number;d3:number;hr:number;rbi:number;sb:number;bb:number;so:number;avg:number|null;ops:number|null;uzr:number|null;games:number};
@@ -60,8 +61,8 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   return [...rows].sort((a,b)=>{const x=col.value(a),y=col.value(b);if(x===null)return y===null?0:1;if(y===null)return -1;return sort.desc?y-x:x-y;});
  };
  const head=<T,>(cols:Col<T>[])=><tr><th className="pw-st-name"><button onClick={()=>setSort({key:'order',desc:false})} aria-pressed={sort.key==='order'}>{view==='bat'?'打順':'役割'}</button></th>{cols.map(c=><th key={c.key} data-k={c.key}><button aria-pressed={sort.key===c.key} onClick={()=>setSort(sort.key===c.key?{key:c.key,desc:!sort.desc}:{key:c.key,desc:!c.low})}>{c.label}{sort.key===c.key&&<i aria-hidden="true">{sort.desc?'▼':'▲'}</i>}</button></th>)}</tr>;
- const nameCell=(p:Player,tag:string)=><th className="pw-st-name"><button data-player-id={p.id} onClick={()=>onPlayer(p)}><i>{tag}</i><b>{p.name}</b></button></th>;
- const leader=(label:string,r:{p:Player}|undefined,shown:string)=><div className="pw-leader"><small>{label}</small><b>{r?shown:'—'}</b>{r&&<button onClick={()=>onPlayer(r.p)}>{r.p.name}</button>}</div>;
+ const nameCell=(p:Player,tag:string)=><th className="pw-st-name"><button data-player-id={p.id} onClick={()=>onPlayer(p)}><i>{tag}</i><b style={fitName(p.name,80,14)}>{p.name}</b></button></th>;
+ const leader=(label:string,r:{p:Player}|undefined,shown:string)=><div className="pw-leader"><small>{label}</small><b>{r?shown:'—'}</b>{r&&<button style={fitName(r.p.name,76,12)} onClick={()=>onPlayer(r.p)}>{r.p.name}</button>}</div>;
  const extra=view==='bat'?bats.length-(lineup.length||9):pits.length-(pitchers.length||14);
  if(view==='bat'){
   const q=bats.filter(b=>b.pa>=Math.max(1,Math.floor(games*3.1*.5)));

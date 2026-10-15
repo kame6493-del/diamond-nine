@@ -9,7 +9,7 @@ import {seasonConditions} from '../conditions';
 import {battingAverage,era,ops} from '../engine';
 import {pitcherRolePenalty,pitcherSlotRole,pitchingRatingsForRole,type PitcherRole} from '../pitcher-aptitude';
 import {ageBands,cardTeams} from '../player-browser';
-import {OvrBox,PosChip,Rank,RoleChip} from './PawaCard';
+import {OvrBox,PosChip,Rank,RoleChip,fitName} from './PawaCard';
 
 type Kind='bat'|'pit';
 type Slot={kind:Kind;index:number};
@@ -155,7 +155,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <div className="pw-b5-row" role="button" tabIndex={0} aria-label={`${label}(押すと入れ替え、長押しでドラッグ)`} onClick={()=>tapRow({kind,index:i})} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tapRow({kind,index:i});}}}>
     <span className="pw-b5-left">{left}</span>
     <span className="pw-b5-main">
-     <span className="pw-b5-top"><button className="pw-b4-name" data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}</span>
+     <span className="pw-b5-top"><button className="pw-b4-name" style={fitName(p.name,kind==='pit'?96:150,15)} data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}</span>
      <span className="pw-b5-sub">{tilesEl}<span className="pw-b5-stat">{stat}</span></span>
     </span>
     <span className="pw-b4-ovr pw-b5-ovr" data-metal={metalOf(ovr(id),p)}>{ovr(id)}</span>

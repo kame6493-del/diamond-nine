@@ -14,7 +14,7 @@ import {aptitudeMark as aptitudeMarkOf} from './PawaTeam';
 import {fitsPosition} from '../data';
 import {pitcherRolePenalty,pitcherSlotRole} from '../pitcher-aptitude';
 import {collectionProgress} from '../player-browser';
-import {PawaCard,Rank,cardRatings} from './PawaCard';
+import {PawaCard,Rank,cardRatings,fitName} from './PawaCard';
 import {PREMIUM_DAILY_POINTS,useMonetize} from '../monetization';
 import {PREMIUM_MATCH_MULTIPLIER} from '../platform-economy';
 
@@ -112,7 +112,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <div className="pw-sc-idle-top"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
    <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{100-MLB_SCOUT_CHANCE*100}%・海外{MLB_SCOUT_CHANCE*100}%。補強チャンス{Math.round(SCOUT_UPGRADE_CHANCE*100)}%は今の主力より強い選手から。</p></div></div>
    <ul className="pw-sc-odds" aria-label="提供割合のあらまし"><li><b>国内</b>{100-MLB_SCOUT_CHANCE*100}%</li><li><b>海外</b>{MLB_SCOUT_CHANCE*100}%</li><li><b>海外確定まで</b>あと{remaining}回</li><li><b>補強チャンス</b>{Math.round(SCOUT_UPGRADE_CHANCE*100)}%</li></ul>
-   <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
+   <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button style={fitName(playerMap[x.id].name,92,13)} data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
    {passOffer&&<p className="pw-sc-pass">プレミアムパス(買い切り)なら 全画面の広告なし・毎日 ＋{count(PREMIUM_DAILY_POINTS)} pt・試合のポイント {PREMIUM_MATCH_MULTIPLIER} 倍。メニューから購入できます。</p>}
   </section>}
   </div>

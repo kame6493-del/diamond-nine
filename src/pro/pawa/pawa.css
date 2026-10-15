@@ -1750,3 +1750,13 @@ html[data-look=pawa] .nv-app .pw-cand .pw-b4-t{display:grid!important;grid-templ
 html[data-look=pawa] .nv-app .pw-cand .pw-b4-velo{display:flex!important;flex-wrap:wrap;align-items:baseline;justify-content:center}
 html[data-look=pawa] .nv-app .pw-cand .pw-b4-velo small{flex-basis:100%;text-align:center}
 html[data-look=pawa] .nv-app .pw-slot-cands .pw-cand .pw-b4-velo em{background:none;padding:0 0 0 1px;border-radius:0;color:var(--mu);font:800 10px system-ui}
+/* ===== 第7弾(10-15): 名前を「…」で切らない(スマホは欄に収まる大きさに縮める) ===== */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-b5-top .pw-b4-name,html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name b,html[data-look=pawa] .nv-app .pw-leader button,html[data-look=pawa] .nv-app .pw-tlead button,html[data-look=pawa] .nv-app .pw-conds button,html[data-look=pawa] .nv-app .pw-lgtop button,html[data-look=pawa] .nv-app .pw-sc-weak li button{font-size:var(--nm,inherit)!important;text-overflow:clip!important;overflow:visible!important;max-width:none!important;white-space:nowrap}
+ html[data-look=pawa] .nv-app .pw-b5-top .pw-b4-name{font-size:var(--nm,15px)!important}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-t:not(.pw-b4-velo) b{display:none!important}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-tiles,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b4-tiles{width:110px!important}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top{overflow:visible}
+ html[data-look=pawa] .nv-app .pw-st-table tbody .pw-st-name button{overflow:visible}
+ html[data-look=pawa] .nv-app .pw-lgtop td{overflow:visible}
+}

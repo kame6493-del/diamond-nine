@@ -11,6 +11,12 @@ export const tierFor=(player:Player,overall:number):Tier=>overall>=95?'rainbow':
 export const roleLabel=(p:Player)=>p.mlb?.twoWay?'投/DH':p.role==='pitcher'?pitchingRoleLabel(p):(p.positions[0]??'DH');
 export const cardRatings=(p:Player,state:GameState,base=false):Ratings=>base?p.ratings:ownedRatings(p,state.owned,state.training);
 const cap=(n:number)=>Math.min(99,n);
+/** 名前を「…」で切らずに入れるための文字の大きさ(スマホの狭い欄だけ CSS の var(--nm) で使う)。
+ *  全角1字=1、半角=0.55、空白=0.35 として、欄の幅 maxPx に収まる大きさ(base 以下・10px 以上)。 */
+export function fitName(name:string,maxPx:number,base:number):CSSProperties{
+ let units=0;for(const ch of name)units+=ch===' '||ch==='　'?.35:/[ -~｡-ﾟ]/.test(ch)?.55:1;
+ return {'--nm':`${Math.max(10,Math.min(base,Math.floor(maxPx/Math.max(1,units)*10)/10))}px`} as CSSProperties;
+}
 
 /** 能力ランクの札(参考画像のパワプロ風の色の角丸)。数字は横に小さく。 */
 export function Rank({value,label,showValue=false}:{value:number;label?:string;showValue?:boolean}){
