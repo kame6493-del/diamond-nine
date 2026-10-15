@@ -33,3 +33,15 @@
 @media(max-width:380px){.title-small-break{display:initial}.title-first{gap:6px;padding:6px 10px;font-size:11px}.title-first span{font-size:7px}.title-stage{padding-right:16px;padding-left:16px}.title-emblem{width:120px;height:120px}.title-emblem>svg{width:88px;height:88px}.title-message h1{font-size:20px}.title-english{font-size:42px}.title-year{font-size:12px}}
 @media(max-height:760px){.title-stage{padding-top:8px;padding-bottom:16px}.title-first{margin-bottom:10px}.title-emblem{width:102px;height:102px;margin:0 0 16px}.title-emblem-frame{border-radius:20px}.title-emblem>svg{width:77px;height:77px}.title-english{font-size:42px;margin-bottom:6px}.title-club{margin:5px 0}.title-message h1{font-size:21px}.title-year{margin-top:9px}.title-year strong{font-size:29px}.title-description{margin:8px 0 15px}.title-continue{min-height:50px}}
 @media(prefers-reduced-motion:reduce){.title-celebration .animate__animated{animation:none!important;transition:none!important}}
+/* 2026-10-15: 紙吹雪・挑戦権のカード・挑戦するか残るかの選択 */
+.title-confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.title-pass{margin:14px auto 4px;width:min(78vw,300px);padding:14px 12px;border-radius:16px;background:linear-gradient(135deg,#1c4fd8,#0a2a7a 55%,#132a5c);border:2px solid var(--title-accent);box-shadow:0 0 0 4px rgba(var(--title-glow),.2),0 12px 40px rgba(var(--title-glow),.35);display:grid;gap:2px;--animate-delay:.6s;animation-delay:.6s}
+.title-world .title-pass{background:linear-gradient(135deg,#3a1a7a,#160a3d 55%,#2a0f55)}
+.title-pass span{font:900 12px/1.2 system-ui;letter-spacing:.2em;color:var(--title-accent)}
+.title-pass b{font:900 28px/1.2 system-ui;color:#fff}
+.title-pass small{font:800 12px system-ui;color:#c9d8ff}
+.title-choice{display:grid;gap:8px;justify-items:center;margin:10px auto 18px;width:min(92vw,420px)}
+.title-choice p{margin:0;font:900 17px/1.4 system-ui;color:#fff}
+.title-choice .title-continue{width:100%;margin:0}
+.title-stay{width:100%;min-height:48px;border-radius:14px;border:2px solid rgba(255,255,255,.45);background:rgba(255,255,255,.08);color:#fff;font:900 16px system-ui;cursor:pointer}
+.title-choice small{font:700 12px system-ui;color:#b9c8e6}

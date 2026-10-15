@@ -4,8 +4,8 @@ import {battingAverage,era,ops,type Season} from '../engine';
 import {formatUZR,playerSeasonUZR} from '../fielding-stats';
 
 type Col<T>={key:string;label:string;value:(r:T)=>number|null;show:(r:T)=>string;low?:boolean};
-type Bat={id:string;p:Player;pa:number;ab:number;h:number;hr:number;rbi:number;sb:number;bb:number;so:number;avg:number|null;ops:number|null;uzr:number|null;games:number};
-type Pit={id:string;p:Player;g:number;w:number;l:number;sv:number;outs:number;so:number;bb:number;era:number|null};
+type Bat={id:string;p:Player;pa:number;ab:number;h:number;d2:number;d3:number;hr:number;rbi:number;sb:number;bb:number;so:number;avg:number|null;ops:number|null;uzr:number|null;games:number};
+type Pit={id:string;p:Player;g:number;gs:number;w:number;l:number;sv:number;outs:number;so:number;bb:number;ha:number;hra:number;era:number|null;whip:number|null};
 
 /** 個人成績(打者か投手の片方)。1画面に収まるよう行を詰め、上に1位の数字、表は見出しで並べ替え(左右だけ動く)。
  *  今のシーズンはスタメン9人/投手14人だけを出し、それ以外の選手は「ほかの選手も」で足す。 */
@@ -14,12 +14,12 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
  const bats=useMemo(()=>{
   const lines=new Map(Object.values(season.batting).filter(b=>b.team===club).map(b=>[b.playerId,b]));
   const ids=[...new Set([...lineup,...lines.keys()])].filter(id=>playerMap[id]);
-  return ids.map((id):Bat=>{const b=lines.get(id);return {id,p:playerMap[id],pa:b?.pa??0,ab:b?.ab??0,h:b?.hits??0,hr:b?.hr??0,rbi:b?.rbi??0,sb:b?.sb??0,bb:b?.bb??0,so:b?.so??0,games:b?.games??0,avg:b?.ab?battingAverage(b):null,ops:b?.pa?ops(b):null,uzr:playerSeasonUZR(season,club,id)};});
+  return ids.map((id):Bat=>{const b=lines.get(id);return {id,p:playerMap[id],pa:b?.pa??0,ab:b?.ab??0,h:b?.hits??0,d2:b?.doubles??0,d3:b?.triples??0,hr:b?.hr??0,rbi:b?.rbi??0,sb:b?.sb??0,bb:b?.bb??0,so:b?.so??0,games:b?.games??0,avg:b?.ab?battingAverage(b):null,ops:b?.pa?ops(b):null,uzr:playerSeasonUZR(season,club,id)};});
  },[season,club,lineup.join()]);
  const pits=useMemo(()=>{
   const lines=new Map(Object.values(season.pitching).filter(p=>p.team===club).map(p=>[p.playerId,p]));
   const ids=[...new Set([...pitchers,...lines.keys()])].filter(id=>playerMap[id]);
-  return ids.map((id):Pit=>{const p=lines.get(id);return {id,p:playerMap[id],g:p?.games??0,w:p?.wins??0,l:p?.losses??0,sv:p?.saves??0,outs:p?.outs??0,so:p?.so??0,bb:p?.bb??0,era:p?.outs?era(p):null};});
+  return ids.map((id):Pit=>{const p=lines.get(id);return {id,p:playerMap[id],g:p?.games??0,gs:p?.starts??0,w:p?.wins??0,l:p?.losses??0,sv:p?.saves??0,outs:p?.outs??0,so:p?.so??0,bb:p?.bb??0,ha:p?.hits??0,hra:p?.hr??0,era:p?.outs?era(p):null,whip:p?.outs?((p.hits+p.bb)*3/p.outs):null};});
  },[season,club,pitchers.join()]);
  const games=Math.max(1,season.day);
  const top=<T,>(list:T[],value:(r:T)=>number|null,low=false)=>list.filter(r=>value(r)!==null).sort((a,b)=>(low?1:-1)*((value(a) as number)-(value(b) as number)))[0];
@@ -29,9 +29,13 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   {key:'rbi',label:'打点',value:r=>r.rbi,show:r=>String(r.rbi)},
   {key:'ops',label:'OPS',value:r=>r.ops,show:r=>r.ops===null?'—':formatAvg(r.ops)},
   {key:'h',label:'安打',value:r=>r.h,show:r=>String(r.h)},
+  {key:'d2',label:'二塁打',value:r=>r.d2,show:r=>String(r.d2)},
+  {key:'d3',label:'三塁打',value:r=>r.d3,show:r=>String(r.d3)},
   {key:'sb',label:'盗塁',value:r=>r.sb,show:r=>String(r.sb)},
   {key:'bb',label:'四球',value:r=>r.bb,show:r=>String(r.bb)},
   {key:'so',label:'三振',value:r=>r.so,show:r=>String(r.so),low:true},
+  {key:'games',label:'試合',value:r=>r.games,show:r=>String(r.games)},
+  {key:'pa',label:'打席',value:r=>r.pa,show:r=>String(r.pa)},
   {key:'uzr',label:'UZR',value:r=>r.uzr,show:r=>formatUZR(r.uzr)},
  ];
  const pitCols:Col<Pit>[]=[
@@ -42,6 +46,10 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   {key:'so',label:'奪三振',value:r=>r.so,show:r=>String(r.so)},
   {key:'ip',label:'投球回',value:r=>r.outs,show:r=>formatIP(r.outs)},
   {key:'g',label:'登板',value:r=>r.g,show:r=>String(r.g)},
+  {key:'gs',label:'先発',value:r=>r.gs,show:r=>String(r.gs)},
+  {key:'whip',label:'WHIP',value:r=>r.whip,show:r=>r.whip===null?'—':r.whip.toFixed(2),low:true},
+  {key:'ha',label:'被安打',value:r=>r.ha,show:r=>String(r.ha),low:true},
+  {key:'hra',label:'被本塁打',value:r=>r.hra,show:r=>String(r.hra),low:true},
   {key:'bb',label:'四球',value:r=>r.bb,show:r=>String(r.bb),low:true},
  ];
  const ordered=<T extends {id:string},>(list:T[],cols:Col<T>[],order:string[],used:(r:T)=>number)=>{

@@ -2,9 +2,12 @@ import {useEffect,useId,useLayoutEffect,useRef} from 'react';
 import {ArrowRight,Crown,Globe2,Star,Trophy,Volume2,VolumeX,X} from 'lucide-react';
 import {gameSound,prepareGameAudio,stopGameAudio} from './game-audio';
 import type {TitleCelebration as Celebration} from './title-celebration';
+import confetti from 'canvas-confetti';
+import type {Circuit} from './leagues';
 import './title-celebration.css';
 
-export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{celebration:Celebration;sound:boolean;onToggleSound:()=>void;onClose:()=>void}){
+// onChoose: 次のシーズンをどのリーグで戦うかを選ぶ(挑戦する/今のリーグに残る)。渡されないときは従来どおり閉じるだけ。
+export function TitleCelebration({celebration,sound,onToggleSound,onClose,onChoose}:{celebration:Celebration;sound:boolean;onToggleSound:()=>void;onClose:()=>void;onChoose?:(target:Circuit)=>void}){
  const ref=useRef<HTMLDialogElement>(null),closeButton=useRef<HTMLButtonElement>(null),id=useId();
  const space=celebration.kind==='space-champion',world=space||celebration.kind==='world-champion';
  useLayoutEffect(()=>{
@@ -12,6 +15,16 @@ export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{cele
   document.body.style.overflow='hidden';dialog.showModal();closeButton.current?.focus({preventScroll:true});
   return()=>{dialog.close();document.body.style.overflow=overflow;if(previous?.isConnected)previous.focus({preventScroll:true});};
  },[]);
+ // 紙吹雪(動きを減らす設定の人には出さない)
+ useEffect(()=>{
+  if(typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const canvas=document.createElement('canvas');canvas.className='title-confetti';ref.current?.appendChild(canvas);
+  const shoot=confetti.create(canvas,{resize:true});
+  const colors=space?['#b38cff','#5ee0ff','#ffffff']:world?['#ffd34d','#ffffff','#ff6b6b']:['#4fb2ff','#ffd34d','#ffffff','#5be08a'];
+  const t1=setTimeout(()=>{void shoot({particleCount:120,spread:80,startVelocity:45,origin:{y:.35},colors});},350);
+  const t2=setTimeout(()=>{void shoot({particleCount:70,angle:60,spread:60,origin:{x:0,y:.6},colors});void shoot({particleCount:70,angle:120,spread:60,origin:{x:1,y:.6},colors});},900);
+  return()=>{clearTimeout(t1);clearTimeout(t2);shoot.reset();canvas.remove();};
+ },[space,world]);
  useEffect(()=>{
   stopGameAudio();
   if(sound){gameSound('impact');gameSound(world?'rainbow':'gold',.3);gameSound('voice',1.3);}
@@ -36,7 +49,14 @@ export function TitleCelebration({celebration,sound,onToggleSound,onClose}:{cele
     <p className="title-year"><strong>{celebration.year}</strong>年目で{space?'宇宙の頂点へ':world?'世界の頂点へ':'国内リーグ3連覇を達成'}</p>
     <p className="title-description" id={`${id}-description`}>{space?'未知の野球生命体たちを打ち破り、地球代表が宇宙の頂点に！':world?'宇宙リーグに挑戦する権利を手に入れた！ 次の相手は、未知の野球生命体。':<>次の舞台は、世界。<br/>海外リーグへの挑戦はいつでも選べます。</>}</p>
    </div>
-   <button type="button" className="title-continue animate__animated animate__fadeInUp" onClick={onClose}>{world?'優勝の記録を見る':'達成の記録を見る'}<ArrowRight size={20}/></button>
+   {celebration.kind!=='space-champion'&&<div className="title-pass animate__animated animate__flipInY" aria-hidden="true"><span>LEAGUE PASS</span><b>{world?'宇宙リーグ':'海外リーグ'}</b><small>{world?'SPACE LEAGUE':'OVERSEAS LEAGUE'} · 挑戦権</small></div>}
+   {onChoose&&celebration.kind!=='space-champion'?<div className="title-choice animate__animated animate__fadeInUp">
+    <p>{world?'次のシーズン、宇宙リーグに挑戦しますか？':'次のシーズン、海外リーグに挑戦しますか？'}</p>
+    <button type="button" className="title-continue" onClick={()=>onChoose(world?'SPACE':'MLB')}>{world?'宇宙リーグに挑戦する':'海外リーグに挑戦する'}<ArrowRight size={20}/></button>
+    <button type="button" className="title-stay" onClick={()=>onChoose(world?'MLB':'NPB')}>{world?'海外リーグに残る':'国内リーグに残る'}</button>
+    <small>あとから「目標・達成記録」のリーグ挑戦でも切り替えられます。</small>
+   </div>
+   :<button type="button" className="title-continue animate__animated animate__fadeInUp" onClick={onClose}>{world?'優勝の記録を見る':'達成の記録を見る'}<ArrowRight size={20}/></button>}
   </div>
  </dialog>;
 }
