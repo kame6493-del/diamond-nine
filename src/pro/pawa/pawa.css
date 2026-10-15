@@ -1591,3 +1591,162 @@ html[data-look=pawa] .nv-app .pw-sc-odds b{font:900 11px system-ui;color:var(--m
 }
 @media (max-width:999px) and (max-height:760px){html[data-look=pawa] .nv-app .pw-split-stats .pw-st-table tbody .pw-st-name button{min-height:26px}}
 @media (max-width:999px) and (min-height:761px){html[data-look=pawa] .nv-app .pw-board-tip{display:block;margin:8px 4px 0;padding:8px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:13px;line-height:1.5}}
+
+/* ===== 第6弾(10-15): チーム編成を「野手」「投手」の2タブに。1行にゆとり ===== */
+html[data-look=pawa] .nv-app .pw-b5-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 6px}
+html[data-look=pawa] .nv-app .pw-b5-tabs button{min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font:900 17px/1.2 system-ui}
+html[data-look=pawa] .nv-app .pw-b5-tabs button small{font:800 11px system-ui;opacity:.8}
+html[data-look=pawa] .nv-app .pw-b5-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+html[data-look=pawa] .nv-app .pw-b5-sec{flex:none;display:flex;align-items:baseline;justify-content:space-between;padding:2px 4px 0;font:900 14px/1.3 system-ui;color:var(--blue2)}
+html[data-look=pawa] .nv-app .pw-b5-sec small{font:800 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-b5-head{flex:none;display:flex;align-items:center;gap:6px;padding:0 6px 0 4px}
+html[data-look=pawa] .nv-app .pw-b5-head small{font:800 11px/1.2 system-ui;color:var(--mu);text-align:center;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-b5-head .pw-b5-stat{text-align:left}
+html[data-look=pawa] .nv-app .pw-b5-ovr-sp{flex:none;width:36px;text-align:center;font:800 11px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-b5{flex:1 1 0;min-height:0;display:flex;border-radius:12px;touch-action:pan-y}
+html[data-look=pawa] .nv-app .pw-b5-row{flex:1;display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;min-width:0}
+html[data-look=pawa] .nv-app .pw-b5-row:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+html[data-look=pawa] .nv-app .pw-b5-left{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:30px}
+html[data-look=pawa] .nv-app .pw-b5-left .pw-b3-no{font:700 19px/1 var(--num);color:var(--blue2);min-width:0}
+html[data-look=pawa] .nv-app .pw-b5-left .pw-pos{width:24px;height:24px;font-size:13px;border-radius:6px;border-width:1px}
+html[data-look=pawa] .nv-app .pw-b5-left .pw-b3-role{min-width:28px;font-size:13px;padding:4px 2px}
+html[data-look=pawa] .nv-app .pw-b5-main{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+html[data-look=pawa] .nv-app .pw-b5-top{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-b5-top .pw-b4-name{font-size:16px;min-height:22px;line-height:22px}
+html[data-look=pawa] .nv-app .pw-b5-top>small{flex:none;font:800 12px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-b5-top .pw-cond{font-size:11px;padding:2px 5px}
+html[data-look=pawa] .nv-app .pw-b5-sub{display:flex;flex-direction:column;gap:3px;min-width:0}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-tiles,html[data-look=pawa] .nv-app .pw-b5-head .pw-b4-tiles{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;flex:none;width:min(230px,62vw)}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t{display:flex;align-items:center;justify-content:center;gap:3px;padding:2px 0;border-radius:7px;background:#f4f8fe}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t i{width:19px;height:20px;font-size:12px;border-radius:4px}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t b{font:700 16px/1 var(--num)}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-velo b{font-size:17px}html[data-look=pawa] .nv-app .pw-b5 .pw-b4-velo em{font-size:10px}
+html[data-look=pawa] .nv-app .pw-b5-stat{font:800 12px/1.2 system-ui;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+html[data-look=pawa] .nv-app .pw-b5-stat b{font:700 16px/1 var(--num);color:var(--ink);margin:0 1px 0 3px}
+html[data-look=pawa] .nv-app .pw-b5-stat em{font-style:normal;color:var(--red2)}
+html[data-look=pawa] .nv-app .pw-b5-k{margin-right:6px}
+html[data-look=pawa] .nv-app .pw-b5-ovr{flex:none;min-width:36px;height:30px;font-size:22px;border-radius:8px}
+html[data-look=pawa] .nv-app .pw-b5.is-unfit .pw-b5-row{background:#fff3f3;border-color:#f5b5b9}
+html[data-look=pawa] .nv-app .pw-b5.is-picked .pw-b5-row{box-shadow:0 0 0 3px var(--blue)}
+html[data-look=pawa] .nv-app .pw-b5.can-take .pw-b5-row{box-shadow:0 0 0 2px var(--green);background:#effbef}
+html[data-look=pawa] .nv-app .pw-b5.is-over .pw-b5-row{background:#fff3b8;box-shadow:0 0 0 2px var(--yellow)}
+html[data-look=pawa] .nv-app .pw-b5.is-dragging{opacity:.45}
+/* 投手は2行目に能力と成績を横に並べる */
+html[data-look=pawa] .nv-app .pw-b5-p .pw-b5-sub,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b5-sub{flex-direction:row;align-items:center;gap:6px}
+html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-tiles{width:min(176px,46vw)}
+html[data-look=pawa] .nv-app .pw-b5-head .pw-b5-sub{flex-direction:row;align-items:center;gap:6px;flex:1}
+html[data-look=pawa] .nv-app .pw-b5-head .pw-b5-main{flex:1}
+/* スマホ: 画面の高さいっぱいに行を広げる(下の3つのボタンまで1画面) */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-list{height:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom) - 12px - 54px - 56px)}
+ html[data-look=pawa] .nv-app .pw-b5-list .pw-b5{min-height:44px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5{min-height:36px}
+ html[data-look=pawa] .nv-app .pw-b5-plist{gap:3px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-row{padding:2px 6px 2px 4px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-main{gap:1px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top .pw-b4-name{font-size:15px;min-height:19px;line-height:19px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-ovr{height:26px;font-size:19px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-t{padding:1px 0}
+ html[data-look=pawa] .nv-app .pw-board-actions{margin:0}
+}
+/* 野手の行: 低い画面では成績を能力の横に(打率だけ) */
+@media (max-width:999px) and (max-height:760px){
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-sub{flex-direction:row;align-items:center;gap:6px}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-more{display:none}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-head .pw-b5-stat{display:block}
+ /* 投手: 1行(名前・ランク・防御率・総合)。数値と勝敗は名前を押した詳細で */
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5{min-height:26px}
+ html[data-look=pawa] .nv-app .pw-b5-plist{gap:2px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-main{flex-direction:row;align-items:center;gap:6px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top{flex:1;min-width:0}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top>small,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top .pw-awk{display:none}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-t:not(.pw-b4-velo) b,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-more,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-velo em{display:none}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-tiles{width:120px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-left .pw-b3-role{padding:2px;font-size:12px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-sec{padding:0 4px;font-size:12px;line-height:1.2}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b4-tiles{width:120px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b5-main{flex-direction:row}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b5-sub{justify-content:flex-end}
+}
+/* PC: 野手と投手を左右に並べる */
+html[data-look=pawa] .nv-app .pw-board5.is-wide{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5:not(.pw-b5-p) .pw-b5-sub{flex-direction:row;align-items:center;gap:8px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-list:not(.pw-b5-plist) .pw-b5{min-height:58px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5{min-height:34px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist{gap:3px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-row{padding:2px 6px 2px 4px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-main{flex-direction:row;align-items:center;gap:8px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-top{flex:0 0 9.5em;min-width:0}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-top>small{display:none}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-ovr{height:26px;font-size:19px}
+html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-head .pw-b5-main{padding-left:calc(9.5em + 8px)}
+@media (min-width:1000px){html[data-look=pawa] .nv-app .pw-board5+.pw-board-actions{margin:8px 0}}
+/* 第5弾のスマホ用の絞り込み(.pw-b4)を2タブの行には効かせない */
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-tiles,html[data-look=pawa] .nv-app .pw-b5-head .pw-b4-tiles{display:grid!important}
+html[data-look=pawa] .nv-app .pw-b5 .pw-b4-tiles .pw-b4-t{display:flex!important}
+html[data-look=pawa] .nv-app .pw-b5-head .pw-b4-tiles small{display:block!important}
+/* 第6弾 調整: 行は中身の高さを下限に、余った高さを分け合う */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-b5-list{gap:2px}
+ html[data-look=pawa] .nv-app .pw-b5-list .pw-b5,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5{flex:1 1 auto;min-height:0}
+ html[data-look=pawa] .nv-app .pw-b5-sec{padding:0 4px;font-size:13px;line-height:17px}
+ html[data-look=pawa] .nv-app .pw-b5-head small{font-size:10px;line-height:12px}
+ html[data-look=pawa] .nv-app .pw-b5-row{padding:2px 6px 2px 4px}
+ html[data-look=pawa] .nv-app .pw-b5-main{gap:1px}
+ html[data-look=pawa] .nv-app .pw-b5-top .pw-b4-name{font-size:15px;min-height:19px;line-height:19px}
+ html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t{padding:1px 0}
+ html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t i{width:17px;height:18px;font-size:11px}
+ html[data-look=pawa] .nv-app .pw-b5 .pw-b4-t b{font-size:15px}
+ html[data-look=pawa] .nv-app .pw-b5-stat{line-height:15px}
+ html[data-look=pawa] .nv-app .pw-b5-ovr{height:26px;font-size:20px}
+ /* 投手はスマホでは1行(役割・名前・球速と能力・防御率・総合)。勝敗・S・奪三振は名前を押した詳細で */
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-main{flex-direction:row;align-items:center;gap:6px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top{flex:1;min-width:0}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top>small,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top .pw-awk,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-more,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-velo em{display:none!important}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-tiles,html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b4-tiles{width:150px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-stat{width:3.6em;flex:none}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-k{margin:0}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b5-main{flex-direction:row;justify-content:flex-end}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-head .pw-b5-sub{flex:none}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-left .pw-b3-role{padding:2px;font-size:12px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-ovr{height:24px;font-size:18px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top .pw-cond{display:none}
+}
+@media (max-width:999px) and (max-height:760px){
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist)>.pw-b5-sec{display:none}
+ html[data-look=pawa] .nv-app .pw-b5-list{gap:1px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-sec{font-size:12px;line-height:14px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-top .pw-b4-name{font-size:14px;min-height:18px;line-height:18px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5-row{padding:1px 6px 1px 4px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-t i{width:15px;height:16px}
+ html[data-look=pawa] .nv-app .pw-b5-plist .pw-b4-t b{font-size:14px}
+}
+@media (max-width:999px) and (max-height:760px){html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b4-tiles{width:190px}html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-stat{flex:1}}
+@media (min-width:1000px){
+ html[data-look=pawa] .nv-app .pw-board5.is-wide{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5:not(.pw-b5-p) .pw-b5-sub{flex-direction:column;align-items:stretch;gap:1px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-list:not(.pw-b5-plist) .pw-b5{min-height:56px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-list:not(.pw-b5-plist) .pw-b5-head .pw-b5-stat{display:none}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-top{flex:0 0 7.6em}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-head .pw-b5-main{padding-left:calc(7.6em + 8px)}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b4-tiles{width:164px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-sub{gap:8px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-stat{overflow:visible}
+}
+@media (min-width:1000px){
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-list{gap:2px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5{flex:none;min-height:0!important}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-row{padding:2px 6px 2px 4px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-main{gap:1px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-top .pw-b4-name{min-height:19px;line-height:19px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5 .pw-b4-t{padding:1px 0}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5 .pw-b4-t i{width:17px;height:18px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-stat{line-height:15px}
+ html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-b5-plist .pw-b5-row{min-height:34px}
+}
+@media (min-width:1000px){html[data-look=pawa] .nv-app .pw-board5.is-wide .pw-board-actions{margin:8px 0 0}}
+html[data-look=pawa] .nv-app .pw-cand .pw-b4-tiles{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:2px}
+html[data-look=pawa] .nv-app .pw-cand .pw-b4-t{display:grid!important;grid-template-columns:auto auto;justify-content:center;align-items:center}
+html[data-look=pawa] .nv-app .pw-cand .pw-b4-velo{display:flex!important;flex-wrap:wrap;align-items:baseline;justify-content:center}
+html[data-look=pawa] .nv-app .pw-cand .pw-b4-velo small{flex-basis:100%;text-align:center}
+html[data-look=pawa] .nv-app .pw-slot-cands .pw-cand .pw-b4-velo em{background:none;padding:0 0 0 1px;border-radius:0;color:var(--mu);font:800 10px system-ui}
