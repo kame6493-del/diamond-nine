@@ -24,7 +24,9 @@ export function registerNpbDifficultyTests(test:(name:string,run:()=>void)=>void
   assert.ok(initial.wins>=30&&initial.wins<=50,JSON.stringify(summaries));assert.equal(initial.titles,0);
   // A partially reinforced roster can still have unsuitable bullpen roles.
   // Allow a small cost for that mismatch while preserving attainable contention.
-  assert.ok(recruited.wins>=63&&recruited.wins<=82,JSON.stringify(summaries));assert.ok(recruited.wins>initial.wins+12);assert.ok(recruited.playoffs>=2);
+  // The 2026-10-15 NPB-like run environment (fewer HRs, wider record spread)
+  // costs this half-weak roster a few wins; it still clearly beats the opening squad.
+  assert.ok(recruited.wins>=60&&recruited.wins<=82,JSON.stringify(summaries));assert.ok(recruited.wins>initial.wins+12);assert.ok(recruited.playoffs>=1);
   assert.ok(developed.wins>recruited.wins+5);assert.ok(developed.titles>=1&&developed.wins<100);
   assert.ok(regulars.titles>=4&&regulars.wins<100);
   assert.equal(JSON.stringify(players.map(p=>[p.ratings,p.batting,p.pitching])),baseline);

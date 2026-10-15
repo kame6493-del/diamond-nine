@@ -8,6 +8,7 @@ import {traitDescriptions} from '../wiki-traits';
 import {equipTwoWayPlayer} from '../simple-game';
 import {formatUZR,playerSeasonUZR} from '../fielding-stats';
 import {PawaCard,OvrShield,Rank,cardRatings} from './PawaCard';
+import {careerLines,seasonLines} from './PawaInfo';
 import {AptMark,aptitudeMark} from './PawaTeam';
 
 // 特殊能力の色分け(打撃・走塁・守備・投手・その他)。参考画像の色のタグ。
@@ -21,13 +22,14 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  useEffect(()=>setResult(null),[player.id]);
  const owned=!!state.owned[player.id],level=state.training[player.id]??0,cost=awakeningCosts[level];
  const growth=growthProfile(player),overall=effectiveOverall(player,state.owned,state.training),ratings=cardRatings(player,state,catalog);
- const b=state.season.batting[`${state.club}|${player.id}`],p=state.season.pitching[`${state.club}|${player.id}`];
+ const lines=seasonLines(state.season,state.club,player),b=lines.bat,p=lines.pit,career=careerLines(state,player.id);
+ const cb=career.bat,cp=career.pit,careerBat=[['試合',cb.games],['打率',cb.ab?formatAvg(cb.hits/cb.ab):'—'],['本塁打',cb.hr],['打点',cb.rbi],['盗塁',cb.sb],['OPS',cb.pa?formatAvg(ops({...cb,playerId:'',team:'',runs:0,so:0})):'—']],careerPit=[['登板',cp.games],['勝-敗',`${cp.wins}-${cp.losses}`],['セーブ',cp.saves],['防御率',cp.outs?(cp.er*27/cp.outs).toFixed(2):'—'],['奪三振',cp.so],['投球回',formatIP(cp.outs)]];
  const traits=player.traits.filter(t=>!['暫定査定','基本能力型','実戦派'].includes(t));
  const twoWay=!!player.mlb?.twoWay,pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
  const pitcher=player.role==='pitcher',team=teamById(player.team);
  const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['盗塁',b?.sb??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
- const pitStats=[['奪三振',p?.so??0],['防御率',p?.outs?era(p).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['セーブ',p?.saves??0]];
+ const pitStats=[['防御率',p?.outs?era(p).toFixed(2):'—'],['勝-敗',`${p?.wins??0}-${p?.losses??0}`],['セーブ',p?.saves??0],['奪三振',p?.so??0],['投球回',formatIP(p?.outs??0)],['登板',p?.games??0]];
  const awaken=()=>{
   const updated=trainPlayer(state,player.id);if(updated===state)return;
   const a=ownedRatings(player,state.owned,state.training),b=ownedRatings(player,updated.owned,updated.training);
@@ -71,8 +73,9 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
 
   {!catalog&&twoWay&&owned&&<div className="pw-two-way"><p>1枚で先発とDHの両方に起用できます。</p><button className="pw-btn pw-blue" disabled={bothEquipped} onClick={()=>onChange(equipTwoWayPlayer(state,player.id))}>{bothEquipped?'投手＋DHで二刀流起用中':'投手＋DHで二刀流起用'}</button></div>}
 
-  {!catalog&&<section className="pw-sec"><h4>今シーズンの成績{twoWay?' · 投手':''}</h4><dl className="pw-pstats">{(pitcher?pitStats:batStats).map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
-   {twoWay&&<><h4>今シーズンの成績 · 打撃</h4><dl className="pw-pstats">{batStats.map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl></>}</section>}
+  {!catalog&&<section className="pw-sec"><h4>今シーズンの成績{!lines.own&&` · ${team.short}`}{twoWay?' · 投手':''}</h4><dl className="pw-pstats">{(pitcher?pitStats:batStats).map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
+   {twoWay&&<><h4>今シーズンの成績 · 打撃</h4><dl className="pw-pstats">{batStats.map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl></>}
+   {career.seasons>0&&<><h4>通算(このチームで{career.seasons}シーズン{career.stored>=8?' · 直近8シーズンまで':''})</h4><dl className="pw-pstats">{(pitcher?careerPit:careerBat).map(([l,v])=><div key={l as string}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>{twoWay&&<dl className="pw-pstats">{careerBat.map(([l,v])=><div key={l as string}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>}</>}</section>}
 
   {/* 覚醒ボタンは画面の下に固定。押した結果(変わった能力の前→後)はボタンのすぐ上に出るので、特能が多い選手でもスクロールせずに見える。 */}
   {!catalog&&owned&&<div className="pw-awaken-bar">

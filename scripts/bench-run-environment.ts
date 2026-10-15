@@ -19,9 +19,17 @@ export function measureEnvironment(circuit:Circuit,samples=5){
  return {circuit,samples,rpg:t.runs/t.games,avg:t.hits/t.ab,obp,slg,ops:obp+slg,hrPerTeamGame:t.hr/t.games,era:t.er*27/t.outs,kPct:t.so/t.pa};
 }
 export function registerRunEnvironmentTests(test:(name:string,run:()=>void)=>void){
- test('all leagues retain a modern MLB-like scoring environment and consistent sacrifice-fly accounting',()=>{
+ test('NPB keeps a 2023-2025 NPB scoring environment, MLB and Space a modern MLB-like one, with consistent sacrifice-fly accounting',()=>{
   for(const circuit of ['NPB','MLB','SPACE'] as const){
    const m=measureEnvironment(circuit);console.log('Run environment:',JSON.stringify(m));
+   if(circuit==='NPB'){
+    // 2026-10-15: NPB matches 2023-2025 NPB (low scoring, about 85-90 HR per club).
+    assert.ok(m.rpg>3.3&&m.rpg<3.8);assert.ok(m.avg>.237&&m.avg<.252);
+    assert.ok(m.obp>.295&&m.obp<.315);assert.ok(m.ops>.635&&m.ops<.69);
+    assert.ok(m.era>3.0&&m.era<3.5);assert.ok(m.hrPerTeamGame>.55&&m.hrPerTeamGame<.77);
+    assert.ok(m.kPct>.18&&m.kPct<.21);
+    continue;
+   }
    assert.ok(m.rpg>4.2&&m.rpg<4.7);assert.ok(m.avg>.235&&m.avg<.255);
    assert.ok(m.obp>.305&&m.obp<.325);assert.ok(m.ops>.695&&m.ops<.745);
    assert.ok(m.era>3.9&&m.era<4.4);assert.ok(m.hrPerTeamGame>1.05&&m.hrPerTeamGame<1.3);

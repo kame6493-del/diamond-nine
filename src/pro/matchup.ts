@@ -10,6 +10,17 @@ const majorEvidence=[...new Map(Object.values(playerMap).filter(p=>p.opponentOnl
 const majorTotals=majorEvidence.reduce((a,p)=>{const b=p.batting,q=p.pitching;a.bf+=q?.bf??0;a.k+=q?.so??0;a.bb+=q?.bb??0;a.hr+=q?.hr??0;a.hits+=(b?.hits??0)-(b?.hr??0);a.bip+=(b?.ab??0)-(b?.so??0)-(b?.hr??0)+(b?.sf??0);return a;},{bf:0,k:0,bb:0,hr:0,hits:0,bip:0});
 const majorEnvironment={k:majorTotals.k/Math.max(1,majorTotals.bf),bb:majorTotals.bb/Math.max(1,majorTotals.bf),hr:majorTotals.hr/Math.max(1,majorTotals.bf),babip:majorTotals.hits/Math.max(1,majorTotals.bip)};
 
+// NPB run environment (2026-10-15): fixed league-wide factors so a CPU season
+// lands near 2023-2025 NPB (avg about .245, 3.5 runs/team-game, ERA about 3.2,
+// 80-110 HR per club, K 18-21%, BB 7-9%). Same for every team, user or CPU;
+// individual abilities and records still decide who is better.
+// spread widens record-based differences from the league (walk/K/HR allowed,
+// BABIP, doubles) so stars stay about as far ahead of the field as before the
+// HR cut; ability scales ability/awakening/CPU-adjustment deltas, whose
+// multiplicative effects would otherwise shrink with the lower base rates.
+const npbEnvironment={homeRun:.74,babip:-.009,double:.88,strikeout:.92,walk:.88,spread:1.25,babipSpread:2,doubleSpread:1.8,ability:1.3};
+const npbBatting=Object.values(playerMap).filter(p=>!p.mlb&&!p.opponentOnly&&p.batting).reduce((a,p)=>({d:a.d+p.batting!.doubles,ab:a.ab+p.batting!.ab}),{d:0,ab:0});
+const npbDoubleRate=npbBatting.d/Math.max(1,npbBatting.ab);
 // Anchor every player's displayed base abilities to their recorded performance.
 // Changes to an ability act on its corresponding event, without counting the
 // source performance twice. Keep a copy so ability edits cannot move the anchor.
@@ -22,8 +33,9 @@ export function matchupProbabilities(batter: Player, pitcher: Player, batBonus =
   const batting = gameRatings(batter, batBonus,batStage), pitching = pitchingRatingsForRole(pitcher,gameRatings(pitcher, pitchBonus,pitchStage),pitcherRole);
   const batBase = referenceRatings.get(batter.id) ?? batter.ratings, pitBase = referenceRatings.get(pitcher.id) ?? pitcher.ratings;
   const traits=wikiMatchEffects(batter,pitcher,situation);
-  const contact = clamp(batting.contact+traits.contact,0,99) - batBase.contact, power = clamp(batting.power+traits.power,0,99) - batBase.power, speed = batting.speed - batBase.speed;
-  const control = clamp(pitching.control+traits.control,0,99) - pitBase.control, stuff = .65 * (clamp(pitching.breaking+traits.stuff,0,99) - pitBase.breaking) + .35 * (pitching.velocity - pitBase.velocity);
+  const abilityScale=circuit==='NPB'?npbEnvironment.ability:1;
+  const contact = abilityScale*(clamp(batting.contact+traits.contact,0,99) - batBase.contact), power = abilityScale*(clamp(batting.power+traits.power,0,99) - batBase.power), speed = batting.speed - batBase.speed;
+  const control = abilityScale*(clamp(pitching.control+traits.control,0,99) - pitBase.control), stuff = abilityScale*(.65 * (clamp(pitching.breaking+traits.stuff,0,99) - pitBase.breaking) + .35 * (pitching.velocity - pitBase.velocity));
   const pa = b?.pa ?? 0, ab = b?.ab ?? 0, bf = q?.bf ?? 0;
   const major=circuit!=='NPB',lgK=major?majorEnvironment.k:lg.pitching.kPct??.20,lgBB=major?majorEnvironment.bb:lg.pitching.bbPct??.08,lgHR=major?majorEnvironment.hr:lg.p.hr/Math.max(1,lg.p.bf),lgBabip=major?majorEnvironment.babip:lg.batting.babip??.29;
   // MLB opponents and their league environment already add a substantial gap.
@@ -33,22 +45,24 @@ export function matchupProbabilities(batter: Player, pitcher: Player, batBonus =
   const pitTransition=major&&!pitcher.mlb ? .5*clamp(1-(pitching.control*.5+pitching.breaking*.5-55)/100,.55,1.15) : 0;
   // NPB rates translate modestly; developed strengths soften the adjustment.
   // MLB cards already use MLB results, so do not apply a second transition.
-  const walk = clamp(((b?.bb ?? 0) + lgBB * 120) / (pa + 120) * ((q?.bb ?? 0) + lgBB * 180) / (bf + 180) / Math.max(.01, lgBB) * Math.exp(-control * .018)*traits.walk*(1-.05*batTransition)*(1+.08*pitTransition), .015, .24);
+  const spread=major?1:npbEnvironment.spread,widen=(rate:number,league:number,power=spread)=>major||power===1?rate:league*Math.pow(rate/Math.max(1e-6,league),power);
+  const walk = clamp(widen(((b?.bb ?? 0) + lgBB * 120) / (pa + 120),lgBB) * widen(((q?.bb ?? 0) + lgBB * 180) / (bf + 180),lgBB) / Math.max(.01, lgBB) * Math.exp(-control * .018)*traits.walk*(1-.05*batTransition)*(1+.08*pitTransition)*(major?1:npbEnvironment.walk), .015, .24);
   const hbp = clamp((((b?.hbp ?? 0) + 1.2) / (pa + 120) * .5 + ((q?.hbp ?? 0) + 1.8) / (bf + 180) * .5) * Math.exp(-control * .008), .002, .04);
   const nonFree = 1 - walk - hbp;
   const trajectoryFactor=batter.wikiAssessment?.ratings.trajectory===undefined?1:1+(batter.wikiAssessment.ratings.trajectory-2)*.06;
-  const strikeout = clamp(((b?.so ?? 0) + lgK * 120) / (pa + 120) * ((q?.so ?? 0) + lgK * 180) / (bf + 180) / Math.max(.01, lgK) * Math.exp(stuff * .016 - contact * .014)*(1+.14*batTransition)*(1-.08*pitTransition) / nonFree, .05, .45);
+  const strikeout = clamp(widen(((b?.so ?? 0) + lgK * 120) / (pa + 120),lgK) * widen(((q?.so ?? 0) + lgK * 180) / (bf + 180),lgK) / Math.max(.01, lgK) * Math.exp(stuff * .016 - contact * .014)*(1+.14*batTransition)*(1-.08*pitTransition)*(major?1:npbEnvironment.strikeout) / nonFree, .05, .45);
   // A player with few plate appearances should not inherit league-average power.
   // Apply ability changes to observed HRs, and use absolute power for the prior.
   const powerPrior=.0003+Math.pow(clamp(batting.power+traits.power,0,99)/100,4)*.10;
-  // Fixed run-environment factors: lift domestic long balls toward a modern
-  // MLB-like game and temper the overseas power prior. Applies equally to CPU
+  // Fixed run-environment factors: NPB uses npbEnvironment (2023-2025-like),
+  // MLB and Space temper the overseas power prior. Applies equally to CPU
   // and user matchups; never adjusts to standings or forces a final score.
-  const homeRun = clamp(((b?.hr ?? 0)*Math.exp(power*.022)+powerPrior*150)/(pa+150) * ((q?.hr ?? 0) + lgHR * 240) / (bf + 240) / Math.max(.005, lgHR) * Math.exp(-stuff * .012)*traits.homeRun*trajectoryFactor*(1-.15*batTransition)*(1+.16*pitTransition) * (circuit==='SPACE'?.75:major?.90:1.28) / nonFree, .0002, .12);
-  const babip = clamp(((b?.hits ?? 0) - (b?.hr ?? 0) + lgBabip * 180) / (Math.max(0, ab - (b?.so ?? 0) - (b?.hr ?? 0) + (b?.sf ?? 0)) + 180) + contact * .0012 - stuff * .0004 - defense-.010*batTransition+.006*pitTransition+(major?.007:-.012), .18, .41);
+  const homeRun = clamp(((b?.hr ?? 0)*Math.exp(power*.022)+powerPrior*150)/(pa+150) * widen(((q?.hr ?? 0) + lgHR * 240) / (bf + 240),lgHR) / Math.max(.005, lgHR) * Math.exp(-stuff * .012)*traits.homeRun*trajectoryFactor*(1-.15*batTransition)*(1+.16*pitTransition) * (circuit==='SPACE'?.75:major?.90:npbEnvironment.homeRun) / nonFree, .0002, .12);
+  const recordBabip=((b?.hits ?? 0) - (b?.hr ?? 0) + lgBabip * 180) / (Math.max(0, ab - (b?.so ?? 0) - (b?.hr ?? 0) + (b?.sf ?? 0)) + 180);
+  const babip = clamp(lgBabip+(recordBabip-lgBabip)*(major?1:npbEnvironment.babipSpread) + contact * .0012 - stuff * .0004 - defense-.010*batTransition+.006*pitTransition+(major?.007:npbEnvironment.babip), .18, .41);
   const hit = homeRun + (1 - strikeout - homeRun) * babip;
   const triple = Math.min((hit - homeRun) * .2, ((b?.triples ?? 0) + 1) / (ab + 150) * Math.exp(speed * .035));
-  const double = Math.min(hit - homeRun - triple, ((b?.doubles ?? 0) + 7) / (ab + 150) * Math.exp(power * .018)*(1-.05*batTransition)*(circuit==='SPACE'?.94:major?1:1.12));
+  const double = Math.min(hit - homeRun - triple, widen(((b?.doubles ?? 0) + 7) / (ab + 150),npbDoubleRate,npbEnvironment.doubleSpread) * Math.exp(power * .018)*(1-.05*batTransition)*(circuit==='SPACE'?.94:major?1:npbEnvironment.double));
   return { walk, hbp, strikeout, homeRun, babip, hit, triple, double };
 }
 

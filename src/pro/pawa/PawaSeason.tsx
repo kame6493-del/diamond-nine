@@ -16,6 +16,9 @@ import {AUTUMN_EVENT,autumnEventActive,autumnEventEndLabel} from '../autumn-even
 import {seasonGoals} from '../ambitions';
 import {PawaStats} from './PawaStats';
 import {formatUZR} from '../fielding-stats';
+import {seasonConditions} from '../conditions';
+import {leagueSeasonStats} from '../league-stats';
+import {TeamSheet,headToHead,splitRecord} from './PawaInfo';
 
 const pad=(n:number)=>String(n).padStart(2,'0');
 const pct=(w:number,l:number)=>w+l?formatAvg(w/(w+l)):'.000';
@@ -27,6 +30,7 @@ export function Place({n}:{n:number}){return <span className={'pw-place pw-place
 export function Mark({mark,color}:{mark:string;color?:string}){return <span className="pw-mark" style={color?{color}:undefined}>{mark}</span>;}
 
 export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,message,onSwitchLeague,daily,dailyReady=0,onShowResult}:{state:GameState;busy:boolean;progress:number;onPlay:(n:number)=>void;onPost:()=>void;onNext:()=>void;onPlayer:(p:Player)=>void;message:string;onSwitchLeague?:(circuit:Circuit)=>void;daily?:ReactNode;dailyReady?:number;onShowResult?:()=>void}){
+ const [teamSheet,setTeamSheet]=useState<string|null>(null);
  const [archive,setArchive]=useState(0),[view,setView]=useState<string|null>(null),[goalsOpen,setGoalsOpen]=useState(false);
  const season:Season=state.history.find(s=>s.number===archive)??state.season;
  const current=season===state.season,league=leagueFor(season,state.club),table=rankings(season,league),mine=table.find(t=>t.team===state.club)!,rank=table.indexOf(mine)+1;
@@ -54,14 +58,29 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
  const lastGame=last&&(()=>{const home=last.home===state.club,ours=home?last.homeRuns:last.awayRuns,theirs=home?last.awayRuns:last.homeRuns,other=home?last.away:last.home,res=ours>theirs?'WIN':ours<theirs?'LOSE':'DRAW';return {ours,theirs,other,res};})();
  const form=games.slice(-10).map(g=>{const home=g.home===state.club,o=home?g.homeRuns:g.awayRuns,t=home?g.awayRuns:g.homeRuns;return o>t?'W':o<t?'L':'D';});
  const standings=(compact:boolean)=><table className={'pw-stand'+(compact?' is-compact':'')}><thead><tr><th>位</th><th>チーム</th><th>勝</th><th>負</th><th>分</th><th>勝率</th><th>差</th></tr></thead>
-  <tbody>{shownTable.map((t,i)=><tr key={t.team} className={t.team===state.club?'is-mine':''}><td><Place n={i+1}/></td><td><span className="pw-tname"><Mark mark={markOf(t.team)} color={colorOf(t.team)}/>{nameOf(t.team)}</span></td><td>{t.w}</td><td>{t.l}</td><td>{t.d}</td><td>{pct(t.w,t.l)}</td><td>{i?gb(t).toFixed(1):'-'}</td></tr>)}</tbody></table>;
+  <tbody>{shownTable.map((t,i)=><tr key={t.team} className={t.team===state.club?'is-mine':''}><td><Place n={i+1}/></td><td><button className="pw-tname" onClick={()=>setTeamSheet(t.team)} aria-label={`${nameOf(t.team)}の詳細`}><Mark mark={markOf(t.team)} color={colorOf(t.team)}/>{nameOf(t.team)}</button></td><td>{t.w}</td><td>{t.l}</td><td>{t.d}</td><td>{pct(t.w,t.l)}</td><td>{i?gb(t).toFixed(1):'-'}</td></tr>)}</tbody></table>;
+ const lg=useMemo(()=>leagueSeasonStats(season,shown as never).rows,[season,shown]);
+ const conds=current&&!season.completed&&season.day>0?seasonConditions(state):[];
+ const ownBat=Object.values(season.batting).filter(b=>b.team===state.club&&playerMap[b.playerId]),ownPit=Object.values(season.pitching).filter(p=>p.team===state.club&&playerMap[p.playerId]);
+ const qual=ownBat.filter(b=>b.pa>=Math.max(1,Math.floor(season.day*3.1*.5)));
+ const best=<T,>(list:T[],v:(x:T)=>number,low=false)=>list.length?[...list].sort((a,b)=>low?v(a)-v(b):v(b)-v(a))[0]:undefined;
+ const avgTop=best(qual,b=>battingAverage(b)),hrTop=best(ownBat,b=>b.hr),winTop=best(ownPit,p=>p.wins),eraTop=best(ownPit.filter(p=>p.outs>=Math.max(3,Math.floor(season.day*1.5))),p=>era(p),true);
+ const nextInfo=next?(()=>{const row=table.findIndex(t=>t.team===next.opponent),t=table[row];const vs=headToHead(season,state.club,next.opponent);return {rank:row+1,t,vs};})():null;
+ const split=splitRecord(season,state.club);
+ const leagueIds=new Set(leagueTeams(season).filter(t=>t.league===league).map(t=>t.id));
+ // リーグの個人順位: 1位の選手と、自チームで一番上の選手の順位
+ const topRows=(tab==='bat'?([['打率',Object.values(season.batting).filter(b=>leagueIds.has(b.team)&&b.pa>=Math.max(1,Math.floor(season.day*3.1*.5))).map(b=>({id:b.playerId,team:b.team,v:battingAverage(b)})),(v:number)=>formatAvg(v),false],['本塁打',Object.values(season.batting).filter(b=>leagueIds.has(b.team)).map(b=>({id:b.playerId,team:b.team,v:b.hr})),(v:number)=>String(v),false],['打点',Object.values(season.batting).filter(b=>leagueIds.has(b.team)).map(b=>({id:b.playerId,team:b.team,v:b.rbi})),(v:number)=>String(v),false],['盗塁',Object.values(season.batting).filter(b=>leagueIds.has(b.team)).map(b=>({id:b.playerId,team:b.team,v:b.sb})),(v:number)=>String(v),false]] as const)
+  :([['防御率',Object.values(season.pitching).filter(p=>leagueIds.has(p.team)&&p.outs>=Math.max(3,Math.floor(season.day*3))).map(p=>({id:p.playerId,team:p.team,v:era(p)})),(v:number)=>v.toFixed(2),true],['勝利',Object.values(season.pitching).filter(p=>leagueIds.has(p.team)).map(p=>({id:p.playerId,team:p.team,v:p.wins})),(v:number)=>String(v),false],['奪三振',Object.values(season.pitching).filter(p=>leagueIds.has(p.team)).map(p=>({id:p.playerId,team:p.team,v:p.so})),(v:number)=>String(v),false],['セーブ',Object.values(season.pitching).filter(p=>leagueIds.has(p.team)).map(p=>({id:p.playerId,team:p.team,v:p.saves})),(v:number)=>String(v),false]] as const)).map(([label,list,fmt,low])=>{const sorted=[...list].filter(x=>playerMap[x.id]).sort((a,b)=>low?a.v-b.v:b.v-a.v);const top=sorted[0],i=sorted.findIndex(x=>x.team===state.club);return {label,top,fmt,ours:i>=0?{...sorted[i],rank:1+sorted.filter(x=>low?x.v<sorted[i].v-1e-9:x.v>sorted[i].v+1e-9).length}:null};});
+ const lgTop=<div className="pw-lgtop"><h3 className="pw-sub-h">リーグの個人順位<small>1位と、チームで一番上の選手</small></h3><table><tbody>{topRows.map(r=><tr key={r.label}><th>{r.label}</th><td>{r.top?<><button data-player-id={r.top.id} onClick={()=>onPlayer(playerMap[r.top!.id])}>{playerMap[r.top.id].name}</button><small>{r.top.team===state.club?clubName:teamById(r.top.team,season).short}</small><b>{r.fmt(r.top.v)}</b></>:'—'}</td><td>{r.ours?<><button data-player-id={r.ours.id} onClick={()=>onPlayer(playerMap[r.ours!.id])}>{playerMap[r.ours.id].name}</button><b>{r.fmt(r.ours.v)}</b><i>{r.ours.rank}位</i></>:'—'}</td></tr>)}</tbody></table></div>;
+ const teamStrip=<dl className="pw-tstrip">{([['打率',stats.avg===null?'—':formatAvg(stats.avg),ranks.avg],['本塁打',String(stats.hr),ranks.hr],['防御率',stats.era===null?'—':stats.era.toFixed(2),ranks.era],['得点',String(mine.rf),runRank('rf')],['失点',String(mine.ra),runRank('ra')]] as const).map(([l,v,r])=><div key={l}><dt>{l}</dt><dd>{v}</dd>{season.day>0&&rankPill(r)}</div>)}</dl>;
+ const leaderBtn=(label:string,id:string|undefined,value:string)=><div className="pw-tlead"><small>{label}</small><b>{id?value:'—'}</b>{id&&<button data-player-id={id} onClick={()=>onPlayer(playerMap[id])}>{playerMap[id].name}</button>}</div>;
  const tabs=[['game','試合'],['table','順位'],['bat','打者'],['pit','投手'],['team','チーム'],['more','記録']] as const;
 
  return <div className={'nv-season pw-fit-season'+(season.completed?' is-complete':'')}>
   <div className="pw-subtabs" role="tablist" aria-label="試合・成績の表示">{tabs.map(([id,label])=><button key={id} role="tab" aria-selected={tab===id} className={tab===id?'is-on':''} onClick={()=>setTab(id)}>{label}</button>)}</div>
   {!current&&<p className="pw-archive-note"><span>{season.number}シーズン目({circuitLabel(circuit)})を表示中</span><button className="pw-btn pw-white pw-mini" onClick={()=>setArchive(0)}>今シーズンに戻る</button></p>}
 
-  {tab==='game'&&<>
+  {tab==='game'&&<div className="pw-game-grid"><div className="pw-game-main">
    <section className="pw-panel pw-sum2" aria-label="今シーズン">
     <div className="pw-sum2-rank">{season.day?<><b>{rank}</b><small>位</small></>:<small>開幕前</small>}</div>
     <div className="pw-sum2-main"><p className="pw-sub">{circuitLabel(circuit)} · {season.number}シーズン目 · {clubName}</p>
@@ -71,7 +90,7 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
    </section>
    {current&&autumnEventActive(new Date())&&<p className="pw-sc-event"><b>{AUTUMN_EVENT.name}</b> 〜{autumnEventEndLabel()} · シーズン終了ごとに +{AUTUMN_EVENT.bonus.toLocaleString('ja-JP')} pt</p>}
    {current&&!season.completed&&<section className="pw-go2" aria-label="試合を進める">
-    {next&&<p className="pw-next2">次 <Mark mark={markOf(next.opponent)} color={colorOf(next.opponent)}/><b>{nameOf(next.opponent)}</b>戦 · 先発 {playerMap[next.mine]?.name}</p>}
+    {next&&<p className="pw-next2">次 <button className="pw-next2-team" onClick={()=>setTeamSheet(next.opponent)}><Mark mark={markOf(next.opponent)} color={colorOf(next.opponent)}/><b>{nameOf(next.opponent)}</b></button>戦{nextInfo&&nextInfo.t&&season.day>0&&<span className="pw-next2-info">({nextInfo.rank}位{nextInfo.vs.games>0&&` · 対戦${nextInfo.vs.w}勝${nextInfo.vs.l}敗`})</span>} · 先発 <button className="pw-next2-p" data-player-id={next.mine} onClick={()=>playerMap[next.mine]&&onPlayer(playerMap[next.mine])}>{playerMap[next.mine]?.name}</button></p>}
     {busy?<div className="pw-working" role="status"><span>試合を計算しています… {progress}%</span><div className="pw-bar"><i style={{width:progress+'%'}}/></div></div>
     :<div className="pw-go2-btns"><button className="pw-btn pw-blue" onClick={()=>onPlay(1)}>1試合</button><button className="pw-btn pw-blue" onClick={()=>onPlay(10)}>10試合</button><button className="pw-btn pw-yellow" onClick={()=>onPlay(total)}>{season.day?'シーズン終了まで':'1年進める'}</button></div>}
    </section>}
@@ -80,22 +99,35 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
    {message&&current&&<p className="pw-message2" role="status">{message}</p>}
    {lastGame&&<section className="pw-last2" aria-label="直近の試合"><span className={'pw-res pw-res-'+lastGame.res}>{lastGame.res}</span><b>{lastGame.ours} - {lastGame.theirs}</b><span className="pw-last2-vs">vs <Mark mark={markOf(lastGame.other)} color={colorOf(lastGame.other)}/>{nameOf(lastGame.other)}</span><span className="pw-last2-form" aria-label="直近10試合">{form.map((r,i)=><i key={i} data-r={r}>{r==='W'?'○':r==='L'?'●':'△'}</i>)}</span></section>}
    <section className="pw-panel pw-mini-stand" aria-label="リーグ順位">{standings(true)}</section>
+   </div><div className="pw-game-side"><i className="pw-side-spacer" aria-hidden="true"/>
+   {season.day>0&&<section className="pw-panel pw-side-box" aria-label="チーム成績"><h3>チーム成績<small>{leagueName(league)}内の順位</small></h3>{teamStrip}</section>}
+   {season.day>0&&<section className="pw-panel pw-side-box" aria-label="チームの主力"><h3>チームの主力<small>今季</small></h3><div className="pw-tleads">{leaderBtn('打率',avgTop?.playerId,avgTop?formatAvg(battingAverage(avgTop)):'—')}{leaderBtn('本塁打',hrTop?.playerId,String(hrTop?.hr??0))}{leaderBtn('勝利',winTop?.playerId,String(winTop?.wins??0))}{leaderBtn('防御率',eraTop?.playerId,eraTop?era(eraTop).toFixed(2):'—')}</div></section>}
+   {conds.length>0&&<section className="pw-panel pw-side-box pw-conds" aria-label="今の調子"><h3>今の調子<small>第{conds[0].from}〜{conds[0].through}戦</small></h3><ul>{conds.map(c=><li key={c.playerId} className={c.boost<0?'is-cold':'is-hot'}><button data-player-id={c.playerId} onClick={()=>onPlayer(playerMap[c.playerId])}>{playerMap[c.playerId]?.name}</button><em>{c.boost===5?'絶好調':c.boost>0?'好調':'不調'} {c.boost>0?'+':''}{c.boost}</em></li>)}</ul></section>}
+   {season.day>0&&<section className="pw-panel pw-side-box pw-side-split" aria-label="試合の内訳"><h3>内訳</h3><p><span>ホーム <b>{split.home.w}-{split.home.l}</b></span><span>ビジター <b>{split.away.w}-{split.away.l}</b></span><span>1点差 <b>{split.close.w}-{split.close.l}</b></span><span>得失点差 <b className={mine.rf-mine.ra>0?'is-plus':mine.rf-mine.ra<0?'is-minus':''}>{mine.rf-mine.ra>0?'+':''}{mine.rf-mine.ra}</b></span>{split.streak>1&&<span>{split.streak}{split.kind==='w'?'連勝中':'連敗中'}</span>}</p></section>}
+
+  </div>
    {current&&<button className="pw-goals-open pw-goals2" onClick={()=>setGoalsOpen(true)}><span className="pw-goals-icon" aria-hidden="true">★</span><span><b>目標・達成記録</b></span>{dailyReady>0&&<em>報酬 {dailyReady}</em>}<ChevronRight size={20}/></button>}
-  </>}
+  </div>}
 
   {tab==='table'&&<section className="pw-panel pw-standings" aria-label="リーグ順位">
    {leagues.length>1&&<div className="pw-seg" role="tablist">{leagues.map(l=><button key={l} role="tab" aria-selected={shown===l} className={shown===l?'is-on':''} onClick={()=>setView(l)}>{leagueName(l)}</button>)}</div>}
-   {standings(false)}
-   {post?.stage==='complete'&&<div className="pw-post2">{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{space&&s.stage==='world'?'宇宙王座決定戦':stageLabel(s.stage)}</span><b>{nameOf(s.higher)} <strong>{s.wins[0]}-{s.wins[1]}</strong> {nameOf(s.lower)}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。</p>}</div>}
+   <div className="pw-split2"><div>{standings(false)}
+   {leagues.filter(l=>l!==shown).map(l=>{const t=rankings(season,l),top=t[0];return <div key={l} className="pw-other-league"><h3 className="pw-sub-h">{leagueName(l)}<small>押すとチームの詳細</small></h3><table className="pw-stand is-compact"><tbody>{t.map((r,i)=><tr key={r.team} className={r.team===state.club?'is-mine':''}><td><Place n={i+1}/></td><td><button className="pw-tname" onClick={()=>setTeamSheet(r.team)}><Mark mark={markOf(r.team)} color={colorOf(r.team)}/>{nameOf(r.team)}</button></td><td>{r.w}</td><td>{r.l}</td><td>{r.d}</td><td>{pct(r.w,r.l)}</td><td>{i?(((top.w-r.w)+(r.l-top.l))/2).toFixed(1):'-'}</td></tr>)}</tbody></table></div>;})}
+   {post?.stage==='complete'&&<div className="pw-post2">{post.series.filter(s=>s.higher===state.club||s.lower===state.club||s.stage==='world'||s.stage==='japan').map(s=><p key={s.id}><span>{space&&s.stage==='world'?'宇宙王座決定戦':stageLabel(s.stage)}</span><b>{nameOf(s.higher)} <strong>{s.wins[0]}-{s.wins[1]}</strong> {nameOf(s.lower)}</b></p>)}{!post.series.some(s=>s.higher===state.club||s.lower===state.club)&&<p>プレーオフ進出ならず。</p>}</div>}</div>
+   <div>{lg.some(r=>r.games>0)&&<><h3 className="pw-sub-h">チーム成績の比較<small>押すとチームの詳細</small></h3><div className="pw-st-scroll"><table className="pw-stand pw-lgstats"><thead><tr><th>チーム</th><th>打率</th><th>本</th><th>盗</th><th>得点</th><th>失点</th><th>防御率</th><th>対戦</th></tr></thead><tbody>{lg.map(r=>{const vs=r.team===state.club?null:headToHead(season,state.club,r.team);return <tr key={r.team} className={r.team===state.club?'is-mine':''}><td><button className="pw-tname" onClick={()=>setTeamSheet(r.team)}><Mark mark={markOf(r.team)} color={colorOf(r.team)}/>{nameOf(r.team)}</button></td><td>{r.avg==null?'—':formatAvg(r.avg)}</td><td>{r.hr}</td><td>{r.sb}</td><td>{r.rf}</td><td>{r.ra}</td><td>{r.era==null?'—':r.era.toFixed(2)}</td><td className="pw-vs">{vs?`${vs.w}-${vs.l}`:'—'}</td></tr>;})}</tbody></table></div></>}</div></div>
   </section>}
 
   {(tab==='bat'||tab==='pit')&&<section className="pw-panel pw-mystats" aria-label={tab==='bat'?'打者成績':'投手成績'}>
-   <PawaStats key={circuit+season.number+tab} view={tab} season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/>
+   <div className={'pw-split2 pw-split-stats is-'+tab}><div><PawaStats key={circuit+season.number+tab} view={tab} season={season} club={state.club} onPlayer={onPlayer} lineup={current?state.lineup:[]} pitchers={current?state.pitchers:[]}/></div>
+   {season.day>0&&<div className="pw-stats-team"><h3 className="pw-sub-h">チーム{tab==='bat'?'打撃':'投手'}<small>{leagueName(league)}内の順位</small></h3><dl className="pw-tstrip">{(tab==='bat'?([['打率',stats.avg===null?'—':formatAvg(stats.avg),ranks.avg],['本塁打',String(stats.hr),ranks.hr],['打点',String(stats.rbi),ranks.rbi],['盗塁',String(stats.sb),ranks.sb],['出塁率',stats.obp===null?'—':formatAvg(stats.obp),ranks.obp]] as const):([['防御率',stats.era===null?'—':stats.era.toFixed(2),ranks.era],['失点',String(mine.ra),runRank('ra')],['奪三振',String(ownPit.reduce((n,p)=>n+p.so,0)),null],['セーブ',String(ownPit.reduce((n,p)=>n+p.saves,0)),null],['与四球',String(ownPit.reduce((n,p)=>n+p.bb,0)),null]] as const)).map(([l,v,r])=><div key={l}><dt>{l}</dt><dd>{v}</dd>{r!==null&&rankPill(r)}</div>)}</dl>{lgTop}</div>}</div>
   </section>}
 
   {tab==='team'&&<section className="pw-panel pw-team-stats" aria-label="チーム成績"><header><h2>チーム成績</h2><span>{leagueName(league)}内の順位</span></header>
-   <dl>{([['打率',stats.avg===null?'—':formatAvg(stats.avg),ranks.avg],['本塁打',String(stats.hr),ranks.hr],['打点',String(stats.rbi),ranks.rbi],['盗塁',String(stats.sb),ranks.sb],['出塁率',stats.obp===null?'—':formatAvg(stats.obp),ranks.obp],['得点',String(mine.rf),runRank('rf')],['防御率',stats.era===null?'—':stats.era.toFixed(2),ranks.era],['失点',String(mine.ra),runRank('ra')]] as const).map(([label,value,r])=><div key={label}><dt>{label}</dt><dd>{value}</dd>{rankPill(r)}</div>)}<div><dt>チームUZR</dt><dd className={stats.uzr!==null&&stats.uzr>0?'is-plus':stats.uzr!==null&&stats.uzr<0?'is-minus':''}>{formatUZR(stats.uzr)}</dd>{rankPill(uzrRank)}</div></dl>
-   <p className="pw-note-left">UZRはリーグ平均を0とした守備の貢献。プラスほど失点を防いでいます。</p>
+   <div className="pw-split2"><div><dl>{([['打率',stats.avg===null?'—':formatAvg(stats.avg),ranks.avg],['本塁打',String(stats.hr),ranks.hr],['打点',String(stats.rbi),ranks.rbi],['盗塁',String(stats.sb),ranks.sb],['出塁率',stats.obp===null?'—':formatAvg(stats.obp),ranks.obp],['得点',String(mine.rf),runRank('rf')],['防御率',stats.era===null?'—':stats.era.toFixed(2),ranks.era],['失点',String(mine.ra),runRank('ra')]] as const).map(([label,value,r])=><div key={label}><dt>{label}</dt><dd>{value}</dd>{rankPill(r)}</div>)}<div><dt>チームUZR</dt><dd className={stats.uzr!==null&&stats.uzr>0?'is-plus':stats.uzr!==null&&stats.uzr<0?'is-minus':''}>{formatUZR(stats.uzr)}</dd>{rankPill(uzrRank)}</div></dl>
+   <p className="pw-note-left">UZRはリーグ平均を0とした守備の貢献。プラスほど失点を防いでいます。</p></div>
+   <div>{season.day>0&&<><h3 className="pw-sub-h">内訳</h3><dl className="pw-tstrip pw-tstrip-split">{([['ホーム',`${split.home.w}-${split.home.l}`],['ビジター',`${split.away.w}-${split.away.l}`],['1点差',`${split.close.w}-${split.close.l}`],['1試合の得点',(mine.rf/Math.max(1,mine.w+mine.l+mine.d)).toFixed(2)],['1試合の失点',(mine.ra/Math.max(1,mine.w+mine.l+mine.d)).toFixed(2)]] as const).map(([l,v])=><div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}</dl>
+   <h3 className="pw-sub-h">対戦成績<small>押すとチームの詳細</small></h3><table className="pw-stand pw-vs-table"><thead><tr><th>相手</th><th>勝</th><th>負</th><th>分</th><th>得点</th><th>失点</th></tr></thead><tbody>{table.filter(t=>t.team!==state.club).map(t=>{const v=headToHead(season,state.club,t.team);return <tr key={t.team}><td><button className="pw-tname" onClick={()=>setTeamSheet(t.team)}><Mark mark={markOf(t.team)} color={colorOf(t.team)}/>{nameOf(t.team)}</button></td><td>{v.w}</td><td>{v.l}</td><td>{v.d}</td><td>{v.rf}</td><td>{v.ra}</td></tr>;})}</tbody></table>
+   {(()=>{const others=[...new Set(season.results.filter(g=>g.home===state.club||g.away===state.club).map(g=>g.home===state.club?g.away:g.home))].filter(id=>!table.some(t=>t.team===id));if(!others.length)return null;const v=others.map(id=>headToHead(season,state.club,id)).reduce((a,b)=>({w:a.w+b.w,l:a.l+b.l,d:a.d+b.d}),{w:0,l:0,d:0});return <p className="pw-note-left">交流戦 {v.w}勝{v.l}敗{v.d?`${v.d}分`:''}</p>;})()}</>}</div></div>
   </section>}
 
   {tab==='more'&&<>
@@ -106,6 +138,7 @@ export function PawaSeason({state,busy,progress,onPlay,onPost,onNext,onPlayer,me
    {current&&<FeedbackCard seasons={state.history.length}/>}
   </>}
   {current&&season.completed&&!busy&&tab==='more'&&<SeasonAd/>}
+  {teamSheet&&<TeamSheet season={season} state={state} team={teamSheet} onClose={()=>setTeamSheet(null)} onPlayer={p=>{setTeamSheet(null);onPlayer(p);}}/>}
   {goalsOpen&&<div className="pw-modal pw-sheet-modal" onClick={()=>setGoalsOpen(false)}><div className="pw-sheet" role="dialog" aria-modal="true" aria-label="目標・達成記録" onClick={e=>e.stopPropagation()}>
    <header className="pw-sheet-head"><h2>目標・達成記録</h2><button className="pw-close" onClick={()=>setGoalsOpen(false)} aria-label="閉じる"><X size={22}/></button></header>
    {daily}

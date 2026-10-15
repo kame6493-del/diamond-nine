@@ -84,15 +84,21 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
      <p className="pw-sc-ovr"><small>総合</small><b>{overall}</b>{old&&<em className={overall>oldOverall?'up':''}>今の選手 {oldOverall}</em>}</p>
     </div>
    </div>
-   <AbilityRow player={player!} ratings={ratings} old={oldRatings} mode={mode}/>
+   {!(old&&upgrade&&oldRatings)&&<AbilityRow player={player!} ratings={ratings} mode={mode}/>}
    {player!.mlb?.twoWay&&<AbilityRow player={player!} ratings={ratings} mode={mode==='pitcher'?'batter':'pitcher'}/>}
    {(()=>{const t=player!.traits.filter(x=>!['暫定査定','基本能力型','実戦派'].includes(x));return t.length>0&&<ul className="pw-bench-traits pw-sc-traits" aria-label="特殊能力">{t.slice(0,10).map((x,i)=><li key={x+i}>{x}</li>)}{t.length>10&&<li className="is-more">ほか{t.length-10}</li>}</ul>;})()}
-   {old&&upgrade?<div className="pw-sc-swap"><p>今の<b>{upgrade.pitching?upgrade.position:`${upgrade.index+1}番(${upgrade.position})`}</b> {old.name}(総合{oldOverall})より強い</p><div><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>入れ替える</button></div></div>
+   {old&&upgrade&&oldRatings?<div className="pw-cmp">
+    <p className="pw-cmp-q">今の<b>{upgrade.pitching?upgrade.position:`${upgrade.index+1}番(${upgrade.position})`}</b>より強い選手です。入れ替えますか？</p>
+    <table className="pw-cmp-table"><thead><tr><th></th><th className="is-new">{player!.name}<small>総合 {overall}</small></th><th><button data-player-id={old.id} onClick={()=>onPlayer?.(old)}>{old.name}</button><small>総合 {oldOverall}</small></th><th>差</th></tr></thead>
+     <tbody>{((mode==='pitcher'?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking']]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']]) as [string,keyof Ratings][]).map(([label,key])=>{const x=key==='velocity'?player!.ratings.velocity:ratings[key] as number,y=key==='velocity'?old.ratings.velocity:oldRatings[key] as number,d=x-y;return <tr key={key}><th>{label}</th><td className="is-new">{key==='velocity'?<b className="pw-cmp-velo">{x}<em>km/h</em></b>:<Rank value={x} label={label} showValue/>}</td><td>{key==='velocity'?<b className="pw-cmp-velo">{y}<em>km/h</em></b>:<Rank value={y} label={label} showValue/>}</td><td className={d>0?'up':d<0?'down':''}>{d>0?`+${d}`:d===0?'±0':d}</td></tr>;})}</tbody></table>
+    <div className="pw-cmp-acts"><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>
+   </div>
    :<p className="pw-sc-note">{equipped?'チームに編成済みです。':'控えに加入しました。チーム画面で起用できます。'}</p>}
    <ScoutShare key={'share-'+state.pulls} data={scoutShareData(player!,state.owned,state.training,tier,pull!.isNew,isRookie(player!))}/>
-  </section>:<section className="pw-sc-idle">
-   <img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
-   <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{100-MLB_SCOUT_CHANCE*100}%・海外{MLB_SCOUT_CHANCE*100}%。補強チャンス{Math.round(SCOUT_UPGRADE_CHANCE*100)}%は今の主力より強い選手から。</p></div>
+  </section>:<section className="pw-sc-idle pw-sc-idle2">
+   <div className="pw-sc-idle-top"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
+   <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{100-MLB_SCOUT_CHANCE*100}%・海外{MLB_SCOUT_CHANCE*100}%。補強チャンス{Math.round(SCOUT_UPGRADE_CHANCE*100)}%は今の主力より強い選手から。</p></div></div>
+   <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
   </section>}
   </div>
 
