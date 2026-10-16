@@ -24,5 +24,3 @@
 .pack-fine{font:700 11px/1.5 system-ui;color:#5c697d}.pack-fine .pack-legal{display:block;margin-top:6px;color:#1d4f91;text-decoration:underline}
 .pack-info small i{font-style:normal;color:#d61f3c;font-weight:900}
 .pack-buy{align-content:center}
-.batch-list .batch-tier{flex:none;padding:2px 8px;border-radius:999px;background:linear-gradient(180deg,#ffe58a,#f5b800);color:#5a3500!important;font:900 12px/1.4 system-ui;font-style:normal}
-.batch-list .batch-tier.is-rainbow{background:linear-gradient(90deg,#ff6b9a,#ffd23a,#4bd6a0,#5aa0ff,#b07bff);color:#fff!important}

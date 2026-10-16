@@ -25,7 +25,7 @@ export function PackShop(){
  };
  const choose=(band:AgeBand)=>{saveAgeBand(band);setAge(band);const id=asking;setAsking(null);if(id)buy(id,band);};
  return <section className="pack-shop" aria-label="ポイントのパック">
-  <p className="pack-lead">スカウト1回 3,000pt・10連 30,000pt。大きいパックほど1回あたりがおトクです。</p>
+  <p className="pack-lead">スカウト1回 3,000pt。大きいパックほど1回あたりがおトクです。</p>
   <ul className="pack-list">{[...pointPacks].reverse().map(p=>{
    const price=packs?.prices[p.id],bonus=packBonusPercent(p),best=p===pointPacks[pointPacks.length-1];
    const label=!m?'アプリ版で':packs?.status==='checking'?'確認中…':price?price:'販売準備中';
