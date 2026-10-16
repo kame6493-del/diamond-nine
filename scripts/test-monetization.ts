@@ -5,7 +5,7 @@ import {INTERSTITIAL_COOLDOWN_MS,INTERSTITIAL_GRACE_SEASONS,PREMIUM_DAILY_POINTS
 import {PremiumPassCard,RewardAdButton} from '../src/pro/MonetizePanel';
 import {appEdition,setPremiumMatchBonus} from '../src/pro/platform-economy';
 import {gameReward} from '../src/pro/progression';
-import {AGE_BANDS,addSpend,canSpend,monthlyLimit,packBonusPercent,parseSpend,pointPacks,pointProducts,spentThisMonth,yenPerDraw} from '../src/pro/point-products';
+import {PREMIUM_PASS_PRICE_YEN,AGE_BANDS,addSpend,canSpend,monthlyLimit,packBonusPercent,parseSpend,pointPacks,pointProducts,spentThisMonth,yenPerDraw} from '../src/pro/point-products';
 import {SCOUT_TEN_COST,domesticGoldPool,drawTenPlayers,isGoldOrBetter} from '../src/pro/simple-game';
 import {initialState} from '../src/pro/engine';
 import {PackShop} from '../src/pro/PackShop';
@@ -68,6 +68,7 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(canSpend(null,0,160),false);
   assert.equal(canSpend('u16',4840,160),true);assert.equal(canSpend('u16',4900,160),false);assert.equal(canSpend('u16',0,10000),false);
   assert.equal(canSpend('u18',0,10000),true);assert.equal(canSpend('u18',160,10000),false);
+  assert.equal(PREMIUM_PASS_PRICE_YEN,480);assert.equal(canSpend('u16',4520,PREMIUM_PASS_PRICE_YEN),true);assert.equal(canSpend('u16',4600,PREMIUM_PASS_PRICE_YEN),false,'the pass counts toward the cap');
   assert.equal(canSpend('adult',999999,10000),true);assert.equal(monthlyLimit('adult'),null);
   let r=addSpend(null,'2026-10',480);r=addSpend(r,'2026-10',980);assert.equal(spentThisMonth(r,'2026-10'),1460);
   assert.equal(spentThisMonth(r,'2026-11'),0,'the cap resets each month');assert.equal(addSpend(r,'2026-11',160).yen,160);

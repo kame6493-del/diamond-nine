@@ -13,7 +13,7 @@ import {
  type MonetizeBridge,type MonetizeSnapshot,type PremiumSnapshot,type RewardOutcome,
 } from '../src/pro/monetization';
 import {track} from '../src/pro/analytics';
-import {packById,pointPackIds,recordSpend} from '../src/pro/point-products';
+import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend} from '../src/pro/point-products';
 import type {PacksSnapshot} from '../src/pro/monetization';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
@@ -71,7 +71,7 @@ async function buyPremium(){
   const t=await NativePurchases.purchaseProduct({productIdentifier:PRODUCT,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:true});
   if(validPurchase(t)){
    if(platform==='android'&&t.isAcknowledged===false&&t.purchaseToken)await NativePurchases.acknowledgePurchase({purchaseToken:t.purchaseToken}).catch(()=>{});
-   write(KEY.premium,'1');setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
+   write(KEY.premium,'1');recordSpend(PREMIUM_PASS_PRICE_YEN);setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
   }else setPremium({message:'お支払いの完了を待っています。完了すると自動で有効になります。'});
  }catch(e){
   const text=String((e as {message?:string})?.message??e);track('premium_fail',{cancelled:/cancel/i.test(text)});

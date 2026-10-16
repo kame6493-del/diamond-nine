@@ -5,6 +5,11 @@ import {monetizeBridge,useMonetize} from './monetization';
 const count=(n:number)=>n.toLocaleString('ja-JP');
 const drawsLabel=(n:number)=>Number.isInteger(n)?`${n}回分`:`${Math.floor(n)}回分＋α`;
 
+/** はじめての購入の前に年齢の区分を聞く(パックとプレミアムパスで共通)。 */
+export function AgeAsk({onChoose,onCancel}:{onChoose:(band:AgeBand)=>void;onCancel:()=>void}){
+ return <div className="pack-age" role="group" aria-label="年齢の確認"><p>はじめての購入の前に、年齢を教えてください。未成年の方は月の上限があります（15歳以下 5,000円・16〜17歳 10,000円。プレミアムパスも含みます）。</p><div>{AGE_BANDS.map(b=><button key={b.id} type="button" onClick={()=>onChoose(b.id)}>{b.label}</button>)}</div><button type="button" className="pack-age-cancel" onClick={onCancel}>やめる</button></div>;
+}
+
 /** ポイントのパック一覧。スカウト画面のシートと設定画面で同じ物を出す。
  *  価格はストアの表示価格。ブラウザ版は「アプリ版で使えます」で押せない。
  *  初めて買う前に年齢の区分を聞き、未成年は月の上限を超える購入を止める。 */
@@ -29,7 +34,7 @@ export function PackShop(){
     <span className="pack-info"><em>{p.tag??`スカウト${drawsLabel(packDraws(p))}`}</em><small>{bonus>0?<>1回 約{yenPerDraw(p)}円 <i>+{bonus}%おトク</i></>:`1回 ${yenPerDraw(p)}円`}</small></span>
     <button type="button" className="pack-buy" disabled={!m||!price||!!packs?.busy} onClick={()=>buy(p.id)}>{!m&&<small>¥{count(p.priceYen)}</small>}{label}{!m&&<small>使えます</small>}</button>
    </li>;})}</ul>
-  {asking&&<div className="pack-age" role="group" aria-label="年齢の確認"><p>はじめての購入の前に、年齢を教えてください。未成年の方は月の上限があります（15歳以下 5,000円・16〜17歳 10,000円）。</p><div>{AGE_BANDS.map(b=><button key={b.id} type="button" onClick={()=>choose(b.id)}>{b.label}</button>)}</div><button type="button" className="pack-age-cancel" onClick={()=>setAsking(null)}>やめる</button></div>}
+  {asking&&<AgeAsk onChoose={choose} onCancel={()=>setAsking(null)}/>}
   {(note||packs?.message)&&<p className="pack-msg" role="status">{note||packs?.message}</p>}
   <p className="pack-fine">{!m?'ブラウザ版では購入できません。価格はアプリ版（日本）の予定です。':limit!==null?`今月の購入 ${count(readSpent())}円／上限 ${count(limit)}円。`:''}未成年の方は保護者の同意を得てから購入してください。買ったポイントはこの端末のセーブに入ります（完全リセットや削除で消えます）。スカウトの確率は買っても変わりません。</p>
  </section>;

@@ -35,6 +35,8 @@ export const packBonusPercent = (p:PointPack) => {
 
 // ---- 未成年の課金(業界の自主基準にならう) ----
 // 初めて買う前に年齢の区分を聞き、15歳以下は月 5,000円・16〜17歳は月 10,000円まで。端末に覚える(セーブとは別)。
+// プレミアムパス(premium_pass・買い切り)の日本の税込価格。月の上限に数える(2026-10-16)。
+export const PREMIUM_PASS_PRICE_YEN = 480;
 export type AgeBand = 'u16'|'u18'|'adult';
 export const AGE_BANDS:{id:AgeBand;label:string;limitYen:number|null}[] = [
  {id:'u16',label:'15歳以下',limitYen:5000},

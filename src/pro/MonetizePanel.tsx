@@ -2,6 +2,9 @@ import {useState} from 'react';
 import {Crown,PlayCircle} from 'lucide-react';
 import {INTERSTITIAL_EVERY_SCOUTS,PREMIUM_DAILY_POINTS,monetizeBridge,useMonetize} from './monetization';
 import {PREMIUM_MATCH_MULTIPLIER} from './platform-economy';
+import {canSpend,monthlyLimit,PREMIUM_PASS_PRICE_YEN,readAgeBand,readSpent,saveAgeBand,type AgeBand} from './point-products';
+import {AgeAsk} from './PackShop';
+import './point-shop.css';
 import './monetize.css';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
@@ -30,9 +33,15 @@ export function RewardAdButton({disabled,onStart,onReward,onEnd}:{disabled:boole
 
 // Premium pass purchase / restore. Price comes only from the store; never invented.
 export function PremiumPassCard(){
- const m=useMonetize();
+ const m=useMonetize(),[asking,setAsking]=useState(false),[note,setNote]=useState('');
  if(!m)return null;
  const {premium}=m,bridge=monetizeBridge();
+ // 未成年の月の上限にパスも数える(パックと同じ記録)。年齢が未回答なら先に聞く。
+ const buy=(band:AgeBand|null=readAgeBand())=>{
+  if(!band){setAsking(true);return;}
+  if(!canSpend(band,readSpent(),PREMIUM_PASS_PRICE_YEN)){setNote(`今月の購入の上限（${count(monthlyLimit(band)??0)}円）を超えるため購入できません。来月またご利用ください。`);return;}
+  setNote('');void bridge?.buyPremium();
+ };
  return <section className="premium-pass" aria-labelledby="premium-pass-title">
   <h3 id="premium-pass-title"><Crown size={18}/>プレミアムパス<small>買い切り</small></h3>
   <ul>
@@ -42,12 +51,13 @@ export function PremiumPassCard(){
   </ul>
   <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て1回引く」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>
   {premium.owned?<p className="premium-pass-owned" role="status">購入済み・有効です{premium.verified?'':'（前回の確認結果）'}</p>:
-   <button type="button" className="s-primary premium-pass-buy" disabled={premium.status!=='ready'||premium.busy} onClick={()=>void bridge?.buyPremium()}>
+   <button type="button" className="s-primary premium-pass-buy" disabled={premium.status!=='ready'||premium.busy} onClick={()=>buy()}>
     {premium.status==='checking'?'ストアを確認中…':premium.status==='ready'&&premium.price?`${premium.price} で購入する`:'販売準備中'}
    </button>}
   {premium.status==='unavailable'&&!premium.owned&&<p className="premium-pass-note">ストアでの販売開始をお待ちください。</p>}
   <button type="button" className="s-button" disabled={premium.busy} onClick={()=>void bridge?.restorePremium()}>購入を復元</button>
-  {premium.message&&<p role="status">{premium.message}</p>}
+  {asking&&<AgeAsk onChoose={band=>{saveAgeBand(band);setAsking(false);buy(band);}} onCancel={()=>setAsking(false)}/>}
+  {(note||premium.message)&&<p role="status">{note||premium.message}</p>}
   {m.privacyOptions&&<button type="button" className="s-button" onClick={()=>void bridge?.showPrivacyOptions()}>広告のプライバシー設定</button>}
  </section>;
 }
