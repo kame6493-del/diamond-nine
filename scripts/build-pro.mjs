@@ -22,6 +22,8 @@ const html=verify((await readFile('index.html','utf8'))
 await writeFile('dist/index.html',html);
 await writeFile('dist/welcome.html',verify(await readFile('public/welcome.html','utf8')));
 await cp('public/share.html','dist/share.html');
+// 特定商取引法・資金決済法の表示(2026-10-16)。アプリとブラウザ版の両方に入れる。Web の正本は kame6493-del.github.io/apps/diamond-nine/legal.html
+await cp('mobile/legal.html','dist/legal.html');
 await cp('public/app-privacy.html','dist/app-privacy.html');
 await cp('public/app-support.html','dist/app-support.html');
 await writeFile('dist/guide.html',verify(await readFile('public/guide.html','utf8')));

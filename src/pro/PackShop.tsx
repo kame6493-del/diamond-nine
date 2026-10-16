@@ -36,6 +36,6 @@ export function PackShop(){
    </li>;})}</ul>
   {asking&&<AgeAsk onChoose={choose} onCancel={()=>setAsking(null)}/>}
   {(note||packs?.message)&&<p className="pack-msg" role="status">{note||packs?.message}</p>}
-  <p className="pack-fine">{!m?'ブラウザ版では購入できません。価格はアプリ版（日本）の予定です。':limit!==null?`今月の購入 ${count(readSpent())}円／上限 ${count(limit)}円。`:''}未成年の方は保護者の同意を得てから購入してください。買ったポイントはこの端末のセーブに入ります（完全リセットや削除で消えます）。スカウトの確率は買っても変わりません。</p>
+  <p className="pack-fine">{!m?'ブラウザ版では購入できません。価格はアプリ版（日本）の予定です。':limit!==null?`今月の購入 ${count(readSpent())}円／上限 ${count(limit)}円。`:''}未成年の方は保護者の同意を得てから購入してください。買ったポイントはこの端末のセーブに入ります（完全リセットや削除で消えます）。スカウトの確率は買っても変わりません。<a className="pack-legal" href="/legal.html" target="_blank" rel="noopener noreferrer">特定商取引法・資金決済法に基づく表示</a></p>
  </section>;
 }
