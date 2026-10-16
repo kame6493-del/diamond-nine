@@ -2,17 +2,19 @@ import {useSyncExternalStore} from 'react';
 
 // Daily reasons to open the game: a login bonus and three small goals, reset on
 // the player's local calendar day. Kept outside the club save (like the tutorial)
+// 2026-10-16 締め: ログイン 500→300・目標 300/300/500→200/200/300・全部達成 500→300(1日 2,100→1,300pt)。
 // so resets, imports and profile switches never re-grant a day's rewards.
 export type DailyMission='play'|'scout'|'share';
 export const DAILY_MISSIONS:{id:DailyMission;label:string;points:number}[]=[
- {id:'play',label:'試合を進める',points:300},
- {id:'scout',label:'スカウトを1回引く',points:300},
- {id:'share',label:'記録や当たりをシェア（画像の保存でもOK）',points:500},
+ {id:'play',label:'試合を進める',points:200},
+ {id:'scout',label:'スカウトを1回引く',points:200},
+ {id:'share',label:'記録や当たりをシェア（画像の保存でもOK）',points:300},
 ];
-export const DAILY_LOGIN_POINTS=500;
-export const DAILY_ALL_BONUS=500;
+export const DAILY_LOGIN_POINTS=300;
+export const DAILY_ALL_BONUS=300;
 // One-time gift for everyone who starts the game around the public launch.
-export const LAUNCH_GIFT={id:'launch-2026',points:30000,until:'2026-11-30'} as const;
+// 2026-10-16: 30,000 → 15,000(スカウト5回分)。受け取り済みの人は同じ id なので二重にもらわず、取り上げもしない。
+export const LAUNCH_GIFT={id:'launch-2026',points:15000,until:'2026-11-30'} as const;
 
 export interface DailyRecord {day:string;login:boolean;done:DailyMission[];claimed:DailyMission[];all:boolean}
 const KEY='diamond-nine-daily',GIFT_KEY='diamond-nine-gift-'+LAUNCH_GIFT.id;

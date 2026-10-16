@@ -13,11 +13,13 @@ import {
  type MonetizeBridge,type MonetizeSnapshot,type PremiumSnapshot,type RewardOutcome,
 } from '../src/pro/monetization';
 import {track} from '../src/pro/analytics';
+import {packById,pointPackIds,recordSpend} from '../src/pro/point-products';
+import type {PacksSnapshot} from '../src/pro/monetization';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
 const ids=config[platform];
 const PRODUCT=config.premiumProductId;
-const KEY={premium:'diamond-nine-premium-cache',reward:'diamond-nine-reward-ads',daily:'diamond-nine-premium-daily',pacing:'diamond-nine-interstitial'};
+const KEY={premium:'diamond-nine-premium-cache',reward:'diamond-nine-reward-ads',daily:'diamond-nine-premium-daily',pacing:'diamond-nine-interstitial',ledger:'diamond-nine-iap-ledger'};
 const read=(k:string)=>{try{return localStorage.getItem(k);}catch{return null;}};
 const write=(k:string,v:string)=>{try{localStorage.setItem(k,v);}catch{/* ads/bonus still work this session */}};
 const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
@@ -26,10 +28,11 @@ const withTimeout=<T,>(p:Promise<T>,ms:number)=>Promise.race([p,sleep(ms).then((
 // ---------- observable state ----------
 const listeners=new Set<()=>void>();
 let premium:PremiumSnapshot={status:'checking',owned:read(KEY.premium)==='1',verified:false,price:null,busy:false,message:''};
+let packs:PacksSnapshot={status:'checking',prices:{},busy:false,message:''};
 let adsAllowed=false,privacyOptions=false,rewardBusy=false;
 let snap:MonetizeSnapshot=build();
 function build():MonetizeSnapshot{
- return {premium,privacyOptions,reward:{available:adsAllowed,busy:rewardBusy,left:dailyLeft(parseDaily(read(KEY.reward)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}};
+ return {premium,privacyOptions,packs,reward:{available:adsAllowed,busy:rewardBusy,left:dailyLeft(parseDaily(read(KEY.reward)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}};
 }
 function emit(){snap=build();setPremiumMatchBonus(premium.owned);for(const l of listeners)l();}
 const setPremium=(patch:Partial<PremiumSnapshot>)=>{premium={...premium,...patch};emit();};
@@ -88,6 +91,62 @@ function claimPremiumDaily(){
  if(!premium.owned||!premium.verified)return 0;
  const today=localDay();if(read(KEY.daily)===today)return 0;
  write(KEY.daily,today);return PREMIUM_DAILY_POINTS;
+}
+
+// ---------- point packs (consumable) ----------
+// 端末の台帳: 付与済みの購入トークン(重複よけ)と、受け取り待ち(ゲームの口がまだ無い)。セーブとは別に置く。
+interface Ledger {granted:string[];pending:{token:string;id:string;points:number}[]}
+const readLedger=():Ledger=>{try{const v=JSON.parse(read(KEY.ledger)??'');if(Array.isArray(v.granted)&&Array.isArray(v.pending))return v;}catch{/* empty */}return {granted:[],pending:[]};};
+const writeLedger=(l:Ledger)=>write(KEY.ledger,JSON.stringify({granted:l.granted.slice(-500),pending:l.pending}));
+const setPacks=(patch:Partial<PacksSnapshot>)=>{packs={...packs,...patch};emit();};
+let sink:((points:number,id:string)=>void)|null=null;
+const tokenOf=(t:Transaction)=>t.purchaseToken??t.transactionId;
+const validPack=(t:Transaction)=>!!packById(t.productIdentifier)&&(platform==='ios'?!t.revocationDate:t.purchaseState==='1');
+function flushPending(){
+ if(!sink)return;
+ const l=readLedger();if(!l.pending.length)return;
+ for(const p of l.pending){try{sink(p.points,p.id);}catch{/* the save keeps whatever was applied */}}
+ writeLedger({granted:l.granted,pending:[]});
+}
+// 1件の購入を1回だけゲームへ渡し、そのあとでストアに消費を伝える(付与前に消費しない)。
+async function fulfil(t:Transaction){
+ const pack=packById(t.productIdentifier),token=tokenOf(t);if(!pack||!token)return false;
+ const l=readLedger();
+ if(!l.granted.includes(token)){
+  l.granted.push(token);l.pending.push({token,id:pack.id,points:pack.points});writeLedger(l);
+  recordSpend(pack.priceYen);track('pack_purchase',{id:pack.id,points:pack.points});
+  flushPending();
+ }
+ try{
+  if(platform==='android')await NativePurchases.consumePurchase({purchaseToken:token});
+  else await NativePurchases.acknowledgePurchase({purchaseToken:token});
+ }catch{/* retried at the next start from getPurchases */}
+ return true;
+}
+async function refreshPacks(){
+ try{
+  const {products}=await withTimeout(NativePurchases.getProducts({productIdentifiers:pointPackIds,productType:PURCHASE_TYPE.INAPP}),15000);
+  const prices:Record<string,string>={};for(const p of products)if(p.priceString&&packById(p.identifier))prices[p.identifier]=p.priceString;
+  setPacks({status:Object.keys(prices).length?'ready':'unavailable',prices});
+ }catch{setPacks({status:'unavailable'});}
+ // 前回アプリが途中で閉じた購入(支払い済み・未消費)を拾う。
+ try{
+  const {purchases}=await withTimeout(NativePurchases.getPurchases({productType:PURCHASE_TYPE.INAPP}),15000);
+  for(const t of purchases)if(validPack(t))await fulfil(t);
+ }catch{/* offline */}
+}
+async function buyPack(id:string){
+ const pack=packById(id);
+ if(!pack||packs.busy||!packs.prices[id])return;
+ setPacks({busy:true,message:''});track('pack_begin',{id});
+ try{
+  const t=await NativePurchases.purchaseProduct({productIdentifier:id,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:false});
+  if(validPack(t)&&await fulfil(t))setPacks({message:`${pack.points.toLocaleString('ja-JP')} pt を受け取りました。ありがとうございます！`});
+  else setPacks({message:'お支払いの完了を待っています。完了すると次に開いたときに受け取れます。'});
+ }catch(e){
+  const text=String((e as {message?:string})?.message??e);track('pack_fail',{id,cancelled:/cancel/i.test(text)});
+  setPacks({message:/cancel/i.test(text)?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると次に開いたときに受け取れます。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
+ }finally{setPacks({busy:false});}
 }
 
 // ---------- ads ----------
@@ -175,19 +234,21 @@ const bridge:MonetizeBridge={
  subscribe(l){listeners.add(l);return()=>{listeners.delete(l);};},
  buyPremium,restorePremium,showRewardAd,noteScout,showInterstitial,claimPremiumDaily,
  async showPrivacyOptions(){try{await AdMob.showPrivacyOptionsForm();}catch{/* not required in this region */}},
+ setPointSink(fn){sink=fn;flushPending();},
+ buyPack,
 };
 
 // Called synchronously from runtime.ts (native only) before the game renders.
 export function installMonetize(){
  if(window.diamondMonetize)return;
  window.diamondMonetize=bridge;
- void refreshPremium();
+ void refreshPremium();void refreshPacks();
  // Start the ad SDK after the first paint so the game appears without waiting.
  setTimeout(()=>{void initAds();},1500);
  if(platform==='ios')void NativePurchases.addListener('transactionUpdated',()=>{void refreshPremium();}).catch(()=>{});
  let lastResume=0;
  void App.addListener('resume',()=>{
   const now=Date.now();if(now-lastResume<30000)return;lastResume=now;
-  void refreshPremium();if(!adsAllowed)void initAds();emit();// emit: daily counters roll over at midnight
+  void refreshPremium();void refreshPacks();if(!adsAllowed)void initAds();emit();// emit: daily counters roll over at midnight
  }).catch(()=>{});
 }

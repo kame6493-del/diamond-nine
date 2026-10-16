@@ -1,1 +1,28 @@
 .point-shop{margin:20px 0;padding:16px;border:1px solid #dce5f1;border-radius:16px;background:#f5f9ff;color:#132748}.point-shop h3{margin:0 0 8px}.point-shop p{font-size:13px;line-height:1.6}.point-shop-packs{display:grid;gap:8px}.point-shop-pack{display:flex;align-items:center;justify-content:space-between;gap:12px;background:white;padding:14px;border-radius:12px}.point-shop-pack strong{font-size:21px}.point-shop-pack small{font-size:13px}.point-shop-pack button{min-height:44px;min-width:110px;background:#e9edf3;color:#5c697d;border:0;border-radius:10px;font:inherit}
+.pack-shop{display:grid;gap:8px;color:#132748}
+.pack-shop p{margin:0}
+.pack-lead{font:800 13px/1.5 system-ui;color:#3a4a66}
+.pack-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.pack-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;background:#fff;border:1px solid #dce5f1}
+.pack-list li.is-best{border:2px solid #f0a800;background:linear-gradient(180deg,#fff9e0,#fff)}
+.pack-pt{display:flex;align-items:baseline;gap:2px;min-width:92px}
+.pack-pt b{font:800 19px/1.1 system-ui;font-variant-numeric:tabular-nums}
+.pack-pt small{font:800 11px system-ui;color:#5c697d}
+.pack-info{display:grid;gap:1px;min-width:0}
+.pack-info em{font:900 13px/1.3 system-ui;font-style:normal;color:#0b3fa3}
+.pack-list li.is-best .pack-info em{color:#a35b00}
+.pack-info small{font:700 11px/1.3 system-ui;color:#5c697d}
+.pack-buy{min-height:40px;min-width:92px;padding:2px 8px;border-radius:10px;border:2px solid #0b3fa3;background:#1f6fff;color:#fff;font:900 14px/1.15 system-ui;display:grid;justify-items:center}
+.pack-buy small{font:800 10px system-ui;opacity:.85}
+.pack-buy:disabled{background:#e9edf3;border-color:#cfd8e6;color:#5c697d}
+.pack-age{padding:10px;border-radius:12px;background:#eef4ff;border:1px solid #c9d8f5;display:grid;gap:8px}
+.pack-age p{font:800 13px/1.5 system-ui}
+.pack-age div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.pack-age button{min-height:44px;border-radius:10px;border:2px solid #0b3fa3;background:#fff;color:#0b3fa3;font:900 14px system-ui}
+.pack-age .pack-age-cancel{min-height:36px;border:0;background:none;text-decoration:underline;font:800 13px system-ui;color:#3a4a66}
+.pack-msg{font:800 13px/1.5 system-ui;color:#0b3fa3}
+.pack-fine{font:700 11px/1.5 system-ui;color:#5c697d}
+.pack-info small i{font-style:normal;color:#d61f3c;font-weight:900}
+.pack-buy{align-content:center}
+.batch-list .batch-tier{flex:none;padding:2px 8px;border-radius:999px;background:linear-gradient(180deg,#ffe58a,#f5b800);color:#5a3500!important;font:900 12px/1.4 system-ui;font-style:normal}
+.batch-list .batch-tier.is-rainbow{background:linear-gradient(90deg,#ff6b9a,#ffd23a,#4bd6a0,#5aa0ff,#b07bff);color:#fff!important}

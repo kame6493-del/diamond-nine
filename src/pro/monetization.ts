@@ -6,7 +6,8 @@ import {useSyncExternalStore} from 'react';
 // 2026-10-15: a rewarded ad is one free scout (worth SIMPLE_SCOUT_COST = 3,000 pt), up to 3 a day.
 export const REWARD_AD_POINTS = 3000;
 export const REWARD_AD_DAILY_LIMIT = 3;
-export const PREMIUM_DAILY_POINTS = 1000;
+// 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
+export const PREMIUM_DAILY_POINTS = 500;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
 export const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 // New players see no full-screen ads until they have finished this many seasons.
@@ -25,7 +26,9 @@ export interface PremiumSnapshot {
  message: string;
 }
 export interface RewardSnapshot {available: boolean; busy: boolean; left: number; limit: number; points: number}
-export interface MonetizeSnapshot {premium: PremiumSnapshot; reward: RewardSnapshot; privacyOptions: boolean}
+// ポイントのパック(消耗型)。prices はストアの表示価格(登録が無い商品は入らない)。
+export interface PacksSnapshot {status: PremiumStatus; prices: Record<string, string>; busy: boolean; message: string}
+export interface MonetizeSnapshot {premium: PremiumSnapshot; reward: RewardSnapshot; privacyOptions: boolean; packs?: PacksSnapshot}
 export type RewardOutcome = 'rewarded' | 'dismissed' | 'failed' | 'limit' | 'busy';
 export interface MonetizeBridge {
  snapshot(): MonetizeSnapshot;
@@ -40,6 +43,10 @@ export interface MonetizeBridge {
  // Returns points to add (0 when not owned, not verified or already claimed today).
  claimPremiumDaily(): number;
  showPrivacyOptions(): Promise<void>;
+ // ゲームがポイントを受け取る口。購入1件につき1回だけ呼ばれる(購入トークンを端末の台帳で重複よけ)。
+ // 受け取りが終わってからストアへ消費を伝える。口が無い間に届いた分は、口が付いた時に渡す。
+ setPointSink?(sink: ((points: number, productId: string) => void) | null): void;
+ buyPack?(productId: string): Promise<void>;
 }
 declare global {interface Window {diamondMonetize?: MonetizeBridge}}
 

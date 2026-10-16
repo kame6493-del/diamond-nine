@@ -5,6 +5,10 @@ import {INTERSTITIAL_COOLDOWN_MS,INTERSTITIAL_GRACE_SEASONS,PREMIUM_DAILY_POINTS
 import {PremiumPassCard,RewardAdButton} from '../src/pro/MonetizePanel';
 import {appEdition,setPremiumMatchBonus} from '../src/pro/platform-economy';
 import {gameReward} from '../src/pro/progression';
+import {AGE_BANDS,addSpend,canSpend,monthlyLimit,packBonusPercent,parseSpend,pointPacks,pointProducts,spentThisMonth,yenPerDraw} from '../src/pro/point-products';
+import {SCOUT_TEN_COST,domesticGoldPool,drawTenPlayers,isGoldOrBetter} from '../src/pro/simple-game';
+import {initialState} from '../src/pro/engine';
+import {PackShop} from '../src/pro/PackShop';
 
 const fakeBridge=(snapshot:MonetizeSnapshot):MonetizeBridge=>({snapshot:()=>snapshot,subscribe:()=>()=>{},buyPremium:async()=>{},restorePremium:async()=>{},showRewardAd:async()=>'failed',noteScout:()=>{},showInterstitial:async()=>false,claimPremiumDaily:()=>0,showPrivacyOptions:async()=>{}});
 const snapshot=(premium:Partial<MonetizeSnapshot['premium']>={}):MonetizeSnapshot=>({privacyOptions:false,reward:{available:true,busy:false,left:3,limit:3,points:REWARD_AD_POINTS},premium:{status:'unavailable',owned:false,verified:true,price:null,busy:false,message:'',...premium}});
@@ -39,7 +43,7 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(interstitialGraceOver(0),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS-1),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS),true);
   const now=INTERSTITIAL_COOLDOWN_MS*10;
   assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-4*60*1000,now,scoutsSince:0}),false);
-  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,1000);
+  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,500);
  });
  test('browser rewards ignore the premium flag and render no ad or pass UI',()=>{
   assert.equal(appEdition,false);
@@ -50,6 +54,48 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
    assert.equal(renderToStaticMarkup(createElement(PremiumPassCard)),'');
    assert.equal(renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})),'');
   });
+ });
+ test('point packs: new ids, Play-settable yen prices, cheaper per draw as they grow, ¥10,000 is 10 ten-pulls',()=>{
+  const ids=pointPacks.map(p=>p.id);assert.equal(new Set(ids).size,ids.length);
+  for(const old of pointProducts)assert.ok(!ids.includes(old.id),'old proposal ids are never reused');
+  assert.ok(!ids.includes('premium_pass'));
+  for(const p of pointPacks){assert.ok(Number.isInteger(p.priceYen)&&p.priceYen>=100&&p.priceYen<=50000);assert.ok(p.points%1000===0);assert.match(p.id,/^[a-z0-9_.]+$/);}
+  for(let i=1;i<pointPacks.length;i++){assert.ok(pointPacks[i].priceYen>pointPacks[i-1].priceYen);assert.ok(yenPerDraw(pointPacks[i])<yenPerDraw(pointPacks[i-1]));assert.ok(packBonusPercent(pointPacks[i])>packBonusPercent(pointPacks[i-1]));}
+  const top=pointPacks.at(-1)!;assert.equal(top.priceYen,10000);assert.equal(top.points,SCOUT_TEN_COST*10);assert.equal(yenPerDraw(top),100);
+ });
+ test('minors get a monthly cap: 15 and under 5,000 yen, 16-17 10,000 yen, adults none; unknown age cannot buy',()=>{
+  assert.deepEqual(AGE_BANDS.map(b=>b.limitYen),[5000,10000,null]);
+  assert.equal(canSpend(null,0,160),false);
+  assert.equal(canSpend('u16',4840,160),true);assert.equal(canSpend('u16',4900,160),false);assert.equal(canSpend('u16',0,10000),false);
+  assert.equal(canSpend('u18',0,10000),true);assert.equal(canSpend('u18',160,10000),false);
+  assert.equal(canSpend('adult',999999,10000),true);assert.equal(monthlyLimit('adult'),null);
+  let r=addSpend(null,'2026-10',480);r=addSpend(r,'2026-10',980);assert.equal(spentThisMonth(r,'2026-10'),1460);
+  assert.equal(spentThisMonth(r,'2026-11'),0,'the cap resets each month');assert.equal(addSpend(r,'2026-11',160).yen,160);
+  assert.deepEqual(parseSpend(JSON.stringify(r)),r);assert.equal(parseSpend('{"month":"x","yen":-1}'),null);assert.equal(parseSpend('{bad'),null);
+ });
+ test('ten-pull: 30,000 pt for ten cards with at least one gold-or-better card, same per-card cost and guarantee counter',()=>{
+  assert.ok(domesticGoldPool.length>0&&domesticGoldPool.every(p=>!p.mlb));
+  const base=initialState();
+  const short={...base,gems:SCOUT_TEN_COST-1};assert.equal(drawTenPlayers(short),short);
+  let floors=0;
+  for(let seed=1;seed<=120;seed++){
+   const s={...base,gems:SCOUT_TEN_COST,seed};
+   const after=drawTenPlayers(s);
+   assert.equal(after.lastPulls.length,10);assert.equal(after.pulls,s.pulls+10);
+   const extra=after.lastPulls.reduce((n,p)=>n+p.trainingReward,0);assert.ok(after.gems>=extra&&after.gems<SCOUT_TEN_COST/10,'the full 30,000 pt is spent once (only duplicate/milestone points come back)');
+   assert.ok(after.lastPulls.some(p=>isGoldOrBetter(after,p.playerId)),`seed ${seed} has a gold card`);
+   assert.deepEqual(drawTenPlayers({...s}),after,'deterministic from the saved seed');
+   if(after.lastPulls[9].guaranteed)floors++;
+  }
+  assert.ok(floors>0,'the tenth-card floor is actually used');
+ });
+ test('pack shop: browser build shows app-only buttons; the app shows store prices or 販売準備中',()=>{
+  const web=withBridge(undefined,()=>renderToStaticMarkup(createElement(PackShop)));
+  assert.equal((web.match(/アプリ版で<small>使えます/g)??[]).length,pointPacks.length);assert.match(web,/300,000/);assert.match(web,/10連10回分/);assert.match(web,/disabled=""/);
+  const none=withBridge(fakeBridge({...snapshot(),packs:{status:'unavailable',prices:{},busy:false,message:''}}),()=>renderToStaticMarkup(createElement(PackShop)));
+  assert.equal((none.match(/販売準備中/g)??[]).length,pointPacks.length);
+  const ready=withBridge(fakeBridge({...snapshot(),packs:{status:'ready',prices:{pt_pack_300000:'￥10,000'},busy:false,message:''}}),()=>renderToStaticMarkup(createElement(PackShop)));
+  assert.match(ready,/￥10,000/);assert.match(ready,/保護者の同意/);
  });
  test('premium pass shows store prices only and disables purchase until the product exists',()=>{
   const off=withBridge(fakeBridge(snapshot()),()=>renderToStaticMarkup(createElement(PremiumPassCard)));
