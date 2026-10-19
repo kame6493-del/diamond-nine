@@ -4,7 +4,7 @@ import {circuitOf,seasonGames} from './leagues';
 
 // 行動力(2026-10-19 持ち主「1年進めるのにソシャゲみたいに時間制限」→「1年丸々で進める。さくさく」
 // →「選手がそろうまでは自由に、そこから徐々に」)。
-// 「1年進める」1回に行動力を使う。量は段階で変わる(seasonCost)。1試合ずつ進める時は1年ぶんを試合数で割り振る。
+// 「1年進める」1回に行動力を使う。量は段階で変わる(seasonCost)。
 // 待てば必ず回復するので、お金を払わなくても必ず先へ進める。
 // クラブのセーブとは別に端末へ置く(リセット・読み込み・クラブの切り替えで満タンに戻らない)。
 // 数値の理由は STAMINA_UPDATE.md。
@@ -120,19 +120,10 @@ export function seasonCost(state:GameState):number{
 }
 export const freeSeasonsLeft=(state:GameState)=>Math.max(0,FREE_SEASONS-state.season.number+1);
 export const gamesLeft=(state:GameState)=>state.season.completed?0:Math.max(0,seasonGames(state.season)-state.season.day);
-// 1年ぶんを試合の進み具合で割り振る(切り上げ)。どこで区切っても1年の合計はちょうど seasonCost。
-export function costForGames(state:GameState,games:number){
- const C=seasonCost(state),G=seasonGames(state.season),from=state.season.day,to=Math.min(G,from+Math.max(0,Math.floor(games)));
- if(!C||to<=from)return 0;
- return Math.ceil(to*C/G)-Math.ceil(from*C/G);
-}
-// 今の行動力で進められる試合数。
-export function affordableGames(state:GameState,points:number){
- const left=gamesLeft(state);
- if(costForGames(state,left)<=points)return left;
- let n=0;while(n<left&&costForGames(state,n+1)<=points)n++;
- return n;
-}
+// 試合を進める操作は「1年進める」だけ(2026-10-19 持ち主「1試合とか細かく進めるのいらない」)。
+// 途中まで進んだ年でも、残りを終える時は1年ぶんを使う。
+export const costToFinish=(state:GameState)=>gamesLeft(state)>0?seasonCost(state):0;
+
 // 段階が始まって初めて行動力を使う時の案内(1回だけ)。
 const INTRO_KEY='diamond-nine-stamina-intro';
 export const staminaIntroDue=(state:GameState)=>{if(seasonCost(state)<=0)return false;try{return localStorage.getItem(INTRO_KEY)!=='1';}catch{return false;}};

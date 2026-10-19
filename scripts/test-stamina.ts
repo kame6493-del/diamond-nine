@@ -6,7 +6,7 @@ import {seasonGames} from '../src/pro/leagues';
 import {dailyLeft,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot} from '../src/pro/monetization';
 import {
  DRINK_RESTORE,FREE_SEASONS,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,SEASON_COST,STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,STAMINA_HARD_CAP,
- STAMINA_MAX,STAMINA_PT_COST,STAMINA_REGEN_MS,WARMUP_PULLS,addStamina,affordableGames,canBuyWithPoints,claimDrinkGift,costForGames,currentRules,
+ STAMINA_MAX,STAMINA_PT_COST,STAMINA_REGEN_MS,WARMUP_PULLS,addStamina,canBuyWithPoints,claimDrinkGift,costToFinish,currentRules,
  freshStamina,fullAt,gamesLeft,loadStamina,parseStamina,seasonCost,setStaminaPass,settle,spendStamina,staminaRules,staminaStage,staminaView,useDrink,
 } from '../src/pro/stamina';
 import {StaminaPlay} from '../src/pro/StaminaPanel';
@@ -118,17 +118,12 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   assert.equal(staminaStage(at(4,10)),'mid');assert.equal(seasonCost(at(4,10)),10);
   assert.equal(staminaStage(at(9,3,'MLB')),'late');assert.equal(seasonCost(at(9,3,'MLB')),12);
   assert.equal(seasonCost(at(20,80,'SPACE')),15);
-  // 1年まとめても、1試合ずつでも、合計は同じ
+  // 試合を進めるのは「1年進める」だけ。途中まで進んだ年でも1年ぶん、終わった年は0。
   const mid=at(5,30),G=seasonGames(mid.season);
-  assert.equal(costForGames(mid,G),10);assert.equal(costForGames(mid,9999),10);
-  let total=0,s=mid;for(let d=0;d<G;d++){total+=costForGames(s,1);s={...s,season:{...s.season,day:s.season.day+1}};}
-  assert.equal(total,10);
-  assert.equal(costForGames(at(1,0),G),0);
-  assert.equal(affordableGames(mid,10),G);assert.equal(affordableGames(mid,0),0);
-  assert.ok(affordableGames(mid,5)>=70&&affordableGames(mid,5)<G);
-  const late=at(9,3,'MLB');assert.equal(costForGames(late,gamesLeft(late)),12);
-  // 途中まで進んだ年は残りの分だけ
-  const half={...mid,season:{...mid.season,day:72}};assert.equal(costForGames(half,gamesLeft(half)),10-Math.ceil(72*10/G));
+  assert.equal(costToFinish(mid),10);assert.equal(costToFinish(at(1,0)),0);
+  const half={...mid,season:{...mid.season,day:72}};assert.equal(costToFinish(half),10);
+  const done={...mid,season:{...mid.season,day:G,completed:true}};assert.equal(costToFinish(done),0);assert.equal(gamesLeft(done),0);
+  const late=at(9,3,'MLB');assert.equal(costToFinish(late),12);
  });
 
  test('stamina: the play panel keeps the one-tap year and shows the three ways to recover',()=>{
@@ -143,11 +138,13 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   const snap={privacyOptions:false,reward:{available:true,busy:false,left:3,limit:3,points:3000},staminaReward:{left:0,limit:3,points:10},premium:{status:'ready',owned:false,verified:true,price:null,busy:false,message:''}} as MonetizeSnapshot;
   const lowView=staminaView({...freshStamina(T0),points:4,at:T0,seen:T0},T0+1*MIN,free);
   const out=withBridge(snap,()=>renderToStaticMarkup(createElement(StaminaPlay,{state:s,busy:false,pawa:true,actions,view:lowView})));
-  assert.match(out,/行動力が足りません/);assert.match(out,/あと 17分00秒 で残りの1年ぶん（10）がたまります/);
+  assert.match(out,/行動力が足りません/);assert.match(out,/あと 17分00秒 で1年ぶん（10）がたまります/);
   assert.match(out,/待つ（無料）/);assert.match(out,/広告を見る/);assert.match(out,/ポイントで回復/);
   assert.match(out,/今日あと 0 \/ 3 回/);assert.match(out,/今日は終了/);
   assert.match(out,/3,000 pt で ＋30/);assert.match(out,/プレミアムパスで上限 40/);
-  assert.match(out,/今の行動力で進められる所まで/);
+  // 細かく進めるボタンは無い(1年進めるだけ)
+  for(const h of [html,out])assert.doesNotMatch(h,/1試合<|進められる所まで|st-one|st-part/);
+  assert.match(out,/disabled=""[^>]*>[^]*?1年進める/);
   const web=renderToStaticMarkup(createElement(StaminaPlay,{state:s,busy:false,pawa:false,actions,view:lowView}));
   assert.match(web,/アプリ版で使えます/);assert.doesNotMatch(web,/プレミアムパスで上限/);
  });

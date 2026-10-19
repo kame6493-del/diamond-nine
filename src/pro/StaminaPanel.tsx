@@ -4,12 +4,12 @@ import type {GameState} from './engine';
 import {monetizeBridge,useMonetize} from './monetization';
 import {
  DRINK_RESTORE,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,
- FREE_SEASONS,affordableGames,costForGames,formatWait,freeSeasonsLeft,gamesLeft,seasonCost,staminaStage,useStamina,type StaminaView,
+ FREE_SEASONS,costToFinish,formatWait,freeSeasonsLeft,gamesLeft,seasonCost,staminaStage,useStamina,type StaminaView,
 } from './stamina';
 import './stamina.css';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
-const season=(left:number)=>`残り${left}試合をまとめて`;
+const season=(left:number)=>`${left}試合をまとめて`;
 // 絵は ChatGPT イメージで作った物(2026-10-19、背景透過)。public/assets/pro/stamina/
 const ART='/assets/pro/stamina/';
 const Bolt=({size}:{size:number})=><img className="st-bolt" src={ART+'stamina-bolt.webp'} alt="" width={size} height={size} aria-hidden="true"/>;
@@ -23,7 +23,7 @@ export function StaminaChip({onOpen}:{onOpen:()=>void}){
 }
 
 export interface StaminaActions {
- onPlay:(games:number)=>void;
+ onPlay:()=>void;
  // pt で回復。成功したら true。
  onBuy:()=>boolean;
  onDrink:()=>boolean;
@@ -37,8 +37,7 @@ export interface StaminaActions {
 export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
  const live=useStamina(),v=view??live,m=useMonetize();
  const [open,setOpen]=useState(false),[confirm,setConfirm]=useState(false),[note,setNote]=useState('');
- const left=gamesLeft(state),stage=staminaStage(state),yearCost=seasonCost(state),restCost=costForGames(state,left);
- const can=affordableGames(state,v.points),partCost=costForGames(state,can),oneCost=costForGames(state,1);
+ const left=gamesLeft(state),stage=staminaStage(state),yearCost=seasonCost(state),restCost=costToFinish(state);
  const enough=v.points>=restCost;
  // 1年ぶんがたまるまでの時間
  const needMs=enough?0:v.nextInMs+Math.max(0,restCost-v.points-1)*v.regenMs;
@@ -76,16 +75,14 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
   </div>
   {stage==='free'?<p className="st-free">{FREE_SEASONS}シーズン目までは行動力を使いません（あと{freeSeasonsLeft(state)}シーズン）</p>
   :<p className="st-rule">1年進める ＝ 行動力 <b>{yearCost}</b>{stage==='warmup'?'（スカウト10回までは半分）':stage==='late'?'（上のリーグ）':''}</p>}
-  {busy?null:<>{empty&&<div className="st-empty" role="status"><img src={ART+'stamina-tired.webp'} alt="" aria-hidden="true" width={300} height={251}/><p><b>行動力が足りません。</b>あと {formatWait(needMs)} で残りの1年ぶん（{restCost}）がたまります。下の3つから選べます。</p></div>}
+  {busy?null:<>{empty&&<div className="st-empty" role="status"><img src={ART+'stamina-tired.webp'} alt="" aria-hidden="true" width={300} height={251}/><p><b>行動力が足りません。</b>あと {formatWait(needMs)} で1年ぶん（{restCost}）がたまります。下の3つから選べます。</p></div>}
   <div className="st-buttons">
-   <button type="button" className={primary+' st-go'} disabled={busy||!enough} onClick={()=>actions.onPlay(left)}>
+   <button type="button" className={primary+' st-go'} disabled={busy||!enough} onClick={()=>actions.onPlay()}>
     <span><Play size={16} fill="currentColor" aria-hidden="true"/>1年進める</span>
     <small>{restCost?`行動力 −${restCost}`:'行動力を使わない'} · {season(left)}</small>
    </button>
-   <button type="button" className={secondary+' st-one'} disabled={busy||oneCost>v.points} onClick={()=>actions.onPlay(1)}><span>1試合</span><small>{oneCost?`−${oneCost}`:'0'}</small></button>
    <button type="button" className={secondary+' st-open'} aria-expanded={open} onClick={()=>setOpen(o=>!o)}><span>回復</span><small>{v.drinks?<><img className="st-mini-drink" src={ART+'stamina-drink.webp'} alt="" aria-hidden="true"/>×{v.drinks}</>:'ほか'}</small></button>
-  </div>
-  {empty&&can>0&&<button type="button" className={secondary+' st-part'} onClick={()=>actions.onPlay(can)}>今の行動力で進められる所まで（{can}試合・−{partCost}）</button>}</>}
+  </div></>}
   {showRecover&&!busy&&<div className="st-recover" aria-label="行動力の回復">
    <div className="st-opt">
     <span className="st-opt-icon"><Clock size={18}/></span>

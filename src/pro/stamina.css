@@ -22,16 +22,15 @@
 .st-time b{color:var(--st-ink)}
 .st-rule{margin:0;font-size:13px;font-weight:700;color:var(--st-sub)}
 .st-rule b{color:var(--st-ink);font-size:15px}
-.st-part{min-height:44px;font-size:14px;font-weight:800}
 .st-intro-art{display:block;margin:0 auto 6px}
 .st-intro-list{margin:6px 0 12px;padding-left:1.2em;text-align:left;font-size:14px;line-height:1.6}
 .st-free{margin:0;padding:6px 10px;border-radius:8px;background:#e7f6ea;color:#1d5b2c;font-size:13px;font-weight:700}
-.st-buttons{display:grid;grid-template-columns:1fr auto auto;gap:6px}
+.st-buttons{display:grid;grid-template-columns:1fr auto;gap:6px}
 .st-buttons button{min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 12px;line-height:1.2}
 .st-buttons button>span{display:flex;align-items:center;gap:5px;font-weight:800}
 .st-buttons button small{font-size:11.5px;font-weight:700;opacity:.85}
 .st-go>span{font-size:17px}
-.st-one,.st-open{min-width:64px}
+.st-open{min-width:76px}
 .st-empty{margin:0;padding:8px 12px 8px 8px;border-radius:12px;border:1px solid #f0c3b5;background:linear-gradient(180deg,#fff7f3,#ffece4);color:var(--st-warn);font-size:14px;line-height:1.5;display:flex;align-items:center;gap:10px}
 .st-empty img{width:120px;height:auto;flex:none}
 .st-empty p{margin:0}
@@ -56,8 +55,6 @@
 .st-chip small{font-size:11px;font-weight:700;opacity:.75}
 .st-chip.is-empty{background:#fff0eb;color:#b33a1c}
 @media (max-width:420px){
- .st-buttons{grid-template-columns:1fr 1fr}
- .st-go{grid-column:1/-1}
  .st-opt{grid-template-columns:28px 1fr auto;gap:6px}
  .st-opt-icon{width:28px;height:28px}
  .st-empty img{width:88px}

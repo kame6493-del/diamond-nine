@@ -3,7 +3,7 @@ import {PointShop} from './PointShop';
 import {PremiumPassCard,RewardAdButton} from './MonetizePanel';
 import {PawaGoalsAside} from './pawa/PawaGoals';
 import {StaminaChip,StaminaPlay} from './StaminaPanel';
-import {DRINK_RESTORE,STAMINA_PT_COST,addStamina,canBuyWithPoints,claimDrinkGift,costForGames,loadStamina,markStaminaIntro,staminaIntroDue,seasonCost,STAMINA_MAX,STAMINA_REGEN_MS,STAMINA_AD_POINTS,spendStamina,updateStamina,useDrink,useStaminaSummary,currentRules} from './stamina';
+import {DRINK_RESTORE,STAMINA_PT_COST,addStamina,canBuyWithPoints,claimDrinkGift,costToFinish,loadStamina,markStaminaIntro,staminaIntroDue,seasonCost,STAMINA_MAX,STAMINA_REGEN_MS,STAMINA_AD_POINTS,spendStamina,updateStamina,useDrink,useStaminaSummary,currentRules} from './stamina';
 import {interstitialGraceOver,monetizeBridge,useMonetize} from './monetization';
 import {spaceUnlocked,circuitLabel,circuitOf,seasonGames,leagueFor,leagueProgress,titleFor,NPB_TITLES_TO_MLB,type Circuit} from './leagues';
 import {switchLeague} from './engine';
@@ -341,7 +341,7 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
   if(lock.current||state.season.completed)return;
   if(soundRef.current)void prepareGameAudio();
   // 行動力: 進める試合ぶんを先に使う(足りなければ進めない)。計算に失敗したら返す。
-  const staminaCost=costForGames(state,days);
+  const staminaCost=days>0?costToFinish(state):0;
   if(staminaCost>0&&!updateStamina((r,now,rules)=>spendStamina(r,staminaCost,now,rules)))return;
   lock.current=true;setBusy(true);setProgress(0);let current=state;const from=state.season.day,target=Math.min(seasonGames(state.season),from+days);
   const step=()=>{try{
@@ -376,7 +376,7 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
  const stamina=useStaminaSummary();
  const staminaAdLock=useRef(false);
  const staminaActions={
-  onPlay:(games:number)=>play(games),
+  onPlay:()=>play(seasonGames(state.season)),
   onBuy:()=>{
    if(lock.current||state.gems<STAMINA_PT_COST)return false;
    const r=loadStamina(),now=Date.now();if(!canBuyWithPoints(r,state.gems,now,currentRules()))return false;
