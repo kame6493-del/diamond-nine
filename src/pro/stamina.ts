@@ -1,27 +1,34 @@
 import {useSyncExternalStore} from 'react';
 import type {GameState} from './engine';
-import {seasonGames} from './leagues';
+import {circuitOf,seasonGames} from './leagues';
 
-// 行動力(2026-10-19 持ち主「1年進めるのにソシャゲみたいに時間制限」)。
-// 1試合に行動力1。待てば必ず回復するので、お金を払わなくても必ず先へ進める。
+// 行動力(2026-10-19 持ち主「1年進めるのにソシャゲみたいに時間制限」→「1年丸々で進める。さくさく」
+// →「選手がそろうまでは自由に、そこから徐々に」)。
+// 「1年進める」1回に行動力を使う。量は段階で変わる(seasonCost)。1試合ずつ進める時は1年ぶんを試合数で割り振る。
+// 待てば必ず回復するので、お金を払わなくても必ず先へ進める。
 // クラブのセーブとは別に端末へ置く(リセット・読み込み・クラブの切り替えで満タンに戻らない)。
 // 数値の理由は STAMINA_UPDATE.md。
-export const STAMINA_MAX=20;
-export const STAMINA_REGEN_MS=12*60*1000;
+export const STAMINA_MAX=30;
+export const STAMINA_REGEN_MS=3*60*1000;
 // プレミアムパス: 上限を上げ、回復を速く。
-export const PASS_STAMINA_MAX=30;
-export const PASS_STAMINA_REGEN_MS=9*60*1000;
+export const PASS_STAMINA_MAX=40;
+export const PASS_STAMINA_REGEN_MS=2*60*1000;
 // 回復で上限を超えて持てる量の天井(ドリンクを無駄にしないため超過は許す)。
 export const STAMINA_HARD_CAP=200;
-// pt で回復: 上限ぶん足す(スカウト1回 3,000pt の半分)。
-export const STAMINA_PT_COST=1500;
+// pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。スカウト1回と同じ 3,000pt。
+export const STAMINA_PT_COST=3000;
 // 配るドリンク1本で足す量。ログインで1本、今日の目標を全部で1本。
-export const DRINK_RESTORE=10;
+export const DRINK_RESTORE=10;// 国内の1年ぶん
 // 広告1回で足す量と1日の回数(スカウトの広告とは別に数える)。
-export const STAMINA_AD_POINTS=5;
+export const STAMINA_AD_POINTS=10;
 export const STAMINA_AD_DAILY_LIMIT=3;
-// はじめのシーズンの最初の試合は行動力を使わない(チュートリアル〜序盤を止めない)。
-export const FIRST_SEASON_FREE_GAMES=20;
+// 段階(STAMINA_UPDATE.md)。
+// 序盤: 3シーズン目まで行動力を使わない(選手を集める間は自由に)。
+export const FREE_SEASONS=3;
+// 慣らし: 4シーズン目から、スカウトが10回に届くまでは国内の1年が半分(5)。
+export const WARMUP_PULLS=10;
+// 1年に使う行動力: 国内10・海外12・宇宙15(上のリーグほど、急ぎたい人に pt とパスが効く)。
+export const SEASON_COST={warmup:5,NPB:10,MLB:12,SPACE:15} as const;
 
 export interface StaminaRules {max:number;regenMs:number}
 export const staminaRules=(pass:boolean):StaminaRules=>pass?{max:PASS_STAMINA_MAX,regenMs:PASS_STAMINA_REGEN_MS}:{max:STAMINA_MAX,regenMs:STAMINA_REGEN_MS};
@@ -97,12 +104,39 @@ export function claimDrinkGift(r:StaminaRecord,kind:'login'|'all',day:string):[S
 }
 
 // ---- 試合と行動力 ----
-// はじめのシーズン(過去のシーズンが無い)の最初の FIRST_SEASON_FREE_GAMES 試合は0。
-export const freeGamesLeft=(state:GameState)=>state.history.length===0?Math.max(0,FIRST_SEASON_FREE_GAMES-state.season.day):0;
+export type StaminaStage='free'|'warmup'|'mid'|'late';
+export function staminaStage(state:GameState):StaminaStage{
+ if(state.season.number<=FREE_SEASONS)return 'free';
+ const c=circuitOf(state.season);
+ if(c!=='NPB')return 'late';
+ return (state.pulls??0)<WARMUP_PULLS?'warmup':'mid';
+}
+export function seasonCost(state:GameState):number{
+ const stage=staminaStage(state);
+ if(stage==='free')return 0;
+ if(stage==='warmup')return SEASON_COST.warmup;
+ const c=circuitOf(state.season);
+ return c==='SPACE'?SEASON_COST.SPACE:c==='MLB'?SEASON_COST.MLB:SEASON_COST.NPB;
+}
+export const freeSeasonsLeft=(state:GameState)=>Math.max(0,FREE_SEASONS-state.season.number+1);
 export const gamesLeft=(state:GameState)=>state.season.completed?0:Math.max(0,seasonGames(state.season)-state.season.day);
-export const costForGames=(state:GameState,games:number)=>Math.max(0,Math.min(games,gamesLeft(state))-freeGamesLeft(state));
+// 1年ぶんを試合の進み具合で割り振る(切り上げ)。どこで区切っても1年の合計はちょうど seasonCost。
+export function costForGames(state:GameState,games:number){
+ const C=seasonCost(state),G=seasonGames(state.season),from=state.season.day,to=Math.min(G,from+Math.max(0,Math.floor(games)));
+ if(!C||to<=from)return 0;
+ return Math.ceil(to*C/G)-Math.ceil(from*C/G);
+}
 // 今の行動力で進められる試合数。
-export const affordableGames=(state:GameState,points:number)=>Math.min(gamesLeft(state),freeGamesLeft(state)+Math.max(0,Math.floor(points)));
+export function affordableGames(state:GameState,points:number){
+ const left=gamesLeft(state);
+ if(costForGames(state,left)<=points)return left;
+ let n=0;while(n<left&&costForGames(state,n+1)<=points)n++;
+ return n;
+}
+// 段階が始まって初めて行動力を使う時の案内(1回だけ)。
+const INTRO_KEY='diamond-nine-stamina-intro';
+export const staminaIntroDue=(state:GameState)=>{if(seasonCost(state)<=0)return false;try{return localStorage.getItem(INTRO_KEY)!=='1';}catch{return false;}};
+export const markStaminaIntro=()=>{try{localStorage.setItem(INTRO_KEY,'1');}catch{/* 次にまた出る */}};
 
 export const formatWait=(ms:number)=>{
  const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
