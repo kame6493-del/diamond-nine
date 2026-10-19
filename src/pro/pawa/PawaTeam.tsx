@@ -38,6 +38,13 @@ const defaultFilter:BenchFilter={search:'',role:'auto',pos:'all',age:'all',team:
 const sortLabels:[Sort,string][]=[['overall-desc','総合が高い順'],['overall-asc','総合が低い順'],['age-asc','年齢が若い順'],['age-desc','年齢が高い順'],['team','球団順'],['name','名前順'],['traits','特殊能力が多い順'],['awaken','覚醒が進んだ順'],['contact','ミートが高い順'],['power','パワーが高い順'],['speed','走力が高い順'],['arm','肩が高い順'],['field','守備が高い順'],['velocity','球速が速い順'],['control','制球が高い順'],['stamina','スタミナが高い順'],['breaking','変化が高い順']];
 const posOptions:[string,string][]=[['all','全ポジション'],['捕','捕手'],['一','一塁'],['二','二塁'],['三','三塁'],['遊','遊撃'],['外','外野'],['先','先発の適性'],['中','中継ぎの適性'],['抑','抑えの適性']];
 
+// 野手の今季の成績(打率・本塁打・打点・OPS)。打席が無い選手は「-」(2026-10-19 持ち主「チームの野手に打率・打点・本塁打・OPS」)。
+export function BatLine({b,short=false}:{b?:{pa:number;ab:number;hr:number;rbi:number}&Parameters<typeof ops>[0];short?:boolean}){
+ const has=!!b?.pa,avg=has&&b!.ab?formatAvg(battingAverage(b!)):'-',o=has?formatAvg(ops(b!)):'-',hr=has?String(b!.hr):'-',rbi=has?String(b!.rbi):'-';
+ return short?<span className="pw-batline is-short" aria-label={`打率${avg} 本塁打${hr} 打点${rbi} OPS${o}`}><span>打率<b>{avg}</b></span><span><b>{hr}</b>本</span><span><b>{rbi}</b>点</span><span>OPS<b>{o}</b></span></span>
+ :<span className="pw-batline"><span>打率<b>{avg}</b></span><span>本塁打<b>{hr}</b></span><span>打点<b>{rbi}</b></span><span>OPS<b>{o}</b></span></span>;
+}
+
 export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onCompleteReset,onCatalog,canRestore=false,onSeason}:{state:GameState;onChange:(s:GameState)=>void;onPlayer:(p:Player)=>void;onImpact:()=>void;onReset?:()=>void;onRestore?:()=>void;onCompleteReset?:()=>void;onCatalog?:()=>void;canRestore?:boolean;onSeason?:()=>void}){
  const [tab,setTab]=useState<'bat'|'先'|'中'|'抑'|'bench'>('bat'),[hand,setHand]=useState<string|null>(null),[picked,setPicked]=useState<Slot|null>(null),[defender,setDefender]=useState<string|null>(null),[notice,setNotice]=useState('');
  const [filter,setFilter]=useState<BenchFilter>(defaultFilter),[slotOnly,setSlotOnly]=useState(true);
@@ -149,13 +156,13 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <button className={'pw-btn pw-mini '+(canTake?'pw-yellow':'pw-blue')} onClick={()=>{if(picked){if(eligible?.has(p.id))replace(picked,p.id);else setNotice(`${slotName(picked.kind,picked.index)}には入れられない選手です。`);return;}setDefender(null);setHand(hand===p.id?null:p.id);window.scrollTo({top:0,behavior:'smooth'});}}>{picked?(canTake?'ここに入れる':'入れられない'):hand===p.id?'選択中':'編成する'}</button>
   </li>;};
  // ---- 2タブの編成(野手/投手)。1行にゆとりを持たせ、能力はランクと数値、今季の成績、調子まで ----
- const row5=(kind:Kind,i:number,id:string,extra:string,label:string,left:JSX.Element,tilesEl:JSX.Element,stat:JSX.Element)=>{
+ const row5=(kind:Kind,i:number,id:string,extra:string,label:string,left:JSX.Element,tilesEl:JSX.Element,stat:JSX.Element,topStat?:JSX.Element)=>{
   const p=playerMap[id];
   return <li key={id} className={'pw-b5'+extra+rowState(kind,i)} data-slot-kind={kind} data-slot-index={i} {...dragProps({from:'slot',kind,index:i,id})}>
    <div className="pw-b5-row" role="button" tabIndex={0} aria-label={`${label}(押すと入れ替え、長押しでドラッグ)`} onClick={()=>tapRow({kind,index:i})} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tapRow({kind,index:i});}}}>
     <span className="pw-b5-left">{left}</span>
     <span className="pw-b5-main">
-     <span className="pw-b5-top"><button className="pw-b4-name" style={fitName(p.name,kind==='pit'?96:150,15)} data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}</span>
+     <span className="pw-b5-top"><button className="pw-b4-name" style={fitName(p.name,kind==='pit'?96:150,15)} data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}{topStat&&<span className="pw-b5-topstat">{topStat}</span>}</span>
      <span className="pw-b5-sub">{tilesEl}<span className="pw-b5-stat">{stat}</span></span>
     </span>
     <span className="pw-b4-ovr pw-b5-ovr" data-metal={metalOf(ovr(id),p)}>{ovr(id)}</span>
@@ -165,7 +172,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  const bat5=(id:string,i:number)=>{const p=playerMap[id],pos=state.defense[id],fit=fitsPosition(p,pos),r=ratingsOf(id),b=state.season.batting[`${state.club}|${id}`];
   return row5('bat',i,id,fit?'':' is-unfit',`${i+1}番 ${pos} ${p.name} 総合${ovr(id)}`,<><span className="pw-b3-no">{i+1}</span><PosChip pos={pos}/></>,
    <span className="pw-b4-tiles">{tileItems([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]],false)}</span>,
-   b?.pa?<>{!fit&&<em>適性外 </em>}<span className="pw-b5-k">打率<b>{b.ab?formatAvg(battingAverage(b)):'—'}</b></span><span className="pw-b5-more"><b>{b.hr}</b>本<b>{b.rbi}</b>点 OPS<b>{formatAvg(ops(b))}</b></span></>:<>{!fit&&<em>適性外 </em>}今季の打席なし</>);};
+   <>{!fit&&<em>適性外 </em>}<BatLine b={b}/></>,<BatLine b={b} short/>);};
  const pit5=(id:string,i:number)=>{const p=playerMap[id],role=pitcherSlotRole(i),fit=pitcherRolePenalty(p,role)===0,r=pitchingRatingsForRole(p,ratingsOf(id),role),q=state.season.pitching[`${state.club}|${id}`];
   return row5('pit',i,id,' pw-b5-p'+(fit?'':' is-unfit'),`${slotName('pit',i)} ${p.name} 総合${ovr(id)}`,<span className={'pw-b3-no pw-b3-role pw-role-'+role}>{role==='先'?`先${i+1}`:role==='中'?`中${i-5}`:'抑'}</span>,
    <span className="pw-b4-tiles"><span className="pw-b4-t pw-b4-velo" title={`球速 ${p.ratings.velocity}km/h`}><b>{p.ratings.velocity}</b><em>km</em></span>{tileItems([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]],false)}</span>,

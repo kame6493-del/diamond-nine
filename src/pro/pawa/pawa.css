@@ -1625,6 +1625,12 @@ html[data-look=pawa] .nv-app .pw-b5-stat{font:800 12px/1.2 system-ui;color:var(-
 html[data-look=pawa] .nv-app .pw-b5-stat b{font:700 16px/1 var(--num);color:var(--ink);margin:0 1px 0 3px}
 html[data-look=pawa] .nv-app .pw-b5-stat em{font-style:normal;color:var(--red2)}
 html[data-look=pawa] .nv-app .pw-b5-k{margin-right:6px}
+/* 野手の今季の成績(打率・本塁打・打点・OPS) */
+html[data-look=pawa] .nv-app .pw-batline{display:inline-flex;gap:8px;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-batline b{font:700 16px/1 var(--num);color:var(--ink);margin:0 1px 0 3px}
+html[data-look=pawa] .nv-app .pw-batline.is-short{gap:5px;font:800 11px/1 system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-batline.is-short b{font-size:14px;margin:0 1px}
+html[data-look=pawa] .nv-app .pw-b5-topstat{display:none}
 html[data-look=pawa] .nv-app .pw-b5-ovr{flex:none;min-width:36px;height:30px;font-size:22px;border-radius:8px}
 html[data-look=pawa] .nv-app .pw-b5.is-unfit .pw-b5-row{background:#fff3f3;border-color:#f5b5b9}
 html[data-look=pawa] .nv-app .pw-b5.is-picked .pw-b5-row{box-shadow:0 0 0 3px var(--blue)}
@@ -1651,9 +1657,12 @@ html[data-look=pawa] .nv-app .pw-b5-head .pw-b5-main{flex:1}
 }
 /* 野手の行: 低い画面では成績を能力の横に(打率だけ) */
 @media (max-width:999px) and (max-height:760px){
- html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-sub{flex-direction:row;align-items:center;gap:6px}
- html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-more{display:none}
- html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-head .pw-b5-stat{display:block}
+ /* 野手: 成績(打率・本・点・OPS)は名前の行の右に短く。能力の行はそのまま */
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-sub .pw-b5-stat{display:none}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-topstat{display:inline-flex;margin-left:auto;flex:none}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-top>small{display:none}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-top .pw-b4-name{min-width:0;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-head .pw-b5-stat{display:none}
  /* 投手: 1行(名前・ランク・防御率・総合)。数値と勝敗は名前を押した詳細で */
  html[data-look=pawa] .nv-app .pw-b5-plist .pw-b5{min-height:26px}
  html[data-look=pawa] .nv-app .pw-b5-plist{gap:2px}

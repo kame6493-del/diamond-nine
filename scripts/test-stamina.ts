@@ -11,6 +11,8 @@ import {
 } from '../src/pro/stamina';
 import {StaminaPlay} from '../src/pro/StaminaPanel';
 import {PremiumPassCard} from '../src/pro/MonetizePanel';
+import {BatLine,PawaTeam} from '../src/pro/pawa/PawaTeam';
+import {simulateDays} from '../src/pro/engine';
 import {SEASON_COMPLETE_POINTS,SUPPORT_STEPS,gameReward,postseasonReward,seasonReward,supportPoints} from '../src/pro/progression';
 import {seasonGoals} from '../src/pro/ambitions';
 import {DAILY_ALL_BONUS,DAILY_LOGIN_POINTS,DAILY_MISSIONS} from '../src/pro/daily';
@@ -155,6 +157,20 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
 }
 
 export function registerEconomyTests(test:(name:string,run:()=>void)=>void){
+ test('team: each batter shows this season average, home runs, RBI and OPS, with "-" before the first plate appearance',()=>{
+  const none=renderToStaticMarkup(createElement(BatLine,{}));
+  assert.match(none,/打率<b>-<\/b>/);assert.match(none,/本塁打<b>-<\/b>/);assert.match(none,/打点<b>-<\/b>/);assert.match(none,/OPS<b>-<\/b>/);
+  const b={pa:10,ab:8,hits:3,doubles:1,triples:0,hr:1,rbi:4,bb:2,hbp:0,sf:0} as never;
+  const html=renderToStaticMarkup(createElement(BatLine,{b}));
+  // 打率 3/8=.375、出塁率 5/10=.500、長打率 (3+1+3)/8=.875 → OPS 1.375
+  assert.match(html,/打率<b>\.375<\/b>/);assert.match(html,/本塁打<b>1<\/b>/);assert.match(html,/打点<b>4<\/b>/);assert.match(html,/OPS<b>1\.375<\/b>/);
+  const short=renderToStaticMarkup(createElement(BatLine,{b,short:true}));assert.match(short,/打率<b>\.375<\/b>/);assert.match(short,/OPS<b>1\.375<\/b>/);
+  const s=simulateDays(initialState(4242),20);
+  const team=renderToStaticMarkup(createElement(PawaTeam,{state:s,onChange:()=>{},onPlayer:()=>{},onImpact:()=>{}}));
+  assert.equal((team.match(/class="pw-batline"/g)??[]).length,9);assert.match(team,/本塁打<b>\d+<\/b>/);assert.doesNotMatch(team,/今季の打席なし/);
+  const fresh=renderToStaticMarkup(createElement(PawaTeam,{state:initialState(4242),onChange:()=>{},onPlayer:()=>{},onImpact:()=>{}}));
+  assert.match(fresh,/打率<b>-<\/b>/);
+ });
  test('economy: auto income per season is small, support is generous while few scouts, manual daily goals are bigger',()=>{
   const s=initialState(4242);
   assert.equal(SEASON_COMPLETE_POINTS,50);
