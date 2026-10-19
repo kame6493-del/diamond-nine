@@ -13,13 +13,14 @@ import {
  type MonetizeBridge,type MonetizeSnapshot,type PremiumSnapshot,type RewardOutcome,
 } from '../src/pro/monetization';
 import {track} from '../src/pro/analytics';
+import {STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,setStaminaPass} from '../src/pro/stamina';
 import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend} from '../src/pro/point-products';
 import type {PacksSnapshot} from '../src/pro/monetization';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
 const ids=config[platform];
 const PRODUCT=config.premiumProductId;
-const KEY={premium:'diamond-nine-premium-cache',reward:'diamond-nine-reward-ads',daily:'diamond-nine-premium-daily',pacing:'diamond-nine-interstitial',ledger:'diamond-nine-iap-ledger'};
+const KEY={premium:'diamond-nine-premium-cache',reward:'diamond-nine-reward-ads',daily:'diamond-nine-premium-daily',pacing:'diamond-nine-interstitial',ledger:'diamond-nine-iap-ledger',staminaAd:'diamond-nine-stamina-ads'};
 const read=(k:string)=>{try{return localStorage.getItem(k);}catch{return null;}};
 const write=(k:string,v:string)=>{try{localStorage.setItem(k,v);}catch{/* ads/bonus still work this session */}};
 const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
@@ -32,11 +33,12 @@ let packs:PacksSnapshot={status:'checking',prices:{},busy:false,message:''};
 let adsAllowed=false,privacyOptions=false,rewardBusy=false;
 let snap:MonetizeSnapshot=build();
 function build():MonetizeSnapshot{
- return {premium,privacyOptions,packs,reward:{available:adsAllowed,busy:rewardBusy,left:dailyLeft(parseDaily(read(KEY.reward)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}};
+ return {premium,privacyOptions,packs,reward:{available:adsAllowed,busy:rewardBusy,left:dailyLeft(parseDaily(read(KEY.reward)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS},
+  staminaReward:{left:dailyLeft(parseDaily(read(KEY.staminaAd)),localDay(),STAMINA_AD_DAILY_LIMIT),limit:STAMINA_AD_DAILY_LIMIT,points:STAMINA_AD_POINTS}};
 }
-function emit(){snap=build();setPremiumMatchBonus(premium.owned);for(const l of listeners)l();}
+function emit(){snap=build();setPremiumMatchBonus(premium.owned);setStaminaPass(premium.owned);for(const l of listeners)l();}
 const setPremium=(patch:Partial<PremiumSnapshot>)=>{premium={...premium,...patch};emit();};
-setPremiumMatchBonus(premium.owned);
+setPremiumMatchBonus(premium.owned);setStaminaPass(premium.owned);
 
 // ---------- premium pass ----------
 const validPurchase=(t:Transaction)=>t.productIdentifier===PRODUCT&&(platform==='ios'?!t.revocationDate:t.purchaseState==='1');
@@ -173,9 +175,12 @@ function preloadInterstitial(){
  if(!adsAllowed||interstitialLoaded||premium.owned)return Promise.resolve();
  return interstitialLoading??=AdMob.prepareInterstitial(adOptions(ids.interstitialId)).then(()=>{interstitialLoaded=true;},()=>{interstitialLoaded=false;}).finally(()=>{interstitialLoading=null;});
 }
-async function showRewardAd(onReward:(points:number)=>void):Promise<RewardOutcome>{
+// スカウト1回の広告と、行動力の広告(2026-10-19)は同じ広告枠を使い、1日の回数は別々に数える。
+const showRewardAd=(onReward:(points:number)=>void)=>showAd(KEY.reward,REWARD_AD_DAILY_LIMIT,REWARD_AD_POINTS,'reward_ad',onReward);
+const showStaminaAd=(onReward:(amount:number)=>void)=>showAd(KEY.staminaAd,STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,'stamina_ad',onReward);
+async function showAd(key:string,limit:number,amount:number,event:string,onReward:(amount:number)=>void):Promise<RewardOutcome>{
  if(rewardBusy||fullscreen)return 'busy';
- if(dailyLeft(parseDaily(read(KEY.reward)),localDay(),REWARD_AD_DAILY_LIMIT)<=0)return 'limit';
+ if(dailyLeft(parseDaily(read(key)),localDay(),limit)<=0)return 'limit';
  rewardBusy=true;emit();
  const handles:PluginListenerHandle[]=[];
  try{
@@ -190,12 +195,12 @@ async function showRewardAd(onReward:(points:number)=>void):Promise<RewardOutcom
   // resolves from onUserEarnedReward / userDidEarnRewardHandler), and only once.
   AdMob.showRewardVideoAd().then(()=>{
    if(granted)return;granted=true;
-   write(KEY.reward,JSON.stringify(spendDaily(parseDaily(read(KEY.reward)),localDay())));
-   try{onReward(REWARD_AD_POINTS);}finally{emit();}
+   write(key,JSON.stringify(spendDaily(parseDaily(read(key)),localDay())));
+   try{onReward(amount);}finally{emit();}
   },()=>done());
   await Promise.race([closed,sleep(180000)]);
   await sleep(500);// a reward callback may land just after dismissal
-  track('reward_ad',{outcome:granted?'rewarded':'dismissed'});
+  track(event,{outcome:granted?'rewarded':'dismissed'});
   return granted?'rewarded':'dismissed';
  }catch{rewardLoaded=false;return 'failed';}
  finally{
@@ -232,7 +237,7 @@ async function showInterstitial(reason:'season'|'scout'){
 const bridge:MonetizeBridge={
  snapshot:()=>snap,
  subscribe(l){listeners.add(l);return()=>{listeners.delete(l);};},
- buyPremium,restorePremium,showRewardAd,noteScout,showInterstitial,claimPremiumDaily,
+ buyPremium,restorePremium,showRewardAd,showStaminaAd,noteScout,showInterstitial,claimPremiumDaily,
  async showPrivacyOptions(){try{await AdMob.showPrivacyOptionsForm();}catch{/* not required in this region */}},
  setPointSink(fn){sink=fn;flushPending();},
  buyPack,

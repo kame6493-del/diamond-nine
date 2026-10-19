@@ -82,7 +82,7 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   const now=new Date(2026,9,31,23,50),[a,b]=nextReminders(now);
   assert.deepEqual([a.at.getMonth(),a.at.getDate(),a.at.getHours(),a.at.getMinutes()],[10,1,REMINDER_HOUR,0]);
   assert.deepEqual([b.at.getMonth(),b.at.getDate(),b.at.getHours()],[10,3,REMINDER_HOUR]);
-  assert.ok(a.at>now&&b.at>a.at);assert.ok(a.body.includes('500pt'));
+  assert.ok(a.at>now&&b.at>a.at);assert.ok(a.body.includes(`${DAILY_LOGIN_POINTS}pt`));assert.ok(a.body.includes('回復ドリンク'));
   assert.equal(reminderAskDue(3),false,'no bridge outside the app');
  });
  test('autumn showdown week pays its bonus once per finished season, only inside the window',()=>{

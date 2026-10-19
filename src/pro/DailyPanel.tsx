@@ -12,7 +12,7 @@ export function DailyPanel({disabled,onReward}:{disabled?:boolean;onReward:(poin
   onReward(points,`今日の目標「${label}」達成 ＋${points.toLocaleString('ja-JP')} pt`);
  };
  return <section className={'daily-panel'+(record.all?' is-complete':'')} aria-label="今日の目標">
-  <header><CalendarCheck size={18}/><h2>今日の目標</h2><span>{record.all?'全部達成！':left?`あと${left}つ · 全部達成で さらに＋${DAILY_ALL_BONUS}pt`:`受け取ると さらに＋${DAILY_ALL_BONUS}pt`}</span></header>
+  <header><CalendarCheck size={18}/><h2>今日の目標</h2><span>{record.all?'全部達成！':left?`あと${left}つ · 全部達成で さらに＋${DAILY_ALL_BONUS}pt と回復ドリンク`:`受け取ると さらに＋${DAILY_ALL_BONUS}pt と回復ドリンク`}</span></header>
   <ul>{DAILY_MISSIONS.map(m=>{const done=record.done.includes(m.id),got=record.claimed.includes(m.id);
    return <li key={m.id} className={got?'got':done?'ready':''}>
     <span className="daily-check" aria-hidden="true">{got||done?<Check size={14}/>:null}</span>

@@ -28,7 +28,8 @@ export interface PremiumSnapshot {
 export interface RewardSnapshot {available: boolean; busy: boolean; left: number; limit: number; points: number}
 // ポイントのパック(消耗型)。prices はストアの表示価格(登録が無い商品は入らない)。
 export interface PacksSnapshot {status: PremiumStatus; prices: Record<string, string>; busy: boolean; message: string}
-export interface MonetizeSnapshot {premium: PremiumSnapshot; reward: RewardSnapshot; privacyOptions: boolean; packs?: PacksSnapshot}
+// staminaReward: 行動力の広告(2026-10-19)。points は回復する行動力。
+export interface MonetizeSnapshot {premium: PremiumSnapshot; reward: RewardSnapshot; privacyOptions: boolean; packs?: PacksSnapshot; staminaReward?: {left: number; limit: number; points: number}}
 export type RewardOutcome = 'rewarded' | 'dismissed' | 'failed' | 'limit' | 'busy';
 export interface MonetizeBridge {
  snapshot(): MonetizeSnapshot;
@@ -37,6 +38,8 @@ export interface MonetizeBridge {
  restorePremium(): Promise<void>;
  // onReward runs at most once, and only from the ad SDK's reward callback.
  showRewardAd(onReward: (points: number) => void): Promise<RewardOutcome>;
+ // 行動力の広告。onReward は報酬コールバックからだけ、1回だけ。1日の回数はスカウトの広告と別。
+ showStaminaAd?(onReward: (amount: number) => void): Promise<RewardOutcome>;
  noteScout(): void;
  // Shows only at a natural break, never to pass owners, never twice within the cooldown.
  showInterstitial(reason: 'season' | 'scout'): Promise<boolean>;

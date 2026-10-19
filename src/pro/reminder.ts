@@ -1,6 +1,8 @@
+import {DAILY_LOGIN_POINTS} from './daily';
 // Daily reminder schedule and the one-time ask. The native bridge (mobile/reminder.ts)
 // sets window.diamondReminder; the browser build never has it.
-declare global {interface Window {diamondReminder?:{ask():Promise<boolean>;status():Promise<string>;off():Promise<void>}}}
+// staminaFull: 行動力が満タンになる時刻に1件だけ通知(null で取り消し)。通知を許可した人だけ。
+declare global {interface Window {diamondReminder?:{ask():Promise<boolean>;status():Promise<string>;off():Promise<void>;staminaFull?(at:number|null):Promise<void>}}}
 
 export const REMINDER_HOUR=19;
 const ASKED_KEY='diamond-nine-reminder-asked';
@@ -9,7 +11,7 @@ const ASKED_KEY='diamond-nine-reminder-asked';
 export function nextReminders(now:Date){
  const at=(days:number)=>{const d=new Date(now);d.setDate(d.getDate()+days);d.setHours(REMINDER_HOUR,0,0,0);return d;};
  return [
-  {at:at(1),title:'DIAMOND NINE',body:'今日のログインボーナス 500pt が受け取れます。今日の目標もそろっています。'},
+  {at:at(1),title:'DIAMOND NINE',body:`今日のログインボーナス ${DAILY_LOGIN_POINTS}pt と回復ドリンクが受け取れます。今日の目標もそろっています。`},
   {at:at(3),title:'DIAMOND NINE',body:'チームが次の試合を待っています。スカウトで補強して、まずは勝ち越しを目指そう。'},
  ];
 }
@@ -17,3 +19,4 @@ const read=()=>{try{return localStorage.getItem(ASKED_KEY);}catch{return '1';}};
 // Ask once, after the player has finished a season (they know what the bonus is by then).
 export const reminderAskDue=(seasonsPlayed:number)=>typeof window!=='undefined'&&!!window.diamondReminder&&seasonsPlayed>=1&&read()!=='1';
 export function markReminderAsked(){try{localStorage.setItem(ASKED_KEY,'1');}catch{/* asks again next time */}}
+export const STAMINA_FULL_TEXT={title:'DIAMOND NINE',body:'行動力が満タンになりました。続きの試合を進めよう。'};
