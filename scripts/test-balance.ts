@@ -76,7 +76,8 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
    }
    assert.ok(validState(state));if(state.training[id]===5)break;state=nextSeason(state);
   }
-  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[2]>=2);assert.ok(years[3]-years[2]>=3);assert.ok(years[4]-years[3]>=9);assert.ok(years[4]>=15&&years[4]<=24,`awakening years ${years}`);assert.equal(spent,72600);
+  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[2]>=2);// 2026-10-19 ポイントの見直し: 序盤の補強支援(12年目まで)で早まり、最後の段階は支援が終わる頃
+  assert.ok(years[3]-years[2]>=2);assert.ok(years[4]-years[3]>=6);assert.ok(years[4]>=10&&years[4]<=16,`awakening years ${years}`);assert.equal(spent,72600);
   assert.ok(effectiveOverall(playerMap[id],state.owned,state.training)>effectiveOverall(playerMap[id],state.owned));
  });
  test('awakening UI shows the next price, savings and shortfall, while hiding future maximum abilities',()=>{

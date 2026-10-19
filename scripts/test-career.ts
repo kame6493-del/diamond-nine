@@ -46,8 +46,8 @@ export function registerCareerTests(test:(name:string,run:()=>void)=>void){
  });
  test('wins, draws and losses credit only the shared wallet; daily and batch rewards agree',()=>{
   const s=initialState();s.seed=2345;const fake={home:s.club,away:'g',homeRuns:0,awayRuns:1} as GameResult;
-  assert.equal(gameReward(s,fake),18);assert.equal(gameReward(s,{...fake,homeRuns:2}),26);assert.equal(gameReward(s,{...fake,homeRuns:1}),22);assert.equal(gameReward(s,{...fake,home:'g',away:s.club}),26);
-  const batch=simulateDays(s,5);let daily=s;for(let i=0;i<5;i++)daily=simulateDays(daily,1);assert.deepEqual(batch,daily);assert.equal(batch.gems,batch.season.results.reduce((n,g)=>n+gameReward(s,g),0));assert.ok(batch.gems>=90&&batch.gems<=130);assert.equal(batch.franchise.points,0);
+  assert.equal(gameReward(s,fake),2);assert.equal(gameReward(s,{...fake,homeRuns:2}),3);assert.equal(gameReward(s,{...fake,homeRuns:1}),2);assert.equal(gameReward(s,{...fake,home:'g',away:s.club}),3);
+  const batch=simulateDays(s,5);let daily=s;for(let i=0;i<5;i++)daily=simulateDays(daily,1);assert.deepEqual(batch,daily);assert.equal(batch.gems,batch.season.results.reduce((n,g)=>n+gameReward(s,g),0));assert.ok(batch.gems>=10&&batch.gems<=15);assert.equal(batch.franchise.points,0);
   const funded={...batch,gems:300};const drawn=drawPlayers(funded,1);assert.equal(drawn.gems,0);assert.equal(drawn.lastPulls.length,1);assert.equal(Object.values(drawn.owned).reduce((a,b)=>a+b),25);assert.equal(drawn.pulls,1);assert.ok(validState(drawn));assert.equal(drawPlayers(s,1),s);assert.equal(drawPlayers({...s,gems:9999},10).pulls,0);
  });
  test('single draws guarantee SR at five and SSR at ten, with UR pity taking precedence',()=>{

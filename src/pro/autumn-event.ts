@@ -13,10 +13,11 @@ export function autumnEventActive(now:Date|null=new Date()):boolean{
  return day>=AUTUMN_EVENT.start&&day<=AUTUMN_EVENT.end;
 }
 export const autumnEventEndLabel=()=>{const [,m,d]=AUTUMN_EVENT.end.split('-').map(Number);return `${m}/${d}`;};
-const claimId=(state:GameState)=>`${AUTUMN_EVENT.id}-season-${state.season.number}`;
+// 2026-10-19: 1年進めるが速くなったので、シーズンごとから「1日1回(その日に最初に終えたシーズン)」に。
+const claimId=(_state:GameState,now:Date)=>`${AUTUMN_EVENT.id}-day-${localDay(now)}`;
 
 // Pays the bonus for a just-finished season while the event runs; otherwise returns the state unchanged.
 export function claimAutumnBonus(state:GameState,now:Date|null):[GameState,number]{
- if(!autumnEventActive(now)||!state.season.completed||state.franchise.claimed.includes(claimId(state)))return [state,0];
- return [{...state,gems:state.gems+AUTUMN_EVENT.bonus,franchise:{...state.franchise,claimed:[...state.franchise.claimed,claimId(state)]}},AUTUMN_EVENT.bonus];
+ if(!autumnEventActive(now)||!state.season.completed||state.franchise.claimed.includes(claimId(state,now!)))return [state,0];
+ return [{...state,gems:state.gems+AUTUMN_EVENT.bonus,franchise:{...state.franchise,claimed:[...state.franchise.claimed,claimId(state,now!)]}},AUTUMN_EVENT.bonus];
 }

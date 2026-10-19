@@ -21,15 +21,15 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   [r,p]=claimLogin(r);total+=p;[r,p]=claimLogin(r);total+=p;assert.equal(total,DAILY_LOGIN_POINTS);
   [r,p]=claimMission(r,'play');assert.equal(p,0,'cannot claim before doing it');
   for(const m of DAILY_MISSIONS){r=markMission(markMission(r,m.id),m.id);}
-  assert.equal(r.done.length,3);
+  assert.equal(r.done.length,5);
   const perMission=DAILY_MISSIONS.map(m=>{const got=claimMission(r,m.id);r=got[0];return got[1];});
-  assert.deepEqual(perMission,[200,200,300+DAILY_ALL_BONUS]);assert.equal(r.all,true);
+  assert.deepEqual(perMission,[200,200,300,300,200+DAILY_ALL_BONUS]);assert.equal(r.all,true);
   assert.equal(claimMission(r,'share')[1],0);
   const saved=JSON.stringify(r);assert.deepEqual(parseDailyRecord(saved,'2026-10-20'),r);assert.deepEqual(parseDailyRecord(saved,'2026-10-21'),freshDay('2026-10-21'));
   for(const bad of ['{bad',JSON.stringify({day:'2026-10-20',login:'yes',done:[],claimed:[],all:false}),JSON.stringify({...r,claimed:['play','x'],done:['scout']})]){
    const parsed=parseDailyRecord(bad,'2026-10-20');assert.ok(parsed.claimed.every(c=>parsed.done.includes(c)));assert.ok(!parsed.all||parsed.claimed.length===3);
   }
-  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,1300);
+  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,2000);
  });
  test('storage-backed daily helpers are idempotent and silent outside the browser',()=>{
   assert.equal(takeDailyLogin(),0);assert.doesNotThrow(()=>noteDailyMission('play'));assert.equal(takeLaunchGift(),0);
@@ -40,10 +40,10 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
    assert.equal(takeLaunchGift(after),0);assert.equal(takeLaunchGift(inWindow),LAUNCH_GIFT.points);assert.equal(takeLaunchGift(inWindow),0);
   });
  });
- test('daily panel lists three goals and only shows a claim button for finished, unclaimed ones',()=>{
+ test('daily panel lists five goals and only shows a claim button for finished, unclaimed ones',()=>{
   withStorage(()=>{
    const html=renderToStaticMarkup(createElement(DailyPanel,{onReward:()=>{}}));
-   for(const m of DAILY_MISSIONS)assert.ok(html.includes(m.label));assert.ok(!html.includes('daily-claim'));assert.ok(html.includes('あと3つ'));
+   for(const m of DAILY_MISSIONS)assert.ok(html.includes(m.label));assert.ok(!html.includes('daily-claim'));assert.ok(html.includes('あと5つ'));
   });
  });
  test('the rating prompt waits for two play days and a happy moment, then stays quiet for the gap',()=>{
@@ -85,13 +85,13 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   assert.ok(a.at>now&&b.at>a.at);assert.ok(a.body.includes(`${DAILY_LOGIN_POINTS}pt`));assert.ok(a.body.includes('回復ドリンク'));
   assert.equal(reminderAskDue(3),false,'no bridge outside the app');
  });
- test('autumn showdown week pays its bonus once per finished season, only inside the window',()=>{
+ test('autumn showdown week pays its bonus once a day when a season ends, only inside the window',()=>{
   assert.equal(autumnEventActive(new Date(2026,10,3,23,59)),false);assert.equal(autumnEventActive(new Date(2026,10,4,0,0)),true);
   assert.equal(autumnEventActive(new Date(2026,10,16,23,59)),true);assert.equal(autumnEventActive(new Date(2026,10,17,0,0)),false);assert.equal(autumnEventActive(null),false);
   const inside=new Date(2026,10,10,12),start=initialState(5),mid=simulateDays(start,30),end=simulateDays(start,seasonGames(start.season));
   assert.deepEqual(claimAutumnBonus(mid,inside)[1],0,'not before the season ends');
   assert.equal(claimAutumnBonus(end,new Date(2026,10,20))[1],0,'not after the window');
   const [paid,pts]=claimAutumnBonus(end,inside);assert.equal(pts,AUTUMN_EVENT.bonus);assert.equal(paid.gems,end.gems+AUTUMN_EVENT.bonus);
-  assert.equal(claimAutumnBonus(paid,inside)[1],0,'once per season');assert.equal(JSON.stringify(end.franchise.claimed).includes('autumn'),false,'input untouched');
+  assert.equal(claimAutumnBonus(paid,inside)[1],0,'once a day');assert.equal(claimAutumnBonus(paid,new Date(2026,10,11,12))[1],AUTUMN_EVENT.bonus,'again the next day');assert.equal(JSON.stringify(end.franchise.claimed).includes('autumn'),false,'input untouched');
  });
 }

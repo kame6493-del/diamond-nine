@@ -68,7 +68,8 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
   let state=initialState(20260923);const owned={...state.owned},earned:number[]=[];
   for(let year=0;year<4;year++){
    const before=state.gems,done=collectSimpleRewards(simulatePostseason(collectSimpleRewards(simulateDays(state,143)),60));
-   const draws=(done.gems-before)/SIMPLE_SCOUT_COST;earned.push(draws);assert.ok(draws>=1&&draws<=2,`year ${year+1}: ${draws} point scouts`);
+   const draws=(done.gems-before)/SIMPLE_SCOUT_COST;earned.push(draws);// 2026-10-19: 序盤は補強支援(引かない間は6,000/年)が入るので2〜3回(ECONOMY_UPDATE.md)
+   assert.ok(draws>=2&&draws<=3,`year ${year+1}: ${draws} point scouts`);
    assert.equal(done.franchise.tickets,0);state=nextSeason(done);
   }
   assert.deepEqual(state.owned,owned);assert.ok(earned.reduce((a,b)=>a+b,0)<30);

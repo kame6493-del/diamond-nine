@@ -11,6 +11,10 @@ import {
 } from '../src/pro/stamina';
 import {StaminaPlay} from '../src/pro/StaminaPanel';
 import {PremiumPassCard} from '../src/pro/MonetizePanel';
+import {SEASON_COMPLETE_POINTS,SUPPORT_STEPS,gameReward,postseasonReward,seasonReward,supportPoints} from '../src/pro/progression';
+import {seasonGoals} from '../src/pro/ambitions';
+import {DAILY_ALL_BONUS,DAILY_LOGIN_POINTS,DAILY_MISSIONS} from '../src/pro/daily';
+import {PREMIUM_MATCH_MULTIPLIER} from '../src/pro/platform-economy';
 
 const MIN=60000,T0=Date.UTC(2026,9,19,3,0,0);
 const free=staminaRules(false),pass=staminaRules(true);
@@ -19,7 +23,7 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
  test('stamina: limits and regeneration are the documented numbers; waiting always refills a year',()=>{
   assert.deepEqual(free,{max:30,regenMs:3*MIN});
   assert.deepEqual(pass,{max:40,regenMs:2*MIN});
-  assert.equal(STAMINA_PT_COST,3000);assert.equal(STAMINA_AD_POINTS,10);assert.equal(STAMINA_AD_DAILY_LIMIT,3);assert.equal(DRINK_RESTORE,10);
+  assert.equal(STAMINA_PT_COST,4000);assert.equal(STAMINA_AD_POINTS,10);assert.equal(STAMINA_AD_DAILY_LIMIT,3);assert.equal(DRINK_RESTORE,10);
   assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
   // 国内の1年(10)は30分で戻る。満タンなら3年続けて進められる。
   assert.equal(SEASON_COST.NPB*STAMINA_REGEN_MS,30*MIN);
@@ -141,12 +145,31 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   assert.match(out,/行動力が足りません/);assert.match(out,/あと 17分00秒 で1年ぶん（10）がたまります/);
   assert.match(out,/待つ（無料）/);assert.match(out,/広告を見る/);assert.match(out,/ポイントで回復/);
   assert.match(out,/今日あと 0 \/ 3 回/);assert.match(out,/今日は終了/);
-  assert.match(out,/3,000 pt で ＋30/);assert.match(out,/プレミアムパスで上限 40/);
+  assert.match(out,/4,000 pt で ＋30/);assert.match(out,/プレミアムパスで上限 40/);
   // 細かく進めるボタンは無い(1年進めるだけ)
   for(const h of [html,out])assert.doesNotMatch(h,/1試合<|進められる所まで|st-one|st-part/);
   assert.match(out,/disabled=""[^>]*>[^]*?1年進める/);
   const web=renderToStaticMarkup(createElement(StaminaPlay,{state:s,busy:false,pawa:false,actions,view:lowView}));
   assert.match(web,/アプリ版で使えます/);assert.doesNotMatch(web,/プレミアムパスで上限/);
+ });
+}
+
+export function registerEconomyTests(test:(name:string,run:()=>void)=>void){
+ test('economy: auto income per season is small, support is generous while few scouts, manual daily goals are bigger',()=>{
+  const s=initialState(4242);
+  assert.equal(SEASON_COMPLETE_POINTS,50);
+  assert.deepEqual(SUPPORT_STEPS.map(x=>[x.under,x.points]),[[10,6000],[25,3000],[40,1500]]);
+  for(const [pulls,pts] of [[0,6000],[9,6000],[10,3000],[24,3000],[25,1500],[39,1500],[40,0],[400,0]] as const)assert.equal(supportPoints({...s,pulls}),pts);
+  assert.equal(seasonReward({...s,pulls:0}),6050);assert.equal(seasonReward({...s,pulls:80}),50);
+  // 12シーズン目まで。引かずにためても13年目からは無し。
+  assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:12}}),6000);assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:13}}),0);
+  assert.deepEqual([postseasonReward(s,true,true),postseasonReward(s,false,true),postseasonReward(s,false,false)],[150,60,30]);
+  const goals=seasonGoals(s).reduce((n,g)=>n+g.reward,0);assert.equal(goals,400);
+  assert.equal(DAILY_MISSIONS.length,5);assert.equal(DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS,2000);
+  // pt で行動力を買い続けても増えない: 強いチーム(全勝・優勝・目標全部・パス)でも、満タンぶん(国内3年)で入る自動のポイントは回復の値段より少ない
+  const win={home:s.club,away:'g',homeRuns:5,awayRuns:0} as never;
+  const perSeasonMax=Math.floor(gameReward(s,win)*PREMIUM_MATCH_MULTIPLIER)*143+SEASON_COMPLETE_POINTS+150+goals;
+  assert.ok(perSeasonMax*3<STAMINA_PT_COST,`${perSeasonMax*3}`);
  });
 }
 

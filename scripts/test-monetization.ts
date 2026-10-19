@@ -48,7 +48,7 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(appEdition,false);
   const s={club:'t',franchise:{stadium:3}} as never,game={home:'t',away:'g',homeRuns:4,awayRuns:1} as never;
   const before=gameReward(s,game);setPremiumMatchBonus(true);
-  try{assert.equal(gameReward(s,game),before);assert.equal(before,28);}finally{setPremiumMatchBonus(false);}
+  try{assert.equal(gameReward(s,game),before);assert.equal(before,5);}finally{setPremiumMatchBonus(false);}
   withBridge(undefined,()=>{
    assert.equal(renderToStaticMarkup(createElement(PremiumPassCard)),'');
    assert.equal(renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})),'');

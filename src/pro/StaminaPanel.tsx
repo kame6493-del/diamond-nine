@@ -3,7 +3,7 @@ import {Clock,Coins,Crown,PlayCircle,Play,Bell} from 'lucide-react';
 import type {GameState} from './engine';
 import {monetizeBridge,useMonetize} from './monetization';
 import {
- DRINK_RESTORE,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,
+ DRINK_RESTORE,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,STAMINA_PT_RESTORE,
  FREE_SEASONS,costToFinish,formatWait,freeSeasonsLeft,gamesLeft,seasonCost,staminaStage,useStamina,type StaminaView,
 } from './stamina';
 import './stamina.css';
@@ -54,11 +54,11 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
    setNote(r==='rewarded'?`行動力 ＋${STAMINA_AD_POINTS}`:r==='dismissed'?'最後まで見ると回復します。':r==='limit'?'今日の広告の回復は終わりました。':r==='failed'?'広告を読み込めませんでした。時間をおいてお試しください。':'');
   }finally{setAdBusy(false);actions.onAdEnd();}
  };
- const buy=()=>{if(!confirm){setConfirm(true);return;}setConfirm(false);setNote(actions.onBuy()?`${count(STAMINA_PT_COST)} pt で行動力 ＋${v.max}`:'回復できませんでした。');};
+ const buy=()=>{if(!confirm){setConfirm(true);return;}setConfirm(false);setNote(actions.onBuy()?`${count(STAMINA_PT_COST)} pt で行動力 ＋${STAMINA_PT_RESTORE}`:'回復できませんでした。');};
  const drink=()=>{setNote(actions.onDrink()?`回復ドリンクで行動力 ＋${DRINK_RESTORE}`:'回復できませんでした。');};
  const [notifyNote,setNotifyNote]=useState('');
  const askNotify=()=>{void (typeof window!=="undefined"?window.diamondReminder:undefined)?.ask().then(ok=>setNotifyNote(ok?'満タンになったらお知らせします。':'通知が許可されませんでした。端末の設定から変えられます。'));};
- const ptOk=state.gems>=STAMINA_PT_COST&&v.points+v.max<=STAMINA_HARD_CAP;
+ const ptOk=state.gems>=STAMINA_PT_COST&&v.points+STAMINA_PT_RESTORE<=STAMINA_HARD_CAP;
  // 回復した時はきらめき、満タンになった時はバッジを一度だけ動かす。
  const prev=useRef(v.points),[burst,setBurst]=useState(0),[fullPop,setFullPop]=useState(0);
  useEffect(()=>{
@@ -96,9 +96,9 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
    </div>
    <div className="st-opt">
     <span className="st-opt-icon"><Coins size={18}/></span>
-    <div><b>ポイントで回復</b><small>{count(STAMINA_PT_COST)} pt で ＋{v.max}（所持 {count(state.gems)} pt）</small></div>
+    <div><b>ポイントで回復</b><small>{count(STAMINA_PT_COST)} pt で ＋{STAMINA_PT_RESTORE}（所持 {count(state.gems)} pt）</small></div>
     {confirm?<span className="st-confirm"><button type="button" className={primary} disabled={!ptOk} onClick={buy}>使う</button><button type="button" className={secondary} onClick={()=>setConfirm(false)}>やめる</button></span>
-    :<button type="button" className={secondary} disabled={!ptOk||busy} onClick={buy}>{state.gems<STAMINA_PT_COST?'pt が足りない':`＋${v.max}`}</button>}
+    :<button type="button" className={secondary} disabled={!ptOk||busy} onClick={buy}>{state.gems<STAMINA_PT_COST?'pt が足りない':`＋${STAMINA_PT_RESTORE}`}</button>}
    </div>
    {v.drinks>0&&<div className="st-opt">
     <span className="st-opt-icon is-art"><img src={ART+'stamina-drink.webp'} alt="" aria-hidden="true" width={67} height={96}/></span>

@@ -15,8 +15,11 @@ export const PASS_STAMINA_MAX=40;
 export const PASS_STAMINA_REGEN_MS=2*60*1000;
 // 回復で上限を超えて持てる量の天井(ドリンクを無駄にしないため超過は許す)。
 export const STAMINA_HARD_CAP=200;
-// pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。スカウト1回と同じ 3,000pt。
-export const STAMINA_PT_COST=3000;
+// pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。4,000pt(2026-10-19 経済の見直しで 3,000→4,000)。
+// 3シーズンで入る自動のポイントより高くして、pt で行動力を買い続けると増える、を起こさない。
+export const STAMINA_PT_COST=4000;
+// pt の回復で足す量はパスがあっても30(国内3年)。パスの上限40ぶんにすると、強いチームでは買い続けた方が増えてしまうため。
+export const STAMINA_PT_RESTORE=30;
 // 配るドリンク1本で足す量。ログインで1本、今日の目標を全部で1本。
 export const DRINK_RESTORE=10;// 国内の1年ぶん
 // 広告1回で足す量と1日の回数(スカウトの広告とは別に数える)。
@@ -90,7 +93,7 @@ export function addStamina(r:StaminaRecord,amount:number,now:number,rules:Stamin
  const s=settle(r,now,rules),points=Math.min(STAMINA_HARD_CAP,s.points+Math.max(0,Math.floor(amount)));
  return {...s,points,at:points>=rules.max?Math.max(now,s.seen):s.at};
 }
-export const canBuyWithPoints=(r:StaminaRecord,gems:number,now:number,rules:StaminaRules)=>gems>=STAMINA_PT_COST&&settle(r,now,rules).points+rules.max<=STAMINA_HARD_CAP;
+export const canBuyWithPoints=(r:StaminaRecord,gems:number,now:number,rules:StaminaRules)=>gems>=STAMINA_PT_COST&&settle(r,now,rules).points+STAMINA_PT_RESTORE<=STAMINA_HARD_CAP;
 export function useDrink(r:StaminaRecord,now:number,rules:StaminaRules):StaminaRecord|null{
  if(r.drinks<=0)return null;
  const s=settle(r,now,rules);if(s.points+DRINK_RESTORE>STAMINA_HARD_CAP)return null;
