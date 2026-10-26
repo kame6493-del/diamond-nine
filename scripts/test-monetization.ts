@@ -73,17 +73,18 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(spentThisMonth(r,'2026-11'),0,'the cap resets each month');assert.equal(addSpend(r,'2026-11',160).yen,160);
   assert.deepEqual(parseSpend(JSON.stringify(r)),r);assert.equal(parseSpend('{"month":"x","yen":-1}'),null);assert.equal(parseSpend('{bad'),null);
  });
- test('pack shop: browser build shows app-only buttons; the app shows store prices or 販売準備中',()=>{
+ test('pack shop: browser build shows app-only buttons; the app shows store prices, or a retry when the store cannot be reached',()=>{
   const web=withBridge(undefined,()=>renderToStaticMarkup(createElement(PackShop)));
   assert.equal((web.match(/アプリ版で<small>使えます/g)??[]).length,pointPacks.length);assert.match(web,/300,000/);assert.match(web,/スカウト100回分/);assert.doesNotMatch(web,/10連/);assert.match(web,/disabled=""/);
   const none=withBridge(fakeBridge({...snapshot(),packs:{status:'unavailable',prices:{},busy:false,message:''}}),()=>renderToStaticMarkup(createElement(PackShop)));
-  assert.equal((none.match(/販売準備中/g)??[]).length,pointPacks.length);
+  // 2026-10-26: ストアにつながらない時は「読み込めません」と「もう一度読み込む」(押せないまま黙らない)
+  assert.equal((none.match(/読み込めません/g)??[]).length,pointPacks.length);assert.match(none,/もう一度読み込む/);assert.doesNotMatch(none,/販売準備中/);
   const ready=withBridge(fakeBridge({...snapshot(),packs:{status:'ready',prices:{pt_pack_300000:'￥10,000'},busy:false,message:''}}),()=>renderToStaticMarkup(createElement(PackShop)));
   assert.match(ready,/￥10,000/);assert.match(ready,/保護者の同意/);
  });
  test('premium pass shows store prices only and disables purchase until the product exists',()=>{
   const off=withBridge(fakeBridge(snapshot()),()=>renderToStaticMarkup(createElement(PremiumPassCard)));
-  assert.match(off,/販売準備中/);assert.match(off,/disabled=""[^>]*>販売準備中/);assert.match(off,/購入を復元/);assert.doesNotMatch(off,/円/);
+  assert.match(off,/disabled=""[^>]*>読み込めません/);assert.match(off,/もう一度読み込む/);assert.match(off,/購入を復元/);assert.doesNotMatch(off,/円/);
   const ready=withBridge(fakeBridge(snapshot({status:'ready',price:'￥480'})),()=>renderToStaticMarkup(createElement(PremiumPassCard)));
   assert.match(ready,/￥480 で購入する/);
   const owned=withBridge(fakeBridge(snapshot({status:'ready',price:'￥480',owned:true})),()=>renderToStaticMarkup(createElement(PremiumPassCard)));

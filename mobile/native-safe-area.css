@@ -31,3 +31,19 @@ body::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--dn-top)
 /* floating messages and the title celebration */
 .deck-notice{bottom:calc(var(--dn-bottom) + 20px)!important}
 .title-celebration{padding-top:var(--dn-top);padding-bottom:var(--dn-bottom)}
+
+/* ---- 2026-10-26: the bright ("pawa") look ----
+   Its header has a fixed height (--hdr 52px) with box-sizing:border-box, so adding the status
+   bar height to its padding squeezed the logo, the pt pill and the sound button down and cut
+   them off on phones with a tall status bar / punch-hole (seen at 52dp). Grow the header by
+   the inset instead; every one-screen layout (scout, season, team board) subtracts --hdr, so
+   they shrink by the same amount and nothing ends up under the bottom bar. */
+html[data-look] .nv-app.nv-app{--hdr:calc(52px + var(--dn-top))}
+@media (min-width:900px){html[data-look] .nv-app.nv-app{--hdr:calc(52px + var(--dn-top))}}
+html[data-look] .nv-app.nv-app .s-header{height:var(--hdr)!important;padding-top:calc(var(--dn-top) + 4px)!important;padding-bottom:4px!important}
+/* sheets and dialogs of the bright look (shop, odds, player, goals, bench) */
+html[data-look] .nv-app.nv-app .pw-modal{padding-top:calc(16px + var(--dn-top));padding-bottom:calc(16px + var(--dn-bottom))}
+html[data-look] .nv-app.nv-app .pw-sheet-modal{padding:calc(8px + var(--dn-top)) 0 0}
+html[data-look] .nv-app.nv-app .pw-sheet{max-height:min(90dvh,calc(100dvh - var(--dn-top) - 8px))}
+html[data-look] .nv-app.nv-app .pw-endband{top:calc(8px + var(--dn-top))}
+.daily-toast{bottom:calc(18px + var(--dn-bottom))!important}

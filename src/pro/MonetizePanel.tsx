@@ -20,7 +20,7 @@ export function RewardAdButton({disabled,onStart,onReward,onEnd}:{disabled:boole
   setNote('');onStart();
   try{
    const result=await bridge.showRewardAd(onReward);
-   setNote(result==='rewarded'?'広告のお礼に1回引きます。':result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。時間をおいてお試しください。':'');
+   setNote(result==='rewarded'?'広告のお礼に1回引きます。':result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。少し待ってから、もう一度押してください。':result==='busy'?'ほかの広告を表示中です。閉じてからもう一度押してください。':'');
   }finally{onEnd();}
  };
  return <div className="reward-ad">
@@ -54,9 +54,9 @@ export function PremiumPassCard(){
   <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て1回引く」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>
   {premium.owned?<p className="premium-pass-owned" role="status">購入済み・有効です{premium.verified?'':'（前回の確認結果）'}</p>:
    <button type="button" className="s-primary premium-pass-buy" disabled={premium.status!=='ready'||premium.busy} onClick={()=>buy()}>
-    {premium.status==='checking'?'ストアを確認中…':premium.status==='ready'&&premium.price?`${premium.price} で購入する`:'販売準備中'}
+    {premium.status==='checking'?'ストアを確認中…':premium.status==='ready'&&premium.price?`${premium.price} で購入する`:'読み込めません'}
    </button>}
-  {premium.status==='unavailable'&&!premium.owned&&<p className="premium-pass-note">ストアでの販売開始をお待ちください。</p>}
+  {premium.status==='unavailable'&&!premium.owned&&<div className="pack-retry" role="status"><p>ストアに接続できませんでした。通信状態を確認して、もう一度読み込んでください。</p><button type="button" className="s-button" onClick={()=>bridge?.refreshStore?.(true)}>もう一度読み込む</button></div>}
   <button type="button" className="s-button" disabled={premium.busy} onClick={()=>void bridge?.restorePremium()}>購入を復元</button>
   {asking&&<AgeAsk onChoose={band=>{saveAgeBand(band);setAsking(false);buy(band);}} onCancel={()=>setAsking(false)}/>}
   {(note||premium.message)&&<p role="status">{note||premium.message}</p>}

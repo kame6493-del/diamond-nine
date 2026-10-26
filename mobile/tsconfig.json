@@ -15,6 +15,7 @@
   },
   "include": [
     "runtime.ts",
+    "launch.ts",
     "monetize.ts",
     "../src/pro/native-files.ts"
   ]

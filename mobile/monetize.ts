@@ -25,6 +25,40 @@ const read=(k:string)=>{try{return localStorage.getItem(k);}catch{return null;}}
 const write=(k:string,v:string)=>{try{localStorage.setItem(k,v);}catch{/* ads/bonus still work this session */}};
 const sleep=(ms:number)=>new Promise<void>(r=>setTimeout(r,ms));
 const withTimeout=<T,>(p:Promise<T>,ms:number)=>Promise.race([p,sleep(ms).then(()=>{throw new Error('timeout');})]) as Promise<T>;
+const errText=(e:unknown)=>String((e as {message?:string})?.message??e);
+
+// ---------- one store call at a time (2026-10-26) ----------
+// @capgo/native-purchases (Android) ends the previous BillingClient at the start of EVERY call.
+// Two calls at once cut each other off: at start-up the premium and pack price queries
+// failed ("販売準備中"), and the refresh that ran on 'resume' when the Play purchase sheet
+// closed killed the purchase's own client, so its result never came back (the button
+// stayed busy and the points arrived only at the next start). Every NativePurchases call
+// now goes through this queue, and nothing refreshes while a purchase is open.
+let storeChain:Promise<unknown>=Promise.resolve();
+function store<T>(task:()=>Promise<T>,ms=20000):Promise<T>{
+ const run=storeChain.then(()=>withTimeout(task(),ms));
+ storeChain=run.catch(()=>{});
+ return run;
+}
+let purchasing=false;
+// Waits for the Play / App Store purchase sheet. The plugin never answers when the sheet
+// could not open (launchBillingFlow error), so: no 'pause' within 12 s = the sheet did not
+// open; after the sheet closed ('resume') the result must arrive within 25 s. Either way we
+// stop waiting and re-read the store, which picks up a purchase that did go through.
+// Android only: iOS fires 'pause' only on backgrounding, not for the StoreKit sheet.
+function purchaseCall(task:()=>Promise<Transaction>):Promise<Transaction>{
+ if(platform!=='android')return store(task,30*60*1000);
+ return store(()=>new Promise<Transaction>((resolve,reject)=>{
+  let settled=false,timer:ReturnType<typeof setTimeout>|undefined;
+  const handles:Promise<PluginListenerHandle>[]=[];
+  const finish=(fn:()=>void)=>{if(settled)return;settled=true;if(timer)clearTimeout(timer);for(const h of handles)void h.then(x=>x.remove()).catch(()=>{});fn();};
+  const arm=(ms:number,code:string)=>{if(timer)clearTimeout(timer);timer=setTimeout(()=>finish(()=>reject(new Error(code))),ms);};
+  arm(12000,'SHEET_NOT_OPENED');
+  handles.push(App.addListener('pause',()=>{if(!settled&&timer)clearTimeout(timer);}));
+  handles.push(App.addListener('resume',()=>{if(!settled)arm(25000,'RESULT_LOST');}));
+  task().then(t=>finish(()=>resolve(t)),e=>finish(()=>reject(e)));
+ }),30*60*1000);
+}
 
 // ---------- observable state ----------
 const listeners=new Set<()=>void>();
@@ -47,17 +81,21 @@ function refreshPremium():Promise<void>{
  return refreshing??=(async()=>{
   let price:string|null=null,status:PremiumSnapshot['status']='unavailable';
   try{
-   const {products}=await withTimeout(NativePurchases.getProducts({productIdentifiers:[PRODUCT],productType:PURCHASE_TYPE.INAPP}),15000);
+   const {products}=await store(()=>NativePurchases.getProducts({productIdentifiers:[PRODUCT],productType:PURCHASE_TYPE.INAPP}));
    const product=products.find(p=>p.identifier===PRODUCT||p.planIdentifier===PRODUCT);
    if(product?.priceString){price=product.priceString;status='ready';}
-  }catch{/* product not registered yet, offline, or billing unavailable */}
+  }catch(e){
+   track('store_error',{step:'premium_products',msg:errText(e).slice(0,90)});
+   // keep a price we already had (a brief network failure must not stop the sale)
+   if(premium.price){price=premium.price;status='ready';}
+  }
   try{
    // iOS: Transaction.currentEntitlements (refunded/revoked excluded). Android: queryPurchasesAsync.
-   const {purchases}=await withTimeout(NativePurchases.getPurchases({productType:PURCHASE_TYPE.INAPP,onlyCurrentEntitlements:true}),15000);
+   const {purchases}=await store(()=>NativePurchases.getPurchases({productType:PURCHASE_TYPE.INAPP,onlyCurrentEntitlements:true}));
    const mine=purchases.filter(validPurchase);
    // Play refunds unacknowledged purchases after 3 days: acknowledge anything left over
    // (e.g. a PENDING payment that completed while the app was closed).
-   if(platform==='android')for(const t of mine)if(t.isAcknowledged===false&&t.purchaseToken)await NativePurchases.acknowledgePurchase({purchaseToken:t.purchaseToken}).catch(()=>{});
+   if(platform==='android')for(const t of mine)if(t.isAcknowledged===false&&t.purchaseToken){const token=t.purchaseToken;await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token})).catch(()=>{});}
    const owned=mine.length>0;write(KEY.premium,owned?'1':'0');
    setPremium({status,price,owned,verified:true});
   }catch{
@@ -70,22 +108,27 @@ async function buyPremium(){
  if(premium.busy||premium.status!=='ready'||premium.owned)return;
  setPremium({busy:true,message:''});track('premium_begin',{price:premium.price??''});
  try{
-  const t=await NativePurchases.purchaseProduct({productIdentifier:PRODUCT,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:true});
+  purchasing=true;
+  const t=await purchaseCall(()=>NativePurchases.purchaseProduct({productIdentifier:PRODUCT,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:true}));
+  purchasing=false;
   if(validPurchase(t)){
-   if(platform==='android'&&t.isAcknowledged===false&&t.purchaseToken)await NativePurchases.acknowledgePurchase({purchaseToken:t.purchaseToken}).catch(()=>{});
+   if(platform==='android'&&t.isAcknowledged===false&&t.purchaseToken){const token=t.purchaseToken;await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token})).catch(()=>{});}
    write(KEY.premium,'1');recordSpend(PREMIUM_PASS_PRICE_YEN);setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
   }else setPremium({message:'お支払いの完了を待っています。完了すると自動で有効になります。'});
  }catch(e){
-  const text=String((e as {message?:string})?.message??e);track('premium_fail',{cancelled:/cancel/i.test(text)});
-  setPremium({message:/cancel/i.test(text)?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると自動で有効になります。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
+  purchasing=false;
+  const text=errText(e),cancelled=/cancel/i.test(text);track('premium_fail',{cancelled,msg:text.slice(0,90)});
+  // the result did not come back / already owned: re-read the store before saying anything
+  if(!cancelled)await refreshPremium();
+  setPremium({message:premium.owned?'プレミアムパスを有効にしました。ありがとうございます！':cancelled?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると自動で有効になります。':/RESULT_LOST/.test(text)?'購入の結果を確認できませんでした。お支払いが済んでいれば、次に開いたときに有効になります。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
  }finally{
-  setPremium({busy:false});void refreshPremium();
+  purchasing=false;setPremium({busy:false});void refreshPremium();
  }
 }
 async function restorePremium(){
  if(premium.busy)return;
  setPremium({busy:true,message:''});
- try{await withTimeout(NativePurchases.restorePurchases(),60000);}catch{/* still re-query below */}
+ try{await store(()=>NativePurchases.restorePurchases(),60000);}catch{/* still re-query below */}
  await refreshPremium();
  setPremium({busy:false,message:!premium.verified?'ストアに接続できませんでした。時間をおいてお試しください。':premium.owned?'購入を復元しました。':'復元できる購入は見つかりませんでした。'});
 }
@@ -120,35 +163,57 @@ async function fulfil(t:Transaction){
   flushPending();
  }
  try{
-  if(platform==='android')await NativePurchases.consumePurchase({purchaseToken:token});
-  else await NativePurchases.acknowledgePurchase({purchaseToken:token});
+  if(platform==='android')await store(()=>NativePurchases.consumePurchase({purchaseToken:token}));
+  else await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token}));
  }catch{/* retried at the next start from getPurchases */}
  return true;
 }
-async function refreshPacks(){
- try{
-  const {products}=await withTimeout(NativePurchases.getProducts({productIdentifiers:pointPackIds,productType:PURCHASE_TYPE.INAPP}),15000);
-  const prices:Record<string,string>={};for(const p of products)if(p.priceString&&packById(p.identifier))prices[p.identifier]=p.priceString;
-  setPacks({status:Object.keys(prices).length?'ready':'unavailable',prices});
- }catch{setPacks({status:'unavailable'});}
- // 前回アプリが途中で閉じた購入(支払い済み・未消費)を拾う。
- try{
-  const {purchases}=await withTimeout(NativePurchases.getPurchases({productType:PURCHASE_TYPE.INAPP}),15000);
-  for(const t of purchases)if(validPack(t))await fulfil(t);
- }catch{/* offline */}
+let packsRefreshing:Promise<void>|null=null;
+function refreshPacks():Promise<void>{
+ return packsRefreshing??=(async()=>{
+  try{
+   const {products}=await store(()=>NativePurchases.getProducts({productIdentifiers:pointPackIds,productType:PURCHASE_TYPE.INAPP}));
+   const prices:Record<string,string>={};for(const p of products)if(p.priceString&&packById(p.identifier))prices[p.identifier]=p.priceString;
+   setPacks({status:Object.keys(prices).length?'ready':'unavailable',prices});
+  }catch(e){
+   track('store_error',{step:'pack_products',msg:errText(e).slice(0,90)});
+   // 取れていた価格は残す(一時的な通信の失敗で買えなくしない)。
+   setPacks({status:Object.keys(packs.prices).length?'ready':'unavailable'});
+  }
+  // 前回アプリが途中で閉じた購入(支払い済み・未消費)を拾う。
+  try{
+   const {purchases}=await store(()=>NativePurchases.getPurchases({productType:PURCHASE_TYPE.INAPP}));
+   for(const t of purchases)if(validPack(t))await fulfil(t);
+  }catch{/* offline */}
+ })().finally(()=>{packsRefreshing=null;});
+}
+// ストアにつながらなかった時: ショップを開いた時と「もう一度読み込む」で読み直す。
+let lastStoreRetry=0;
+function refreshStore(force=false){
+ if(purchasing||packs.busy||premium.busy)return;
+ const now=Date.now();if(!force&&now-lastStoreRetry<10000)return;lastStoreRetry=now;
+ if(force||packs.status==='unavailable'){setPacks({status:'checking',message:''});void refreshPacks();}
+ if(force||premium.status==='unavailable')void refreshPremium();
 }
 async function buyPack(id:string){
  const pack=packById(id);
  if(!pack||packs.busy||!packs.prices[id])return;
  setPacks({busy:true,message:''});track('pack_begin',{id});
  try{
-  const t=await NativePurchases.purchaseProduct({productIdentifier:id,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:false});
+  purchasing=true;
+  const t=await purchaseCall(()=>NativePurchases.purchaseProduct({productIdentifier:id,productType:PURCHASE_TYPE.INAPP,quantity:1,isConsumable:false,autoAcknowledgePurchases:false}));
+  purchasing=false;
   if(validPack(t)&&await fulfil(t))setPacks({message:`${pack.points.toLocaleString('ja-JP')} pt を受け取りました。ありがとうございます！`});
   else setPacks({message:'お支払いの完了を待っています。完了すると次に開いたときに受け取れます。'});
  }catch(e){
-  const text=String((e as {message?:string})?.message??e);track('pack_fail',{id,cancelled:/cancel/i.test(text)});
-  setPacks({message:/cancel/i.test(text)?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると次に開いたときに受け取れます。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
- }finally{setPacks({busy:false});}
+  purchasing=false;
+  const text=errText(e),cancelled=/cancel/i.test(text);track('pack_fail',{id,cancelled,msg:text.slice(0,90)});
+  // 結果が届かなかった・前の購入が未消費(ITEM_ALREADY_OWNED)の時は、ストアを読み直して受け取る。
+  const before=readLedger().granted.length;
+  if(!cancelled)await refreshPacks();
+  const got=readLedger().granted.length>before;
+  setPacks({message:got?'お支払い済みのポイントを受け取りました。ありがとうございます！':cancelled?'購入をキャンセルしました。':/pending|PURCHASE_STATE_2/i.test(text)?'お支払いの完了を待っています。完了すると次に開いたときに受け取れます。':/RESULT_LOST/.test(text)?'購入の結果を確認できませんでした。お支払いが済んでいれば、次に開いたときに受け取れます。':'購入を完了できませんでした。通信状態を確認して、もう一度お試しください。'});
+ }finally{purchasing=false;setPacks({busy:false});}
 }
 
 // ---------- ads ----------
@@ -158,18 +223,26 @@ let rewardLoaded=false,rewardLoading:Promise<void>|null=null,interstitialLoaded=
 function initAds():Promise<void>{
  return adsInit??=(async()=>{
   try{
-   await AdMob.initialize({initializeForTesting:config.useTestAds});
-   let info=await AdMob.requestConsentInfo();
+   await withTimeout(AdMob.initialize({initializeForTesting:config.useTestAds}),15000);
+   // UMP: a consent request that never answers must not leave the ad button waiting forever.
+   let info=await withTimeout(AdMob.requestConsentInfo(),10000);
    if(!info.canRequestAds&&info.isConsentFormAvailable&&info.status===AdmobConsentStatus.REQUIRED)info=await AdMob.showConsentForm();
    privacyOptions=String(info.privacyOptionsRequirementStatus)==='REQUIRED';
    adsAllowed=info.canRequestAds;emit();
+   if(!adsAllowed)track('ad_error',{step:'consent',msg:String(info.status)});
    if(adsAllowed){void preloadReward();void preloadInterstitial();}
-  }catch{adsInit=null;/* offline or SDK failure: retried on resume */}
+  }catch(e){
+   // Japan needs no consent form; if UMP itself failed (offline, misconfigured message),
+   // ads may still be requested — the SDK only serves what the region allows.
+   track('ad_error',{step:'init',msg:errText(e).slice(0,90)});
+   adsInit=null;
+  }
  })();
 }
+let rewardError='',rewardLoadedAt=0;
 function preloadReward(){
  if(!adsAllowed||rewardLoaded)return Promise.resolve();
- return rewardLoading??=AdMob.prepareRewardVideoAd(adOptions(ids.rewardedId)).then(()=>{rewardLoaded=true;},()=>{rewardLoaded=false;}).finally(()=>{rewardLoading=null;});
+ return rewardLoading??=AdMob.prepareRewardVideoAd(adOptions(ids.rewardedId)).then(()=>{rewardLoaded=true;rewardLoadedAt=Date.now();rewardError='';},e=>{rewardLoaded=false;rewardError=errText(e).slice(0,90);track('ad_error',{step:'reward_load',msg:rewardError});}).finally(()=>{rewardLoading=null;});
 }
 function preloadInterstitial(){
  if(!adsAllowed||interstitialLoaded||premium.owned)return Promise.resolve();
@@ -184,12 +257,15 @@ async function showAd(key:string,limit:number,amount:number,event:string,onRewar
  rewardBusy=true;emit();
  const handles:PluginListenerHandle[]=[];
  try{
-  await initAds();if(!adsAllowed)return 'failed';
-  if(!rewardLoaded)await withTimeout(preloadReward(),15000);
-  if(!rewardLoaded)return 'failed';
-  let granted=false,done!:()=>void;const closed=new Promise<void>(r=>{done=r;});
+  await withTimeout(initAds(),20000).catch(()=>{});
+  if(!adsAllowed){track(event,{outcome:'failed',reason:'not_ready'});return 'failed';}
+  // a loaded ad expires after an hour: load a fresh one instead of failing to show
+  if(rewardLoaded&&Date.now()-rewardLoadedAt>50*60*1000)rewardLoaded=false;
+  if(!rewardLoaded)await withTimeout(preloadReward(),20000).catch(()=>{});
+  if(!rewardLoaded){track(event,{outcome:'failed',reason:rewardError||'load_timeout'});return 'failed';}
+  let granted=false,showFailed=false,done!:()=>void;const closed=new Promise<void>(r=>{done=r;});
   handles.push(await AdMob.addListener(RewardAdPluginEvents.Dismissed,()=>done()));
-  handles.push(await AdMob.addListener(RewardAdPluginEvents.FailedToShow,()=>done()));
+  handles.push(await AdMob.addListener(RewardAdPluginEvents.FailedToShow,()=>{showFailed=true;done();}));
   rewardLoaded=false;fullscreen=true;
   // The reward is granted ONLY from the SDK's earned-reward callback (this promise
   // resolves from onUserEarnedReward / userDidEarnRewardHandler), and only once.
@@ -197,11 +273,12 @@ async function showAd(key:string,limit:number,amount:number,event:string,onRewar
    if(granted)return;granted=true;
    write(key,JSON.stringify(spendDaily(parseDaily(read(key)),localDay())));
    try{onReward(amount);}finally{emit();}
-  },()=>done());
+  },()=>{showFailed=true;done();});
   await Promise.race([closed,sleep(180000)]);
   await sleep(500);// a reward callback may land just after dismissal
-  track(event,{outcome:granted?'rewarded':'dismissed'});
-  return granted?'rewarded':'dismissed';
+  const outcome:RewardOutcome=granted?'rewarded':showFailed?'failed':'dismissed';
+  track(event,{outcome,...(showFailed?{reason:'show_failed'}:{})});
+  return outcome;
  }catch{rewardLoaded=false;return 'failed';}
  finally{
   for(const h of handles)void h.remove();
@@ -241,6 +318,7 @@ const bridge:MonetizeBridge={
  async showPrivacyOptions(){try{await AdMob.showPrivacyOptionsForm();}catch{/* not required in this region */}},
  setPointSink(fn){sink=fn;flushPending();},
  buyPack,
+ refreshStore:(force?:boolean)=>refreshStore(!!force),
 };
 
 // Called synchronously from runtime.ts (native only) before the game renders.
@@ -254,6 +332,9 @@ export function installMonetize(){
  let lastResume=0;
  void App.addListener('resume',()=>{
   const now=Date.now();if(now-lastResume<30000)return;lastResume=now;
-  void refreshPremium();void refreshPacks();if(!adsAllowed)void initAds();emit();// emit: daily counters roll over at midnight
+  // never while a purchase sheet is open: a refresh would end the purchase's billing client
+  if(!purchasing){void refreshPremium();void refreshPacks();}
+  if(!adsAllowed)void initAds();else void preloadReward();
+  emit();// emit: daily counters roll over at midnight
  }).catch(()=>{});
 }

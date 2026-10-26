@@ -51,7 +51,7 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
   setNote('');setAdBusy(true);actions.onAdStart();
   try{
    const r=await bridge.showStaminaAd(a=>actions.onAdReward(a));
-   setNote(r==='rewarded'?`行動力 ＋${STAMINA_AD_POINTS}`:r==='dismissed'?'最後まで見ると回復します。':r==='limit'?'今日の広告の回復は終わりました。':r==='failed'?'広告を読み込めませんでした。時間をおいてお試しください。':'');
+   setNote(r==='rewarded'?`行動力 ＋${STAMINA_AD_POINTS}`:r==='dismissed'?'最後まで見ると回復します。':r==='limit'?'今日の広告の回復は終わりました。':r==='failed'?'広告を読み込めませんでした。少し待ってから、もう一度押してください。':r==='busy'?'ほかの広告を表示中です。閉じてからもう一度押してください。':'');
   }finally{setAdBusy(false);actions.onAdEnd();}
  };
  const buy=()=>{if(!confirm){setConfirm(true);return;}setConfirm(false);setNote(actions.onBuy()?`${count(STAMINA_PT_COST)} pt で行動力 ＋${STAMINA_PT_RESTORE}`:'回復できませんでした。');};

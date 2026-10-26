@@ -50,6 +50,8 @@ export interface MonetizeBridge {
  // 受け取りが終わってからストアへ消費を伝える。口が無い間に届いた分は、口が付いた時に渡す。
  setPointSink?(sink: ((points: number, productId: string) => void) | null): void;
  buyPack?(productId: string): Promise<void>;
+ // 2026-10-26: ストアにつながらなかった時の読み直し(ショップを開いた時・「もう一度読み込む」)。
+ refreshStore?(force?: boolean): void;
 }
 declare global {interface Window {diamondMonetize?: MonetizeBridge}}
 

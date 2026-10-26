@@ -27,6 +27,16 @@ for(const page of ['index.html','welcome.html','guide.html']){
  const path=resolve(out,page);await writeFile(path,(await readFile(path,'utf8')).replace(/<meta name="google-adsense-account"[^>]*>\s*/g,''));
 }
 await rm(resolve(out,'ads.txt'),{force:true});
+// Native loading screen (2026-10-26): same navy as the Android splash, art made with ChatGPT
+// (mobile/launch/). mobile/launch.ts fades it out once the game has drawn.
+await cp('mobile/launch',resolve(out,'assets/launch'),{recursive:true});
+{
+ const path=resolve(out,'index.html');
+ const launch=`<style>html:not([data-look]){background:#0a2a66}#dn-launch{position:fixed;inset:0;z-index:2147483000;background:#0a2a66;overflow:hidden;transition:opacity .4s ease}#dn-launch.is-out{opacity:0;pointer-events:none}#dn-launch .dn-launch-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:dn-launch-in .6s ease-out .05s both}#dn-launch .dn-launch-logo{position:absolute;left:50%;top:40%;width:min(64vw,320px);height:auto;transform:translate(-50%,-50%);animation:dn-launch-logo .7s cubic-bezier(.2,.8,.2,1) both}@keyframes dn-launch-in{from{opacity:0}to{opacity:1}}@keyframes dn-launch-logo{from{top:50%;width:188px}to{top:40%;width:min(64vw,320px)}}#dn-launch .dn-launch-load{position:absolute;left:50%;bottom:calc(11% + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));transform:translateX(-50%);width:min(52vw,240px);text-align:center;color:#dbe7ff;font:700 13px/1.4 system-ui,sans-serif;letter-spacing:.12em;text-shadow:0 1px 4px rgba(0,0,0,.85)}#dn-launch .dn-launch-bar{height:4px;margin-top:10px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}#dn-launch .dn-launch-bar i{display:block;width:38%;height:100%;border-radius:4px;background:linear-gradient(90deg,#ffd76a,#ffb627);animation:dn-launch-run 1.1s ease-in-out infinite}@keyframes dn-launch-run{0%{transform:translateX(-100%)}100%{transform:translateX(270%)}}@media (prefers-reduced-motion:reduce){#dn-launch .dn-launch-bar i,#dn-launch .dn-launch-bg,#dn-launch .dn-launch-logo{animation:none;width:100%}#dn-launch .dn-launch-logo{width:min(64vw,320px)}}</style><div id="dn-launch" aria-hidden="true"><img class="dn-launch-bg" src="/assets/launch/launch-bg.webp" alt="" decoding="async"><img class="dn-launch-logo" src="/assets/launch/launch-logo.webp" alt="" decoding="async"><div class="dn-launch-load">読み込み中<div class="dn-launch-bar"><i></i></div></div></div>`;
+ const html=await readFile(path,'utf8');
+ if(!html.includes('<div id="root"></div>'))throw new Error('index.html has no #root for the loading screen');
+ await writeFile(path,html.replace('<div id="root"></div>',launch+'<div id="root"></div>').replace(/<meta name="theme-color" content="[^"]*"/,'<meta name="theme-color" content="#0a2a66"'));
+}
 // Store support/privacy pages are hosted on the web; nothing in the app links to them.
 for(const page of ['app-support.html','app-privacy.html'])await rm(resolve(out,page),{force:true});
 await cp('mobile/privacy.html',resolve(out,'privacy.html'));

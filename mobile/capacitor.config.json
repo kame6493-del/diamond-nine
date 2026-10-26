@@ -2,11 +2,18 @@
   "appId": "com.diamondninebaseball.game",
   "appName": "DIAMOND NINE",
   "webDir": "www",
-  "backgroundColor": "#ffffff",
+  "backgroundColor": "#0a2a66",
   "ios": {
     "contentInset": "automatic"
   },
   "android": {
     "allowMixedContent": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
   }
 }
