@@ -1,9 +1,10 @@
 // ブラウザ版で「広告を見て1回引く」の流れを確かめるための見本(テスト表示)。
 // URL に ?addemo=1 を付けたときだけ入る(タブを閉じるまで有効)。本物の広告は出さず、広告SDKも読み込まない。
 // アプリ版は mobile/monetize.ts の本物の AdMob ブリッジが window.diamondMonetize に入るので、ここは何もしない。
-import {REWARD_AD_DAILY_LIMIT,REWARD_AD_POINTS,dailyLeft,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot,type RewardOutcome} from './monetization';
+import {REWARD_AD_DAILY_LIMIT,REWARD_AD_POINTS,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot,type RewardOutcome} from './monetization';
 
-const KEY='diamond-nine-reward-ads-demo',FLAG='diamond-nine-addemo',SECONDS=5;
+const KEY='diamond-nine-reward-ads-demo',FLAG='diamond-nine-addemo',SECONDS=5,PACE='diamond-nine-interstitial-demo';
+const launchedAt=Date.now();
 const read=(k:string)=>{try{return localStorage.getItem(k);}catch{return null;}};
 const write=(k:string,v:string)=>{try{localStorage.setItem(k,v);}catch{/* this session only */}};
 
@@ -29,9 +30,20 @@ export function installAdDemo(){
   const timer=setInterval(()=>{left--;if(left<=0&&!granted){granted=true;clearInterval(timer);write(KEY,JSON.stringify(spendDaily(parseDaily(read(KEY)),localDay())));onReward(REWARD_AD_POINTS);}tick();},1000);
   close.onclick=()=>{clearInterval(timer);box.remove();busy=false;emit();resolve(granted?'rewarded':'dismissed');};
  });
+ // 全画面広告の見本: 本物と同じ間隔の決まり(5分あける・起動から1分は出さない)。?addemo=1&adfast=1 で間隔の決まりだけ外して流れを確かめる。
+ let lastShown=Number(read(PACE)??0)||0;
+ const fast=(()=>{try{return new URLSearchParams(location.search).get('adfast')==='1';}catch{return false;}})();
+ const showInterstitial=(reason:'season'|'scout')=>new Promise<boolean>(resolve=>{
+  if(busy||(!fast&&!interstitialDue(reason,{premium:false,lastShownAt:lastShown,now:Date.now(),scoutsSince:0,launchedAt}))){resolve(false);return;}
+  lastShown=Date.now();write(PACE,String(lastShown));
+  const box=document.createElement('div');box.className='dn-addemo dn-addemo-full';box.setAttribute('role','dialog');box.setAttribute('aria-label','全画面広告(テスト表示)');
+  box.innerHTML='<div class="dn-addemo-card"><p class="dn-addemo-tag is-full">テスト表示</p><h2>ここに全画面広告が出ます</h2><p>アプリ版では 2シーズンに1回、結果を見たあとに出ます。プレミアムパスでは出ません。</p><button type="button" class="dn-addemo-close">閉じる</button></div>';
+  document.body.appendChild(box);
+  (box.querySelector('.dn-addemo-close') as HTMLButtonElement).onclick=()=>{box.remove();resolve(true);};
+ });
  const bridge:MonetizeBridge={
   snapshot:()=>snap,subscribe:l=>{listeners.add(l);return()=>{listeners.delete(l);};},
-  buyPremium:async()=>{},restorePremium:async()=>{},showRewardAd,noteScout:()=>{},showInterstitial:async()=>false,claimPremiumDaily:()=>0,showPrivacyOptions:async()=>{},
+  buyPremium:async()=>{},restorePremium:async()=>{},showRewardAd,noteScout:()=>{},showInterstitial,claimPremiumDaily:()=>0,showPrivacyOptions:async()=>{},
  };
  window.diamondMonetize=bridge;
 }

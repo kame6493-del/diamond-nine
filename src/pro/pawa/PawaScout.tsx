@@ -125,6 +125,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
    {money?adSlot&&<div className="pw-sc-adbtn">{adSlot}</div>:<div className="pw-sc-adbtn"><div className="reward-ad"><button type="button" className="s-button reward-ad-button" disabled>広告を見て1回引く<small>アプリ版で使えます</small></button></div></div>}
    <div className="pw-sc-dockinfo"><p className={'pw-balance '+(canDraw?'ok':'short')}>所持 <b>{count(state.gems)}</b> pt<br/><span>{canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回`:`あと${count(SIMPLE_SCOUT_COST-state.gems)}pt`}</span></p><div className="pw-sc-dockacts"><button className="pw-btn pw-white pw-mini pw-buy-mini" onClick={()=>setShop(true)}>ポイント購入</button>{canDraw?<button className="pw-btn pw-white pw-mini" onClick={()=>setOdds(true)}>提供割合</button>:<button className="pw-btn pw-white pw-mini" onClick={onSeason}>試合へ</button>}</div></div>
+   {!canDraw&&!drawing&&!!money&&money.reward.left>0&&<p className="reward-ad-short" role="note">ポイントが足りない時は「広告を見て1回引く」で、動画を最後まで見ると1回引けます（今日あと {money.reward.left} 回）</p>}
   </section>
 
   {shop&&<div className="pw-modal pw-sheet-modal" onClick={()=>setShop(false)}><div className="pw-sheet pw-shop-sheet" role="dialog" aria-modal="true" aria-label="ポイント購入" onClick={e=>e.stopPropagation()}>

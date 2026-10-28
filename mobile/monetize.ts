@@ -18,6 +18,7 @@ import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend} from '../src/p
 import type {PacksSnapshot} from '../src/pro/monetization';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
+const launchedAt=Date.now();
 const ids=config[platform];
 const PRODUCT=config.premiumProductId;
 const KEY={premium:'diamond-nine-premium-cache',reward:'diamond-nine-reward-ads',daily:'diamond-nine-premium-daily',pacing:'diamond-nine-interstitial',ledger:'diamond-nine-iap-ledger',staminaAd:'diamond-nine-stamina-ads'};
@@ -291,7 +292,7 @@ const readPacing=():Pacing=>{try{const v=JSON.parse(read(KEY.pacing)??'');if(Num
 function noteScout(){const p=readPacing();write(KEY.pacing,JSON.stringify({...p,scoutsSince:p.scoutsSince+1}));}
 async function showInterstitial(reason:'season'|'scout'){
  const p=readPacing();
- if(!interstitialDue(reason,{premium:premium.owned,lastShownAt:Math.max(p.lastShownAt,lastFullscreenAt),now:Date.now(),scoutsSince:p.scoutsSince}))return false;
+ if(!interstitialDue(reason,{premium:premium.owned,lastShownAt:Math.max(p.lastShownAt,lastFullscreenAt),now:Date.now(),scoutsSince:p.scoutsSince,launchedAt}))return false;
  if(fullscreen||rewardBusy||!adsAllowed||!interstitialLoaded){void preloadInterstitial();return false;}
  const handles:PluginListenerHandle[]=[];
  try{

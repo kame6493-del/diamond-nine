@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {INTERSTITIAL_COOLDOWN_MS,INTERSTITIAL_GRACE_SEASONS,PREMIUM_DAILY_POINTS,REWARD_AD_POINTS,interstitialGraceOver,REWARD_AD_DAILY_LIMIT,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot} from '../src/pro/monetization';
+import {INTERSTITIAL_COOLDOWN_MS,INTERSTITIAL_GRACE_SEASONS,INTERSTITIAL_LAUNCH_QUIET_MS,seasonInterstitialDue,PREMIUM_DAILY_POINTS,REWARD_AD_POINTS,interstitialGraceOver,REWARD_AD_DAILY_LIMIT,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot} from '../src/pro/monetization';
 import {PremiumPassCard,RewardAdButton} from '../src/pro/MonetizePanel';
 import {appEdition,setPremiumMatchBonus} from '../src/pro/platform-economy';
 import {gameReward} from '../src/pro/progression';
@@ -19,12 +19,16 @@ const withBridge=<T,>(bridge:MonetizeBridge|undefined,run:()=>T)=>{
 export function registerMonetizationTests(test:(name:string,run:()=>void)=>void){
  test('reward ads count per local day and reset the next day',()=>{
   const day='2026-09-30';
-  assert.equal(dailyLeft(null,day,REWARD_AD_DAILY_LIMIT),3);
+  assert.equal(REWARD_AD_DAILY_LIMIT,5,'2026-10-28: five ad scouts a day');
+  assert.equal(dailyLeft(null,day,REWARD_AD_DAILY_LIMIT),5);
   let record=null as ReturnType<typeof parseDaily>;
-  for(let i=0;i<3;i++)record=spendDaily(record,day);
+  for(let i=0;i<4;i++)record=spendDaily(record,day);
+  assert.equal(dailyLeft(record,day,REWARD_AD_DAILY_LIMIT),1);
+  record=spendDaily(record,day);
   assert.equal(dailyLeft(record,day,REWARD_AD_DAILY_LIMIT),0);
-  assert.equal(dailyLeft(record,'2026-10-01',REWARD_AD_DAILY_LIMIT),3);
-  assert.deepEqual(parseDaily(JSON.stringify(record)),{day,used:3});
+  assert.equal(dailyLeft(spendDaily(record,day),day,REWARD_AD_DAILY_LIMIT),0,'never negative');
+  assert.equal(dailyLeft(record,'2026-10-01',REWARD_AD_DAILY_LIMIT),5);
+  assert.deepEqual(parseDaily(JSON.stringify(record)),{day,used:5});
   assert.equal(parseDaily('{bad'),null);assert.equal(parseDaily('{"day":"x","used":-1}'),null);
   assert.equal(localDay(new Date(2026,0,5,23,59)),'2026-01-05');
  });
@@ -91,5 +95,27 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.match(owned,/購入済み/);assert.doesNotMatch(owned,/で購入する/);
   const ad=withBridge(fakeBridge(snapshot()),()=>renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})));
   assert.match(ad,/広告を見て1回引く/);assert.match(ad,/今日あと 3 \/ 3 回/);
+ });
+ test('2026-10-28 ad scouts on home and result: label, remaining count, hidden when used up there, kept (disabled) on the scout page',()=>{
+  const left=(n:number):MonetizeSnapshot=>({...snapshot(),reward:{available:true,busy:false,left:n,limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}});
+  const props={disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}};
+  const home=withBridge(fakeBridge(left(4)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,label:'動画を見てスカウト1回',hideWhenNone:true})));
+  assert.match(home,/動画を見てスカウト1回/);assert.match(home,/今日あと 4 \/ 5 回/);assert.doesNotMatch(home,/disabled/);assert.doesNotMatch(home,/10連|まとめ/);
+  assert.equal(withBridge(fakeBridge(left(0)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,label:'動画を見てスカウト1回',hideWhenNone:true}))),'');
+  const scout=withBridge(fakeBridge(left(0)),()=>renderToStaticMarkup(createElement(RewardAdButton,props)));
+  assert.match(scout,/今日の広告で引ける分は終了/);assert.match(scout,/disabled=""/);assert.match(scout,/今日あと 0 \/ 5 回/);
+  const busy=withBridge(fakeBridge(left(2)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,disabled:true})));
+  assert.match(busy,/disabled=""/,'no ad while a game or a draw is running');
+ });
+ test('2026-10-28 full-screen ads: every second season after the grace, never at launch, never twice within five minutes, never for pass owners',()=>{
+  assert.deepEqual([1,2,3,4,5,6,7,8].map(seasonInterstitialDue),[false,true,false,true,false,true,false,true]);
+  assert.equal(seasonInterstitialDue(0),false);
+  const now=10*60*60*1000,base={premium:false,lastShownAt:0,now,scoutsSince:0,launchedAt:0};
+  assert.equal(interstitialDue('season',base),true);
+  assert.equal(interstitialDue('season',{...base,launchedAt:now-10*1000}),false,'not right after launch');
+  assert.equal(interstitialDue('season',{...base,launchedAt:now-INTERSTITIAL_LAUNCH_QUIET_MS}),true);
+  assert.equal(interstitialDue('season',{...base,lastShownAt:now-60*1000}),false,'not back to back (a rewarded ad counts too)');
+  assert.equal(interstitialDue('season',{...base,premium:true}),false,'pass owners never see one');
+  assert.equal(INTERSTITIAL_LAUNCH_QUIET_MS,60*1000);
  });
 }

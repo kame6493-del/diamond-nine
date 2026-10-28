@@ -3,9 +3,10 @@ import {useSyncExternalStore} from 'react';
 // App-only monetization. The native bridge (mobile/monetize.ts) sets
 // window.diamondMonetize; the browser build never has it, so nothing here
 // loads ad or billing code on the web.
-// 2026-10-15: a rewarded ad is one free scout (worth SIMPLE_SCOUT_COST = 3,000 pt), up to 3 a day.
+// 2026-10-15: a rewarded ad is one free scout (worth SIMPLE_SCOUT_COST = 3,000 pt).
+// 2026-10-28: 1日3回 → 5回(持ち主「動画を見てガチャを回せる感じに」)。押せる場所はスカウト・ホーム・シーズン結果。1回ずつだけ。
 export const REWARD_AD_POINTS = 3000;
-export const REWARD_AD_DAILY_LIMIT = 3;
+export const REWARD_AD_DAILY_LIMIT = 5;
 // 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
 export const PREMIUM_DAILY_POINTS = 500;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
@@ -13,6 +14,12 @@ export const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
 // New players see no full-screen ads until they have finished this many seasons.
 export const INTERSTITIAL_GRACE_SEASONS = 2;
 export const interstitialGraceOver = (seasonsPlayed: number) => seasonsPlayed >= INTERSTITIAL_GRACE_SEASONS;
+// 2026-10-28: 全画面広告は「1年進める」の結果を見たあとの切り替わりだけ、2シーズンに1回(2・4・6…季目を終えた時)。
+// スカウト画面を出る時の全画面広告はやめた。起動から1分は出さない。チュートリアル中は呼ぶ側(SimpleApp)で止める。
+export const INTERSTITIAL_EVERY_SEASONS = 2;
+export const INTERSTITIAL_LAUNCH_QUIET_MS = 60 * 1000;
+export const seasonInterstitialDue = (seasonsPlayed: number) =>
+ interstitialGraceOver(seasonsPlayed) && seasonsPlayed % INTERSTITIAL_EVERY_SEASONS === 0;
 export const PREMIUM_PRODUCT_ID = 'premium_pass';
 
 export type PremiumStatus = 'checking' | 'unavailable' | 'ready';
@@ -81,7 +88,9 @@ export const dailyLeft = (record: DailyCount | null, today: string, limit: numbe
 export const spendDaily =(record: DailyCount | null, today: string): DailyCount =>
  ({day: today, used: (record?.day === today ? record.used : 0) + 1});
 
-export interface InterstitialPacing {premium: boolean; lastShownAt: number; now: number; scoutsSince: number}
+// launchedAt: アプリを開いた時刻(起動直後は出さない)。lastShownAt はリワード広告も含めた最後の全画面。
+export interface InterstitialPacing {premium: boolean; lastShownAt: number; now: number; scoutsSince: number; launchedAt?: number}
 export const interstitialDue = (reason: 'season' | 'scout', p: InterstitialPacing) =>
  !p.premium && p.now - p.lastShownAt >= INTERSTITIAL_COOLDOWN_MS &&
+ p.now - (p.launchedAt ?? 0) >= INTERSTITIAL_LAUNCH_QUIET_MS &&
  (reason === 'season' || p.scoutsSince >= INTERSTITIAL_EVERY_SCOUTS);

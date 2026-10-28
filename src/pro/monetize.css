@@ -7,3 +7,10 @@
 .dn-addemo-tag{display:inline-block;margin:0;padding:2px 10px;border-radius:999px;background:#ffe3e3;color:#b81d26;font:900 13px system-ui}
 .dn-addemo-count{margin:12px 0;font:900 16px system-ui;color:#1766e8}
 .dn-addemo-close{min-height:48px;min-width:160px;border-radius:12px;border:2px solid #b9c9e6;background:#fff;color:#10264f;font:900 16px system-ui;cursor:pointer}
+/* 2026-10-28 動画を見てスカウト1回(ホーム・シーズン結果)と、ポイント不足の案内 */
+.pw-home-ad .reward-ad,.pw-rs-ad .reward-ad{margin:8px 0 0}
+.pw-home-ad .reward-ad-button,.pw-rs-ad .reward-ad-button{border-radius:14px;border:2px solid #1766e8;background:#fff;color:#10408f}
+.pw-home-ad .reward-ad-button:disabled,.pw-rs-ad .reward-ad-button:disabled{border-color:#d3dbe8;color:#6d7890}
+.pw-rs-ad{margin:4px 0 8px}
+.pw-sc-dock .reward-ad-short{grid-column:1/-1;margin:0;padding:4px 6px 2px;font-size:12px;line-height:1.45;color:#10408f;text-align:center}
+.dn-addemo-tag.is-full{background:#e3ecff;color:#1746a8}

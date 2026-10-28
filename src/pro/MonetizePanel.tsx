@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {Crown,PlayCircle} from 'lucide-react';
-import {INTERSTITIAL_EVERY_SCOUTS,PREMIUM_DAILY_POINTS,monetizeBridge,useMonetize} from './monetization';
+import {PREMIUM_DAILY_POINTS,monetizeBridge,useMonetize} from './monetization';
 import {PREMIUM_MATCH_MULTIPLIER} from './platform-economy';
 import {PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_MAX,STAMINA_REGEN_MS} from './stamina';
 import {canSpend,monthlyLimit,PREMIUM_PASS_PRICE_YEN,readAgeBand,readSpent,saveAgeBand,type AgeBand} from './point-products';
@@ -10,22 +10,24 @@ import './monetize.css';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
 
-// Rewarded ad near the scout wallet. Renders nothing in the browser build.
-export function RewardAdButton({disabled,onStart,onReward,onEnd}:{disabled:boolean;onStart:()=>void;onReward:(points:number)=>void;onEnd:()=>void}){
+// Rewarded ad: 見終わったら1回引く。スカウト画面・ホーム・シーズン結果に置く。Renders nothing in the browser build.
+// label: ボタンの文言(ホーム・結果は「動画を見てスカウト1回」)。hideWhenNone: 今日の分が終わったら出さない(スカウト画面以外)。
+export function RewardAdButton({disabled,onStart,onReward,onEnd,label='広告を見て1回引く',hideWhenNone=false,className=''}:{disabled:boolean;onStart:()=>void;onReward:(points:number)=>void;onEnd:()=>void;label?:string;hideWhenNone?:boolean;className?:string}){
  const m=useMonetize(),[note,setNote]=useState('');
  if(!m)return null;
  const {reward}=m,none=reward.left<=0;
+ if(none&&hideWhenNone&&!note)return null;
  const watch=async()=>{
   const bridge=monetizeBridge();if(!bridge||disabled||reward.busy||none)return;
   setNote('');onStart();
   try{
    const result=await bridge.showRewardAd(onReward);
-   setNote(result==='rewarded'?'広告のお礼に1回引きます。':result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。少し待ってから、もう一度押してください。':result==='busy'?'ほかの広告を表示中です。閉じてからもう一度押してください。':'');
+   setNote(result==='rewarded'?'視聴ありがとうございます。スカウトを1回引きます。':result==='dismissed'?'最後まで視聴すると受け取れます。':result==='limit'?'今日の上限に達しました。':result==='failed'?'広告を読み込めませんでした。少し待ってから、もう一度押してください。':result==='busy'?'ほかの広告を表示中です。閉じてからもう一度押してください。':'');
   }finally{onEnd();}
  };
- return <div className="reward-ad">
+ return <div className={'reward-ad '+className}>
   <button type="button" className="s-button reward-ad-button" disabled={disabled||reward.busy||none} onClick={()=>void watch()}>
-   <PlayCircle size={18}/>{reward.busy?'広告を読み込み中…':none?'今日の広告で引ける分は終了':'広告を見て1回引く'}
+   <PlayCircle size={18}/>{reward.busy?'広告を読み込み中…':none?'今日の広告で引ける分は終了':label}
    <small>今日あと {reward.left} / {reward.limit} 回</small>
   </button>
   {note&&<p role="status">{note}</p>}
@@ -49,7 +51,7 @@ export function PremiumPassCard(){
    <li>試合で獲得するポイントが {PREMIUM_MATCH_MULTIPLIER} 倍</li>
    <li>毎日のログインで ＋{count(PREMIUM_DAILY_POINTS)} pt（1日1回）</li>
    <li>行動力の上限 {STAMINA_MAX}→{PASS_STAMINA_MAX}、回復 {Math.round(STAMINA_REGEN_MS/60000)}分→{Math.round(PASS_STAMINA_REGEN_MS/60000)}分ごと</li>
-   <li>シーズン終了時・スカウト{INTERSTITIAL_EVERY_SCOUTS}回ごとの広告を表示しない</li>
+   <li>シーズン終了後の全画面広告を表示しない</li>
   </ul>
   <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て1回引く」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>
   {premium.owned?<p className="premium-pass-owned" role="status">購入済み・有効です{premium.verified?'':'（前回の確認結果）'}</p>:

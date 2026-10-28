@@ -1,4 +1,4 @@
-import {useEffect,useRef} from 'react';
+import {useEffect,useRef,type ReactNode} from 'react';
 import {Check,ChevronRight,X} from 'lucide-react';
 import type {SeasonCard} from '../SimpleApp';
 import {SIMPLE_SCOUT_COST} from '../simple-game';
@@ -9,7 +9,7 @@ import {seasonGoals} from '../ambitions';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
 /** シーズン終了(ref_04)。中身は seasonCardFor() の値と、保存済みのシーズン成績から出す。 */
-export function PawaSeasonResult({card,state,onScout,onClose}:{card:SeasonCard;state:GameState;onScout:()=>void;onClose:()=>void}){
+export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:SeasonCard;state:GameState;onScout:()=>void;onClose:()=>void;adSlot?:ReactNode}){
  const ref=useRef<HTMLDivElement>(null),close=useRef(onClose);close.current=onClose;
  useEffect(()=>{
   const old=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;
@@ -58,6 +58,7 @@ export function PawaSeasonResult({card,state,onScout,onClose}:{card:SeasonCard;s
   {card.goals.length>0&&<section className="pw-panel"><header><h3>今シーズンの主な達成</h3></header><ul className="pw-rs-goals">{card.goals.map(g=><li key={g.title}><Check size={16}/>{g.title}<span>＋{count(g.reward)} pt</span></li>)}</ul></section>}
 
   {draws>0?<button className="pw-btn pw-green pw-wide" onClick={onScout}><span className="pw-cap" aria-hidden="true"/>スカウトで補強する（{draws}回分）<ChevronRight size={22}/></button>:<p className="pw-note">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p>}
+  {adSlot&&<div className="pw-rs-ad">{adSlot}</div>}
   <button className="pw-link" onClick={onClose}>結果をくわしく見る</button>
  </div>;
 }
