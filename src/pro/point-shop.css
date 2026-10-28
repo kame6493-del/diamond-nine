@@ -29,3 +29,6 @@
 .pack-retry{margin:10px 0;padding:10px 12px;border-radius:10px;background:#fff4e5;border:1px solid #f3c27a;display:grid;gap:8px}
 .pack-retry p{margin:0;font:700 13px/1.5 system-ui;color:#7a4300}
 .pack-retry .s-button{justify-self:start;min-height:44px}
+/* 2026-10-28 狭い画面でも「+NN%おトク」を1かたまりで折り返す */
+.pack-info em,.pack-info small{overflow-wrap:anywhere}.pack-info small i{display:inline-block;white-space:nowrap}
+@media (max-width:380px){.pack-list li{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"pt buy" "info buy";gap:2px 8px}.pack-pt{grid-area:pt;min-width:0}.pack-info{grid-area:info}.pack-buy{grid-area:buy}}

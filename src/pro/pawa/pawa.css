@@ -1787,8 +1787,17 @@ html[data-look=pawa] .nv-app .pack-info small{font-size:11px}
 html[data-look=pawa] .nv-app .pack-pt b{font-size:18px}
 html[data-look=pawa] .nv-app .pack-buy,html[data-look=pawa] .nv-app .pack-buy:not(:disabled){color:#fff;align-content:center;align-items:center;justify-content:center}
 html[data-look=pawa] .nv-app .pack-buy:disabled{color:#5c697d}
-html[data-look=pawa] .nv-app .pack-info small{white-space:nowrap}
 html[data-look=pawa] .nv-app .pack-info small i{font-style:normal;color:#d61f3c;font-weight:900}
+/* 2026-10-28 「+60%おトク」が狭い画面・大きい文字で購入ボタンの下に隠れていた。
+   1行に詰めず折り返し、「+NN%おトク」は1かたまりで次の行へ送る。点数の列も狭い画面で細くする。 */
+html[data-look=pawa] .nv-app .pack-info em,html[data-look=pawa] .nv-app .pack-info small{white-space:normal;overflow-wrap:anywhere}
+html[data-look=pawa] .nv-app .pack-info small i{display:inline-block;white-space:nowrap}
+@media (max-width:380px){
+ html[data-look=pawa] .nv-app .pack-list li{grid-template-columns:minmax(0,1fr) 84px;grid-template-areas:"pt buy" "info buy";gap:2px 8px;padding:6px 8px}
+ html[data-look=pawa] .nv-app .pack-pt{grid-area:pt;min-width:0}
+ html[data-look=pawa] .nv-app .pack-info{grid-area:info}
+ html[data-look=pawa] .nv-app .pack-buy{grid-area:buy;width:84px}
+}
 /* 2026-10-16 低い画面(375x667 など)でも「補強したい所」まで1画面に入れる */
 @media (max-width:899px) and (max-height:760px){
  html[data-look=pawa] .nv-app .pw-sc-idle2{justify-content:flex-start;gap:6px;padding:8px 10px;overflow:hidden}
