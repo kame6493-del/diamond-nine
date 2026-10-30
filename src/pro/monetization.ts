@@ -6,9 +6,11 @@ import {useSyncExternalStore} from 'react';
 // 2026-10-15: a rewarded ad is one free scout (worth SIMPLE_SCOUT_COST = 3,000 pt).
 // 2026-10-28: 1日3回 → 5回(持ち主「動画を見てガチャを回せる感じに」)。押せる場所はスカウト・ホーム・シーズン結果。1回ずつだけ。
 export const REWARD_AD_POINTS = 3000;
-export const REWARD_AD_DAILY_LIMIT = 5;
+// 2026-10-30 夜 持ち主「もっとガンガンガチャ回せるように」: 5回 → 10回。
+export const REWARD_AD_DAILY_LIMIT = 10;
 // 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
-export const PREMIUM_DAILY_POINTS = 500;
+// 2026-10-30 夜: 500 → 1,500(ログインボーナスを3倍にしたのに合わせる)。
+export const PREMIUM_DAILY_POINTS = 1500;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 5分 → 10分あける。
 export const INTERSTITIAL_COOLDOWN_MS = 10 * 60 * 1000;

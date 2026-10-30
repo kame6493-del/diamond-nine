@@ -12,10 +12,10 @@ import {PlayerDetails} from '../src/pro/PlayerDetails';
 const mean=(pool:Player[])=>pool.reduce((total,p)=>total+ratingOverall(p),0)/pool.length;
 export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
  test('scouting and awakening debit the same displayed wallet in either order without a second currency',()=>{
-  const base={...initialState(),gems:3600,seed:444},id=base.lineup[0],saved=JSON.stringify(base);
+  const base={...initialState(),gems:3200,seed:444},id=base.lineup[0],saved=JSON.stringify(base);
   const trained=trainPlayer(base,id);assert.equal(trained.gems,3000);assert.equal(trained.training[id],1);
   const drawn=drawSimplePlayer(trained);assert.equal(drawn.gems,0);assert.equal(drawn.pulls,1);assert.equal(drawn.training[id],1);
-  const scoutFirst=drawSimplePlayer(base);assert.equal(scoutFirst.gems,600);
+  const scoutFirst=drawSimplePlayer(base);assert.equal(scoutFirst.gems,200);
   const trainSecond=trainPlayer(scoutFirst,id);assert.equal(trainSecond.gems,0);assert.equal(trainSecond.training[id],1);
   for(const state of [drawn,trainSecond]){assert.equal(state.franchise.points,0);assert.equal(trainPlayer(state,id),state);assert.equal(drawSimplePlayer(state),state);assert.ok(validState(state));}
   assert.equal(JSON.stringify(base),saved);
@@ -48,7 +48,7 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
   for(const p of players){let last=0;for(let stage=0;stage<=5;stage++){const now=ratingOverall(p,developedRatings(p,stage));assert.ok(now>=last&&now<=124);last=now;}}
  });
  test('every awakening stage has an exact escalating price and rejects a one-point shortage without charging',()=>{
-  assert.deepEqual([...awakeningCosts],[600,1800,5400,16200,48600]);
+  assert.deepEqual([...awakeningCosts],[200,600,1800,5400,16200]);
   const base=initialState(),id=base.lineup[0];
   for(let stage=0;stage<5;stage++){
    const start={...base,training:{[id]:stage},gems:awakeningCosts[stage]-1},snapshot=JSON.stringify(start);
@@ -64,7 +64,7 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
   base.training=Object.fromEntries(ids.map((id,i)=>[id,i]));base.franchise.points=20000;
   const saved=JSON.stringify(base),restored=migrateState(JSON.parse(saved))!;assert.ok(restored);assert.deepEqual(restored,{...base,gems:base.gems+20000,franchise:{...base.franchise,points:0}});assert.deepEqual(migrateState(restored),restored);
   const fullId=ids[5];assert.equal(trainPlayer(restored,fullId),restored);assert.equal(restored.franchise.points,0);
-  const next=trainPlayer(restored,ids[3]);assert.equal(next.training[ids[3]],4);assert.equal(next.gems,base.gems+3800);assert.equal(next.training[fullId],5);assert.equal(JSON.stringify(base),saved);
+  const next=trainPlayer(restored,ids[3]);assert.equal(next.training[ids[3]],4);assert.equal(next.gems,base.gems+20000-awakeningCosts[3]);assert.equal(next.training[fullId],5);assert.equal(JSON.stringify(base),saved);
  });
  test('one focused prospect needs multiple years for late stages while early awakening is attainable in year one',()=>{
   let state=initialState(20260922);const id=findPlayer('ティマ').id,years:number[]=[];state.owned[id]??=1;
@@ -76,16 +76,16 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
    }
    assert.ok(validState(state));if(state.training[id]===5)break;state=nextSeason(state);
   }
-  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[2]>=2);// 2026-10-19 ポイントの見直し: 序盤の補強支援(12年目まで)で早まり、最後の段階は支援が終わる頃
-  assert.ok(years[3]-years[2]>=2);assert.ok(years[4]-years[3]>=6);assert.ok(years[4]>=10&&years[4]<=16,`awakening years ${years}`);assert.equal(spent,72600);
+  // 2026-10-30 夜 持ち主「引いた選手がすぐ伸びるように」: 覚醒は3分の1の値段(合計24,200pt)。1人に絞れば数年で完全覚醒、最後の段階は1年目では届かない。
+  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[4]>=2&&years[4]<=5,`awakening years ${years}`);assert.equal(spent,24200);
   assert.ok(effectiveOverall(playerMap[id],state.owned,state.training)>effectiveOverall(playerMap[id],state.owned));
  });
  test('awakening UI shows the next price, savings and shortfall, while hiding future maximum abilities',()=>{
   const base=initialState(),player=playerMap[base.lineup[0]],state={...base,training:{[player.id]:4},gems:7000};
   const html=renderToStaticMarkup(createElement(PlayerDetails,{player,state,onChange:()=>{},onAwaken:()=>{}}));
-  for(const text of ['48,600 pt','あと41,600pt','aria-valuenow="7000"','aria-valuemax="48600"'])assert.ok(html.includes(text),text);
+  for(const text of ['16,200 pt','あと9,200pt','aria-valuenow="7000"','aria-valuemax="16200"'])assert.ok(html.includes(text),text);
   assert.ok(html.includes('disabled=""'));for(const text of ['最大覚醒','次の覚醒','growth-table'])assert.ok(!html.includes(text));
   const full=renderToStaticMarkup(createElement(PlayerDetails,{player,state:{...state,training:{[player.id]:5}},onChange:()=>{},onAwaken:()=>{}}));
-  assert.ok(full.includes('完全覚醒しました'));assert.ok(!full.includes('aria-valuemax="48600"'));assert.ok(!full.includes('NaN'));
+  assert.ok(full.includes('完全覚醒しました'));assert.ok(!full.includes('aria-valuemax="16200"'));assert.ok(!full.includes('NaN'));
  });
 }

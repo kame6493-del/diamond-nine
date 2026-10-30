@@ -69,10 +69,11 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
   for(let year=0;year<4;year++){
    const before=state.gems,done=collectSimpleRewards(simulatePostseason(collectSimpleRewards(simulateDays(state,143)),60));
    const draws=(done.gems-before)/SIMPLE_SCOUT_COST;earned.push(draws);// 2026-10-19: 序盤は補強支援(引かない間は6,000/年)が入るので2〜3回(ECONOMY_UPDATE.md)
-   assert.ok(draws>=2&&draws<=3,`year ${year+1}: ${draws} point scouts`);
+   // 2026-10-30 夜 持ち主「もっとガンガン引けるように」: 完走1,500＋支援6,000＋短期決戦・目標・試合で 1年に3〜5回。
+   assert.ok(draws>=2.5&&draws<=5,`year ${year+1}: ${draws} point scouts`);
    assert.equal(done.franchise.tickets,0);state=nextSeason(done);
   }
-  assert.deepEqual(state.owned,owned);assert.ok(earned.reduce((a,b)=>a+b,0)<30);
+  assert.deepEqual(state.owned,owned);assert.ok(earned.reduce((a,b)=>a+b,0)<20);
  });
  test('MLB cards show both Ohtani ability sets and accessible player details without rarity labels',()=>{
   const player=playerMap['mlb-660271'],base=initialState(),state={...base,owned:{...base.owned,[player.id]:1}};

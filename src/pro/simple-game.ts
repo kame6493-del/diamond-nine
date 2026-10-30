@@ -5,6 +5,7 @@ import {claimSeasonGoals} from './ambitions';
 import {DRAFT_ROOKIE_CHANCE,draftEventActive,draftRookiePool} from './draft-event';
 
 export const SIMPLE_SCOUT_COST=3000;
+export const DUPLICATE_POINTS=300;
 export const MLB_SCOUT_CHANCE=.02;
 export const MLB_GUARANTEE_EVERY=30;
 export const mlbScoutCountdown=(s:GameState)=>MLB_GUARANTEE_EVERY-s.pulls%MLB_GUARANTEE_EVERY;
@@ -39,7 +40,8 @@ export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  const upgrade=!major&&!rookie&&random.next()<SCOUT_UPGRADE_CHANCE,floor=upgradeFloor(state,wantArm);
  const better=upgrade?leaned.filter(p=>p.overall>floor):[];
  const from=better.length?better:leaned.length?leaned:pool,player=from[Math.floor(random.next()*from.length)];
- const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?80:0;
+ // 2026-10-30 夜: 7枚目以降の換金 80 → 300pt(たくさん引くと重なるため)。
+ const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?DUPLICATE_POINTS:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
  state.owned[player.id]=copies;state.gems+=trainingReward;
  state.seed=random.state;state.pity=0;

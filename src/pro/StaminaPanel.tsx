@@ -3,7 +3,7 @@ import {Clock,Coins,PlayCircle,Play,Bell} from 'lucide-react';
 import type {GameState} from './engine';
 import {monetizeBridge,useMonetize} from './monetization';
 import {
- DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,STAMINA_PT_RESTORE,
+ DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,STAMINA_PT_RESTORE,regenLabel,
  FREE_SEASONS,costToFinish,formatWait,freeSeasonsLeft,gamesLeft,seasonCost,staminaStage,useStamina,type StaminaView,
 } from './stamina';
 import './stamina.css';
@@ -85,7 +85,7 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
   {showRecover&&!busy&&<div className="st-recover" aria-label="行動力の回復">
    <div className="st-opt">
     <span className="st-opt-icon"><Clock size={18}/></span>
-    <div><b>待つ（無料）</b><small>{v.full?'いまは満タンです':<>{Math.round(v.regenMs/60000)}分で1回復 · 満タンまで {formatWait(v.fullInMs)}</>}</small>{notifyNote&&<small role="status">{notifyNote}</small>}</div>
+    <div><b>待つ（無料）</b><small>{v.full?'いまは満タンです':<>{regenLabel(v.regenMs)}で1回復 · 満タンまで {formatWait(v.fullInMs)}</>}</small>{notifyNote&&<small role="status">{notifyNote}</small>}</div>
     {typeof window!=="undefined"&&window.diamondReminder&&!v.full&&<button type="button" className={secondary} onClick={askNotify}><Bell size={15}/>満タンで通知</button>}
    </div>
    <div className="st-opt">

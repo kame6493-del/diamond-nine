@@ -6,16 +6,17 @@ import {useSyncExternalStore} from 'react';
 // so resets, imports and profile switches never re-grant a day's rewards.
 export type DailyMission='play'|'scout'|'share'|'team'|'result';
 export const DAILY_MISSIONS:{id:DailyMission;label:string;points:number}[]=[
- {id:'play',label:'試合を進める',points:200},
- {id:'scout',label:'スカウトを1回引く',points:200},
- {id:'share',label:'記録や当たりをシェア（画像の保存でもOK）',points:300},
+ {id:'play',label:'試合を進める',points:600},
+ {id:'scout',label:'スカウトを1回引く',points:600},
+ {id:'share',label:'記録や当たりをシェア（画像の保存でもOK）',points:900},
  // 2026-10-19 追加(手を動かして稼ぐ): 編成を変える・シーズンの結果を見る。
- {id:'team',label:'チームの編成を変える（おまかせ編成でもOK）',points:300},
- {id:'result',label:'シーズンの結果を見る',points:200},
+ {id:'team',label:'チームの編成を変える（おまかせ編成でもOK）',points:900},
+ {id:'result',label:'シーズンの結果を見る',points:600},
 ];
 // 2026-10-30 持ち主「課金圧が強すぎる」: ログイン 300 → 500(1日の合計 2,000 → 2,200pt)。
-export const DAILY_LOGIN_POINTS=500;
-export const DAILY_ALL_BONUS=500;
+// 2026-10-30 夜 持ち主「もっとガンガンガチャ回せるように」: ログイン 500 → 1,500・目標 3倍・全部達成 500 → 1,500(1日の合計 2,200 → 6,600pt)。
+export const DAILY_LOGIN_POINTS=1500;
+export const DAILY_ALL_BONUS=1500;
 // One-time gift for everyone who starts the game around the public launch.
 // 2026-10-16: 30,000 → 15,000(スカウト5回分)。受け取り済みの人は同じ id なので二重にもらわず、取り上げもしない。
 export const LAUNCH_GIFT={id:'launch-2026',points:15000,until:'2026-11-30'} as const;

@@ -41,7 +41,8 @@ export function overallAbilityScore(p:Player,r:Ratings=p.ratings):number{
 }
 // Late stages require several seasons of investment, while the first stage
 // remains attainable in the opening season. Existing stages are never repriced.
-export const awakeningCosts=[600,1800,5400,16200,48600] as const;
+// 2026-10-30 夜 持ち主「引いた選手をすぐ育てられるように」: 600/1,800/5,400/16,200/48,600 → 3分の1。伸び方(若手ほど伸びる)は変えない。
+export const awakeningCosts=[200,600,1800,5400,16200] as const;
 export const stageNames=['未覚醒','芽生え','躍進','開花','飛躍','完全覚醒'];
 export function growthProfile(p:Player){
  const age=playerAge(p),rookie=isRookie(p),ovr=baseAbilityScore(p),evidence=evidenceFor(p);

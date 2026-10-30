@@ -74,7 +74,7 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
   const oldProfile={...zero,mode:'free' as const,pulls:10};
   const oldBonus=collectSimpleRewards(oldProfile);assert.equal(oldBonus.franchise.tickets,0);assert.equal(collectSimpleRewards(oldBonus),oldBonus);
   const overflow={...zero,gems:3000,owned:Object.fromEntries(players.map(p=>[p.id,6]))};
-  const next=drawSimplePlayer(overflow);assert.equal(next.lastPulls[0].copies,7);assert.equal(next.lastPulls[0].trainingReward,80);assert.equal(next.gems,80);assert.equal(next.franchise.points,0);
+  const next=drawSimplePlayer(overflow);assert.equal(next.lastPulls[0].copies,7);assert.equal(next.lastPulls[0].trainingReward,300);assert.equal(next.gems,300);assert.equal(next.franchise.points,0);
  });
  test('simple migration auto-collects rewards without changing existing players, abilities or results',()=>{
   const old=simulateDays(initialState(),10);old.pulls=25;old.franchise.tickets=23;old.franchise.claimed.push('contract-1');

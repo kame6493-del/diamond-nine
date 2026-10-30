@@ -8,29 +8,39 @@ import {circuitOf,seasonGames} from './leagues';
 // 待てば必ず回復するので、お金を払わなくても必ず先へ進める。
 // クラブのセーブとは別に端末へ置く(リセット・読み込み・クラブの切り替えで満タンに戻らない)。
 // 数値の理由は STAMINA_UPDATE.md。
-export const STAMINA_MAX=30;
+// 2026-10-30 夜 持ち主「もっとガンガンガチャ回せて育成できるように。行動力制限もっと減らして」: 上限 30 → 100。
+export const STAMINA_MAX=100;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 3分 → 2分で1回復(国内の1年は30分 → 20分で戻る)。
-export const STAMINA_REGEN_MS=2*60*1000;
+// 2026-10-30 夜: 2分 → 30秒で1回復(国内の1年は20分 → 5分で戻る)。
+export const STAMINA_REGEN_MS=30*1000;
 // プレミアムパス: 上限を上げ、回復を速く。
-export const PASS_STAMINA_MAX=40;
+// 2026-10-30 夜: 40 → 150。
+export const PASS_STAMINA_MAX=150;
 // 2026-10-30: パスは 2分 → 1分(無料より速いまま)。
-export const PASS_STAMINA_REGEN_MS=1*60*1000;
+// 2026-10-30 夜: 1分 → 15秒(無料の倍の速さのまま)。
+export const PASS_STAMINA_REGEN_MS=15*1000;
 // 回復で上限を超えて持てる量の天井(ドリンクを無駄にしないため超過は許す)。
-export const STAMINA_HARD_CAP=200;
+// 2026-10-30 夜: 200 → 400(上限が大きくなったため)。
+export const STAMINA_HARD_CAP=400;
 // pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。4,000pt(2026-10-19 経済の見直しで 3,000→4,000)。
 // 3シーズンで入る自動のポイントより高くして、pt で行動力を買い続けると増える、を起こさない。
 export const STAMINA_PT_COST=4000;
-// pt の回復で足す量はパスがあっても30(国内3年)。パスの上限40ぶんにすると、強いチームでは買い続けた方が増えてしまうため。
-export const STAMINA_PT_RESTORE=30;
+// pt の回復で足す量はパスがあっても同じ。
+// 2026-10-30 夜: ＋30 → ＋100(無料の上限ぶん)。行動力をほぼ縛らない方針にしたので、pt で買って増える形も許す。
+export const STAMINA_PT_RESTORE=100;
 // 配るドリンク1本で足す量。ログインで1本、今日の目標を全部で1本。
-export const DRINK_RESTORE=10;// 国内の1年ぶん
+// 2026-10-30 夜: ＋10 → ＋30(国内の3年ぶん)。
+export const DRINK_RESTORE=30;
 // 広告1回で足す量と1日の回数(スカウトの広告とは別に数える)。
-export const STAMINA_AD_POINTS=10;
+// 2026-10-30 夜: ＋10 → ＋30。
+export const STAMINA_AD_POINTS=30;
 // 2026-10-30: 1日3回 → 5回。
-export const STAMINA_AD_DAILY_LIMIT=5;
+// 2026-10-30 夜: 5回 → 10回。
+export const STAMINA_AD_DAILY_LIMIT=10;
 // 段階(STAMINA_UPDATE.md)。
 // 序盤: 5シーズン目まで行動力を使わない(選手を集める間は自由に)。2026-10-30 に 3 → 5。
-export const FREE_SEASONS=5;
+// 2026-10-30 夜: 5 → 10。
+export const FREE_SEASONS=10;
 // 慣らし: 4シーズン目から、スカウトが10回に届くまでは国内の1年が半分(5)。
 export const WARMUP_PULLS=10;
 // 1年に使う行動力: 国内10・海外12・宇宙15(上のリーグほど、急ぎたい人に pt とパスが効く)。
@@ -135,6 +145,8 @@ const INTRO_KEY='diamond-nine-stamina-intro';
 export const staminaIntroDue=(state:GameState)=>{if(seasonCost(state)<=0)return false;try{return localStorage.getItem(INTRO_KEY)!=='1';}catch{return false;}};
 export const markStaminaIntro=()=>{try{localStorage.setItem(INTRO_KEY,'1');}catch{/* 次にまた出る */}};
 
+// 回復の間隔の表示(30秒・15秒のように1分未満もある)。
+export const regenLabel=(ms:number)=>ms%60000===0?`${ms/60000}分`:`${Math.round(ms/1000)}秒`;
 export const formatWait=(ms:number)=>{
  const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
  return h?`${h}時間${String(m).padStart(2,'0')}分`:m?`${m}分${String(sec).padStart(2,'0')}秒`:`${sec}秒`;
