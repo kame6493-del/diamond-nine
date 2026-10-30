@@ -928,7 +928,9 @@ button.nv-card{cursor:pointer}
 /* ヘッダーは1行(ロゴ・pt・音) */
 @media (max-width:899px){
  .nv-app .s-header{height:var(--hdr);box-sizing:border-box;flex-wrap:nowrap;align-items:center;padding:4px 10px}
- .nv-app .s-brand-wordmark{height:40px;max-width:42vw}
+ /* 2026-10-30: 幅が足りない時はロゴの方を縮める(行動力の数字がロゴの下に隠れていた) */
+ .nv-app .s-brand-wordmark{height:40px;max-width:min(42vw,100%)}
+ .nv-app .s-header>div{flex:none}
  .nv-app .s-header>div{flex-wrap:nowrap}
  .nv-app .s-wallet{font-size:19px;padding:3px 10px 3px 4px}
  .nv-app .s-header .s-icon{width:44px;height:44px}
@@ -1598,7 +1600,8 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 .pw-b5-head small{font:800 11px/1.2 system-ui;color:var(--mu);text-align:center;white-space:nowrap}
 .pw-b5-head .pw-b5-stat{text-align:left}
 .pw-b5-ovr-sp{flex:none;width:36px;text-align:center;font:800 11px system-ui;color:var(--mu)}
-.pw-b5{flex:1 1 0;min-height:0;display:flex;border-radius:12px;touch-action:pan-y}
+/* 2026-10-30: 行は中身より低く縮めない(縮めると名前・成績が上下の行に重なっていた)。余った高さは分け合う */
+.pw-b5{flex:1 0 auto;min-height:0;display:flex;border-radius:12px;touch-action:pan-y}
 .pw-b5-row{flex:1;display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;min-width:0}
 .pw-b5-row:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
 .pw-b5-left{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;width:30px}
@@ -1639,7 +1642,8 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 .pw-b5-head .pw-b5-main{flex:1}
 /* スマホ: 画面の高さいっぱいに行を広げる(下の3つのボタンまで1画面) */
 @media (max-width:999px){
- .pw-board5 .pw-b5-list{height:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom) - 12px - 54px - 56px)}
+ /* 2026-10-30: 高さは「最低」この大きさ。収まらない時(ステータスバーが高い端末・文字を大きくした端末)は下へ伸びてスクロールする */
+ .pw-board5 .pw-b5-list{min-height:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom) - 12px - 54px - 56px)}
  .pw-b5-list .pw-b5{min-height:44px}
  .pw-b5-plist .pw-b5{min-height:36px}
  .pw-b5-plist{gap:3px}
@@ -1655,6 +1659,8 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
  /* 野手: 成績(打率・本・点・OPS)は名前の行の右に短く。能力の行はそのまま */
  .pw-b5:not(.pw-b5-p) .pw-b5-sub .pw-b5-stat{display:none}
  .pw-b5:not(.pw-b5-p) .pw-b5-topstat{display:inline-flex;margin-left:auto;flex:none}
+ /* 名前と成績が1行に入らない時は、成績を名前の下の行へ回す(重ねない) */
+ .pw-b5:not(.pw-b5-p) .pw-b5-top{flex-wrap:wrap;row-gap:1px}
  .pw-b5:not(.pw-b5-p) .pw-b5-top>small{display:none}
  .pw-b5:not(.pw-b5-p) .pw-b5-top .pw-b4-name{min-width:0;max-width:110px;overflow:hidden;text-overflow:ellipsis}
  .pw-b5-list:not(.pw-b5-plist) .pw-b5-head .pw-b5-stat{display:none}
@@ -1795,7 +1801,7 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
 }
 /* 2026-10-16 低い画面(375x667 など)でも「補強したい所」まで1画面に入れる */
 @media (max-width:899px) and (max-height:760px){
- .pw-sc-idle2{justify-content:flex-start;gap:6px;padding:8px 10px;overflow:hidden}
+ .pw-sc-idle2{justify-content:flex-start;gap:6px;padding:8px 10px}
  .pw-sc-idle-top{gap:10px}
  .pw-sc-idle-top img{width:64px}
  .pw-sc-idle-top h2{font-size:16px;margin:0 0 4px}
@@ -1816,3 +1822,26 @@ button.pw-tname{display:inline-flex;align-items:center;gap:4px;max-width:100%;mi
  .pw-sc-idle-top img{width:96px}
  .pw-sc-idle-top p{display:none}
 }
+
+/* 2026-10-30 スカウトの待ち受けは中身より低く切らない(下の「補強したい所」や案内が消えていた)。収まらない時は場の中でスクロール */
+.pw-sc-idle{height:auto;min-height:100%}
+/* 下の欄: 所持pt と「ポイント購入」「提供割合」が1行に入らない時は2行にする(文字を大きくすると所持ptが縦1文字ずつに潰れ、提供割合が右で切れていた) */
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo{flex-wrap:wrap;row-gap:4px}
+.pw-sc-dock:has(.pw-sc-adbtn) .pw-sc-dockinfo .pw-balance{flex:1 0 auto;white-space:nowrap}
+.pw-sc-dockacts{flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+/* 2026-10-30 投手の「先1」「中2」「抑」の札は白い字に(打順の番号の青が勝ち、赤い札に青い字で読みにくかった) */
+.pw-b5-left .pw-b3-no.pw-b3-role{color:#fff}
+/* ランク C の札は白い字が読める濃さの黄に */
+.pw-b4-t i[data-rank=C]{background:#b98a00}
+/* 2026-10-30 ロゴは flex の中で縮める(min-width:auto のままだと縮まず、行動力の数字の上に重なっていた) */
+.s-brand-wordmark{min-width:0;flex:0 1 auto}
+/* 年齢の確認(はじめての購入の前): 明るい見た目のボタンの決まりに負けて 19px の細字・2行折り返しになっていた */
+.pack-age button{min-height:44px;padding:6px 4px;font:900 14px/1.2 system-ui;color:#0b3fa3;white-space:nowrap}
+.pack-age .pack-age-cancel{font:800 13px system-ui;color:#3a4a66}
+/* 2026-10-30 ポイント購入のシートの下にも「閉じる」(右上の×だけだと分かりにくい) */
+.pw-sheet-close{display:block;width:100%;min-height:48px;margin:10px 0 4px;font-size:16px}
+/* 2026-10-30 成績の数字(太い数字の字体)の頭が欄の上で2〜3px切れていた。上下に余白を持たせる */
+.pw-b5-stat{padding:3px 0;line-height:1.3}
+/* 2026-10-30 押せない間の購入ボタン(「ストアを確認中…」「読み込めません」「確認中…」)の字が薄い黄・灰色の地に溶けて読めなかった */
+.premium-pass .premium-pass-buy:disabled{opacity:1;filter:none;background:#f1e7c6;border-color:#cdb67a;box-shadow:none;color:#4d3f12}
+.pack-list .pack-buy:disabled{opacity:1;color:#3d4a63;background:#e6ebf3;border-color:#b9c4d6}

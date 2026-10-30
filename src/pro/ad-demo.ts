@@ -30,14 +30,14 @@ export function installAdDemo(){
   const timer=setInterval(()=>{left--;if(left<=0&&!granted){granted=true;clearInterval(timer);write(KEY,JSON.stringify(spendDaily(parseDaily(read(KEY)),localDay())));onReward(REWARD_AD_POINTS);}tick();},1000);
   close.onclick=()=>{clearInterval(timer);box.remove();busy=false;emit();resolve(granted?'rewarded':'dismissed');};
  });
- // 全画面広告の見本: 本物と同じ間隔の決まり(5分あける・起動から1分は出さない)。?addemo=1&adfast=1 で間隔の決まりだけ外して流れを確かめる。
+ // 全画面広告の見本: 本物と同じ間隔の決まり(10分あける・起動から1分は出さない)。?addemo=1&adfast=1 で間隔の決まりだけ外して流れを確かめる。
  let lastShown=Number(read(PACE)??0)||0;
  const fast=(()=>{try{return new URLSearchParams(location.search).get('adfast')==='1';}catch{return false;}})();
  const showInterstitial=(reason:'season'|'scout')=>new Promise<boolean>(resolve=>{
   if(busy||(!fast&&!interstitialDue(reason,{premium:false,lastShownAt:lastShown,now:Date.now(),scoutsSince:0,launchedAt}))){resolve(false);return;}
   lastShown=Date.now();write(PACE,String(lastShown));
   const box=document.createElement('div');box.className='dn-addemo dn-addemo-full';box.setAttribute('role','dialog');box.setAttribute('aria-label','全画面広告(テスト表示)');
-  box.innerHTML='<div class="dn-addemo-card"><p class="dn-addemo-tag is-full">テスト表示</p><h2>ここに全画面広告が出ます</h2><p>アプリ版では 2シーズンに1回、結果を見たあとに出ます。プレミアムパスでは出ません。</p><button type="button" class="dn-addemo-close">閉じる</button></div>';
+  box.innerHTML='<div class="dn-addemo-card"><p class="dn-addemo-tag is-full">テスト表示</p><h2>ここに全画面広告が出ます</h2><p>アプリ版では 3シーズンに1回、結果を見たあとに出ます。プレミアムパスでは出ません。</p><button type="button" class="dn-addemo-close">閉じる</button></div>';
   document.body.appendChild(box);
   (box.querySelector('.dn-addemo-close') as HTMLButtonElement).onclick=()=>{box.remove();resolve(true);};
  });

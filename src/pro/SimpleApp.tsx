@@ -239,8 +239,8 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
  // Gifts and the tester request wait until the guided first season is over.
  const [tutorialOn,setTutorialOn]=useState(true),[giftPopup,setGiftPopup]=useState(0),[seasonCard,setSeasonCard]=useState<SeasonCard|null>(null),[reminderAsk,setReminderAsk]=useState(false);
  const closeSeasonCard=()=>{setSeasonCard(null);showPendingInterstitial();if(reminderAskDue(state.history.length+(state.season.completed?1:0)))setReminderAsk(true);};
- // 全画面広告(2026-10-28): 2シーズンに1回、結果を見たあと画面が切り替わる時(結果を閉じる・次のシーズンへ)に1回だけ。
- // チュートリアル中・操作中・広告の最中は出さず、次の切り替わりまで持ち越す。パス購入者・起動直後・5分以内は monetize 側で止める。
+ // 全画面広告(2026-10-28、10-30 に 3シーズンに1回へ): 結果を見たあと画面が切り替わる時(結果を閉じる・次のシーズンへ)に1回だけ。
+ // チュートリアル中・操作中・広告の最中は出さず、次の切り替わりまで持ち越す。パス購入者・起動直後・10分以内は monetize 側で止める。
  const interstitialPending=useRef(false),tutorialRef=useRef(true);tutorialRef.current=tutorialOn;
  const showPendingInterstitial=()=>{if(!interstitialPending.current||tutorialRef.current||lock.current)return;interstitialPending.current=false;setTimeout(()=>{if(!lock.current)void monetizeBridge()?.showInterstitial('season');},600);};
  const [message,setMessage]=useState(''),[saveError,setSaveError]=useState(loaded.warning),[busy,setBusy]=useState(false),[progress,setProgress]=useState(0),[drawing,setDrawing]=useState(false),[hasDrawn,setHasDrawn]=useState(false);

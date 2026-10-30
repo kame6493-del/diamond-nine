@@ -29,7 +29,7 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   for(const bad of ['{bad',JSON.stringify({day:'2026-10-20',login:'yes',done:[],claimed:[],all:false}),JSON.stringify({...r,claimed:['play','x'],done:['scout']})]){
    const parsed=parseDailyRecord(bad,'2026-10-20');assert.ok(parsed.claimed.every(c=>parsed.done.includes(c)));assert.ok(!parsed.all||parsed.claimed.length===3);
   }
-  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,2000);
+  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,2200);
  });
  test('storage-backed daily helpers are idempotent and silent outside the browser',()=>{
   assert.equal(takeDailyLogin(),0);assert.doesNotThrow(()=>noteDailyMission('play'));assert.equal(takeLaunchGift(),0);

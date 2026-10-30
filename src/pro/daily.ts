@@ -13,7 +13,8 @@ export const DAILY_MISSIONS:{id:DailyMission;label:string;points:number}[]=[
  {id:'team',label:'チームの編成を変える（おまかせ編成でもOK）',points:300},
  {id:'result',label:'シーズンの結果を見る',points:200},
 ];
-export const DAILY_LOGIN_POINTS=300;
+// 2026-10-30 持ち主「課金圧が強すぎる」: ログイン 300 → 500(1日の合計 2,000 → 2,200pt)。
+export const DAILY_LOGIN_POINTS=500;
 export const DAILY_ALL_BONUS=500;
 // One-time gift for everyone who starts the game around the public launch.
 // 2026-10-16: 30,000 → 15,000(スカウト5回分)。受け取り済みの人は同じ id なので二重にもらわず、取り上げもしない。

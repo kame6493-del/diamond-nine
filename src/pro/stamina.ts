@@ -9,10 +9,12 @@ import {circuitOf,seasonGames} from './leagues';
 // クラブのセーブとは別に端末へ置く(リセット・読み込み・クラブの切り替えで満タンに戻らない)。
 // 数値の理由は STAMINA_UPDATE.md。
 export const STAMINA_MAX=30;
-export const STAMINA_REGEN_MS=3*60*1000;
+// 2026-10-30 持ち主「課金圧が強すぎる」: 3分 → 2分で1回復(国内の1年は30分 → 20分で戻る)。
+export const STAMINA_REGEN_MS=2*60*1000;
 // プレミアムパス: 上限を上げ、回復を速く。
 export const PASS_STAMINA_MAX=40;
-export const PASS_STAMINA_REGEN_MS=2*60*1000;
+// 2026-10-30: パスは 2分 → 1分(無料より速いまま)。
+export const PASS_STAMINA_REGEN_MS=1*60*1000;
 // 回復で上限を超えて持てる量の天井(ドリンクを無駄にしないため超過は許す)。
 export const STAMINA_HARD_CAP=200;
 // pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。4,000pt(2026-10-19 経済の見直しで 3,000→4,000)。
@@ -24,10 +26,11 @@ export const STAMINA_PT_RESTORE=30;
 export const DRINK_RESTORE=10;// 国内の1年ぶん
 // 広告1回で足す量と1日の回数(スカウトの広告とは別に数える)。
 export const STAMINA_AD_POINTS=10;
-export const STAMINA_AD_DAILY_LIMIT=3;
+// 2026-10-30: 1日3回 → 5回。
+export const STAMINA_AD_DAILY_LIMIT=5;
 // 段階(STAMINA_UPDATE.md)。
-// 序盤: 3シーズン目まで行動力を使わない(選手を集める間は自由に)。
-export const FREE_SEASONS=3;
+// 序盤: 5シーズン目まで行動力を使わない(選手を集める間は自由に)。2026-10-30 に 3 → 5。
+export const FREE_SEASONS=5;
 // 慣らし: 4シーズン目から、スカウトが10回に届くまでは国内の1年が半分(5)。
 export const WARMUP_PULLS=10;
 // 1年に使う行動力: 国内10・海外12・宇宙15(上のリーグほど、急ぎたい人に pt とパスが効く)。

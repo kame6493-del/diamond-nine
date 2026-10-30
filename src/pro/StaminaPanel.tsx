@@ -1,9 +1,9 @@
 import {useEffect,useRef,useState} from 'react';
-import {Clock,Coins,Crown,PlayCircle,Play,Bell} from 'lucide-react';
+import {Clock,Coins,PlayCircle,Play,Bell} from 'lucide-react';
 import type {GameState} from './engine';
 import {monetizeBridge,useMonetize} from './monetization';
 import {
- DRINK_RESTORE,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,STAMINA_PT_RESTORE,
+ DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_COST,STAMINA_PT_RESTORE,
  FREE_SEASONS,costToFinish,formatWait,freeSeasonsLeft,gamesLeft,seasonCost,staminaStage,useStamina,type StaminaView,
 } from './stamina';
 import './stamina.css';
@@ -43,7 +43,6 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
  const needMs=enough?0:v.nextInMs+Math.max(0,restCost-v.points-1)*v.regenMs;
  const primary=pawa?'pw-btn pw-yellow':'s-primary',secondary=pawa?'pw-btn pw-white':'s-button';
  const empty=!enough,showRecover=empty||open;
- const pass=!!m?.premium.owned;
  const adInfo=m?.staminaReward,adLeft=adInfo?.left??0,adReady=!!m&&!!adInfo&&!!monetizeBridge()?.showStaminaAd;
  const [adBusy,setAdBusy]=useState(false);
  const watchAd=async()=>{
@@ -105,7 +104,7 @@ export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy
     <div><b>回復ドリンク</b><small>1本 ＋{DRINK_RESTORE} · 所持 {v.drinks}本（ログインと今日の目標でもらえます）</small></div>
     <button type="button" className={secondary} disabled={busy||v.points+DRINK_RESTORE>STAMINA_HARD_CAP} onClick={drink}>使う</button>
    </div>}
-   {m&&!pass&&<p className="st-pass"><Crown size={14}/>プレミアムパスで上限 {PASS_STAMINA_MAX}・{Math.round(PASS_STAMINA_REGEN_MS/60000)}分ごとに回復（設定から）</p>}
+   {/* 2026-10-30: 回復の欄のプレミアムパスの案内はやめた(パスはメニューから) */}
    {note&&<p className="st-note" role="status">{note}</p>}
   </div>}
   {!showRecover&&note&&<p className="st-note" role="status">{note}</p>}

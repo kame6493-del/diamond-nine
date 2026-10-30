@@ -10,13 +10,16 @@ export const REWARD_AD_DAILY_LIMIT = 5;
 // 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
 export const PREMIUM_DAILY_POINTS = 500;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
-export const INTERSTITIAL_COOLDOWN_MS = 5 * 60 * 1000;
+// 2026-10-30 持ち主「課金圧が強すぎる」: 5分 → 10分あける。
+export const INTERSTITIAL_COOLDOWN_MS = 10 * 60 * 1000;
 // New players see no full-screen ads until they have finished this many seasons.
-export const INTERSTITIAL_GRACE_SEASONS = 2;
+// 2026-10-30: 2 → 3シーズン。
+export const INTERSTITIAL_GRACE_SEASONS = 3;
 export const interstitialGraceOver = (seasonsPlayed: number) => seasonsPlayed >= INTERSTITIAL_GRACE_SEASONS;
 // 2026-10-28: 全画面広告は「1年進める」の結果を見たあとの切り替わりだけ、2シーズンに1回(2・4・6…季目を終えた時)。
 // スカウト画面を出る時の全画面広告はやめた。起動から1分は出さない。チュートリアル中は呼ぶ側(SimpleApp)で止める。
-export const INTERSTITIAL_EVERY_SEASONS = 2;
+// 2026-10-30: 2シーズンに1回 → 3シーズンに1回(3・6・9…季目を終えた時)。
+export const INTERSTITIAL_EVERY_SEASONS = 3;
 export const INTERSTITIAL_LAUNCH_QUIET_MS = 60 * 1000;
 export const seasonInterstitialDue = (seasonsPlayed: number) =>
  interstitialGraceOver(seasonsPlayed) && seasonsPlayed % INTERSTITIAL_EVERY_SEASONS === 0;

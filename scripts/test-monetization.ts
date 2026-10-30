@@ -41,11 +41,11 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(interstitialDue('scout',{...base,scoutsSince:3}),true);
   assert.equal(interstitialDue('scout',{...base,scoutsSince:3,premium:true}),false);
  });
- test('ad pacing leaves new players alone and keeps a five-minute gap; ads and the pass are worth a scout',()=>{
-  assert.equal(INTERSTITIAL_COOLDOWN_MS,5*60*1000);
+ test('ad pacing leaves new players alone and keeps a ten-minute gap (2026-10-30); ads and the pass are worth a scout',()=>{
+  assert.equal(INTERSTITIAL_COOLDOWN_MS,10*60*1000);assert.equal(INTERSTITIAL_GRACE_SEASONS,3);
   assert.equal(interstitialGraceOver(0),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS-1),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS),true);
   const now=INTERSTITIAL_COOLDOWN_MS*10;
-  assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-4*60*1000,now,scoutsSince:0}),false);
+  assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-9*60*1000,now,scoutsSince:0}),false);
   assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,500);
  });
  test('browser rewards ignore the premium flag and render no ad or pass UI',()=>{
@@ -107,8 +107,8 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   const busy=withBridge(fakeBridge(left(2)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,disabled:true})));
   assert.match(busy,/disabled=""/,'no ad while a game or a draw is running');
  });
- test('2026-10-28 full-screen ads: every second season after the grace, never at launch, never twice within five minutes, never for pass owners',()=>{
-  assert.deepEqual([1,2,3,4,5,6,7,8].map(seasonInterstitialDue),[false,true,false,true,false,true,false,true]);
+ test('2026-10-30 full-screen ads: every third season after the grace, never at launch, never twice within ten minutes, never for pass owners',()=>{
+  assert.deepEqual([1,2,3,4,5,6,7,8,9].map(seasonInterstitialDue),[false,false,true,false,false,true,false,false,true]);
   assert.equal(seasonInterstitialDue(0),false);
   const now=10*60*60*1000,base={premium:false,lastShownAt:0,now,scoutsSince:0,launchedAt:0};
   assert.equal(interstitialDue('season',base),true);
