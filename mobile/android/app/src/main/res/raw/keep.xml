@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shrinkResources で消されないように残す(Cordova の config.xml と Capacitor が名前で引く物、ウィジェット、通知のアイコン、splash) -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@xml/*,@layout/*,@drawable/*,@mipmap/*,@string/*,@raw/*,@color/*" />

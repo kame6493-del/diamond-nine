@@ -7,7 +7,7 @@ android {
         applicationId "com.diamondninebaseball.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 28
+        versionCode 29
         versionName "1.3.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Single source of AdMob IDs (Google test IDs until release): mobile/ads-config.json
@@ -31,8 +31,11 @@ android {
     buildTypes {
         release {
             if (System.getenv('DIAMOND_UPLOAD_STORE')) signingConfig signingConfigs.upload
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8: 縮小・難読化・使わないリソースの削除(Play の「DEX コードの最適化」対策、2026-10-31)
+            // 難読化解除ファイルは build/outputs/mapping/release/mapping.txt に出る。Play へ AAB と一緒に上げる
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
