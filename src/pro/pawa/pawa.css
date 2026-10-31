@@ -1886,3 +1886,20 @@ html[data-look=pawa] .nv-app .pack-list .pack-buy:disabled{opacity:1;color:#3d4a
 /* 2026-11-01 スカウトで強い選手が出た時の「控えに置く」「この選手と入れ替える」は下の欄の一番上に(場の中だとスクロールしないと押せなかった) */
 html[data-look=pawa] .nv-app .pw-sc-dock .pw-sc-swapbar{grid-column:1/-1;margin:0;padding:0 0 6px;border-bottom:1px solid var(--line)}
 html[data-look=pawa] .nv-app .pw-sc-dock .pw-sc-swapbar .pw-btn{min-height:46px;font-size:16px}
+/* 2026-11-01(2) 9番の下の「おまかせ編成」「控え」「試合へ」が下のタブに半分隠れていた。
+   ボタンの列は下のタブのすぐ上に固定し(どの高さの画面でも押せる)、その分だけ打順の行を詰める */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-board5:not(.is-wide)+.pw-board-actions{position:sticky;bottom:calc(var(--nav) + var(--bottom) + 2px);z-index:5;margin:4px 0 0;padding:4px 0;background:var(--bg,#eaf4ff)}
+ html[data-look=pawa] .nv-app .pw-board5:not(.is-wide)+.pw-board-actions .pw-btn{min-height:36px;font-size:14px;padding:2px 6px}
+ html[data-look=pawa] .nv-app .pw-board5:not(.is-wide) .pw-b5-tabs button{min-height:32px;padding:2px 6px}
+ html[data-look=pawa] .nv-app .pw-board5:not(.is-wide) .pw-b5-list:not(.pw-b5-plist){min-height:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom) - 12px - 35px - 48px)}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5{min-height:36px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-row{padding:0 4px 0 2px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-main{gap:0}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-top{height:17px}
+ html[data-look=pawa] .nv-app .pw-b5:not(.pw-b5-p) .pw-b5-top .pw-b4-name{min-height:17px;line-height:17px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5 .pw-b4-t{height:16px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5 .pw-b4-t i{width:15px;height:15px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-left .pw-pos{height:17px}
+ html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-left .pw-b3-no{font-size:14px}
+}
