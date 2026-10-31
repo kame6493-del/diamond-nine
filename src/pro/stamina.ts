@@ -59,6 +59,8 @@ export interface StaminaRecord {
  drinks:number;
  // 配布の受け取り(日付ごと)。
  gift:{day:string;login:boolean;all:boolean};
+ // ポイントで回復した回数(日付ごと。2026-11-01)。
+ ptBuys?:{day:string;count:number};
 }
 const KEY='diamond-nine-stamina';
 const okNum=(n:unknown,min=0):n is number=>typeof n==='number'&&Number.isFinite(n)&&n>=min;
@@ -69,7 +71,8 @@ export function parseStamina(raw:string|null,now:number,rules:StaminaRules=stami
   const v=raw?JSON.parse(raw):null;
   if(!v||v.v!==1||!okNum(v.points)||!okNum(v.at)||!okNum(v.seen)||!okNum(v.drinks))return freshStamina(now,rules);
   const g=v.gift&&typeof v.gift.day==='string'?{day:v.gift.day,login:!!v.gift.login,all:!!v.gift.all}:{day:'',login:false,all:false};
-  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g};
+  const pb=v.ptBuys&&typeof v.ptBuys.day==='string'&&okNum(v.ptBuys.count)?{ptBuys:{day:v.ptBuys.day,count:Math.min(99,Math.floor(v.ptBuys.count))}}:{};
+  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb};
  }catch{return freshStamina(now,rules);}
 }
 
@@ -107,6 +110,38 @@ export function addStamina(r:StaminaRecord,amount:number,now:number,rules:Stamin
  return {...s,points,at:points>=rules.max?Math.max(now,s.seen):s.at};
 }
 export const canBuyWithPoints=(r:StaminaRecord,gems:number,now:number,rules:StaminaRules)=>gems>=STAMINA_PT_COST&&settle(r,now,rules).points+STAMINA_PT_RESTORE<=STAMINA_HARD_CAP;
+
+// ---- ポイントで回復(2026-11-01 持ち主「体力の回復をポイントで買えるように。良い感じのバランスで」) ----
+// 2つから選ぶ: 「少し回復」＋30(国内の3年ぶん)と「満タンまで回復」(上限まで。無料なら最大＋100)。
+// 値段: 少し 1,500pt(スカウト1回 3,000pt の半分)・満タン 4,000pt(スカウト1回より高い)。
+// 1日に合わせて3回まで。同じ日の2回目は1.5倍、3回目は2倍(少し 1,500→2,250→3,000 / 満タン 4,000→6,000→8,000)。
+// 理由は mobile/RELEASE-STATUS.md(2026-11-01)。日付は端末の日付(ログインボーナスと同じ数え方)。
+export type StaminaPtOption='small'|'full';
+export const STAMINA_PT_SMALL_COST=1500,STAMINA_PT_SMALL_RESTORE=30;
+export const STAMINA_PT_FULL_COST=STAMINA_PT_COST;
+export const STAMINA_PT_DAILY_LIMIT=3;
+export const STAMINA_PT_STEP=[1,1.5,2] as const;
+const ptBuysOn=(r:StaminaRecord,day:string)=>r.ptBuys&&r.ptBuys.day===day?r.ptBuys.count:0;
+export const staminaPtBuysLeft=(r:StaminaRecord,day:string)=>Math.max(0,STAMINA_PT_DAILY_LIMIT-ptBuysOn(r,day));
+export function staminaPtPrice(option:StaminaPtOption,r:StaminaRecord,day:string):number{
+ const n=Math.min(STAMINA_PT_STEP.length-1,ptBuysOn(r,day)),base=option==='small'?STAMINA_PT_SMALL_COST:STAMINA_PT_FULL_COST;
+ return Math.round(base*STAMINA_PT_STEP[n]/50)*50;
+}
+// 足す量: 少しは＋30、満タンは上限までの不足ぶん(上限以上なら0)。
+export function staminaPtRestore(option:StaminaPtOption,r:StaminaRecord,now:number,rules:StaminaRules):number{
+ const pts=settle(r,now,rules).points;
+ return option==='small'?(pts+STAMINA_PT_SMALL_RESTORE<=STAMINA_HARD_CAP?STAMINA_PT_SMALL_RESTORE:0):Math.max(0,rules.max-pts);
+}
+export function canBuyStaminaOption(option:StaminaPtOption,r:StaminaRecord,gems:number,now:number,rules:StaminaRules,day:string){
+ return staminaPtBuysLeft(r,day)>0&&staminaPtRestore(option,r,now,rules)>0&&gems>=staminaPtPrice(option,r,day);
+}
+// [次の記録, 使ったpt, 足した量]。買えない時は null。
+export function buyStaminaOption(option:StaminaPtOption,r:StaminaRecord,gems:number,now:number,rules:StaminaRules,day:string):[StaminaRecord,number,number]|null{
+ if(!canBuyStaminaOption(option,r,gems,now,rules,day))return null;
+ const price=staminaPtPrice(option,r,day),amount=staminaPtRestore(option,r,now,rules);
+ const next=addStamina(r,amount,now,rules);
+ return [{...next,ptBuys:{day,count:ptBuysOn(r,day)+1}},price,amount];
+}
 export function useDrink(r:StaminaRecord,now:number,rules:StaminaRules):StaminaRecord|null{
  if(r.drinks<=0)return null;
  const s=settle(r,now,rules);if(s.points+DRINK_RESTORE>STAMINA_HARD_CAP)return null;
@@ -151,6 +186,12 @@ export const formatWait=(ms:number)=>{
  const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;
  return h?`${h}時間${String(m).padStart(2,'0')}分`:m?`${m}分${String(sec).padStart(2,'0')}秒`:`${sec}秒`;
 };
+
+// 画面上部の行動力の札を押した時: 試合の画面で回復の欄を開く(1回だけ受け取る)。
+let recoverRequested=false;
+// 受け取られないまま残らないよう(シーズン終了の画面など)、少しで取り消す
+export const requestStaminaRecover=()=>{recoverRequested=true;emit();setTimeout(()=>{recoverRequested=false;},2000);};
+export const takeStaminaRecoverRequest=()=>{const r=recoverRequested;recoverRequested=false;return r;};
 
 // ---- 端末への保存と購読(ブラウザ) ----
 const listeners=new Set<()=>void>();

@@ -3,7 +3,7 @@ import {PointShop} from './PointShop';
 import {PremiumPassCard,RewardAdButton} from './MonetizePanel';
 import {PawaGoalsAside} from './pawa/PawaGoals';
 import {StaminaChip,StaminaPlay} from './StaminaPanel';
-import {DRINK_RESTORE,STAMINA_PT_COST,STAMINA_PT_RESTORE,addStamina,canBuyWithPoints,claimDrinkGift,costToFinish,loadStamina,markStaminaIntro,staminaIntroDue,seasonCost,STAMINA_MAX,STAMINA_REGEN_MS,regenLabel,STAMINA_AD_POINTS,spendStamina,updateStamina,useDrink,useStaminaSummary,currentRules} from './stamina';
+import {DRINK_RESTORE,buyStaminaOption,type StaminaPtOption,addStamina,claimDrinkGift,costToFinish,loadStamina,markStaminaIntro,staminaIntroDue,seasonCost,STAMINA_MAX,STAMINA_REGEN_MS,regenLabel,STAMINA_AD_POINTS,spendStamina,updateStamina,useDrink,useStaminaSummary,currentRules} from './stamina';
 import {monetizeBridge,seasonInterstitialDue,useMonetize} from './monetization';
 import {spaceUnlocked,circuitLabel,circuitOf,seasonGames,leagueFor,leagueProgress,titleFor,NPB_TITLES_TO_MLB,type Circuit} from './leagues';
 import {switchLeague} from './engine';
@@ -386,11 +386,12 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
  const staminaAdLock=useRef(false);
  const staminaActions={
   onPlay:()=>play(seasonGames(state.season)),
-  onBuy:()=>{
-   if(lock.current||state.gems<STAMINA_PT_COST)return false;
-   const r=loadStamina(),now=Date.now();if(!canBuyWithPoints(r,state.gems,now,currentRules()))return false;
-   if(!updateStamina((x,t,rules)=>addStamina(x,STAMINA_PT_RESTORE,t,rules)))return false;
-   setState(prev=>({...prev,gems:prev.gems-STAMINA_PT_COST}));track('stamina_points',{cost:STAMINA_PT_COST});return true;
+  onBuy:(option:StaminaPtOption)=>{
+   if(lock.current)return null;
+   const day=localDay();let got:[number,number]|null=null;
+   updateStamina((x,t,rules)=>{const r=buyStaminaOption(option,x,state.gems,t,rules,day);if(!r)return null;got=[r[1],r[2]];return r[0];});
+   if(!got)return null;const [price,amount]=got as [number,number];
+   setState(prev=>({...prev,gems:prev.gems-price}));track('stamina_points',{cost:price,option,amount});return got;
   },
   onDrink:()=>{if(lock.current)return false;const ok=!!updateStamina((r,now,rules)=>useDrink(r,now,rules));if(ok)track('stamina_drink',{});return ok;},
   onAdStart:()=>{staminaAdLock.current=true;lock.current=true;setAdPlaying(true);},

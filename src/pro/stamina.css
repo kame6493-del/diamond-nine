@@ -65,3 +65,18 @@
  html[data-look=pawa] .nv-app .s-header .s-brand-wordmark{max-width:31vw;height:auto;max-height:40px}
  html[data-look=pawa] .nv-app .s-header>div{gap:4px}
 }
+/* 2026-11-01 ポイントで回復(少し/満タン)・確かめる画面・ポイント購入 */
+.st-pt-rule{margin:2px 4px 4px;font-size:12px;line-height:1.5;color:var(--st-sub)}
+.st-shop-link{display:inline;padding:0 2px;border:0;background:none;color:#0b5bd3;font:inherit;font-weight:800;text-decoration:underline;cursor:pointer;min-height:0}
+.st-modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(10,24,52,.5)}
+.st-dialog{width:min(100%,380px);max-height:calc(100dvh - 32px);overflow:auto;padding:16px;border-radius:16px;background:#fff;color:#14264a;box-shadow:0 10px 30px rgba(10,24,52,.35)}
+.st-dialog h3{margin:0 0 10px;font-size:17px;line-height:1.35}
+.st-dialog p{margin:0 0 6px;font-size:14px;line-height:1.5}
+.st-dialog-main{display:flex;align-items:center;gap:6px;font-size:17px!important}
+.st-dialog-main b{font-size:22px}
+.st-dialog-sub{color:#4a5a78}
+.st-dialog-acts{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:12px}
+.st-dialog-acts button{min-height:46px;font-size:15px}
+.st-shop .st-shop-close{display:block;width:100%;min-height:46px;margin-top:10px}
+.st-modal{padding-top:calc(16px + var(--dn-top,env(safe-area-inset-top,0px)));padding-bottom:calc(16px + var(--dn-bottom,env(safe-area-inset-bottom,0px)))}
+.st-dialog{max-height:calc(100dvh - 32px - var(--dn-top,env(safe-area-inset-top,0px)) - var(--dn-bottom,env(safe-area-inset-bottom,0px)))}

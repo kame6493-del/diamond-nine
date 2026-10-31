@@ -31,6 +31,17 @@ export function AptMark({mark}:{mark:string}){
  return mark==='×'?<i className="pw-apt pw-apt-none" aria-label={label}>×</i>:<i className="pw-apt" data-apt={mark} aria-label={label}>{mark}</i>;
 }
 
+/** 2026-11-01 守れる位置を全部(先頭がメイン)。打順の画面と同じ色の札。 */
+export function PosChips({p}:{p:Player}){
+ const list=p.positions.length?p.positions:['DH'];
+ return <span className="pw-poschips" aria-label={`守れる位置 ${list.map(x=>x==='DH'?'指名打者':x).join('・')}`}>{list.map(x=><PosChip key={x} pos={x}/>)}</span>;
+}
+/** 2026-11-01 投手の先発・中継ぎ・抑えの適性(◎○△×)。target はいま入れる枠の役割(枠を目立たせる)。 */
+export function RoleApts({p,target}:{p:Player;target?:PitcherRole|null}){
+ const roles=['先','中','抑'] as const;
+ return <span className="pw-roleapts" aria-label={roles.map(r=>`${r==='先'?'先発':r==='中'?'中継ぎ':'抑え'}${aptitudeMark(p,r)}`).join(' ')}>{roles.map(r=><span key={r} className={'pw-roleapt'+(r===target?' is-target':'')}><RoleChip role={r}/><AptMark mark={aptitudeMark(p,r)}/></span>)}</span>;
+}
+
 // ---- 控えの絞り込み・並べ替え(旧版 v18 の 検索・種類・年齢帯・球団・並べ替え6種 + 守備位置・役割適性・能力別の並べ替え・この枠に入れられる選手だけ) ----
 type Sort='overall-desc'|'overall-asc'|'age-asc'|'age-desc'|'team'|'name'|'traits'|'awaken'|'contact'|'power'|'speed'|'arm'|'field'|'velocity'|'control'|'stamina'|'breaking';
 type BenchFilter={search:string;role:'auto'|'all'|'batter'|'pitcher';pos:string;age:string;team:string;sort:Sort};
@@ -148,7 +159,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <OvrBox value={ovr(p.id)} player={p}/>
    <div className="pw-r2-main">
     <div className="pw-r2-name"><button data-player-id={p.id} onClick={()=>onPlayer(p)}>{p.name}</button><span className="pw-age">{ageText(p)}</span>{awakenBadge(p.id)}</div>
-    <p className="pw-bench-sub">{pitcher?<RoleChip role={aptitudeMark(p,'先')==='◎'||aptitudeMark(p,'先')==='○'?'先':aptitudeMark(p,'抑')==='◎'?'抑':'中'}/>:<PosChip pos={p.positions[0]??'DH'}/>}<span>{teamById(p.team).short}{p.mlb?' · 海外':''} · {pitcher?(['先','中','抑'] as const).map(x=>`${x}${aptitudeMark(p,x)}`).join(' '):p.positions.join('・')||'DH'}</span></p>
+    <p className="pw-bench-sub">{pitcher?<RoleApts p={p} target={picked?.kind==='pit'?pitcherSlotRole(picked.index):null}/>:<PosChips p={p}/>}<span>{teamById(p.team).short}{p.mlb?' · 海外':''}</span></p>
     <div className="pw-r2-ranks">{pitcher?pitCells(p,r):batCells(r)}</div>
     {p.mlb?.twoWay&&<div className="pw-r2-ranks pw-r2-extra">{batCells(r)}</div>}
     {traits.length>0&&<ul className="pw-bench-traits" aria-label="特殊能力">{traits.slice(0,4).map((t,i)=><li key={t+i}>{t}</li>)}{traits.length>4&&<li className="is-more">ほか{traits.length-4}</li>}</ul>}
@@ -162,7 +173,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    <div className="pw-b5-row" role="button" tabIndex={0} aria-label={`${label}(押すと入れ替え、長押しでドラッグ)`} onClick={()=>tapRow({kind,index:i})} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tapRow({kind,index:i});}}}>
     <span className="pw-b5-left">{left}</span>
     <span className="pw-b5-main">
-     <span className="pw-b5-top"><button className="pw-b4-name" style={fitName(p.name,kind==='pit'?96:108,15)} data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}{topStat&&<span className="pw-b5-topstat">{topStat}</span>}</span>
+     <span className="pw-b5-top"><button className="pw-b4-name" style={fitName(p.name,kind==='pit'?96:108,15)} data-player-id={id} aria-label={`${p.name}の詳細`} onClick={e=>{e.stopPropagation();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{condChip(id)}{awakenBadge(id)}{kind==='pit'&&<RoleApts p={p} target={pitcherSlotRole(i)}/>}{topStat&&<span className="pw-b5-topstat">{topStat}</span>}</span>
      <span className="pw-b5-sub">{tilesEl}<span className="pw-b5-stat">{stat}</span></span>
     </span>
     <span className="pw-b4-ovr pw-b5-ovr" data-metal={metalOf(ovr(id),p)}>{ovr(id)}</span>
@@ -195,10 +206,10 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
   {!wide&&actions}
 
   {picked&&sheetPlayer&&<div className="pw-modal pw-sheet-modal" onClick={clear}><div className="pw-sheet pw-slot-sheet" role="dialog" aria-modal="true" aria-label={`${slotName(picked.kind,picked.index)}の入れ替え`} onClick={e=>e.stopPropagation()}>
-   <header className="pw-sheet-head"><h2>{slotName(picked.kind,picked.index)}{picked.kind==='bat'&&` · ${state.defense[sheetId!]}`} {sheetPlayer.name} <small>総合{ovr(sheetId!)}</small></h2><button className="pw-close" onClick={clear} aria-label="閉じる"><X size={22}/></button></header>
+   <header className="pw-sheet-head"><h2>{slotName(picked.kind,picked.index)}{picked.kind==='bat'&&` · ${state.defense[sheetId!]}`} {sheetPlayer.name} <small>総合{ovr(sheetId!)}</small>{picked.kind==='pit'?<RoleApts p={sheetPlayer} target={pitcherSlotRole(picked.index)}/>:<PosChips p={sheetPlayer}/>}</h2><button className="pw-close" onClick={clear} aria-label="閉じる"><X size={22}/></button></header>
    <div className="pw-slot-acts"><button className="pw-btn pw-white pw-mini" onClick={()=>{const p=sheetPlayer;clear();onPlayer(p);}}>この選手の詳細</button></div>
    <h4>控えから入れる({candidates.length}人)</h4>
-   {candidates.length?<ul className="pw-slot-cands">{candidates.map(p=>{const r=ratingsOf(p.id),pit=p.role==='pitcher';return <li key={p.id} className="pw-cand"><span className="pw-b3-ovr" data-metal={metalOf(ovr(p.id),p)}>{ovr(p.id)}</span><span className="pw-cand-main"><span className="pw-b4-top"><button className="pw-b4-name" data-player-id={p.id} aria-label={`${p.name}の詳細`} onClick={()=>{clear();onPlayer(p);}}>{p.name}</button><small>{ageText(p)} · {pit?(['先','中','抑'] as const).map(x=>`${x}${aptitudeMark(p,x)}`).join(' '):p.positions.join('・')||'DH'}</small></span><span className="pw-b4-tiles">{pit&&<span className="pw-b4-t pw-b4-velo"><small>球速</small><b>{p.ratings.velocity}</b><em>km</em></span>}{tileItems(pit?[['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]]:[['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]])}</span></span><button className="pw-btn pw-yellow pw-mini pw-cand-in" onClick={()=>replace(picked,p.id)}>入れる</button></li>;})}</ul>:<p className="pw-note">この枠に入れられる控えはいません。</p>}
+   {candidates.length?<ul className="pw-slot-cands">{candidates.map(p=>{const r=ratingsOf(p.id),pit=p.role==='pitcher';return <li key={p.id} className="pw-cand"><span className="pw-b3-ovr" data-metal={metalOf(ovr(p.id),p)}>{ovr(p.id)}</span><span className="pw-cand-main"><span className="pw-b4-top"><button className="pw-b4-name" data-player-id={p.id} aria-label={`${p.name}の詳細`} onClick={()=>{clear();onPlayer(p);}}>{p.name}</button><small>{ageText(p)}</small>{pit?<RoleApts p={p} target={pitcherSlotRole(picked.index)}/>:<PosChips p={p}/>}</span><span className="pw-b4-tiles">{pit&&<span className="pw-b4-t pw-b4-velo"><small>球速</small><b>{p.ratings.velocity}</b><em>km</em></span>}{tileItems(pit?[['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]]:[['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]])}</span></span><button className="pw-btn pw-yellow pw-mini pw-cand-in" onClick={()=>replace(picked,p.id)}>入れる</button></li>;})}</ul>:<p className="pw-note">この枠に入れられる控えはいません。</p>}
    <h4>{picked.kind==='bat'?'打順を入れ替える':'投手の枠を入れ替える'}</h4>
    <div className="pw-slot-grid">{(picked.kind==='bat'?state.lineup:state.pitchers).map((id,i)=>i===picked.index?null:<button key={id} className="pw-btn pw-white pw-mini" onClick={()=>drop({from:'slot',kind:picked.kind,index:picked.index,id:sheetId!},{kind:picked.kind,index:i})}><b>{slotName(picked.kind,i)}</b>{playerMap[id].name}</button>)}</div>
    {picked.kind==='bat'&&<><h4>守備位置を入れ替える</h4><div className="pw-slot-grid">{state.lineup.filter(id=>id!==sheetId).map(id=><button key={id} className="pw-btn pw-white pw-mini" onClick={()=>{commit(swapDefense(state,sheetId!,id),'守備位置を交換しました。');clear();}}><b>{state.defense[id]}</b>{playerMap[id].name}</button>)}</div></>}

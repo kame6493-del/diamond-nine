@@ -139,7 +139,7 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
  test('stamina: the play panel keeps the one-tap year and shows the three ways to recover',()=>{
   const base=initialState(4242);
   const s={...base,pulls:20,season:{...base.season,number:12}};
-  const actions={onPlay:()=>{},onBuy:()=>true,onDrink:()=>true,onAdStart:()=>{},onAdReward:()=>{},onAdEnd:()=>{}};
+  const actions={onPlay:()=>{},onBuy:()=>[4000,100] as [number,number],onDrink:()=>true,onAdStart:()=>{},onAdReward:()=>{},onAdEnd:()=>{}};
   const html=renderToStaticMarkup(createElement(StaminaPlay,{state:s,busy:false,pawa:true,actions}));
   assert.match(html,/1年進める/);assert.match(html,/行動力 −10/);assert.match(html,/1年進める ＝ 行動力 <b>10<\/b>/);
   assert.doesNotMatch(html,/行動力が足りません/);
@@ -149,9 +149,9 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   const lowView=staminaView({...freshStamina(T0),points:4,at:T0,seen:T0},T0+1*MIN,free);
   const out=withBridge(snap,()=>renderToStaticMarkup(createElement(StaminaPlay,{state:s,busy:false,pawa:true,actions,view:lowView})));
   assert.match(out,/行動力が足りません/);assert.match(out,/あと 2分00秒 で1年ぶん（10）がたまります/);
-  assert.match(out,/待つ（無料）/);assert.match(out,/広告を見る/);assert.match(out,/ポイントで回復/);
+  assert.match(out,/待つ（無料）/);assert.match(out,/広告を見る/);assert.match(out,/ポイントで少し回復/);assert.match(out,/ポイントで満タンまで回復/);assert.match(out,/1,500 pt で ＋30/);
   assert.match(out,/今日あと 0 \/ 3 回/);assert.match(out,/今日は終了/);
-  assert.match(out,/4,000 pt で ＋100/);assert.doesNotMatch(out,/プレミアムパスで上限/,'2026-10-30: 回復の欄でパスを勧めない');
+  assert.match(out,/4,000 pt で ＋[0-9]+/);assert.doesNotMatch(out,/プレミアムパスで上限/,'2026-10-30: 回復の欄でパスを勧めない');
   // 細かく進めるボタンは無い(1年進めるだけ)
   for(const h of [html,out])assert.doesNotMatch(h,/1試合<|進められる所まで|st-one|st-part/);
   assert.match(out,/disabled=""[^>]*>[^]*?1年進める/);

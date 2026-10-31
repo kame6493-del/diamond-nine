@@ -1903,3 +1903,67 @@ html[data-look=pawa] .nv-app .pw-sc-dock .pw-sc-swapbar .pw-btn{min-height:46px;
  html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-left .pw-pos{height:17px}
  html[data-look=pawa] .nv-app .pw-b5-list:not(.pw-b5-plist) .pw-b5-left .pw-b3-no{font-size:14px}
 }
+/* 2026-11-01 試合の画面: 下の順位(順位表の下位)や「目標・達成記録」がタブのバーの裏に隠れ、スクロールしても見えなかった。
+   高さを画面に固定していた箱を「最低この高さ」に変え、入らない分は下へ伸ばしてページごとスクロールする */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-game-grid{height:auto;min-height:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom) - 64px)}
+ html[data-look=pawa] .nv-app .pw-game-side{flex:1 0 auto;overflow:visible;flex-wrap:nowrap}
+ html[data-look=pawa] .nv-app .s-main{padding-bottom:12px}
+}
+/* 2026-11-01 スカウト「今より強い選手です。入れ替えますか」: スクロールせずに能力の比べと入れ替えのボタンまで見える。
+   選手の札を小さく・表の行を詰める。特殊能力と共有は表の下へ。入れ替えを決めるまで下の欄は2つのボタンだけ */
+html[data-look=pawa] .nv-app .pw-cmp-apt{display:inline-flex;gap:3px;justify-content:center;flex-wrap:nowrap}
+html[data-look=pawa] .nv-app .pw-cmp-apt>span{display:inline-flex;align-items:center;gap:1px;padding:0 2px;border-radius:5px}
+html[data-look=pawa] .nv-app .pw-cmp-apt small{font:800 10px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-cmp-apt .pw-apt{font-size:13px}
+html[data-look=pawa] .nv-app .pw-cmp-apt>span.is-target{background:#fff1b8;box-shadow:inset 0 0 0 1px #e8b400}
+html[data-look=pawa] .nv-app .pw-cmp-aptrow th small{display:block;font:800 9px system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-sc-dock.is-swap>:not(.pw-sc-swapbar){display:none}
+html[data-look=pawa] .nv-app .pw-sc-dock.is-swap .pw-sc-swapbar{padding:0;border-bottom:0}
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp{gap:4px;padding:6px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-head{grid-template-columns:62px minmax(0,1fr);gap:8px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-card .nv-card{width:62px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-card .nc-plate,html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-card .nc-pos{display:none}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-id{gap:1px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-id h2{font-size:17px;line-height:1.2}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-chips{margin:0}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-meta{font-size:12px;margin:0}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-ovr b{font-size:28px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-sc-ovr em{font-size:12px;padding:1px 6px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp{padding:4px;gap:3px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-q{font-size:13.5px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table thead th{font-size:12px;line-height:1.15;padding:1px 3px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table thead th small{font-size:12px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table thead th button{min-height:18px;font-size:12px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table td,html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table tbody th{padding:0 3px;line-height:1.1;height:23px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table .pw-rank{width:19px;height:18px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table .pw-rank-wrap em,html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table td:last-child{font-size:15px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-velo{font-size:16px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table th:first-child{width:3.8em;font-size:11px}
+ html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table th:last-child,html[data-look=pawa] .nv-app .pw-sc-result.has-cmp .pw-cmp-table td:last-child{width:2.8em}
+ html[data-look=pawa] .nv-app .pw-scout:has(.pw-sc-result.has-cmp) .pw-sc-strip b{font-size:18px}
+ html[data-look=pawa] .nv-app .pw-scout:has(.pw-sc-result.has-cmp) .pw-sc-strip small{font-size:10px}
+}
+/* 2026-11-01 控え・入れ替え・投手の一覧: 守れる位置を全部(打順と同じ色の札)、投手は先発・中継ぎ・抑えの適性(◎○△×)。入れる枠の役割は黄色で囲む */
+html[data-look=pawa] .nv-app .pw-poschips{display:inline-flex;flex-wrap:wrap;gap:2px;vertical-align:middle}
+html[data-look=pawa] .nv-app .pw-poschips .pw-pos{width:21px;height:21px;font-size:11px;border-radius:5px;border-width:1px}
+html[data-look=pawa] .nv-app .pw-roleapts{display:inline-flex;gap:2px;vertical-align:middle;flex:none}
+html[data-look=pawa] .nv-app .pw-roleapt{display:inline-flex;align-items:center;gap:1px;padding:1px 2px;border-radius:5px}
+html[data-look=pawa] .nv-app .pw-roleapt .pw-role{width:18px;height:18px;font-size:10px;border-radius:4px;border-width:1px}
+html[data-look=pawa] .nv-app .pw-roleapt .pw-apt{font-size:13px;min-width:0}
+html[data-look=pawa] .nv-app .pw-roleapt.is-target{background:#fff1b8;box-shadow:inset 0 0 0 1px #e8b400}
+html[data-look=pawa] .nv-app .pw-bench-sub{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html[data-look=pawa] .nv-app .pw-cand .pw-b4-top{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+/* 投手の一覧(スマホ): 1段目に名前と3つの適性、2段目に能力と防御率 */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-main{flex-direction:column!important;align-items:stretch!important;gap:1px}
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-top{gap:4px}
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-sub{flex-direction:row;align-items:center;gap:6px}
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-roleapt .pw-role{width:16px;height:16px;font-size:9px}
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-roleapt .pw-apt{font-size:12px}
+ html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-roleapts{margin-left:auto}
+}
+html[data-look=pawa] .nv-app .pw-roleapt .pw-apt,html[data-look=pawa] .nv-app .pw-cmp-apt .pw-apt{width:16px;height:16px}
+html[data-look=pawa] .nv-app .pw-roleapt .pw-apt-none,html[data-look=pawa] .nv-app .pw-cmp-apt .pw-apt-none{font-size:13px;line-height:16px;color:var(--mu);text-align:center}
+@media (max-width:999px){html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-head .pw-b5-main{justify-content:flex-end}html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-head .pw-b5-sub{justify-content:flex-start}html[data-look=pawa] .nv-app .pw-slot-sheet .pw-sheet-head h2 .pw-roleapts,html[data-look=pawa] .nv-app .pw-slot-sheet .pw-sheet-head h2 .pw-poschips{margin-left:6px}}

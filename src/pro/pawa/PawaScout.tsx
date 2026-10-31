@@ -10,7 +10,7 @@ import {DRAFT_EVENT,DRAFT_ROOKIE_CHANCE,draftEventActive,draftEventEndLabel,draf
 import {ScoutShare} from '../ScoutShare';
 import {scoutShareData} from '../share-kit';
 import {isRookie,ownedRatings,playerAge} from '../development';
-import {aptitudeMark as aptitudeMarkOf} from './PawaTeam';
+import {aptitudeMark as aptitudeMarkOf,AptMark} from './PawaTeam';
 import {fitsPosition} from '../data';
 import {pitcherRolePenalty,pitcherSlotRole} from '../pitcher-aptitude';
 import {collectionProgress} from '../player-browser';
@@ -76,7 +76,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   const pick=[...list].sort((a,b)=>ov(a.id)-ov(b.id))[0];if(!pick)return null;
   const label=pit?(pick.i<6?`先発${pick.i+1}`:pick.i===13?'抑え':`中継ぎ${pick.i-5}`):`${pick.i+1}番(${state.defense[pick.id]})`;
   return {p:playerMap[pick.id],label,overall:ov(pick.id),ratings:ownedRatings(playerMap[pick.id],state.owned,state.training)};})();
- const cmp=old&&upgrade&&oldRatings?{p:old,label:upgrade.pitching?upgrade.position:`${upgrade.index+1}番(${upgrade.position})`,overall:oldOverall,ratings:oldRatings}:rival;
+ const cmp=old&&upgrade&&oldRatings?{p:old,label:upgrade.pitching?(upgrade.index<6?`先発${upgrade.index+1}`:upgrade.index===13?'抑え':`中継ぎ${upgrade.index-5}`):`${upgrade.index+1}番(${upgrade.position})`,overall:oldOverall,ratings:oldRatings}:rival;
  return <div className="pw-scout pw-fit">
   <section className="pw-sc-strip" aria-label="チームとカードの集まり具合">
    <div><small>カード収集</small><b>{progress.collected}<em>/{progress.total}</em></b></div>
@@ -87,7 +87,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   {draftWeek&&<p className="pw-sc-event"><b>{DRAFT_EVENT.name}</b> 〜{draftEventEndLabel()} · 国内の{Math.round(DRAFT_ROOKIE_CHANCE*100)}%がルーキー</p>}
 
   <div className="pw-sc-stage">
-  {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult&&ratings?<section className={'pw-sc-result pw-tier-'+tier} aria-live="polite">
+  {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult&&ratings?<section className={'pw-sc-result pw-tier-'+tier+(cmp?' has-cmp':'')} aria-live="polite">
    <div className="pw-sc-head">
     <button className="pw-sc-card" onClick={()=>onPlayer?.(player!)} aria-label={`${player!.name}の詳細`}><PawaCard player={player!} state={state} size="m"/></button>
     <div className="pw-sc-id">
@@ -99,15 +99,20 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    </div>
    {!cmp&&<AbilityRow player={player!} ratings={ratings} mode={mode}/>}
    {player!.mlb?.twoWay&&<AbilityRow player={player!} ratings={ratings} mode={mode==='pitcher'?'batter':'pitcher'}/>}
-   {(()=>{const t=player!.traits.filter(x=>!['暫定査定','基本能力型','実戦派'].includes(x));return t.length>0&&<ul className="pw-bench-traits pw-sc-traits" aria-label="特殊能力">{t.slice(0,10).map((x,i)=><li key={x+i}>{x}</li>)}{t.length>10&&<li className="is-more">ほか{t.length-10}</li>}</ul>;})()}
    {cmp?<div className={'pw-cmp'+(old?'':' is-info')}>
     <p className="pw-cmp-q">{old?<>今の<b>{cmp.label}</b>より強い選手です。入れ替えますか？</>:<>今の<b>{cmp.label}</b>と比べると</>}</p>
     <table className="pw-cmp-table"><thead><tr><th></th><th className="is-new">{player!.name}<small>総合 {overall}</small></th><th><button data-player-id={cmp.p.id} onClick={()=>onPlayer?.(cmp.p)}>{cmp.p.name}</button><small>総合 {cmp.overall}</small></th><th>差</th></tr></thead>
-     <tbody>{((mode==='pitcher'?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking']]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']]) as [string,keyof Ratings][]).map(([label,key])=>{const x=key==='velocity'?player!.ratings.velocity:ratings[key] as number,y=key==='velocity'?cmp.p.ratings.velocity:cmp.ratings[key] as number,d=x-y;return <tr key={key}><th>{label}</th><td className="is-new">{key==='velocity'?<b className="pw-cmp-velo">{x}<em>km/h</em></b>:<Rank value={x} label={label} showValue/>}</td><td>{key==='velocity'?<b className="pw-cmp-velo">{y}<em>km/h</em></b>:<Rank value={y} label={label} showValue/>}</td><td className={d>0?'up':d<0?'down':''}>{d>0?`+${d}`:d===0?'±0':d}</td></tr>;})}</tbody></table>
+     <tbody>{((mode==='pitcher'?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking']]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']]) as [string,keyof Ratings][]).map(([label,key])=>{const x=key==='velocity'?player!.ratings.velocity:ratings[key] as number,y=key==='velocity'?cmp.p.ratings.velocity:cmp.ratings[key] as number,d=x-y;return <tr key={key}><th>{label}</th><td className="is-new">{key==='velocity'?<b className="pw-cmp-velo">{x}<em>km/h</em></b>:<Rank value={x} label={label} showValue/>}</td><td>{key==='velocity'?<b className="pw-cmp-velo">{y}<em>km/h</em></b>:<Rank value={y} label={label} showValue/>}</td><td className={d>0?'up':d<0?'down':''}>{d>0?`▲${d}`:d===0?'±0':`▼${-d}`}</td></tr>;})}
+     {mode==='pitcher'&&(()=>{const roles=['先','中','抑'] as const,target=roles.find(r=>cmp.label.startsWith(r))??null,score=(m:string)=>m==='◎'?3:m==='○'?2:m==='△'?1:0;
+      const cell=(q:Player)=><span className="pw-cmp-apt">{roles.map(r=><span key={r} className={r===target?'is-target':''}><small>{r}</small><AptMark mark={aptitudeMarkOf(q,r)}/></span>)}</span>;
+      const d=target?score(aptitudeMarkOf(player!,target))-score(aptitudeMarkOf(cmp.p,target)):0;
+      return <tr className="pw-cmp-aptrow"><th>適性{target&&<small>{target==='先'?'先発':target==='中'?'中継ぎ':'抑え'}枠</small>}</th><td className="is-new">{cell(player!)}</td><td>{cell(cmp.p)}</td><td className={d>0?'up':d<0?'down':''}>{!target?'':d>0?'▲':d<0?'▼':'＝'}</td></tr>;})()}
+    </tbody></table>
     {old?null
     :<p className="pw-sc-note">{overall>cmp.overall?'総合は上ですが、守備位置の補正を入れると今の選手の方が上です。':'今の選手の方が総合が上です。'}控えに加入しました(チーム画面で起用できます)。</p>}
    </div>
    :<p className="pw-sc-note">{equipped?'チームに編成済みです。':'控えに加入しました。チーム画面で起用できます。'}</p>}
+   {(()=>{const t=player!.traits.filter(x=>!['暫定査定','基本能力型','実戦派'].includes(x));return t.length>0&&<ul className="pw-bench-traits pw-sc-traits" aria-label="特殊能力">{t.slice(0,10).map((x,i)=><li key={x+i}>{x}</li>)}{t.length>10&&<li className="is-more">ほか{t.length-10}</li>}</ul>;})()}
    <ScoutShare key={'share-'+state.pulls} data={scoutShareData(player!,state.owned,state.training,tier,pull!.isNew,isRookie(player!))}/>
   </section>:<section className="pw-sc-idle pw-sc-idle2">
    <div className="pw-sc-idle-top"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
@@ -117,7 +122,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   </section>}
   </div>
 
-  <section className="pw-sc-dock">
+  <section className={'pw-sc-dock'+(showResult&&old?' is-swap':'')}>
    {/* 2026-11-01 入れ替えのボタンは下の欄に固定(上の場をスクロールしなくても押せる) */}
    {showResult&&old&&<div className="pw-cmp-acts pw-sc-swapbar" role="group" aria-label={`${player!.name}と今の${cmp?.label??'選手'}の入れ替え`}><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>}
    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
