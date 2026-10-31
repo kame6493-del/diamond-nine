@@ -185,3 +185,10 @@ MacではXcode 26以上でmobile/ios/App/App.xcodeprojを開き、SigningのTeam
 Android報酬・販売案・課金の未実装事項は POINTS-AND-BILLING.md を参照。
 - 10/28 AdMob 審査状況確認: アカウントは確認中(未承認、お支払いプロファイル入力済み、アプリ未リンク・配信データ0)。持ち主の作業なし。
 - 2026-10-28 AdMob(DIAMOND NINE Android)のストアにリンク: Google Play検索でパッケージ名・アプリ名とも0件(一般公開前のため)。未リンク、公開後に再実施。
+- 2026-11-01 vc30/1.3.7 をクローズドテスト(alpha)へ(製品版は vc29 のまま)。
+  - RevenueCat を observer で組み込み(mobile/revenuecat.ts、@revenuecat/purchases-capacitor 13.8.0、purchasesAreCompletedBy MY_APP)。購入・承認・消費は今までどおり monetize.ts。パックは「付与→RevenueCat 同期→消費」の順(消費すると端末から読めない)。RevenueCat が止まっても最長約6秒で先へ進む。初回起動で1回だけ端末に残る購入(パス)を同期。
+  - RevenueCat 側: アプリ「DIAMOND NINE (Android)」(app506b2682f1)、商品7(premium_pass・pt_pack_*6)、権利 d9_premium。mobile/scripts-rc-setup.py。公開キーは mobile/revenuecat-config.json(iOS は空=何もしない)。
+  - 持ち主の残り: RevenueCat の Nigatecho › Apps & providers › DIAMOND NINE (Android) に Play のサービスアカウント JSON(Downloads\plenary-shade-437402-h4-9185a7081e39.json)を入れる。そのあと mobile/scripts-rc-import-past.py で 10/29 の2件(GPA.3392-2677-1699-26008 パス ¥480 / GPA.3344-4937-9139-19129 300,000pt ¥10,000)を取り込む(Orders API で購入トークンを読み、RevenueCat の POST /v1/receipts へ)。
+  - 打順は 360x640 でも9人がスクロールなしで1画面(能力5つ・打率・本・点・OPS・総合はそのまま)。スカウトの「控えに置く/この選手と入れ替える」を下の欄に固定。前後の写真 Downloads\ios_release\d9_1101\before・after。
+  - 広告: 本番 ID(テスト ID なし・useTestAds=false)。出ない本当の原因は AdMob アカウント不承認(11/1 も「アカウントが承認されませんでした」)。コードは UMP の同意確認が失敗した時も広告を読みに行くように直した。再申請はポリシーのチェックが要るので持ち主(製品版公開済みなのでストアのリンクから)。
+  - プライバシー(アプリ内 privacy.html とサイト apps/diamond-nine/privacy.html)に RevenueCat を追記。
