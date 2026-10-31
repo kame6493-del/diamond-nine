@@ -104,7 +104,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
     <p className="pw-cmp-q">{old?<>今の<b>{cmp.label}</b>より強い選手です。入れ替えますか？</>:<>今の<b>{cmp.label}</b>と比べると</>}</p>
     <table className="pw-cmp-table"><thead><tr><th></th><th className="is-new">{player!.name}<small>総合 {overall}</small></th><th><button data-player-id={cmp.p.id} onClick={()=>onPlayer?.(cmp.p)}>{cmp.p.name}</button><small>総合 {cmp.overall}</small></th><th>差</th></tr></thead>
      <tbody>{((mode==='pitcher'?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking']]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']]) as [string,keyof Ratings][]).map(([label,key])=>{const x=key==='velocity'?player!.ratings.velocity:ratings[key] as number,y=key==='velocity'?cmp.p.ratings.velocity:cmp.ratings[key] as number,d=x-y;return <tr key={key}><th>{label}</th><td className="is-new">{key==='velocity'?<b className="pw-cmp-velo">{x}<em>km/h</em></b>:<Rank value={x} label={label} showValue/>}</td><td>{key==='velocity'?<b className="pw-cmp-velo">{y}<em>km/h</em></b>:<Rank value={y} label={label} showValue/>}</td><td className={d>0?'up':d<0?'down':''}>{d>0?`+${d}`:d===0?'±0':d}</td></tr>;})}</tbody></table>
-    {old?<div className="pw-cmp-acts"><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>
+    {old?null
     :<p className="pw-sc-note">{overall>cmp.overall?'総合は上ですが、守備位置の補正を入れると今の選手の方が上です。':'今の選手の方が総合が上です。'}控えに加入しました(チーム画面で起用できます)。</p>}
    </div>
    :<p className="pw-sc-note">{equipped?'チームに編成済みです。':'控えに加入しました。チーム画面で起用できます。'}</p>}
@@ -118,6 +118,8 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   </div>
 
   <section className="pw-sc-dock">
+   {/* 2026-11-01 入れ替えのボタンは下の欄に固定(上の場をスクロールしなくても押せる) */}
+   {showResult&&old&&<div className="pw-cmp-acts pw-sc-swapbar" role="group" aria-label={`${player!.name}と今の${cmp?.label??'選手'}の入れ替え`}><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>}
    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
    {money?adSlot&&<div className="pw-sc-adbtn">{adSlot}</div>:<div className="pw-sc-adbtn"><div className="reward-ad"><button type="button" className="s-button reward-ad-button" disabled>広告を見て1回引く<small>アプリ版で使えます</small></button></div></div>}
    <div className="pw-sc-dockinfo"><p className={'pw-balance '+(canDraw?'ok':'short')}>所持 <b>{count(state.gems)}</b> pt<br/><span>{canDraw?`あと${Math.floor(state.gems/SIMPLE_SCOUT_COST)}回`:`あと${count(SIMPLE_SCOUT_COST-state.gems)}pt`}</span></p><div className="pw-sc-dockacts"><button className="pw-btn pw-white pw-mini pw-buy-mini" onClick={()=>setShop(true)}>ポイント購入</button>{canDraw?<button className="pw-btn pw-white pw-mini" onClick={()=>setOdds(true)}>提供割合</button>:<button className="pw-btn pw-white pw-mini" onClick={onSeason}>試合へ</button>}</div></div>

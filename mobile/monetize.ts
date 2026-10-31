@@ -16,6 +16,7 @@ import {track} from '../src/pro/analytics';
 import {STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,setStaminaPass} from '../src/pro/stamina';
 import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend} from '../src/pro/point-products';
 import type {PacksSnapshot} from '../src/pro/monetization';
+import {initRevenueCat,recordPurchase} from './revenuecat';
 
 const platform=Capacitor.getPlatform()==='ios'?'ios':'android';
 const launchedAt=Date.now();
@@ -96,7 +97,7 @@ function refreshPremium():Promise<void>{
    const mine=purchases.filter(validPurchase);
    // Play refunds unacknowledged purchases after 3 days: acknowledge anything left over
    // (e.g. a PENDING payment that completed while the app was closed).
-   if(platform==='android')for(const t of mine)if(t.isAcknowledged===false&&t.purchaseToken){const token=t.purchaseToken;await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token})).catch(()=>{});}
+   if(platform==='android')for(const t of mine)if(t.isAcknowledged===false&&t.purchaseToken){const token=t.purchaseToken;void recordPurchase(PRODUCT);await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token})).catch(()=>{});}
    const owned=mine.length>0;write(KEY.premium,owned?'1':'0');
    setPremium({status,price,owned,verified:true});
   }catch{
@@ -114,7 +115,7 @@ async function buyPremium(){
   purchasing=false;
   if(validPurchase(t)){
    if(platform==='android'&&t.isAcknowledged===false&&t.purchaseToken){const token=t.purchaseToken;await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token})).catch(()=>{});}
-   write(KEY.premium,'1');recordSpend(PREMIUM_PASS_PRICE_YEN);setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
+   write(KEY.premium,'1');recordSpend(PREMIUM_PASS_PRICE_YEN);void recordPurchase(PRODUCT);setPremium({owned:true,verified:true,message:'プレミアムパスを有効にしました。ありがとうございます！'});track('premium_purchase',{price:premium.price??''});
   }else setPremium({message:'お支払いの完了を待っています。完了すると自動で有効になります。'});
  }catch(e){
   purchasing=false;
@@ -163,6 +164,8 @@ async function fulfil(t:Transaction){
   recordSpend(pack.priceYen);track('pack_purchase',{id:pack.id,points:pack.points});
   flushPending();
  }
+ // RevenueCat の記録(observer)は消費の前に。消費した購入は端末から読めなくなる。最長で数秒待つだけで、失敗しても先へ進む。
+ await recordPurchase(pack.id);
  try{
   if(platform==='android')await store(()=>NativePurchases.consumePurchase({purchaseToken:token}));
   else await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token}));
@@ -226,11 +229,18 @@ function initAds():Promise<void>{
   try{
    await withTimeout(AdMob.initialize({initializeForTesting:config.useTestAds}),15000);
    // UMP: a consent request that never answers must not leave the ad button waiting forever.
-   let info=await withTimeout(AdMob.requestConsentInfo(),10000);
-   if(!info.canRequestAds&&info.isConsentFormAvailable&&info.status===AdmobConsentStatus.REQUIRED)info=await AdMob.showConsentForm();
-   privacyOptions=String(info.privacyOptionsRequirementStatus)==='REQUIRED';
-   adsAllowed=info.canRequestAds;emit();
-   if(!adsAllowed)track('ad_error',{step:'consent',msg:String(info.status)});
+   // 2026-11-01: a failed consent request (offline, no consent message set up) used to leave
+   // adsAllowed false for the whole session, so「広告を見る」always said it could not load.
+   // Japan needs no consent form: when UMP itself fails, still request ads (the SDK only
+   // serves what the region allows). A real "consent required, not given" still blocks.
+   let info:Awaited<ReturnType<typeof AdMob.requestConsentInfo>>|null=null;
+   try{
+    info=await withTimeout(AdMob.requestConsentInfo(),10000);
+    if(!info.canRequestAds&&info.isConsentFormAvailable&&info.status===AdmobConsentStatus.REQUIRED)info=await AdMob.showConsentForm();
+   }catch(e){track('ad_error',{step:'consent_request',msg:errText(e).slice(0,90)});}
+   privacyOptions=!!info&&String(info.privacyOptionsRequirementStatus)==='REQUIRED';
+   adsAllowed=info?info.canRequestAds||info.status!==AdmobConsentStatus.REQUIRED:true;emit();
+   if(!adsAllowed)track('ad_error',{step:'consent',msg:String(info?.status)});
    if(adsAllowed){void preloadReward();void preloadInterstitial();}
   }catch(e){
    // Japan needs no consent form; if UMP itself failed (offline, misconfigured message),
@@ -329,6 +339,8 @@ export function installMonetize(){
  void refreshPremium();void refreshPacks();
  // Start the ad SDK after the first paint so the game appears without waiting.
  setTimeout(()=>{void initAds();},1500);
+ // RevenueCat は記録だけ(購入・消費はこのファイルのまま)。
+ setTimeout(()=>{void initRevenueCat();},2500);
  if(platform==='ios')void NativePurchases.addListener('transactionUpdated',()=>{void refreshPremium();}).catch(()=>{});
  let lastResume=0;
  void App.addListener('resume',()=>{

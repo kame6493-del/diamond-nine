@@ -1,0 +1,5 @@
+{
+ "_comment": "RevenueCat public SDK keys (safe to ship). Purchases are completed by the app; RevenueCat only records them (observer mode).",
+ "android": "goog_LxFcWllWcUgZCubTqalWdqBHdvy",
+ "ios": ""
+}

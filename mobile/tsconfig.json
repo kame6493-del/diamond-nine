@@ -17,6 +17,7 @@
     "runtime.ts",
     "launch.ts",
     "monetize.ts",
+    "revenuecat.ts",
     "../src/pro/native-files.ts"
   ]
 }
