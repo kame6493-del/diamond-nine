@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {Crown,PlayCircle} from 'lucide-react';
 import {PREMIUM_DAILY_POINTS,monetizeBridge,useMonetize} from './monetization';
 import {PREMIUM_MATCH_MULTIPLIER} from './platform-economy';
-import {PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_MAX,STAMINA_REGEN_MS,regenLabel} from './stamina';
+import {PASS_SEASON_POINTS} from './progression';
 import {canSpend,monthlyLimit,PREMIUM_PASS_PRICE_YEN,readAgeBand,readSpent,saveAgeBand,type AgeBand} from './point-products';
 import {AgeAsk} from './PackShop';
 import './point-shop.css';
@@ -50,7 +50,7 @@ export function PremiumPassCard(){
   <ul>
    <li>試合で獲得するポイントが {PREMIUM_MATCH_MULTIPLIER} 倍</li>
    <li>毎日のログインで ＋{count(PREMIUM_DAILY_POINTS)} pt（1日1回）</li>
-   <li>行動力の上限 {STAMINA_MAX}→{PASS_STAMINA_MAX}、回復 {regenLabel(STAMINA_REGEN_MS)}→{regenLabel(PASS_STAMINA_REGEN_MS)}ごと</li>
+   <li>シーズンを終えるたびに ＋{count(PASS_SEASON_POINTS)} pt（毎年スカウト{PASS_SEASON_POINTS/3000}回分）</li>
    <li>シーズン終了後の全画面広告を表示しない</li>
   </ul>
   <p className="premium-pass-note">スカウトの抽選確率・試合の結果は変わりません。「広告を見て1回引く」はパス購入後も任意で使えます。1回だけの購入で、定期購入ではありません。</p>

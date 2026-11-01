@@ -20,10 +20,10 @@ export function PlayerDetails({player,state,onChange,onAwaken,catalog=false}:{pl
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
  const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['盗塁',b?.sb??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
  const pitStats=[['奪三振',p?.so??0],['防御率',p?.outs?era(p).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['セーブ',p?.saves??0]];
- const overall=effectiveOverall(player,state.owned,state.training);
+ const overall=effectiveOverall(player,state.owned,state.training,state.careerGrowth);
  const awaken=()=>{
   const updated=trainPlayer(state,player.id);if(updated===state)return;
-  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training),stage:updated.training[player.id]});
+  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training,updated.careerGrowth),stage:updated.training[player.id]});
   onChange(updated);onAwaken();
  };
  return <div className="player-details">

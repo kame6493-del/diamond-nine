@@ -3,10 +3,11 @@ import {ratingOverall} from './development';
 import type {GameState} from './engine';
 
 export interface StarterScoutState {version:1;choices:string[];selected:string|null;completed:boolean}
-export const STARTER_MIN_OVERALL=85;
-// Strong NPB cards preserve the value of later MLB recruitment and awakening.
-export const starterScoutPool=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=STARTER_MIN_OVERALL);
-const eligible=new Set(starterScoutPool.map(p=>p.id));
+// 2026-11-01 夜 持ち主「最初から強すぎる」: はじめに選ぶ3人を 総合85以上(上位3%) → 総合74〜82(上位7〜15%ほど) に。
+// 主力の1人にはなるが、それだけで優勝争いには届かない強さ。前の版で配られた3人(85以上)を持つセーブもそのまま読める(eligible に残す)。
+export const STARTER_MIN_OVERALL=74,STARTER_MAX_OVERALL=82,LEGACY_STARTER_MIN_OVERALL=85;
+export const starterScoutPool=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=STARTER_MIN_OVERALL&&ratingOverall(p)<=STARTER_MAX_OVERALL);
+const eligible=new Set([...starterScoutPool,...players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=LEGACY_STARTER_MIN_OVERALL)].map(p=>p.id));
 
 export function createStarterScout(seed:number):StarterScoutState {
  // Independent RNG: preparing the welcome offer does not consume paid draws.

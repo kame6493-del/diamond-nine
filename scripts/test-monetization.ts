@@ -19,16 +19,16 @@ const withBridge=<T,>(bridge:MonetizeBridge|undefined,run:()=>T)=>{
 export function registerMonetizationTests(test:(name:string,run:()=>void)=>void){
  test('reward ads count per local day and reset the next day',()=>{
   const day='2026-09-30';
-  assert.equal(REWARD_AD_DAILY_LIMIT,10,'2026-10-30 夜: ten ad scouts a day');
-  assert.equal(dailyLeft(null,day,REWARD_AD_DAILY_LIMIT),10);
+  assert.equal(REWARD_AD_DAILY_LIMIT,2,'2026-11-01 夜: two ad scouts a day');
+  assert.equal(dailyLeft(null,day,REWARD_AD_DAILY_LIMIT),2);
   let record=null as ReturnType<typeof parseDaily>;
-  for(let i=0;i<9;i++)record=spendDaily(record,day);
+  record=spendDaily(record,day);
   assert.equal(dailyLeft(record,day,REWARD_AD_DAILY_LIMIT),1);
   record=spendDaily(record,day);
   assert.equal(dailyLeft(record,day,REWARD_AD_DAILY_LIMIT),0);
   assert.equal(dailyLeft(spendDaily(record,day),day,REWARD_AD_DAILY_LIMIT),0,'never negative');
-  assert.equal(dailyLeft(record,'2026-10-01',REWARD_AD_DAILY_LIMIT),10);
-  assert.deepEqual(parseDaily(JSON.stringify(record)),{day,used:10});
+  assert.equal(dailyLeft(record,'2026-10-01',REWARD_AD_DAILY_LIMIT),2);
+  assert.deepEqual(parseDaily(JSON.stringify(record)),{day,used:2});
   assert.equal(parseDaily('{bad'),null);assert.equal(parseDaily('{"day":"x","used":-1}'),null);
   assert.equal(localDay(new Date(2026,0,5,23,59)),'2026-01-05');
  });
@@ -46,13 +46,13 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(interstitialGraceOver(0),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS-1),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS),true);
   const now=INTERSTITIAL_COOLDOWN_MS*10;
   assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-9*60*1000,now,scoutsSince:0}),false);
-  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,1500);
+  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,1000);
  });
  test('browser rewards ignore the premium flag and render no ad or pass UI',()=>{
   assert.equal(appEdition,false);
   const s={club:'t',franchise:{stadium:3}} as never,game={home:'t',away:'g',homeRuns:4,awayRuns:1} as never;
   const before=gameReward(s,game);setPremiumMatchBonus(true);
-  try{assert.equal(gameReward(s,game),before);assert.equal(before,17);}finally{setPremiumMatchBonus(false);}
+  try{assert.equal(gameReward(s,game),before);assert.equal(before,7,'2026-11-01: 試合 3pt+勝ち 2pt+球場');}finally{setPremiumMatchBonus(false);}
   withBridge(undefined,()=>{
    assert.equal(renderToStaticMarkup(createElement(PremiumPassCard)),'');
    assert.equal(renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})),'');
@@ -99,11 +99,11 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
  test('2026-10-28 ad scouts on home and result: label, remaining count, hidden when used up there, kept (disabled) on the scout page',()=>{
   const left=(n:number):MonetizeSnapshot=>({...snapshot(),reward:{available:true,busy:false,left:n,limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}});
   const props={disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}};
-  const home=withBridge(fakeBridge(left(4)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,label:'動画を見てスカウト1回',hideWhenNone:true})));
-  assert.match(home,/動画を見てスカウト1回/);assert.match(home,/今日あと 4 \/ 10 回/);assert.doesNotMatch(home,/disabled/);assert.doesNotMatch(home,/10連|まとめ/);
+  const home=withBridge(fakeBridge(left(1)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,label:'動画を見てスカウト1回',hideWhenNone:true})));
+  assert.match(home,/動画を見てスカウト1回/);assert.match(home,/今日あと 1 \/ 2 回/);assert.doesNotMatch(home,/disabled/);assert.doesNotMatch(home,/10連|まとめ/);
   assert.equal(withBridge(fakeBridge(left(0)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,label:'動画を見てスカウト1回',hideWhenNone:true}))),'');
   const scout=withBridge(fakeBridge(left(0)),()=>renderToStaticMarkup(createElement(RewardAdButton,props)));
-  assert.match(scout,/今日の広告で引ける分は終了/);assert.match(scout,/disabled=""/);assert.match(scout,/今日あと 0 \/ 10 回/);
+  assert.match(scout,/今日の広告で引ける分は終了/);assert.match(scout,/disabled=""/);assert.match(scout,/今日あと 0 \/ 2 回/);
   const busy=withBridge(fakeBridge(left(2)),()=>renderToStaticMarkup(createElement(RewardAdButton,{...props,disabled:true})));
   assert.match(busy,/disabled=""/,'no ad while a game or a draw is running');
  });

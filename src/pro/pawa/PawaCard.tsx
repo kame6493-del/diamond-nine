@@ -9,7 +9,7 @@ export type Tier='standard'|'gold'|'rainbow';
 // Same thresholds as the scout reveal (scout-presentation.ts).
 export const tierFor=(player:Player,overall:number):Tier=>overall>=95?'rainbow':overall>=85||player.mlb?'gold':'standard';
 export const roleLabel=(p:Player)=>p.mlb?.twoWay?'投/DH':p.role==='pitcher'?pitchingRoleLabel(p):(p.positions[0]??'DH');
-export const cardRatings=(p:Player,state:GameState,base=false):Ratings=>base?p.ratings:ownedRatings(p,state.owned,state.training);
+export const cardRatings=(p:Player,state:GameState,base=false):Ratings=>base?p.ratings:ownedRatings(p,state.owned,state.training,state.careerGrowth);
 const cap=(n:number)=>Math.min(99,n);
 /** 名前を「…」で切らずに入れるための文字の大きさ(スマホの狭い欄だけ CSS の var(--nm) で使う)。
  *  全角1字=1、半角=0.55、空白=0.35 として、欄の幅 maxPx に収まる大きさ(base 以下・10px 以上)。 */

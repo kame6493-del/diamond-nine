@@ -10,6 +10,10 @@ import {circuitOf,seasonGames} from './leagues';
 // 数値の理由は STAMINA_UPDATE.md。
 // 2026-10-30 夜 持ち主「もっとガンガンガチャ回せて育成できるように。行動力制限もっと減らして」: 上限 30 → 100。
 export const STAMINA_MAX=100;
+// 2026-11-01 夜 持ち主「課金圧が強すぎて遊べなさすぎるのもあれなので、行動力要素いらないかも」: 行動力を使わない。
+// 「1年進める」はいつでも押せる。待つ・広告・ポイントでの回復の欄も出さない。記録(端末の diamond-nine-stamina)は消さずに残し、
+// 上限を超えて持っていた分と回復ドリンクは、一度だけポイントに替えて返す(settleStaminaRefund)。仕組みは戻せるよう残す。
+export const STAMINA_ENABLED=false;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 3分 → 2分で1回復(国内の1年は30分 → 20分で戻る)。
 // 2026-10-30 夜: 2分 → 30秒で1回復(国内の1年は20分 → 5分で戻る)。
 export const STAMINA_REGEN_MS=30*1000;
@@ -61,6 +65,8 @@ export interface StaminaRecord {
  gift:{day:string;login:boolean;all:boolean};
  // ポイントで回復した回数(日付ごと。2026-11-01)。
  ptBuys?:{day:string;count:number};
+ // 行動力をやめた時の精算を済ませたか(2026-11-01)。
+ refunded?:boolean;
 }
 const KEY='diamond-nine-stamina';
 const okNum=(n:unknown,min=0):n is number=>typeof n==='number'&&Number.isFinite(n)&&n>=min;
@@ -72,7 +78,7 @@ export function parseStamina(raw:string|null,now:number,rules:StaminaRules=stami
   if(!v||v.v!==1||!okNum(v.points)||!okNum(v.at)||!okNum(v.seen)||!okNum(v.drinks))return freshStamina(now,rules);
   const g=v.gift&&typeof v.gift.day==='string'?{day:v.gift.day,login:!!v.gift.login,all:!!v.gift.all}:{day:'',login:false,all:false};
   const pb=v.ptBuys&&typeof v.ptBuys.day==='string'&&okNum(v.ptBuys.count)?{ptBuys:{day:v.ptBuys.day,count:Math.min(99,Math.floor(v.ptBuys.count))}}:{};
-  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb};
+  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...(v.refunded===true?{refunded:true}:{})};
  }catch{return freshStamina(now,rules);}
 }
 
@@ -163,6 +169,7 @@ export function staminaStage(state:GameState):StaminaStage{
  return (state.pulls??0)<WARMUP_PULLS?'warmup':'mid';
 }
 export function seasonCost(state:GameState):number{
+ if(!STAMINA_ENABLED)return 0;
  const stage=staminaStage(state);
  if(stage==='free')return 0;
  if(stage==='warmup')return SEASON_COST.warmup;
@@ -174,6 +181,23 @@ export const gamesLeft=(state:GameState)=>state.season.completed?0:Math.max(0,se
 // 試合を進める操作は「1年進める」だけ(2026-10-19 持ち主「1試合とか細かく進めるのいらない」)。
 // 途中まで進んだ年でも、残りを終える時は1年ぶんを使う。
 export const costToFinish=(state:GameState)=>gamesLeft(state)>0?seasonCost(state):0;
+
+// ---- 行動力をやめた時の精算(2026-11-01) ----
+// 上限(無料の100)を超えて持っていた分は、ポイントや広告・ドリンクで足した分。1あたり 40pt(満タン回復 4,000pt で＋100 の値段)で返す。
+// 持っていた回復ドリンクは1本 ＋30 なので 1,200pt。合わせて 30,000pt まで。記録が無い人(行動力を使ったことが無い人)は0。
+export const REFUND_PER_POINT=40,REFUND_CAP=30000;
+export function staminaRefund(r:StaminaRecord):number{
+ if(r.refunded)return 0;
+ const over=Math.max(0,r.points-STAMINA_MAX),drinks=Math.max(0,r.drinks);
+ return Math.min(REFUND_CAP,Math.round((over+drinks*DRINK_RESTORE)*REFUND_PER_POINT/100)*100);
+}
+// [次の記録, 返すpt]。返し終わったら refunded を立て、超過とドリンクを0にする。
+export function settleStaminaRefund(r:StaminaRecord):[StaminaRecord,number]{
+ if(r.refunded)return [r,0];
+ const points=staminaRefund(r);
+ return [{...r,points:Math.min(r.points,STAMINA_MAX),drinks:0,refunded:true},points];
+}
+export const hasStaminaRecord=()=>{try{return localStorage.getItem(KEY)!==null;}catch{return false;}};
 
 // 段階が始まって初めて行動力を使う時の案内(1回だけ)。
 const INTRO_KEY='diamond-nine-stamina-intro';

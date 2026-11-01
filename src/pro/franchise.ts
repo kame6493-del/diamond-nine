@@ -70,7 +70,7 @@ function fitLineup(greedy:string[],pool:Player[]):[string[],Record<string,string
 }
 
 export function buildByStrategy(input:GameState,strategy:'balanced'|'onbase'|'power'|'defense'):GameState{
- const pool=Object.keys(input.owned).map(id=>{const p=playerMap[id],ratings=ownedRatings(p,input.owned,input.training);return {...p,overall:ratingOverall(p,ratings),ratings};});
+ const pool=Object.keys(input.owned).map(id=>{const p=playerMap[id],ratings=ownedRatings(p,input.owned,input.training,input.careerGrowth);return {...p,overall:ratingOverall(p,ratings),ratings};});
  const pitchers=autoPitchers(pool,true);if(pitchers.length!==14)return input;
  const ranked=pool.map(p=>({...p,overall:p.role==='pitcher'?p.overall:strategy==='onbase'?(p.batting?.obp??.28)*150+p.ratings.contact*.35:strategy==='power'?p.ratings.power:strategy==='defense'?p.ratings.field*.8+p.ratings.catching*.2:p.overall}));
  // The greedy fill can spend the only shortstop on second base and leave short to someone

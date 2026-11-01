@@ -68,16 +68,16 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
  const old=upgrade&&kept!==state.pulls?playerMap[upgrade.oldId]:null;
  const showResult=!!player&&!!pull&&!drawing;
  const cards=players.filter(p=>!p.opponentOnly),progress=collectionProgress(cards,state.owned);
- const avg=(ids:string[])=>Math.round(ids.reduce((n,id)=>n+effectiveOverall(playerMap[id],state.owned,state.training),0)/Math.max(1,ids.length));
+ const avg=(ids:string[])=>Math.round(ids.reduce((n,id)=>n+effectiveOverall(playerMap[id],state.owned,state.training,state.careerGrowth),0)/Math.max(1,ids.length));
  const mode:'batter'|'pitcher'=upgrade?(upgrade.pitching?'pitcher':'batter'):player?.role==='pitcher'?'pitcher':'batter';
- const ratings=player?cardRatings(player,state):null,oldRatings=old?ownedRatings(old,state.owned,state.training):null;
- const age=player?playerAge(player):null,oldOverall=old?effectiveOverall(old,state.owned,state.training):0;
+ const ratings=player?cardRatings(player,state):null,oldRatings=old?ownedRatings(old,state.owned,state.training,state.careerGrowth):null;
+ const age=player?playerAge(player):null,oldOverall=old?effectiveOverall(old,state.owned,state.training,state.careerGrowth):0;
  // 入れ替え候補が無いとき(今の選手の方が強い等)も、同じ守備位置・役割で一番総合が低い今の選手と並べて見せる
- const rival=(()=>{if(!player||upgrade||equipped)return null;const ov=(id:string)=>effectiveOverall(playerMap[id],state.owned,state.training);
+ const rival=(()=>{if(!player||upgrade||equipped)return null;const ov=(id:string)=>effectiveOverall(playerMap[id],state.owned,state.training,state.careerGrowth);
   const pit=player.role==='pitcher',list=pit?state.pitchers.map((id,i)=>({id,i})).filter(x=>pitcherRolePenalty(player,pitcherSlotRole(x.i))===0):state.lineup.map((id,i)=>({id,i})).filter(x=>fitsPosition(player,state.defense[x.id]));
   const pick=[...list].sort((a,b)=>ov(a.id)-ov(b.id))[0];if(!pick)return null;
   const label=pit?(pick.i<6?`先発${pick.i+1}`:pick.i===13?'抑え':`中継ぎ${pick.i-5}`):`${pick.i+1}番(${state.defense[pick.id]})`;
-  return {p:playerMap[pick.id],label,overall:ov(pick.id),ratings:ownedRatings(playerMap[pick.id],state.owned,state.training)};})();
+  return {p:playerMap[pick.id],label,overall:ov(pick.id),ratings:ownedRatings(playerMap[pick.id],state.owned,state.training,state.careerGrowth)};})();
  const cmp=old&&upgrade&&oldRatings?{p:old,label:upgrade.pitching?(upgrade.index<6?`先発${upgrade.index+1}`:upgrade.index===13?'抑え':`中継ぎ${upgrade.index-5}`):`${upgrade.index+1}番(${upgrade.position})`,overall:oldOverall,ratings:oldRatings}:rival;
  return <div className="pw-scout pw-fit">
   <section className="pw-sc-strip" aria-label="チームとカードの集まり具合">
@@ -120,7 +120,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <div className="pw-sc-idle-top"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
    <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{100-MLB_SCOUT_CHANCE*100}%・海外{MLB_SCOUT_CHANCE*100}%。国内の選手は全員同じ確率です。</p></div></div>
    <ul className="pw-sc-odds" aria-label="提供割合のあらまし"><li><b>国内</b>{100-MLB_SCOUT_CHANCE*100}%</li><li><b>海外</b>{MLB_SCOUT_CHANCE*100}%</li><li><b>海外確定まで</b>あと{remaining}回</li></ul>
-   <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button style={fitName(playerMap[x.id].name,92,13)} data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
+   <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training,state.careerGrowth)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button style={fitName(playerMap[x.id].name,92,13)} data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
   </section>}
   </div>
 

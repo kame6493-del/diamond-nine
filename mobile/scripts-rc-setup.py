@@ -26,6 +26,8 @@ PRODUCTS = [  # (store_identifier, type, 表示名, 権利)
     ("pt_pack_69000", "consumable", "DIAMOND NINE 69,000 pt", None),
     ("pt_pack_126000", "consumable", "DIAMOND NINE 126,000 pt", None),
     ("pt_pack_300000", "consumable", "DIAMOND NINE 300,000 pt", None),
+    # 2026-11-01 はじめての購入だけの1回限り(アプリは消費しない)
+    ("pt_first_30000", "non_consumable", "DIAMOND NINE 30,000 pt (first purchase)", None),
 ]
 apps = {a.get("play_store", {}).get("package_name"): a for a in items("/apps") if a["type"] == "play_store"}
 if PKG not in apps:
@@ -45,6 +47,23 @@ for sid, ty, name, ent in PRODUCTS:
         st, js = call("GET", f"/entitlements/{ents[ent]['id']}/products?limit=200"); have = {x["id"] for x in js.get("items", [])}
         if p["id"] not in have:
             st, js = call("POST", f"/entitlements/{ents[ent]['id']}/actions/attach_products", {"product_ids": [p["id"]]}); print("権利", ent, "に紐づけ", sid, st)
+
+# 2026-11-01 売り場(Offering) diamondnine に D9 の商品を並べる(アプリは observer なので読まないが、ダッシュボードで見やすくする)。
+offs = {o["lookup_key"]: o for o in items("/offerings")}
+if "diamondnine" not in offs:
+    st, js = call("POST", "/offerings", {"lookup_key": "diamondnine", "display_name": "DIAMOND NINE"}); assert st == 201, (st, js); offs["diamondnine"] = js; print("売り場作成 diamondnine")
+off = offs["diamondnine"]["id"]
+pkgs = {x["lookup_key"]: x for x in items(f"/offerings/{off}/packages")}
+prods = {(p["store_identifier"], p["app_id"]): p for p in items("/products")}
+for i, (sid, ty, name, ent) in enumerate(PRODUCTS):
+    lk = "$rc_lifetime" if sid == "premium_pass" else sid
+    if lk not in pkgs:
+        st, js = call("POST", f"/offerings/{off}/packages", {"lookup_key": lk, "display_name": name, "position": i + 1}); assert st == 201, (lk, st, js); pkgs[lk] = js; print("パッケージ作成", lk)
+    p = prods[(sid, app_id)]
+    st, js = call("GET", f"/packages/{pkgs[lk]['id']}/products?limit=100")
+    have = {x["product"]["id"] if "product" in x else x.get("id") for x in js.get("items", [])}
+    if p["id"] not in have:
+        st, js = call("POST", f"/packages/{pkgs[lk]['id']}/actions/attach_products", {"products": [{"product_id": p["id"], "eligibility_criteria": "all"}]}); print("パッケージ", lk, "に紐づけ", st, "" if st == 200 else str(js)[:200])
 
 st, js = call("GET", f"/apps/{app_id}/public_api_keys")
 keys = [k["key"] for k in js.get("items", [])]

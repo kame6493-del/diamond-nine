@@ -7,10 +7,13 @@ import {useSyncExternalStore} from 'react';
 // 2026-10-28: 1日3回 → 5回(持ち主「動画を見てガチャを回せる感じに」)。押せる場所はスカウト・ホーム・シーズン結果。1回ずつだけ。
 export const REWARD_AD_POINTS = 3000;
 // 2026-10-30 夜 持ち主「もっとガンガンガチャ回せるように」: 5回 → 10回。
-export const REWARD_AD_DAILY_LIMIT = 10;
+// 2026-11-01 夜: 10回 → 2回(1年をいくらでも進められるようになったので。無課金の人が広告で少しずつ引ける道は残す)。
+// 3回だと動画を毎日見る人が5年目で優勝に届き、無課金の目安(7〜10年目)より速かった(BALANCE_1101.md)。
+export const REWARD_AD_DAILY_LIMIT = 2;
 // 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
 // 2026-10-30 夜: 500 → 1,500(ログインボーナスを3倍にしたのに合わせる)。
-export const PREMIUM_DAILY_POINTS = 1500;
+// 2026-11-01 夜: 1,500 → 1,000(ログインボーナスを 300 に戻した。代わりにシーズンごとの ＋3,000pt を足した)。
+export const PREMIUM_DAILY_POINTS = 1000;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 5分 → 10分あける。
 export const INTERSTITIAL_COOLDOWN_MS = 10 * 60 * 1000;

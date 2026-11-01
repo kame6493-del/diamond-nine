@@ -27,12 +27,12 @@ export function browseCatalogCards(pool:readonly Player[],owned:Record<string,nu
 }
 const teamOrder=new Map([...cardTeams.npb,...cardTeams.mlb].map((t,i)=>[t.id,i]));
 
-export function browseCards(pool:readonly Player[],state:Pick<GameState,'owned'|'training'>,options:CardFilters):Player[]{
+export function browseCards(pool:readonly Player[],state:Pick<GameState,'owned'|'training'|'careerGrowth'>,options:CardFilters):Player[]{
  const band=ageBands.find(b=>b.value===options.age)??ageBands[0];
  const rows=pool.filter(p=>!p.opponentOnly&&matchesPlayerName(p,options.search)
   &&(options.team==='all'||(options.team==='mlb'?!!p.mlb:p.team===options.team))
   &&(options.role==='all'||(options.role==='batter'?canBat(p):p.role==='pitcher')))
-  .map(p=>({p,age:playerAge(p),overall:effectiveOverall(p,state.owned,state.training)}))
+  .map(p=>({p,age:playerAge(p),overall:effectiveOverall(p,state.owned,state.training,state.careerGrowth)}))
   .filter(r=>band.value==='all'||r.age!==null&&r.age>=band.min&&r.age<=band.max);
  rows.sort((a,b)=>{
   let difference=0;

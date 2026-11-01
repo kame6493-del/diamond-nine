@@ -5,7 +5,7 @@ import {localDay,monetizeBridge,useMonetize} from './monetization';
 import {PackShop} from './PackShop';
 import {
  DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_DAILY_LIMIT,regenLabel,
- FREE_SEASONS,canBuyStaminaOption,costToFinish,currentRules,formatWait,freeSeasonsLeft,gamesLeft,loadStamina,seasonCost,staminaPtBuysLeft,staminaPtPrice,staminaPtRestore,staminaStage,
+ FREE_SEASONS,STAMINA_ENABLED,canBuyStaminaOption,costToFinish,currentRules,formatWait,freeSeasonsLeft,gamesLeft,loadStamina,seasonCost,staminaPtBuysLeft,staminaPtPrice,staminaPtRestore,staminaStage,
  requestStaminaRecover,takeStaminaRecoverRequest,useStamina,type StaminaPtOption,type StaminaView,
 } from './stamina';
 import './stamina.css';
@@ -18,6 +18,10 @@ const Bolt=({size}:{size:number})=><img className="st-bolt" src={ART+'stamina-bo
 
 // 画面上部の小さな行動力の表示。押すと試合の画面へ。
 export function StaminaChip({onOpen}:{onOpen:()=>void}){
+ if(!STAMINA_ENABLED)return null;
+ return <StaminaChipLive onOpen={onOpen}/>;
+}
+function StaminaChipLive({onOpen}:{onOpen:()=>void}){
  const v=useStamina();
  // 2026-11-01: 押すと試合の画面で回復の欄(待つ・広告・ポイント・ドリンク)が開く
  return <button type="button" className={'st-chip'+(v.points<=0?' is-empty':'')} onClick={()=>{requestStaminaRecover();onOpen();}} aria-label={`行動力 ${v.points} / ${v.max}${v.full?'':`、次の回復まで ${formatWait(v.nextInMs)}`}`}>
@@ -37,7 +41,18 @@ export interface StaminaActions {
 }
 
 // view: テストで行動力の値を固定するため(画面では使わない)。
-export function StaminaPlay({state,busy,pawa,actions,view}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
+// 2026-11-01: 行動力を使わない間は「1年進める」だけを出す。
+export function StaminaPlay(props:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
+ if(STAMINA_ENABLED)return <StaminaPlayLive {...props}/>;
+ const {state,busy,pawa,actions}=props,left=gamesLeft(state);
+ return <div className={'st-play is-plain'+(pawa?' is-pawa':'')}><div className="st-buttons">
+  <button type="button" className={(pawa?'pw-btn pw-yellow':'s-primary')+' st-go'} disabled={busy} onClick={()=>actions.onPlay()}>
+   <span><Play size={16} fill="currentColor" aria-hidden="true"/>1年進める</span>
+   <small>{season(left)}</small>
+  </button>
+ </div></div>;
+}
+function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
  const live=useStamina(),v=view??live,m=useMonetize();
  const [open,setOpen]=useState(false),[confirm,setConfirm]=useState<StaminaPtOption|null>(null),[note,setNote]=useState(''),[shop,setShop]=useState(false);
  // 上部の行動力の札から来た時は回復の欄を開いておく

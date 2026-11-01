@@ -22,8 +22,16 @@ export const pointPacks:readonly PointPack[] = [
  {id:'pt_pack_126000',points:126000,priceYen:5000},
  {id:'pt_pack_300000',points:300000,priceYen:10000},
 ] as const;
-export const pointPackIds = pointPacks.map(p=>p.id);
-export const packById = (id:string) => pointPacks.find(p=>p.id===id);
+// 2026-11-01 はじめての購入向けの1回だけのパック。¥480 で 30,000pt(スカウト10回分。いつもの ¥480 は 10,000pt)。
+// 期限は無い。Play では消費しない(1つの Google アカウントで1回だけ買える)。買った後は一覧から消える。
+export const firstPack:PointPack = {id:'pt_first_30000',points:30000,priceYen:480,tag:'はじめての購入だけ・1回限り'};
+export const allPointPacks:readonly PointPack[] = [firstPack,...pointPacks];
+export const isOncePack = (id:string) => id===firstPack.id;
+export const pointPackIds = allPointPacks.map(p=>p.id);
+export const packById = (id:string) => allPointPacks.find(p=>p.id===id);
+const ONCE_KEY='diamond-nine-once-packs';
+export const readOncePacks = ():string[] => {try{const v=JSON.parse(localStorage.getItem(ONCE_KEY)??'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'):[];}catch{return [];}};
+export const markOncePack = (id:string) => {try{const v=readOncePacks();if(!v.includes(id))localStorage.setItem(ONCE_KEY,JSON.stringify([...v,id]));}catch{/* 次の起動で getPurchases から拾い直す */}};
 const SCOUT = 3000;
 export const packDraws = (p:PointPack) => p.points/SCOUT;
 // 1回(3,000pt)あたりの円。いちばん小さいパックとの比べで「おトク」を出す。

@@ -77,6 +77,35 @@ export function developedRatings(p:Player,stage=0,bonus=0):Ratings{
  }
  return r;
 }
-export function ownedRatings(p:Player,owned:Record<string,number>,training:Record<string,number>={}):Ratings{
- return developedRatings(p,training[p.id]??0,Math.min(5,Math.max(0,(owned[p.id]??1)-1)));
+// ---- 年ごとの成長と衰え(2026-11-01 持ち主「チームを徐々に強くしていく過程が無さすぎる」) ----
+// シーズンを1年終えるたびに、持っている選手全員が年を取り、若手は伸び、ベテランは衰える。
+// y = チームで過ごした年数、b = 能力に足す量(マイナスもある)。覚醒・重複とは別に重なる。
+// 年齢 = 2026年の年齢 + チームで過ごした年数。年齢が分からない選手は27歳として扱う。
+// 伸びる量は若いほど大きく、期待値(ドラフト・成績の裏づけ)が高いほど大きい。衰えは期待値に関係なく同じ。
+export interface CareerGrowth {y:number;b:number}
+export type CareerGrowthMap=Record<string,CareerGrowth>;
+export const GROWTH_MIN=-10,GROWTH_MAX=14;
+const yearlyCurve:[number,number][]=[[21,3.5],[23,3],[25,2.2],[27,1.4],[29,.7],[31,.2],[33,-.6],[35,-1.2],[99,-2]];
+export function yearlyGrowthDelta(p:Player,yearsOnTeam:number):number{
+ const age=(playerAge(p)??27)+Math.max(0,Math.trunc(yearsOnTeam));
+ const base=yearlyCurve.find(([end])=>age<=end)![1];
+ if(base<=0)return base;
+ return Math.round(base*(.5+growthProfile(p).expectation)*10)/10;
+}
+export const growthBonus=(growth:CareerGrowthMap|undefined,id:string)=>{const g=growth?.[id];return g&&Number.isFinite(g.b)?Math.round(g.b):0;};
+export const careerAge=(p:Player,growth?:CareerGrowthMap)=>{const a=playerAge(p);return a===null?null:a+(growth?.[p.id]?.y??0);};
+/** 1年ぶん進める。同じシーズンで2回呼んでも1回しか効かない(grownSeason で覚える)。 */
+export function growOneYear<T extends {owned:Record<string,number>;careerGrowth?:CareerGrowthMap;grownSeason?:number}>(state:T,season:number,lookup:(id:string)=>Player|undefined):T{
+ if(!Number.isInteger(season)||season<=(state.grownSeason??0))return state;
+ const next:CareerGrowthMap={};
+ for(const id of Object.keys(state.owned)){
+  const p=lookup(id);if(!p)continue;
+  const cur=state.careerGrowth?.[id]??{y:0,b:0};
+  next[id]={y:cur.y+1,b:Math.round(bound(cur.b+yearlyGrowthDelta(p,cur.y),GROWTH_MIN,GROWTH_MAX)*10)/10};
+ }
+ return {...state,careerGrowth:next,grownSeason:season};
+}
+export const validCareerGrowth=(g:unknown,owned:Record<string,number>)=>g===undefined||(!!g&&typeof g==='object'&&!Array.isArray(g)&&Object.entries(g as CareerGrowthMap).every(([id,v])=>!!owned?.[id]&&!!v&&Number.isInteger(v.y)&&v.y>=0&&v.y<=500&&typeof v.b==='number'&&Number.isFinite(v.b)&&v.b>=GROWTH_MIN&&v.b<=GROWTH_MAX));
+export function ownedRatings(p:Player,owned:Record<string,number>,training:Record<string,number>={},growth?:CareerGrowthMap):Ratings{
+ return developedRatings(p,training[p.id]??0,Math.min(5,Math.max(0,(owned[p.id]??1)-1))+growthBonus(growth,p.id));
 }

@@ -12,7 +12,7 @@ const tmp=resolve('node_modules/.tmp');
 await mkdir(tmp,{recursive:true});
 const entry=resolve(tmp,'pack-fit-entry.tsx');
 await writeFile(entry,`
-const prices={pt_pack_3000:'￥160',pt_pack_10000:'￥480',pt_pack_21000:'￥980',pt_pack_69000:'￥3,000',pt_pack_126000:'￥5,000',pt_pack_300000:'￥10,000'};
+const prices={pt_first_30000:'￥480',pt_pack_3000:'￥160',pt_pack_10000:'￥480',pt_pack_21000:'￥980',pt_pack_69000:'￥3,000',pt_pack_126000:'￥5,000',pt_pack_300000:'￥10,000'};
 const snap={premium:{status:'ready',owned:false,verified:true,price:'￥480',busy:false,message:''},reward:{available:true,busy:false,left:3,limit:3,points:3000},privacyOptions:false,packs:{status:'ready',prices,busy:false,message:''}};
 (globalThis as any).window={diamondMonetize:{snapshot:()=>snap,subscribe:()=>()=>{}}};
 const {renderToStaticMarkup}=await import('react-dom/server');

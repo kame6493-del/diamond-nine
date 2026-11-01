@@ -5,7 +5,7 @@ import type {GameState} from './engine';
 export interface SnapshotPlayer {id:string;position:string;overall:number;ratings:Ratings}
 export interface SeasonTeamSnapshot {version:1;name:string;batters:SnapshotPlayer[];pitchers:SnapshotPlayer[]}
 export function captureSeasonTeam(state:GameState):SeasonTeamSnapshot{
- const card=(id:string,position:string):SnapshotPlayer=>{const p=playerMap[id],ratings=ownedRatings(p,state.owned,state.training);return {id,position,overall:ratingOverall(p,ratings),ratings};};
+ const card=(id:string,position:string):SnapshotPlayer=>{const p=playerMap[id],ratings=ownedRatings(p,state.owned,state.training,state.careerGrowth);return {id,position,overall:ratingOverall(p,ratings),ratings};};
  return {version:1,name:state.name,batters:state.lineup.map(id=>card(id,state.defense[id])),pitchers:state.pitchers.map(id=>card(id,'投'))};
 }
 export function validSeasonTeam(value:unknown):value is SeasonTeamSnapshot{

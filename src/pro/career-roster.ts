@@ -12,7 +12,7 @@ export function bestUpgrade(state: GameState, id: string) {
   const roster = pitching ? state.pitchers : state.lineup;
   const candidates = roster.map((oldId, index) => ({ oldId, index }))
     .filter(({ oldId, index }) => pitching ? pitcherRolePenalty(player,pitcherSlotRole(index))===0 : fitsPosition(player, state.defense[oldId]))
-    .map(slot => {const position=state.defense[slot.oldId],before=effectiveOverall(playerMap[slot.oldId], state.owned, state.training),after=effectiveOverall(player, state.owned, state.training);return {...slot,before,after,gain:after-before+(pitching?0:positionDefensePenalty(playerMap[slot.oldId],position)-positionDefensePenalty(player,position))*.14};})
+    .map(slot => {const position=state.defense[slot.oldId],before=effectiveOverall(playerMap[slot.oldId], state.owned, state.training,state.careerGrowth),after=effectiveOverall(player, state.owned, state.training,state.careerGrowth);return {...slot,before,after,gain:after-before+(pitching?0:positionDefensePenalty(playerMap[slot.oldId],position)-positionDefensePenalty(player,position))*.14};})
     .sort((a, b) => b.gain-a.gain || a.index - b.index);
   const best = candidates[0];
   return best && best.gain > 0 ? { ...best, pitching, position: pitching ? starter ? '先発' : '救援' : state.defense[best.oldId] } : null;

@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Sparkles} from 'lucide-react';
 import {formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from '../engine';
-import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames} from '../development';
+import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames,careerAge,growthBonus,yearlyGrowthDelta} from '../development';
 import {trainPlayer} from '../franchise';
 import {traitDescriptions} from '../wiki-traits';
 import {equipTwoWayPlayer} from '../simple-game';
@@ -21,7 +21,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  useEffect(()=>{if(result)success.current?.focus({preventScroll:true});},[result]);
  useEffect(()=>setResult(null),[player.id]);
  const owned=!!state.owned[player.id],level=state.training[player.id]??0,cost=awakeningCosts[level];
- const growth=growthProfile(player),overall=effectiveOverall(player,state.owned,state.training),ratings=cardRatings(player,state,catalog);
+ const growth=growthProfile(player),overall=effectiveOverall(player,state.owned,state.training,state.careerGrowth),ratings=cardRatings(player,state,catalog);
  const lines=seasonLines(state.season,state.club,player),b=lines.bat,p=lines.pit,career=careerLines(state,player.id);
  const cb=career.bat,cp=career.pit,careerBat=[['試合',cb.games],['打率',cb.ab?formatAvg(cb.hits/cb.ab):'—'],['本塁打',cb.hr],['打点',cb.rbi],['盗塁',cb.sb],['OPS',cb.pa?formatAvg(ops({...cb,playerId:'',team:'',runs:0,so:0})):'—']],careerPit=[['登板',cp.games],['勝-敗',`${cp.wins}-${cp.losses}`],['セーブ',cp.saves],['防御率',cp.outs?(cp.er*27/cp.outs).toFixed(2):'—'],['奪三振',cp.so],['投球回',formatIP(cp.outs)]];
  const traits=player.traits.filter(t=>!['暫定査定','基本能力型','実戦派'].includes(t));
@@ -32,10 +32,10 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  const pitStats=[['防御率',p?.outs?era(p).toFixed(2):'—'],['勝-敗',`${p?.wins??0}-${p?.losses??0}`],['セーブ',p?.saves??0],['奪三振',p?.so??0],['WHIP',p?.outs?((p.hits+p.bb)*3/p.outs).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['登板',p?.games??0],['先発',p?.starts??0],['四球',p?.bb??0],['被安打',p?.hits??0],['被本塁打',p?.hr??0]];
  const awaken=()=>{
   const updated=trainPlayer(state,player.id);if(updated===state)return;
-  const a=ownedRatings(player,state.owned,state.training),b=ownedRatings(player,updated.owned,updated.training);
+  const a=ownedRatings(player,state.owned,state.training,state.careerGrowth),b=ownedRatings(player,updated.owned,updated.training,updated.careerGrowth);
   const keys:[string,keyof Ratings][]=pitcher?[['球速','velocity'],['制球','control'],['スタミナ','stamina'],['変化','breaking'],...(twoWay?[['ミート','contact'],['パワー','power']] as [string,keyof Ratings][]:[])]:[['ミート','contact'],['パワー','power'],['走力','speed'],['肩','arm'],['守備','field']];
   const changes=keys.map(([label,k])=>({label,before:a[k] as number,after:b[k] as number})).filter(c=>c.after!==c.before);
-  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training),stage:updated.training[player.id],changes});
+  setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training,updated.careerGrowth),stage:updated.training[player.id],changes});
   onChange(updated);onAwaken();
  };
  const shown=catalog?ratingOverall(player,player.ratings):overall;
@@ -49,7 +49,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
     <p className="pw-team-line"><span className="pw-mark" style={{color:team.color}}>{team.mark}</span>{team.short}{player.mlb?' · 海外':''}</p>
     <h3>{player.name}</h3>
     <p className="pw-hand">{player.throws??'—'}投{player.bats}打</p>
-    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':player.positions.map(positionLabel).join('・')||'指名打者'}</dd></div><div><dt>年齢</dt><dd>{growth.age!==null?`${growth.age}歳`:'—'}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}</dl>
+    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':player.positions.map(positionLabel).join('・')||'指名打者'}</dd></div><div><dt>年齢</dt><dd>{(()=>{const age=catalog?growth.age:careerAge(player,state.careerGrowth);return age!==null?`${age}歳`:'—';})()}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}{!catalog&&owned&&(()=>{const g=growthBonus(state.careerGrowth,player.id),d=yearlyGrowthDelta(player,state.careerGrowth?.[player.id]?.y??0);return <div><dt>年ごとの成長</dt><dd>{g>0?`＋${g}`:g<0?`${g}`:'±0'}<small>（来年 {d>0?'伸びる':d<0?'衰える':'横ばい'}）</small></dd></div>;})()}</dl>
    </div>
   </div>
 

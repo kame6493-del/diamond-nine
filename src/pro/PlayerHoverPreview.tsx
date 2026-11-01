@@ -8,7 +8,7 @@ type Preview={playerId:string;anchor:HTMLElement;left:number;top:number};
 const battingAbilities=[['contact','ミート'],['power','パワー'],['speed','走力'],['arm','肩力'],['field','守備力']] as const;
 const pitchingAbilities=[['control','コントロール'],['stamina','スタミナ'],['breaking','変化球総合']] as const;
 
-export function PlayerHoverPreview({owned,training}:{owned:Record<string,number>;training:Record<string,number>}){
+export function PlayerHoverPreview({owned,training,growth}:{owned:Record<string,number>;training:Record<string,number>;growth?:import('./development').CareerGrowthMap}){
  const [preview,setPreview]=useState<Preview|null>(null);
  const popup=useRef<HTMLDivElement>(null),anchor=useRef<HTMLElement|null>(null);
  const hideTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -66,7 +66,7 @@ export function PlayerHoverPreview({owned,training}:{owned:Record<string,number>
  },[preview?.anchor,tooltipId]);
 
  if(!preview)return null;
- const player=playerMap[preview.playerId],ratings=ownedRatings(player,owned,training),level=training[player.id]??0;
+ const player=playerMap[preview.playerId],ratings=ownedRatings(player,owned,training,growth),level=training[player.id]??0;
  const isPitcher=player.role==='pitcher',abilities=player.mlb?.twoWay?[...pitchingAbilities,...battingAbilities]:isPitcher?pitchingAbilities:battingAbilities;
  return createPortal(<div ref={popup} id={tooltipId} role="tooltip" className={`player-hover-preview ${isPitcher?'pitcher':''}`} style={{left:preview.left,top:preview.top}}>
   <div className="player-hover-heading"><div><small>{teamById(player.team).short} · {player.dataYear}</small><strong>{player.name}</strong></div></div>

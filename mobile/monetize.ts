@@ -14,7 +14,7 @@ import {
 } from '../src/pro/monetization';
 import {track} from '../src/pro/analytics';
 import {STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,setStaminaPass} from '../src/pro/stamina';
-import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend} from '../src/pro/point-products';
+import {PREMIUM_PASS_PRICE_YEN,packById,pointPackIds,recordSpend,isOncePack,markOncePack} from '../src/pro/point-products';
 import type {PacksSnapshot} from '../src/pro/monetization';
 import {initRevenueCat,recordPurchase} from './revenuecat';
 
@@ -167,7 +167,9 @@ async function fulfil(t:Transaction){
  // RevenueCat の記録(observer)は消費の前に。消費した購入は端末から読めなくなる。最長で数秒待つだけで、失敗しても先へ進む。
  await recordPurchase(pack.id);
  try{
-  if(platform==='android')await store(()=>NativePurchases.consumePurchase({purchaseToken:token}));
+  // 1回だけのパック(pt_first_30000)は消費しない(Play が同じアカウントでの2回目を止める)。受け取りの確認だけ伝える。
+  if(isOncePack(pack.id)){markOncePack(pack.id);setPacks({});if(platform==='ios'||t.isAcknowledged!==true)await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token}));}
+  else if(platform==='android')await store(()=>NativePurchases.consumePurchase({purchaseToken:token}));
   else await store(()=>NativePurchases.acknowledgePurchase({purchaseToken:token}));
  }catch{/* retried at the next start from getPurchases */}
  return true;

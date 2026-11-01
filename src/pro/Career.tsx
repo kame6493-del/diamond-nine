@@ -24,10 +24,10 @@ export function CareerHome({ state, advance, onScout, onTeam, onSeason, onClub, 
   state: GameState; advance: (days: number) => void; onScout: () => void; onTeam: () => void; onSeason: () => void; onClub: () => void; onGame: (game: GameResult) => void; renderCard: CardRenderer;onClaim?:()=>void;onEquip?:(id:string)=>void;
 }) {
   const roster = [...state.lineup, ...state.pitchers];
-  const power = Math.round(roster.reduce((n, id) => n + effectiveOverall(playerMap[id], state.owned, state.training), 0) / roster.length);
+  const power = Math.round(roster.reduce((n, id) => n + effectiveOverall(playerMap[id], state.owned, state.training,state.careerGrowth), 0) / roster.length);
   const mine = state.season.standings.find(t => t.team === state.club)!;
   const ready = state.gems >= SCOUT_COST;
-  const byOverall = (a: string, b: string) => effectiveOverall(playerMap[b], state.owned, state.training) - effectiveOverall(playerMap[a], state.owned, state.training);
+  const byOverall = (a: string, b: string) => effectiveOverall(playerMap[b], state.owned, state.training,state.careerGrowth) - effectiveOverall(playerMap[a], state.owned, state.training,state.careerGrowth);
   const featured = [...[...state.lineup].sort(byOverall).slice(0, 2), ...[...state.pitchers].sort(byOverall).slice(0, 2)];
   const missions = milestonesFor(state).filter(m => !state.franchise.claimed.includes(m.id) && m.value(state) >= m.goal);
   return <div className="career-home">
