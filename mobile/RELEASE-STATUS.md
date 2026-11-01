@@ -2,6 +2,10 @@
 
 2026-09-25。Androidの署名済みAPK/AABを作成。Google Playアプリ登録済み。一般公開・課金販売は未開始。App Store未提出。
 
+## 2026-11-01 夜 Android 34 / 1.4.1（バランスの見直し・行動力なし）
+
+alpha だけに出した（製品版は vc33 のまま）。変更・前後の表・測り方は [BALANCE_1101.md](BALANCE_1101.md)。新商品 pt_first_30000（¥480・30,000pt・消費しない＝1アカウント1回）を Play で作成・有効化（ios_release/play/d9_1101_balance/d9_first_pack.py）、RevenueCat に商品と売り場 diamondnine（scripts-rc-setup.py）。commit 677763a。
+
 ## 2026-10-30 夜 Android 28 / 1.3.6（ガンガン引けて育てられる・行動力をほぼ縛らない）
 
 持ち主 10/30 夜「ダイヤモンドナイン、もっともっとガンガンガチャ回せて育成できるようにしてほしいです。行動力制限もっと減らして」。
