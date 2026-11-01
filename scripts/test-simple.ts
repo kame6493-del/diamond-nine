@@ -4,7 +4,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialState,simulateDays,validState,migrateState,rng,nextSeason} from '../src/pro/engine';
 import {players,playerMap} from '../src/pro/data';
 import {finishPostseason,simulatePostseason} from '../src/pro/postseason';
-import {SCOUT_BATTER_SHARE,SCOUT_UPGRADE_CHANCE,upgradeFloor,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
+import {MLB_SCOUT_CHANCE,SIMPLE_SCOUT_COST,scoutOdds,scoutPlayerOdds,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
 import SimpleApp,{SimpleSeason,SimpleStats,SimpleScout} from '../src/pro/SimpleApp';
 import {scoutPresentation,scoutDuration} from '../src/pro/scout-presentation';
 import {ratingOverall} from '../src/pro/development';
@@ -48,10 +48,8 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
  test('simple scouts ignore legacy rarity and pity while retaining the published league pools',()=>{
   const base=initialState();base.gems=10000;
   for(const seed of [1,99,44321,2026,999999,4294967295]){
-   const random=rng(seed),major=random.next()<.02,pool=players.filter(p=>!!p.mlb===major);
-   const wantArm=random.next()>=SCOUT_BATTER_SHARE,leaned=major?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
-   const upgrade=!major&&random.next()<SCOUT_UPGRADE_CHANCE,better=upgrade?leaned.filter(p=>p.overall>upgradeFloor(base,wantArm)):[];
-   const from=better.length?better:leaned,expected=from[Math.floor(random.next()*from.length)].id;
+   // 2026-11-01: 補強チャンスと野手寄せを外した。海外2%、それ以外は国内全員から同じ確率
+   const random=rng(seed),major=random.next()<.02,from=players.filter(p=>!!p.mlb===major),expected=from[Math.floor(random.next()*from.length)].id;
    for(const [pulls,pity] of [[0,0],[4,49],[9,42],[49,49]]){
     const start={...base,seed,pulls,pity},snapshot=JSON.stringify(start),next=drawSimplePlayer(start);
     assert.equal(next.lastPulls[0].playerId,expected);assert.equal(next.lastPulls.length,1);
@@ -59,6 +57,24 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
     assert.equal(JSON.stringify(start),snapshot);assert.ok(validState(next));
    }
   }
+ });
+ test('2026-11-01 no scout boost: shown odds equal the draw, every domestic player has the same chance whatever the team, and draws follow it',()=>{
+  const weak={...initialState(),gems:SIMPLE_SCOUT_COST*30000,seed:4242};
+  const strong={...weak,lineup:[...weak.lineup].reverse()};
+  for(const st of [weak,strong]){
+   const o=scoutOdds(st);assert.equal(o.mlb,MLB_SCOUT_CHANCE);assert.equal(o.rookie,0);assert.ok(Math.abs(o.mlb+o.domestic-1)<1e-12);
+   const per=scoutPlayerOdds(st);let sum=0;for(const v of per.values())sum+=v;assert.ok(Math.abs(sum-1)<1e-12);
+   const dom=players.filter(p=>!p.mlb),each=o.domestic/dom.length;
+   for(const p of dom)assert.ok(Math.abs(per.get(p.id)!-each)<1e-15,'same chance for every domestic player');
+  }
+  assert.deepEqual([...scoutPlayerOdds(weak)],[...scoutPlayerOdds(strong)]);
+  const g=scoutOdds({...weak,pulls:29});assert.equal(g.guaranteed,true);assert.equal(g.mlb,1);
+  // 20,000 draws: overseas and batter/pitcher shares match the stated equal odds
+  let s=weak,mlb=0,arms=0;const n=20000;
+  for(let i=0;i<n;i++){s=drawSimplePlayer({...s,gems:SIMPLE_SCOUT_COST,pulls:0});const p=playerMap[s.lastPulls[0].playerId];if(p.mlb)mlb++;else if(p.role==='pitcher')arms++;}
+  const dom=players.filter(p=>!p.mlb),armShare=dom.filter(p=>p.role==='pitcher').length/dom.length;
+  assert.ok(Math.abs(mlb/n-MLB_SCOUT_CHANCE)<.004,`mlb ${mlb/n}`);
+  assert.ok(Math.abs(arms/(n-mlb)-armShare)<.012,`pitchers ${arms/(n-mlb)} vs ${armShare}`);
  });
  test('every simple scout costs 3000 and old tickets or ten-draw milestones cannot create free draws',()=>{
   const zero=initialState();assert.equal(drawSimplePlayer(zero),zero);

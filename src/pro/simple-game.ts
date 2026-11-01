@@ -20,26 +20,34 @@ export function collectSimpleRewards(input:GameState):GameState {
 }
 
 // `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
-export const SCOUT_BATTER_SHARE=.6;
-export const SCOUT_UPGRADE_CHANCE=.35;
-// Average overall of the regulars: the nine-man lineup for batters, the 14-arm staff for pitchers.
+// 2026-11-01 持ち主「補強ブーストみたいなのはやめて」: 今の主力より強い選手から選ぶ「補強チャンス」(35%)と、
+// 打線が弱いので野手を出やすくする寄せ(野手60%・投手40%)を外した。国内は全員が同じ確率(海外2%と30回ごとの確定、
+// ドラフト会議ウィークのルーキー枠はそのまま)。
+// Average overall of the regulars (used by the scout screen's "補強したい所" list only; it does not change the odds).
 export const upgradeFloor=(state:GameState,arm:boolean)=>{const o=(arm?state.pitchers:state.lineup).map(id=>playerMap[id]?.overall??0);return o.reduce((n,x)=>n+x,0)/Math.max(1,o.length);};
+/** 次の1回の提供割合。抽選(drawSimplePlayer)と表示の両方がこれを使う。 */
+export function scoutOdds(state:GameState,now:Date|null=null){
+ const guaranteed=(state.pulls+1)%MLB_GUARANTEE_EVERY===0;
+ if(guaranteed)return {guaranteed,mlb:1,rookie:0,domestic:0};
+ const rookie=draftEventActive(now)?(1-MLB_SCOUT_CHANCE)*DRAFT_ROOKIE_CHANCE:0;
+ return {guaranteed,mlb:MLB_SCOUT_CHANCE,rookie,domestic:1-MLB_SCOUT_CHANCE-rookie};
+}
+/** 選手1人ごとの確率(テストで表示と突き合わせる)。 */
+export function scoutPlayerOdds(state:GameState,now:Date|null=null):Map<string,number>{
+ const o=scoutOdds(state,now),m=new Map<string,number>(),add=(pool:Player[],p:number)=>{for(const x of pool)m.set(x.id,(m.get(x.id)??0)+p/pool.length);};
+ if(o.guaranteed){const missing=majorPool.filter(p=>!state.owned[p.id]);add(missing.length?missing:majorPool,1);return m;}
+ add(majorPool,o.mlb);if(o.rookie)add(draftRookiePool,o.rookie);add(domesticPool,o.domestic);
+ return m;
+}
 export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
  if(input.gems<SIMPLE_SCOUT_COST)return input;
- const state=structuredClone(input),random=rng(state.seed);
- const guaranteed=(state.pulls+1)%MLB_GUARANTEE_EVERY===0;
+ const state=structuredClone(input),random=rng(state.seed),odds=scoutOdds(input,now);
+ const guaranteed=odds.guaranteed;
  const major=guaranteed||random.next()<MLB_SCOUT_CHANCE;
  const missing=majorPool.filter(p=>!state.owned[p.id]);
  const rookie=!major&&draftEventActive(now)&&random.next()<DRAFT_ROOKIE_CHANCE;
- const pool=major?(guaranteed&&missing.length?missing:majorPool):rookie?draftRookiePool:domesticPool;
- // Starting clubs are weakest at the plate, and half of the domestic pool is arms,
- // so ordinary draws lean toward batters. Guaranteed and rookie draws keep their pools.
- const wantArm=random.next()>=SCOUT_BATTER_SHARE,leaned=major||rookie?pool:pool.filter(p=>(p.role==='pitcher')===wantArm);
- // An upgrade draw picks only from players better than the club's weakest regular
- // of that kind, so scouting keeps paying off after the roster stops being bad.
- const upgrade=!major&&!rookie&&random.next()<SCOUT_UPGRADE_CHANCE,floor=upgradeFloor(state,wantArm);
- const better=upgrade?leaned.filter(p=>p.overall>floor):[];
- const from=better.length?better:leaned.length?leaned:pool,player=from[Math.floor(random.next()*from.length)];
+ const from=major?(guaranteed&&missing.length?missing:majorPool):rookie?draftRookiePool:domesticPool;
+ const player=from[Math.floor(random.next()*from.length)];
  // 2026-10-30 夜: 7枚目以降の換金 80 → 300pt(たくさん引くと重なるため)。
  const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?DUPLICATE_POINTS:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
