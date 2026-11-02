@@ -21,7 +21,9 @@ export const SEASON_COMPLETE_POINTS = 3500;
 export const GAME_POINTS = 2;
 export const GAME_WIN_POINTS = 1;
 // プレミアムパス: シーズンを終えるたびに ＋6,000pt(スカウト2回分)。毎年効く中身(2026-11-01)。アプリ版でパスが有効な時だけ。
-export const PASS_SEASON_POINTS = 6000;
+// 2026-11-03 vc39 持ち主「課金したら大きくポイントが増えるように、課金者がだいぶ優遇されるように」: 6,000 → 30,000(毎年スカウト10回分)。
+// 上手な遊び方の bot(1日3年・8シード)で初のリーグ優勝: 無課金 11〜12年目 → パス 4年目(6,000 のままだと8年目)。BALANCE_1101.md の vc39 の節。
+export const PASS_SEASON_POINTS = 30000;
 // 補強支援: シーズンを終えるたびに、累計スカウト回数(pulls)に応じて。40回からは無し。
 export const SUPPORT_STEPS = [{under: 6, points: 3000}] as const;
 // 12シーズン目まで(引かずにためる人に配り続けないため)。

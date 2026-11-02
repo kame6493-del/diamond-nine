@@ -16,6 +16,7 @@ import {awakeningCosts,effectiveOverallFor,yearEnd} from '@d9/sim-shim';
 import {REWARD_AD_DAILY_LIMIT,PREMIUM_DAILY_POINTS,setPremiumMatchBonus} from '@d9/sim-shim';
 import {DAILY_LOGIN_POINTS,DAILY_MISSIONS,DAILY_ALL_BONUS} from '@d9/daily';
 import * as ST from '@d9/stamina';
+import * as PP from '@d9/point-products';
 // 2026-11-02 vc38: RECOVER="small:3" / "full:1" / "drink:1"(ドリンク3本の組)。行動力が切れた所(1日の年数を使い切った所)で
 // ポイントで回復して続ける。その日の回数ぶん、値段は stamina.ts の段階(1・1.5・2倍)。買えるまで pt をとっておく(スカウトに回さない)。
 // 1年 = 国内の行動力10。「何日目に優勝したか」も出す(回復は日数を縮めるが、年数では早くならない＝得をしない、を見る)。
@@ -37,7 +38,16 @@ interface Plan {name:string;ads:boolean;pass:boolean;buy:(year:number)=>number}
 // ログインと今日の目標を全部・公開記念ボーナス(15,000pt、11/30 まで)も受け取る・いつも一番強い選手で組む(balanced)。
 // 購入 = パス+はじめてのパック(¥480/30,000pt、1年目)+毎年 ¥980(21,000pt)。大きく買う = パス+1年目と4年目に ¥10,000(300,000pt)。
 const skilled=process.env.SKILLED==='1',GIFT=skilled?15000:0;
-const plans:Plan[]=skilled?[
+// 2026-11-03 vc39: V39=1 で 無課金・パス・1万円 などを、今のパックの中身(point-products.ts)で回す。行動力は無い(1日の年数は YEARS_PER_DAY)。
+const packPt=(id:string)=>(PP.allPointPacks as readonly {id:string;points:number}[]).find(p=>p.id===id)?.points??0;
+const v39=process.env.V39==='1';
+const plans:Plan[]=v39?[
+ {name:'無課金',ads:true,pass:false,buy:()=>0},
+ {name:'パスだけ(¥480)',ads:true,pass:true,buy:()=>0},
+ {name:'はじめてのパックだけ(¥480)',ads:true,pass:false,buy:y=>y===1?packPt('pt_first_30000'):0},
+ {name:'¥160 を1回',ads:true,pass:false,buy:y=>y===1?packPt('pt_pack_3000'):0},
+ {name:'1万円(¥10,000 を1年目)',ads:true,pass:false,buy:y=>y===1?packPt('pt_pack_300000'):0},
+]:skilled?[
  {name:'上手・無課金',ads:true,pass:false,buy:()=>0},
  {name:'上手・パス',ads:true,pass:true,buy:()=>0},
  {name:'上手・購入(パス+はじめて+毎年¥980)',ads:true,pass:true,buy:y=>21000+(y===1?30000:0)},

@@ -11,7 +11,7 @@ const ASKED_KEY='diamond-nine-reminder-asked';
 export function nextReminders(now:Date){
  const at=(days:number)=>{const d=new Date(now);d.setDate(d.getDate()+days);d.setHours(REMINDER_HOUR,0,0,0);return d;};
  return [
-  {at:at(1),title:'DIAMOND NINE',body:`今日のログインボーナス ${DAILY_LOGIN_POINTS}pt と回復ドリンクが受け取れます。今日の目標もそろっています。`},
+  {at:at(1),title:'DIAMOND NINE',body:`今日のログインボーナス ${DAILY_LOGIN_POINTS}pt が受け取れます。今日の目標もそろっています。`},
   {at:at(3),title:'DIAMOND NINE',body:'チームが次の試合を待っています。スカウトで補強して、まずは勝ち越しを目指そう。'},
  ];
 }

@@ -8,7 +8,8 @@ export const androidEdition = typeof __DIAMOND_ANDROID__ !== 'undefined' && __DI
 export const appEdition = androidEdition || (typeof __DIAMOND_APP__ !== 'undefined' && __DIAMOND_APP__);
 export const APP_MATCH_RATE = 1;
 // 2026-10-16: 2 → 1.5 倍。
-export const PREMIUM_MATCH_MULTIPLIER = 1.5;
+// 2026-11-03 vc39: 1.5 → 2 倍。
+export const PREMIUM_MATCH_MULTIPLIER = 2;
 // Set by the native monetization bridge from the store entitlement (cached until confirmed).
 // Only per-game match rewards change; goals, season, postseason and scout odds do not.
 let premiumMatchBonus = false;

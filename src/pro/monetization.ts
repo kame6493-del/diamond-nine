@@ -14,7 +14,8 @@ export const REWARD_AD_DAILY_LIMIT = 1;
 // 2026-10-16: 1,000 → 500(買い切りで毎日 1,000 は ¥160 のパックより得が大きすぎた)。
 // 2026-10-30 夜: 500 → 1,500(ログインボーナスを3倍にしたのに合わせる)。
 // 2026-11-01 夜: 1,500 → 1,000(ログインボーナスを 300 に戻した。代わりにシーズンごとの ＋3,000pt を足した)。
-export const PREMIUM_DAILY_POINTS = 1000;
+// 2026-11-03 vc39: 1,000 → 5,000(ログインボーナス 100 の50倍。パスの人ははっきり得をする)。
+export const PREMIUM_DAILY_POINTS = 5000;
 export const INTERSTITIAL_EVERY_SCOUTS = 3;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 5分 → 10分あける。
 export const INTERSTITIAL_COOLDOWN_MS = 10 * 60 * 1000;

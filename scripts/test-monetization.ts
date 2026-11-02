@@ -44,7 +44,7 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
   assert.equal(interstitialGraceOver(0),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS-1),false);assert.equal(interstitialGraceOver(INTERSTITIAL_GRACE_SEASONS),true);
   const now=INTERSTITIAL_COOLDOWN_MS*10;
   assert.equal(interstitialDue('season',{premium:false,lastShownAt:now-9*60*1000,now,scoutsSince:0}),false);
-  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,1000);
+  assert.equal(REWARD_AD_POINTS,3000,'one rewarded ad is one scout');assert.equal(PREMIUM_DAILY_POINTS,5000,'vc39: パスの毎日 1,000 → 5,000');
  });
  test('browser rewards ignore the premium flag and render no ad or pass UI',()=>{
   assert.equal(appEdition,false);
@@ -56,13 +56,16 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
    assert.equal(renderToStaticMarkup(createElement(RewardAdButton,{disabled:false,onStart:()=>{},onReward:()=>{},onEnd:()=>{}})),'');
   });
  });
- test('point packs: new ids, Play-settable yen prices, cheaper per draw as they grow, ¥10,000 is 100 scouts',()=>{
+ test('point packs (vc39): same ids and yen prices, cheaper per draw as they grow, ¥10,000 is 10,000 scouts',()=>{
   const ids=pointPacks.map(p=>p.id);assert.equal(new Set(ids).size,ids.length);
   for(const old of pointProducts)assert.ok(!ids.includes(old.id),'old proposal ids are never reused');
   assert.ok(!ids.includes('premium_pass'));
   for(const p of pointPacks){assert.ok(Number.isInteger(p.priceYen)&&p.priceYen>=100&&p.priceYen<=50000);assert.ok(p.points%1000===0);assert.match(p.id,/^[a-z0-9_.]+$/);}
   for(let i=1;i<pointPacks.length;i++){assert.ok(pointPacks[i].priceYen>pointPacks[i-1].priceYen);assert.ok(yenPerDraw(pointPacks[i])<yenPerDraw(pointPacks[i-1]));assert.ok(packBonusPercent(pointPacks[i])>packBonusPercent(pointPacks[i-1]));}
-  const top=pointPacks.at(-1)!;assert.equal(top.priceYen,10000);assert.equal(top.points,SIMPLE_SCOUT_COST*100);assert.equal(yenPerDraw(top),100);
+  // 2026-11-03 vc39: ¥10,000 は 3,000万pt(スカウト10,000回)。値段と ID は前のまま。
+  const top=pointPacks.at(-1)!;assert.equal(top.priceYen,10000);assert.equal(top.points,SIMPLE_SCOUT_COST*10000);assert.equal(yenPerDraw(top),1);
+  assert.deepEqual(pointPacks.map(p=>[p.id,p.priceYen,p.points]),[['pt_pack_3000',160,360000],['pt_pack_10000',480,1200000],['pt_pack_21000',980,2610000],['pt_pack_69000',3000,8400000],['pt_pack_126000',5000,14400000],['pt_pack_300000',10000,30000000]]);
+  for(const p of pointPacks)assert.ok(Number.isInteger(p.points/SIMPLE_SCOUT_COST),'スカウトの回数で割り切れる');
  });
  test('minors get a monthly cap: 15 and under 5,000 yen, 16-17 10,000 yen, adults none; unknown age cannot buy',()=>{
   assert.deepEqual(AGE_BANDS.map(b=>b.limitYen),[5000,10000,null]);
@@ -77,7 +80,7 @@ export function registerMonetizationTests(test:(name:string,run:()=>void)=>void)
  });
  test('pack shop: browser build shows app-only buttons; the app shows store prices, or a retry when the store cannot be reached',()=>{
   const web=withBridge(undefined,()=>renderToStaticMarkup(createElement(PackShop)));
-  assert.equal((web.match(/アプリ版で<small>使えます/g)??[]).length,pointPacks.length);assert.match(web,/300,000/);assert.match(web,/スカウト100回分/);assert.doesNotMatch(web,/10連/);assert.match(web,/disabled=""/);
+  assert.equal((web.match(/アプリ版で<small>使えます/g)??[]).length,pointPacks.length);assert.match(web,/30,000,000/);assert.match(web,/スカウト10,000回分/);assert.match(web,/スカウト120回分/);assert.doesNotMatch(web,/行動力/);assert.doesNotMatch(web,/10連/);assert.match(web,/disabled=""/);
   const none=withBridge(fakeBridge({...snapshot(),packs:{status:'unavailable',prices:{},busy:false,message:''}}),()=>renderToStaticMarkup(createElement(PackShop)));
   // 2026-10-26: ストアにつながらない時は「読み込めません」と「もう一度読み込む」(押せないまま黙らない)
   assert.equal((none.match(/読み込めません/g)??[]).length,pointPacks.length);assert.match(none,/もう一度読み込む/);assert.doesNotMatch(none,/販売準備中/);

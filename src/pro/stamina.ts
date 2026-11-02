@@ -15,7 +15,10 @@ export const STAMINA_MAX=30;
 // 「1年進める」はいつでも押せる。待つ・広告・ポイントでの回復の欄も出さない。記録(端末の diamond-nine-stamina)は消さずに残し、
 // 上限を超えて持っていた分と回復ドリンクは、一度だけポイントに替えて返す(settleStaminaRefund)。仕組みは戻せるよう残す。
 // 2026-11-02 vc36: 戻した(上の持ち主の言葉)。数値と1日に進める年数の表は mobile/BALANCE_1101.md の vc36 の節。
-export const STAMINA_ENABLED=true;
+// 2026-11-03 vc39 持ち主「やっぱり行動力要素要りません。その代わりに課金したら大きくポイントが増えるように」: もう一度やめた。
+// 「1年進める」はいつでも押せる。札・回復ボタン・回復の画面・ドリンク・動画での回復は出さない。持っていた分は settleStaminaRefund で
+// 一度だけポイントに替える(率は下と BALANCE_1101.md の vc39 の節)。
+export const STAMINA_ENABLED=false;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 3分 → 2分で1回復(国内の1年は30分 → 20分で戻る)。
 // 2026-10-30 夜: 2分 → 30秒で1回復(国内の1年は20分 → 5分で戻る)。
 // 2026-11-02 vc36: 30秒 → 30分で1回復(国内の1年 = 5時間、満タン = 15時間、1日に48)。
@@ -84,6 +87,8 @@ export interface StaminaRecord {
  refunded?:boolean;
  // vc36 で行動力を戻した時に満タンから始め直したか(2026-11-02)。
  restarted?:boolean;
+ // vc39 で行動力をもう一度やめた時の精算を済ませたか(2026-11-03)。
+ retired?:boolean;
 }
 const KEY='diamond-nine-stamina';
 const okNum=(n:unknown,min=0):n is number=>typeof n==='number'&&Number.isFinite(n)&&n>=min;
@@ -96,7 +101,7 @@ export function parseStamina(raw:string|null,now:number,rules:StaminaRules=stami
   const g=v.gift&&typeof v.gift.day==='string'?{day:v.gift.day,login:!!v.gift.login,all:!!v.gift.all}:{day:'',login:false,all:false};
   const pb=v.ptBuys&&typeof v.ptBuys.day==='string'&&okNum(v.ptBuys.count)?{ptBuys:{day:v.ptBuys.day,count:Math.min(99,Math.floor(v.ptBuys.count))}}:{};
   const db=v.drinkBuys&&typeof v.drinkBuys.day==='string'&&okNum(v.drinkBuys.count)?{drinkBuys:{day:v.drinkBuys.day,count:Math.min(99,Math.floor(v.drinkBuys.count))}}:{};
-  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...db,...(v.refunded===true?{refunded:true}:{}),...(v.restarted===true?{restarted:true}:{})};
+  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...db,...(v.refunded===true?{refunded:true}:{}),...(v.restarted===true?{restarted:true}:{}),...(v.retired===true?{retired:true}:{})};
  }catch{return freshStamina(now,rules);}
 }
 
@@ -219,20 +224,23 @@ export const gamesLeft=(state:GameState)=>state.season.completed?0:Math.max(0,se
 // 途中まで進んだ年でも、残りを終える時は1年ぶんを使う。
 export const costToFinish=(state:GameState)=>gamesLeft(state)>0?seasonCost(state):0;
 
-// ---- 行動力をやめた時の精算(2026-11-01) ----
-// 上限(無料の100)を超えて持っていた分は、ポイントや広告・ドリンクで足した分。1あたり 40pt(満タン回復 4,000pt で＋100 の値段)で返す。
-// 持っていた回復ドリンクは1本 ＋30 なので 1,200pt。合わせて 30,000pt まで。記録が無い人(行動力を使ったことが無い人)は0。
-export const REFUND_PER_POINT=40,REFUND_CAP=30000;
+// ---- 行動力をやめた時の精算(2026-11-01 vc34、2026-11-03 vc39 でもう一度) ----
+// vc35 と同じ考え方: 無料の上限(30)を超えて持っていた分は、ポイント・動画・ドリンクで足した分なので返す。上限までの分は時間で戻った分なので返さない。
+// 持っていた回復ドリンクも返す。率は vc38 の値段: 行動力1あたり 350pt(少し回復 3,500pt で＋10)、ドリンク1本 3,500pt(3本 10,500pt)。
+// パスの人の上限(45)との差も「超えた分」に数える(遊ぶ人が損をしない側)。合わせて 500,000pt まで(400−30=370 と 99本でも 476,000)。
+// vc34/vc35 で返し終わって、その後に行動力を使っていない人(refunded で restarted が無い)は、もう返す物が無いので0。
+export const REFUND_PER_POINT=350,REFUND_PER_DRINK=3500,REFUND_CAP=500000;
 export function staminaRefund(r:StaminaRecord):number{
- if(r.refunded)return 0;
+ if(r.retired)return 0;
+ if(r.refunded&&!r.restarted)return 0;
  const over=Math.max(0,r.points-STAMINA_MAX),drinks=Math.max(0,r.drinks);
- return Math.min(REFUND_CAP,Math.round((over+drinks*DRINK_RESTORE)*REFUND_PER_POINT/100)*100);
+ return Math.min(REFUND_CAP,over*REFUND_PER_POINT+drinks*REFUND_PER_DRINK);
 }
-// [次の記録, 返すpt]。返し終わったら refunded を立て、超過とドリンクを0にする。
+// [次の記録, 返すpt]。返し終わったら retired(と refunded)を立て、超過とドリンクを0にする。
 export function settleStaminaRefund(r:StaminaRecord):[StaminaRecord,number]{
- if(r.refunded)return [r,0];
+ if(r.retired)return [r,0];
  const points=staminaRefund(r);
- return [{...r,points:Math.min(r.points,STAMINA_MAX),drinks:0,refunded:true},points];
+ return [{...r,points:Math.min(r.points,STAMINA_MAX),drinks:0,refunded:true,retired:true},points];
 }
 // ---- 行動力を戻した時(2026-11-02 vc36) ----
 // 前の記録を持つ人は、一度だけ今の上限の満タンから始め直す。vc34/vc35 でポイントに替えて返した人(refunded)から

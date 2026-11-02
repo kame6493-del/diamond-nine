@@ -5,29 +5,32 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialState,migrateState,nextSeason,validState,effectiveOverall,type GameState} from '../src/pro/engine';
 import {playerMap,players} from '../src/pro/data';
 import {growOneYear,yearlyGrowthDelta,growthBonus,playerAge,ratingOverall,GROWTH_MAX,GROWTH_MIN,YEARLY_GROWTH_ENABLED} from '../src/pro/development';
-import {STAMINA_ENABLED,costToFinish,seasonCost,freshStamina,settleStaminaRefund,staminaRefund,parseStamina,STAMINA_MAX,restartStamina,staminaRules,buyDrinkSet,canBuyDrinkSet,DRINK_SET_COST,DRINK_SET_COUNT,DRINK_RESTORE,STAMINA_HARD_CAP} from '../src/pro/stamina';
+import {REFUND_PER_POINT,REFUND_PER_DRINK,REFUND_CAP,STAMINA_ENABLED,costToFinish,seasonCost,freshStamina,settleStaminaRefund,staminaRefund,parseStamina,STAMINA_MAX,restartStamina,staminaRules,buyDrinkSet,canBuyDrinkSet,DRINK_SET_COST,DRINK_SET_COUNT,DRINK_RESTORE,STAMINA_HARD_CAP} from '../src/pro/stamina';
 import {StaminaPlay,StaminaChip,StaminaSheet} from '../src/pro/StaminaPanel';
 import {drinkSetBuysLeft,DRINK_SET_DAILY_LIMIT,STAMINA_PT_SMALL_COST,STAMINA_PT_FULL_COST,staminaPtPrice} from '../src/pro/stamina';
 import {firstPack,packById,pointPackIds,pointPacks,isOncePack,packBonusPercent} from '../src/pro/point-products';
 import {nearMiss} from '../src/pro/pawa/PawaSeasonResult';
 import {passSeasonPoints,seasonReward,SEASON_COMPLETE_POINTS} from '../src/pro/progression';
 import {setPremiumMatchBonus} from '../src/pro/platform-economy';
-import {SIMPLE_SCOUT_COST,scoutOdds} from '../src/pro/simple-game';
+import {SIMPLE_SCOUT_COST,scoutOdds,scoutPlayerOdds,collectSimpleRewards} from '../src/pro/simple-game';
 import {validStarterScout} from '../src/pro/starter-scout';
 
 const T0=Date.UTC(2026,10,1,12);
 const noop={onPlay:()=>{},onBuy:()=>null,onDrink:()=>false,onAdStart:()=>{},onAdReward:()=>{},onAdEnd:()=>{}};
 export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
- test('balance 11/02 (vc36): stamina is back - a domestic year costs 10 from season 4, the chip shows, and the empty panel offers wait, ad, points and drinks on one screen',()=>{
-  assert.equal(STAMINA_ENABLED,true);
-  const s=initialState(4242),late={...s,pulls:30,season:{...s.season,number:40}},early={...s,season:{...s.season,number:3}};
-  assert.equal(seasonCost(late),10);assert.equal(costToFinish(late),10);assert.equal(seasonCost(early),0);
-  assert.match(renderToStaticMarkup(createElement(StaminaChip,{onOpen:()=>{}})),/st-chip/);
-  const empty={points:3,max:30,regenMs:30*60000,full:false,nextInMs:20*60000,fullInMs:20*60000+26*30*60000,frozen:false,drinks:0};
-  const html=renderToStaticMarkup(createElement(StaminaPlay,{state:late,busy:false,pawa:true,actions:{...noop,onBuyDrinks:()=>false},view:empty}));
-  assert.match(html,/行動力が足りません/);assert.match(html,/あと 3時間20分 で1年ぶん/,'7足りない = 20分+6×30分');
-  for(const t of ['待つ（無料）','動画を見る','ポイントで少し回復','ポイントで満タンまで回復','回復ドリンクを買う'])assert.ok(html.includes(t),t);
-  assert.match(html,/1年進める/);assert.doesNotMatch(html,/1試合<|10連|まとめて引/);
+ test('balance 11/03 (vc39): stamina is gone again - every year is free, no chip, no recover button, no drinks',()=>{
+  assert.equal(STAMINA_ENABLED,false);
+  const s=initialState(4242),late={...s,pulls:30,season:{...s.season,number:40},gems:50000};
+  assert.equal(seasonCost(late),0);assert.equal(costToFinish(late),0);
+  const acts={...noop,onBuyDrinks:()=>false};
+  const empty={points:0,max:30,regenMs:30*60000,full:false,nextInMs:20*60000,fullInMs:20*60000+29*30*60000,frozen:false,drinks:2};
+  // 行動力が空の記録でも、上部の札・回復ボタンは出ず、「1年進める」は押せる
+  assert.equal(renderToStaticMarkup(createElement(StaminaChip,{state:late,pawa:true,actions:acts,view:empty})),'');
+  assert.equal(renderToStaticMarkup(createElement(StaminaChip,{onOpen:()=>{}})),'');
+  const html=renderToStaticMarkup(createElement(StaminaPlay,{state:late,busy:false,pawa:true,actions:acts,view:empty}));
+  assert.match(html,/1年進める/);assert.doesNotMatch(html,/disabled/);
+  for(const x of ['行動力','回復','ドリンク','待つ','動画を見る'])assert.ok(!html.includes(x),x);
+  assert.doesNotMatch(html,/1試合<|10試合|10連|まとめて引/);
  });
  test('balance 11/02 (vc36): an old stamina record restarts full once; refunded players keep their points; over-cap stock is kept',()=>{
   const free=staminaRules(false),now=T0+1000;
@@ -47,21 +50,6 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   const [n,price]=buyDrinkSet(r,10500)!;assert.equal(n.drinks,3);assert.equal(price,10500);assert.equal(n.points,r.points);
   assert.equal(canBuyDrinkSet({...r,drinks:97},99999),false,'99本まで');
  });
- test('balance 11/02 (vc38): a recover button sits next to the stamina chip and opens every option on one screen; full shows 満タンです',()=>{
-  const s=initialState(4242),late={...s,pulls:30,season:{...s.season,number:40},gems:50000};
-  const acts={...noop,onBuyDrinks:()=>false};
-  const empty={points:3,max:30,regenMs:30*60000,full:false,nextInMs:20*60000,fullInMs:20*60000+26*30*60000,frozen:false,drinks:2};
-  const chip=renderToStaticMarkup(createElement(StaminaChip,{state:late,pawa:true,actions:acts,view:empty}));
-  assert.match(chip,/st-chip-recover/);assert.match(chip,/>回復</);
-  const sheet=renderToStaticMarkup(createElement(StaminaSheet,{state:late,pawa:true,busy:false,actions:acts,v:empty,onClose:()=>{}}));
-  for(const x of ['行動力の回復','次に1回復するまで','20分00秒','待つ（無料）','動画を見る','ポイントで少し回復','ポイントで満タンまで回復','回復ドリンクを使う','回復ドリンクを買う'])assert.ok(sheet.includes(x),x);
-  assert.doesNotMatch(sheet,/10連|まとめて引|1試合|10試合|期限/);
-  const full={...empty,points:30,full:true,nextInMs:0,fullInMs:0};
-  const fsheet=renderToStaticMarkup(createElement(StaminaSheet,{state:late,pawa:true,busy:false,actions:acts,v:full,onClose:()=>{}}));
-  assert.match(fsheet,/行動力は満タンです/);
-  // 足す物(動画・ポイント2つ・ドリンクを使う)は「満タン」で押せない
-  assert.equal((fsheet.match(/disabled="">満タン</g)??[]).length,4,fsheet);
- });
  test('balance 11/02 (vc38): point recovery does not pay for itself - a year from points costs about what a year earns, and drinks are 1 set a day',()=>{
   // 無課金・上手な遊び方の1年(2年目から)に入るのは約4,000pt(BALANCE_1101.md vc36 の表)。
   const yearIncome=3980;
@@ -80,14 +68,24 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.equal(canBuyDrinkSet(n,99999,'2026-11-04'),true,'日付が変わるとまた買える');
   assert.equal(parseStamina(JSON.stringify(n),T0).drinkBuys?.count,1,'回数は読み直しても残る');
  });
- test('balance 11/01: leftover stamina above the cap and drinks turn into points once',()=>{
-  const r={...freshStamina(T0),points:STAMINA_MAX+130,drinks:2};
-  assert.equal(staminaRefund(r),130*40+2*DRINK_RESTORE*40);
-  const [next,pts]=settleStaminaRefund(r);assert.equal(pts,130*40+2*DRINK_RESTORE*40);assert.equal(next.refunded,true);assert.equal(next.drinks,0);
+ test('balance 11/03 (vc39): leftover stamina above the free cap and drinks turn into points once, at the vc38 prices',()=>{
+  // 1あたり 350pt(少し回復 3,500pt で＋10)・ドリンク1本 3,500pt(3本 10,500pt)
+  assert.equal(REFUND_PER_POINT,STAMINA_PT_SMALL_COST/10);assert.equal(REFUND_PER_DRINK,DRINK_SET_COST/DRINK_SET_COUNT);
+  const r={...freshStamina(T0),points:STAMINA_MAX+20,drinks:2};
+  assert.equal(staminaRefund(r),20*350+2*3500);
+  const [next,pts]=settleStaminaRefund(r);assert.equal(pts,14000);assert.equal(next.retired,true);assert.equal(next.drinks,0);assert.equal(next.points,STAMINA_MAX);
   assert.equal(settleStaminaRefund(next)[1],0,'2回目は0');
-  assert.equal(parseStamina(JSON.stringify(next),T0).refunded,true,'済みの印は読み直しても残る');
-  assert.equal(staminaRefund(freshStamina(T0)),0,'満タン以下・ドリンク無しは0');
-  assert.equal(staminaRefund({...freshStamina(T0),points:400,drinks:99}),30000,'上限 30,000pt');
+  assert.equal(parseStamina(JSON.stringify(next),T0).retired,true,'済みの印は読み直しても残る');
+  assert.equal(staminaRefund(freshStamina(T0)),0,'上限以下・ドリンク無しは0');
+  assert.equal(staminaRefund({...freshStamina(T0),points:12,drinks:0}),0,'時間で戻った分は返さない');
+  // vc35 で返し終わって行動力を使っていない人(restarted が無い)は0。vc36〜38 で使った人(refunded と restarted)は今の分を返す。
+  const vc35={v:1 as const,points:100,at:T0,seen:T0,drinks:0,gift:{day:'',login:false,all:false},refunded:true};
+  assert.equal(staminaRefund(vc35),0);
+  assert.equal(staminaRefund({...vc35,restarted:true,points:40,drinks:1}),10*350+3500);
+  // 古い記録(vc33 から直接)・壊れた記録も読める
+  assert.equal(staminaRefund(parseStamina(JSON.stringify({v:1,points:180,at:T0,seen:T0,drinks:4,gift:{day:'',login:false,all:false}}),T0)),150*350+4*3500);
+  assert.equal(staminaRefund(parseStamina('{broken',T0)),0);
+  assert.equal(staminaRefund({...freshStamina(T0),points:400,drinks:99}),Math.min(REFUND_CAP,370*350+99*3500),'上限');
  });
  test('balance 11/02 (vc35): yearly growth is off - a year never changes ratings; vc34 gains stay, vc34 declines are undone',()=>{
   assert.equal(YEARLY_GROWTH_ENABLED,false);
@@ -121,8 +119,9 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.equal(strong.length,3);
   assert.ok(validStarterScout({version:1,choices:strong,selected:null,completed:false},{}));
  });
- test('balance 11/01: first-purchase pack - ¥480 for 30,000pt, one per account, sold beside the six packs',()=>{
-  assert.equal(firstPack.id,'pt_first_30000');assert.equal(firstPack.points,30000);assert.equal(firstPack.priceYen,480);
+ test('balance 11/01 (vc39): first-purchase pack - ¥480 for 3,600,000pt (3x the usual ¥480), one per account, sold beside the six packs',()=>{
+  assert.equal(firstPack.id,'pt_first_30000');assert.equal(firstPack.points,3600000);assert.equal(firstPack.priceYen,480);
+  assert.equal(firstPack.points,3*pointPacks.find(p=>p.priceYen===480)!.points);
   assert.ok(isOncePack('pt_first_30000'));assert.ok(!isOncePack('pt_pack_10000'));
   assert.ok(pointPackIds.includes('pt_first_30000'));assert.equal(packById('pt_first_30000'),firstPack);
   assert.equal(pointPacks.length,6,'いつもの6つはそのまま');assert.ok(packBonusPercent(firstPack)>packBonusPercent(pointPacks[5]));
@@ -144,5 +143,22 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.equal(nearMiss(mk(t=>t===s.club?50:t===rival?95:60),s.season.number),null);
   assert.equal(nearMiss(mk(t=>t===s.club?60:t===rival?84:50),s.season.number),null,'12ゲーム差は出さない');
   assert.equal(scoutOdds(s).mlb,.02,'確率は変えていない');
+ });
+ test('balance 11/03 (vc39): ¥10,000 of points is enough to collect every player on average, and buying never changes the odds',()=>{
+  const dom=players.filter(p=>!p.mlb).length,all=players.length;
+  // 国内は全員同じ確率(1−2%)。全員そろうまでの期待回数 n·H(n)/0.98(海外15人は30回ごとの確定で先にそろう)。
+  let h=0;for(let k=1;k<=dom;k++)h+=1/k;
+  const expected=dom*h/(1-.02),draws=pointPacks.at(-1)!.points/SIMPLE_SCOUT_COST;
+  assert.ok(draws>=expected*1.15,`¥10,000 = ${draws}回 / 期待 ${Math.round(expected)}回`);
+  assert.ok(all>=1000&&all-dom===15,`${all}`);
+  // 確率は持っている pt・パスの有無で変わらない。表示(scoutPlayerOdds)と合計1。
+  const s=initialState(4242),rich={...s,gems:30000000};
+  setPremiumMatchBonus(true);const a=scoutPlayerOdds(rich);setPremiumMatchBonus(false);const b=scoutPlayerOdds(s);
+  assert.deepEqual([...a.entries()],[...b.entries()]);
+  const sum=[...b.values()].reduce((x,y)=>x+y,0);assert.ok(Math.abs(sum-1)<1e-9);
+  const domOdds=players.filter(p=>!p.mlb).map(p=>b.get(p.id)!);assert.ok(Math.max(...domOdds)-Math.min(...domOdds)<1e-12,'国内は全員同じ');
+  // 全部そろえた時の特典(コンプガチャ)は無い: 図鑑の達成では pt も選手も増えない
+  const full={...s,owned:Object.fromEntries(players.map(p=>[p.id,1]))};
+  assert.equal(collectSimpleRewards(full).gems,collectSimpleRewards({...full,owned:s.owned}).gems);
  });
 }

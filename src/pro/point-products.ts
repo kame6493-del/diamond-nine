@@ -14,17 +14,24 @@ declare global {interface Window {diamondPointStore?:AndroidPointStore}}
 // 画面の価格はストアの表示価格を優先。priceYen は日本の Play Console に登録する税込価格で、
 // ストアの価格が取れないとき(ブラウザ版の案内)と、未成年の月の上限の計算にだけ使う。
 export interface PointPack {id:string;points:number;priceYen:number;tag?:string}
+// 2026-11-03 vc39 持ち主「行動力要素要りません。その代わりに課金したら大きくポイントが増えるようにして、課金者がだいぶ優遇されるような感じに。
+// なんなら1万とかならフルコンプできるくらいのバランスの課金で」: 商品 ID と値段はそのまま、中身を約75〜100倍にした。
+// 選手は1,082人(国内1,067人は同じ確率・海外15人は2%と30回ごとの確定)。全員そろうまでの回数は中央値 約8,200回(約2,390万pt、
+// 7枚目からの重なりで戻る 300pt を引いた額)。¥10,000 = 3,000万pt(10,000回)で約9割がそろう。計算は BALANCE_1101.md の vc39 の節。
+// 1円あたりの pt は大きいパックほど多い(¥160 2,250pt → ¥10,000 3,000pt)。¥5,000 を2つでも 2,880万pt(約87%)。
+// 前(vc38まで): 3,000 / 10,000 / 21,000 / 69,000 / 126,000 / 300,000、はじめて 30,000。
 export const pointPacks:readonly PointPack[] = [
- {id:'pt_pack_3000',points:3000,priceYen:160},
- {id:'pt_pack_10000',points:10000,priceYen:480},
- {id:'pt_pack_21000',points:21000,priceYen:980},
- {id:'pt_pack_69000',points:69000,priceYen:3000},
- {id:'pt_pack_126000',points:126000,priceYen:5000},
- {id:'pt_pack_300000',points:300000,priceYen:10000},
+ {id:'pt_pack_3000',points:360000,priceYen:160},
+ {id:'pt_pack_10000',points:1200000,priceYen:480},
+ {id:'pt_pack_21000',points:2610000,priceYen:980},
+ {id:'pt_pack_69000',points:8400000,priceYen:3000},
+ {id:'pt_pack_126000',points:14400000,priceYen:5000},
+ {id:'pt_pack_300000',points:30000000,priceYen:10000},
 ] as const;
-// 2026-11-01 はじめての購入向けの1回だけのパック。¥480 で 30,000pt(スカウト10回分。いつもの ¥480 は 10,000pt)。
+// 2026-11-01 はじめての購入向けの1回だけのパック。¥480 で いつもの ¥480 の3倍(vc39: 30,000 → 3,600,000pt = スカウト1,200回分)。
 // 期限は無い。Play では消費しない(1つの Google アカウントで1回だけ買える)。買った後は一覧から消える。
-export const firstPack:PointPack = {id:'pt_first_30000',points:30000,priceYen:480,tag:'はじめての購入だけ・1回限り'};
+// ID の数字は前の中身(30,000)のまま。ID は Play Console に登録済みなので変えない。
+export const firstPack:PointPack = {id:'pt_first_30000',points:3600000,priceYen:480,tag:'はじめての購入だけ・1回限り'};
 export const allPointPacks:readonly PointPack[] = [firstPack,...pointPacks];
 export const isOncePack = (id:string) => id===firstPack.id;
 export const pointPackIds = allPointPacks.map(p=>p.id);
@@ -35,7 +42,8 @@ export const markOncePack = (id:string) => {try{const v=readOncePacks();if(!v.in
 const SCOUT = 3000;
 export const packDraws = (p:PointPack) => p.points/SCOUT;
 // 1回(3,000pt)あたりの円。いちばん小さいパックとの比べで「おトク」を出す。
-export const yenPerDraw = (p:PointPack) => Math.round(p.priceYen/packDraws(p));
+// vc39: 1回が2円を切るので小数2桁まで(¥160 で 1.33円、¥10,000 で 1円)。
+export const yenPerDraw = (p:PointPack) => Math.round(p.priceYen/packDraws(p)*100)/100;
 export const packBonusPercent = (p:PointPack) => {
  const base = pointPacks[0].points/pointPacks[0].priceYen;
  return Math.round((p.points/p.priceYen/base-1)*100);

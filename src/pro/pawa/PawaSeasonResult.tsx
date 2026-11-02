@@ -11,7 +11,8 @@ import {monetizeBridge,useMonetize} from '../monetization';
 import {PackShop} from '../PackShop';
 import {PremiumPassCard} from '../MonetizePanel';
 import {PASS_SEASON_POINTS} from '../progression';
-import {firstPack,readOncePacks} from '../point-products';
+import {PREMIUM_MATCH_MULTIPLIER} from '../platform-economy';
+import {firstPack,pointPacks,readOncePacks} from '../point-products';
 
 // 2026-11-01 あと一歩で優勝を逃した年(2〜3位でゲーム差8以内、またはリーグ1位で日本一を逃した)だけ、補強の道を見せる。
 // 押した時だけ一覧が開く。自動では開かない。
@@ -59,7 +60,7 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
     <div><dt>シーズン獲得ポイント</dt><dd className="pw-plus">＋{count(card.points)} pt</dd></div>
    </dl>
    {card.goalPoints>0&&card.goalPoints<card.points&&<p className="pw-note">試合など ＋{count(card.points-card.goalPoints)} ・ 目標達成 ＋{count(card.goalPoints)}</p>}
-   {noPass&&<p className="pw-note">プレミアムパスがあれば、このシーズンは さらに ＋{count(PASS_SEASON_POINTS)} pt 以上（スカウト{PASS_SEASON_POINTS/SIMPLE_SCOUT_COST}回分・試合のポイント1.5倍）。</p>}
+   {noPass&&<p className="pw-note">プレミアムパスがあれば、このシーズンは さらに ＋{count(PASS_SEASON_POINTS)} pt 以上（スカウト{count(PASS_SEASON_POINTS/SIMPLE_SCOUT_COST)}回分・試合のポイント{PREMIUM_MATCH_MULTIPLIER}倍）。</p>}
   </section>
 
   {prevRow&&<section className="pw-panel pw-rs-compare"><header><h3>前シーズンとの比較</h3></header>
@@ -82,12 +83,12 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
 
   {miss&&<section className="pw-panel pw-rs-miss"><header><h3>{miss.lostFinal?'リーグ優勝、日本一まであと一歩':`優勝まで あと ${miss.behind} ゲーム`}</h3></header>
    <p className="pw-note">補強したい所: {miss.weak.map(w=>`${playerMap[w.id]?.name}（総合${w.o}）`).join('・')}。</p>
-   {app&&firstOpen&&<p className="pw-note">はじめての購入だけ ¥{count(firstPack.priceYen)} で {count(firstPack.points)} pt（スカウト{firstPack.points/SIMPLE_SCOUT_COST}回分。いつもの ¥480 の3倍）。</p>}
+   {app&&firstOpen&&<p className="pw-note">はじめての購入だけ ¥{count(firstPack.priceYen)} で {count(firstPack.points)} pt（スカウト{count(firstPack.points/SIMPLE_SCOUT_COST)}回分。いつもの ¥480 の{firstPack.points/(pointPacks.find(p=>p.priceYen===firstPack.priceYen)?.points??firstPack.points)}倍）。</p>}
    {app&&<button type="button" className="pw-btn pw-white pw-wide" aria-expanded={shop} onClick={()=>setShop(v=>!v)}>{shop?'補強の道を閉じる':noPass?'プレミアムパスとポイント購入を見る':'ポイント購入を見る'}</button>}
    {app&&shop&&noPass&&<PremiumPassCard/>}
    {app&&shop&&<PackShop/>}
   </section>}
-  {draws>0?<button className="pw-btn pw-green pw-wide" onClick={onScout}><span className="pw-cap" aria-hidden="true"/>スカウトで補強する（{draws}回分）<ChevronRight size={22}/></button>:<p className="pw-note">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p>}
+  {draws>0?<button className="pw-btn pw-green pw-wide" onClick={onScout}><span className="pw-cap" aria-hidden="true"/>スカウトで補強する{draws<1000?`（${count(draws)}回分）`:''}<ChevronRight size={22}/></button>:<p className="pw-note">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p>}
   {adSlot&&<div className="pw-rs-ad">{adSlot}</div>}
   <button className="pw-link" onClick={onClose}>結果をくわしく見る</button>
  </div>;

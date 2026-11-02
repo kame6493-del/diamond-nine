@@ -7,7 +7,7 @@ import {dailyLeft,localDay,parseDaily,spendDaily,type MonetizeBridge,type Moneti
 import {
  DRINK_RESTORE,FREE_SEASONS,PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,SEASON_COST,STAMINA_AD_DAILY_LIMIT,STAMINA_AD_POINTS,STAMINA_HARD_CAP,
  STAMINA_MAX,STAMINA_PT_COST,STAMINA_PT_RESTORE,STAMINA_REGEN_MS,WARMUP_PULLS,addStamina,canBuyWithPoints,claimDrinkGift,costToFinish,currentRules,
- freshStamina,fullAt,gamesLeft,loadStamina,parseStamina,seasonCost,setStaminaPass,settle,spendStamina,staminaRules,staminaStage,staminaView,useDrink,
+ freshStamina,fullAt,gamesLeft,loadStamina,parseStamina,seasonCost,setStaminaPass,settle,spendStamina,staminaRules,staminaStage,staminaView,useDrink,STAMINA_ENABLED,
 } from '../src/pro/stamina';
 import {StaminaPlay} from '../src/pro/StaminaPanel';
 import {PremiumPassCard} from '../src/pro/MonetizePanel';
@@ -116,20 +116,21 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   setStaminaPass(true);assert.deepEqual(currentRules(),pass);setStaminaPass(false);assert.deepEqual(currentRules(),free);
   const snap={privacyOptions:false,reward:{available:true,busy:false,left:3,limit:3,points:3000},premium:{status:'ready',owned:false,verified:true,price:'¥480',busy:false,message:''}} as MonetizeSnapshot;
   const html=withBridge(snap,()=>renderToStaticMarkup(createElement(PremiumPassCard)));
-  // 2026-11-01: パスの説明は「シーズンを終えるたびに ＋6,000 pt」。vc36 で行動力を戻したので、上限と回復の速さも書く。
-  assert.match(html,/シーズンを終えるたびに ＋[0-9,]+ pt/);assert.match(html,/行動力の上限 30 → 45/);assert.match(html,/20分で1回復/);
+  // 2026-11-01: パスの説明は「シーズンを終えるたびに ＋◯ pt」。vc39 で行動力をやめたので、行動力の特典は書かない。
+  assert.match(html,/シーズンを終えるたびに ＋[0-9,]+ pt/);assert.doesNotMatch(html,/行動力|回復/);
+  // vc39: パスは シーズンごと ＋30,000・毎日 ＋5,000・試合2倍
+  assert.match(html,/シーズンを終えるたびに ＋30,000 pt/);assert.match(html,/＋5,000 pt/);assert.match(html,/2 倍/);
  });
 
- test('stamina (vc36): a year costs stamina from season 4, and the panel has only "1年進める" and the recovery',()=>{
+ test('stamina (vc39): no stamina - every year is free to play, and the panel has only "1年進める"',()=>{
   const base=initialState(4242);
   const at=(number:number,pulls:number,circuit?:'MLB'|'SPACE')=>({...base,pulls,season:{...base.season,number,...(circuit?{circuit,club:base.club}:{})}});
-  // 2026-11-02 vc36: 行動力を戻した。3シーズン目まで無料、4シーズン目から国内10・海外12・宇宙15(慣らしはやめた)。
-  assert.equal(FREE_SEASONS,3);assert.equal(WARMUP_PULLS,0);assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
-  assert.equal(staminaStage(at(3,0)),'free');assert.equal(staminaStage(at(4,0)),'mid');assert.equal(staminaStage(at(12,3,'MLB')),'late');
-  for(const [s,c] of [[at(1,0),0],[at(3,0),0],[at(4,0),10],[at(11,10),10],[at(12,3,'MLB'),12],[at(20,80,'SPACE'),15]] as const){assert.equal(seasonCost(s),c);assert.equal(costToFinish(s),c);}
+  // 2026-11-03 vc39 持ち主「やっぱり行動力要素要りません」: どのシーズン・どのリーグでも行動力を使わない。
+  assert.equal(STAMINA_ENABLED,false);
+  for(const s of [at(1,0),at(3,0),at(4,0),at(11,10),at(12,3,'MLB'),at(20,80,'SPACE')]){assert.equal(seasonCost(s),0);assert.equal(costToFinish(s),0);}
   const done={...at(12,30),season:{...at(12,30).season,day:seasonGames(base.season),completed:true}};assert.equal(gamesLeft(done),0);
   const html=renderToStaticMarkup(createElement(StaminaPlay,{state:at(12,30),busy:false,pawa:true,actions:{onPlay:()=>{},onBuy:()=>null,onDrink:()=>false,onAdStart:()=>{},onAdReward:()=>{},onAdEnd:()=>{}}}));
-  assert.match(html,/1年進める/);assert.match(html,/行動力/);assert.doesNotMatch(html,/1試合<|進められる所まで|st-one|st-part|10連|まとめて引/);
+  assert.match(html,/1年進める/);assert.doesNotMatch(html,/行動力|回復|ドリンク|disabled/);assert.doesNotMatch(html,/1試合<|10試合|進められる所まで|st-one|st-part|10連|まとめて引/);
  });
 }
 
