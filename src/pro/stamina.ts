@@ -9,44 +9,55 @@ import {circuitOf,seasonGames} from './leagues';
 // クラブのセーブとは別に端末へ置く(リセット・読み込み・クラブの切り替えで満タンに戻らない)。
 // 数値の理由は STAMINA_UPDATE.md。
 // 2026-10-30 夜 持ち主「もっとガンガンガチャ回せて育成できるように。行動力制限もっと減らして」: 上限 30 → 100。
-export const STAMINA_MAX=100;
+// 2026-11-02 vc36 持ち主「やっぱりスタミナ制度をつけてください。課金が絶対されるような感じで」: 100 → 30(国内の3年ぶん)。
+export const STAMINA_MAX=30;
 // 2026-11-01 夜 持ち主「課金圧が強すぎて遊べなさすぎるのもあれなので、行動力要素いらないかも」: 行動力を使わない。
 // 「1年進める」はいつでも押せる。待つ・広告・ポイントでの回復の欄も出さない。記録(端末の diamond-nine-stamina)は消さずに残し、
 // 上限を超えて持っていた分と回復ドリンクは、一度だけポイントに替えて返す(settleStaminaRefund)。仕組みは戻せるよう残す。
-export const STAMINA_ENABLED=false;
+// 2026-11-02 vc36: 戻した(上の持ち主の言葉)。数値と1日に進める年数の表は mobile/BALANCE_1101.md の vc36 の節。
+export const STAMINA_ENABLED=true;
 // 2026-10-30 持ち主「課金圧が強すぎる」: 3分 → 2分で1回復(国内の1年は30分 → 20分で戻る)。
 // 2026-10-30 夜: 2分 → 30秒で1回復(国内の1年は20分 → 5分で戻る)。
-export const STAMINA_REGEN_MS=30*1000;
+// 2026-11-02 vc36: 30秒 → 30分で1回復(国内の1年 = 5時間、満タン = 15時間、1日に48)。
+export const STAMINA_REGEN_MS=30*60*1000;
 // プレミアムパス: 上限を上げ、回復を速く。
 // 2026-10-30 夜: 40 → 150。
-export const PASS_STAMINA_MAX=150;
+// 2026-11-02 vc36: 150 → 45(国内の4年半ぶん)。
+export const PASS_STAMINA_MAX=45;
 // 2026-10-30: パスは 2分 → 1分(無料より速いまま)。
 // 2026-10-30 夜: 1分 → 15秒(無料の倍の速さのまま)。
-export const PASS_STAMINA_REGEN_MS=15*1000;
+// 2026-11-02 vc36: 15秒 → 20分(無料の1.5倍の速さ。1日に72)。
+export const PASS_STAMINA_REGEN_MS=20*60*1000;
 // 回復で上限を超えて持てる量の天井(ドリンクを無駄にしないため超過は許す)。
 // 2026-10-30 夜: 200 → 400(上限が大きくなったため)。
 export const STAMINA_HARD_CAP=400;
 // pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。4,000pt(2026-10-19 経済の見直しで 3,000→4,000)。
 // 3シーズンで入る自動のポイントより高くして、pt で行動力を買い続けると増える、を起こさない。
-export const STAMINA_PT_COST=4000;
+// 2026-11-02 vc36: 4,000 → 5,000(満タン＝国内の3年ぶん。3年で入る無課金のポイントより少し安い)。
+export const STAMINA_PT_COST=5000;
 // pt の回復で足す量はパスがあっても同じ。
 // 2026-10-30 夜: ＋30 → ＋100(無料の上限ぶん)。行動力をほぼ縛らない方針にしたので、pt で買って増える形も許す。
-export const STAMINA_PT_RESTORE=100;
+export const STAMINA_PT_RESTORE=30;
 // 配るドリンク1本で足す量。ログインで1本、今日の目標を全部で1本。
 // 2026-10-30 夜: ＋10 → ＋30(国内の3年ぶん)。
-export const DRINK_RESTORE=30;
+// 2026-11-02 vc36: ＋30 → ＋10(国内の1年ぶん)。
+export const DRINK_RESTORE=10;
 // 広告1回で足す量と1日の回数(スカウトの広告とは別に数える)。
 // 2026-10-30 夜: ＋10 → ＋30。
-export const STAMINA_AD_POINTS=30;
+// 2026-11-02 vc36: ＋30 → ＋5(半年ぶん。「動画で少し回復」)。
+export const STAMINA_AD_POINTS=5;
 // 2026-10-30: 1日3回 → 5回。
 // 2026-10-30 夜: 5回 → 10回。
-export const STAMINA_AD_DAILY_LIMIT=10;
+// 2026-11-02 vc36: 10回 → 2回。
+export const STAMINA_AD_DAILY_LIMIT=2;
 // 段階(STAMINA_UPDATE.md)。
 // 序盤: 5シーズン目まで行動力を使わない(選手を集める間は自由に)。2026-10-30 に 3 → 5。
 // 2026-10-30 夜: 5 → 10。
-export const FREE_SEASONS=10;
+// 2026-11-02 vc36: 10 → 3(はじめの3シーズンは行動力なしで遊んでもらう)。
+export const FREE_SEASONS=3;
 // 慣らし: 4シーズン目から、スカウトが10回に届くまでは国内の1年が半分(5)。
-export const WARMUP_PULLS=10;
+// 2026-11-02 vc36: 慣らしはやめた(0)。4シーズン目から国内は1年10。
+export const WARMUP_PULLS=0;
 // 1年に使う行動力: 国内10・海外12・宇宙15(上のリーグほど、急ぎたい人に pt とパスが効く)。
 export const SEASON_COST={warmup:5,NPB:10,MLB:12,SPACE:15} as const;
 
@@ -67,10 +78,12 @@ export interface StaminaRecord {
  ptBuys?:{day:string;count:number};
  // 行動力をやめた時の精算を済ませたか(2026-11-01)。
  refunded?:boolean;
+ // vc36 で行動力を戻した時に満タンから始め直したか(2026-11-02)。
+ restarted?:boolean;
 }
 const KEY='diamond-nine-stamina';
 const okNum=(n:unknown,min=0):n is number=>typeof n==='number'&&Number.isFinite(n)&&n>=min;
-export const freshStamina=(now:number,rules:StaminaRules=staminaRules(false)):StaminaRecord=>({v:1,points:rules.max,at:now,seen:now,drinks:0,gift:{day:'',login:false,all:false}});
+export const freshStamina=(now:number,rules:StaminaRules=staminaRules(false)):StaminaRecord=>({v:1,points:rules.max,at:now,seen:now,drinks:0,gift:{day:'',login:false,all:false},restarted:true});
 // 既存のセーブを持つ人(この記録が無い人)と壊れた記録は満タンから始める。
 export function parseStamina(raw:string|null,now:number,rules:StaminaRules=staminaRules(false)):StaminaRecord{
  try{
@@ -78,7 +91,7 @@ export function parseStamina(raw:string|null,now:number,rules:StaminaRules=stami
   if(!v||v.v!==1||!okNum(v.points)||!okNum(v.at)||!okNum(v.seen)||!okNum(v.drinks))return freshStamina(now,rules);
   const g=v.gift&&typeof v.gift.day==='string'?{day:v.gift.day,login:!!v.gift.login,all:!!v.gift.all}:{day:'',login:false,all:false};
   const pb=v.ptBuys&&typeof v.ptBuys.day==='string'&&okNum(v.ptBuys.count)?{ptBuys:{day:v.ptBuys.day,count:Math.min(99,Math.floor(v.ptBuys.count))}}:{};
-  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...(v.refunded===true?{refunded:true}:{})};
+  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...(v.refunded===true?{refunded:true}:{}),...(v.restarted===true?{restarted:true}:{})};
  }catch{return freshStamina(now,rules);}
 }
 
@@ -123,7 +136,8 @@ export const canBuyWithPoints=(r:StaminaRecord,gems:number,now:number,rules:Stam
 // 1日に合わせて3回まで。同じ日の2回目は1.5倍、3回目は2倍(少し 1,500→2,250→3,000 / 満タン 4,000→6,000→8,000)。
 // 理由は mobile/RELEASE-STATUS.md(2026-11-01)。日付は端末の日付(ログインボーナスと同じ数え方)。
 export type StaminaPtOption='small'|'full';
-export const STAMINA_PT_SMALL_COST=1500,STAMINA_PT_SMALL_RESTORE=30;
+// 2026-11-02 vc36: 少し 1,500pt で＋30 → 2,000pt で＋10(1年ぶん)、満タン 5,000pt(＋30)。
+export const STAMINA_PT_SMALL_COST=2000,STAMINA_PT_SMALL_RESTORE=10;
 export const STAMINA_PT_FULL_COST=STAMINA_PT_COST;
 export const STAMINA_PT_DAILY_LIMIT=3;
 export const STAMINA_PT_STEP=[1,1.5,2] as const;
@@ -147,6 +161,14 @@ export function buyStaminaOption(option:StaminaPtOption,r:StaminaRecord,gems:num
  const price=staminaPtPrice(option,r,day),amount=staminaPtRestore(option,r,now,rules);
  const next=addStamina(r,amount,now,rules);
  return [{...next,ptBuys:{day,count:ptBuysOn(r,day)+1}},price,amount];
+}
+// 回復ドリンクをポイントで買う(2026-11-02 vc36 持ち主「回復ドリンクの購入」)。3本 6,000pt(＋10×3)。
+// 1日の回数の上限は無く、持っておいて好きな時に使える分、満タン回復(5,000pt で＋30)より少し高い。99本まで。
+export const DRINK_SET_COUNT=3,DRINK_SET_COST=6000;
+export const canBuyDrinkSet=(r:StaminaRecord,gems:number)=>gems>=DRINK_SET_COST&&r.drinks+DRINK_SET_COUNT<=99;
+export function buyDrinkSet(r:StaminaRecord,gems:number):[StaminaRecord,number]|null{
+ if(!canBuyDrinkSet(r,gems))return null;
+ return [{...r,drinks:r.drinks+DRINK_SET_COUNT},DRINK_SET_COST];
 }
 export function useDrink(r:StaminaRecord,now:number,rules:StaminaRules):StaminaRecord|null{
  if(r.drinks<=0)return null;
@@ -196,6 +218,15 @@ export function settleStaminaRefund(r:StaminaRecord):[StaminaRecord,number]{
  if(r.refunded)return [r,0];
  const points=staminaRefund(r);
  return [{...r,points:Math.min(r.points,STAMINA_MAX),drinks:0,refunded:true},points];
+}
+// ---- 行動力を戻した時(2026-11-02 vc36) ----
+// 前の記録を持つ人は、一度だけ今の上限の満タンから始め直す。vc34/vc35 でポイントに替えて返した人(refunded)から
+// ポイントは取り戻さない。返していない人が上限を超えて持っていた分(ポイント・広告・ドリンクで足した分)は減らさない。
+// 回復ドリンクもそのまま。時刻は今から数え直す。
+export function restartStamina(r:StaminaRecord,now:number,rules:StaminaRules):StaminaRecord{
+ if(r.restarted)return r;
+ const points=r.refunded?rules.max:Math.max(rules.max,Math.min(STAMINA_HARD_CAP,r.points));
+ return {...r,points,at:now,seen:Math.max(now,r.seen),restarted:true};
 }
 export const hasStaminaRecord=()=>{try{return localStorage.getItem(KEY)!==null;}catch{return false;}};
 

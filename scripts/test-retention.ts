@@ -23,13 +23,13 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
   for(const m of DAILY_MISSIONS){r=markMission(markMission(r,m.id),m.id);}
   assert.equal(r.done.length,5);
   const perMission=DAILY_MISSIONS.map(m=>{const got=claimMission(r,m.id);r=got[0];return got[1];});
-  assert.deepEqual(perMission,[200,200,300,300,200+DAILY_ALL_BONUS]);assert.equal(r.all,true);
+  assert.deepEqual(perMission,[100,100,150,150,100+DAILY_ALL_BONUS]);assert.equal(r.all,true);
   assert.equal(claimMission(r,'share')[1],0);
   const saved=JSON.stringify(r);assert.deepEqual(parseDailyRecord(saved,'2026-10-20'),r);assert.deepEqual(parseDailyRecord(saved,'2026-10-21'),freshDay('2026-10-21'));
   for(const bad of ['{bad',JSON.stringify({day:'2026-10-20',login:'yes',done:[],claimed:[],all:false}),JSON.stringify({...r,claimed:['play','x'],done:['scout']})]){
    const parsed=parseDailyRecord(bad,'2026-10-20');assert.ok(parsed.claimed.every(c=>parsed.done.includes(c)));assert.ok(!parsed.all||parsed.claimed.length===3);
   }
-  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,2000);
+  const max=DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS;assert.equal(max,900);// 2026-11-02 vc36: 2,000 → 900
  });
  test('storage-backed daily helpers are idempotent and silent outside the browser',()=>{
   assert.equal(takeDailyLogin(),0);assert.doesNotThrow(()=>noteDailyMission('play'));assert.equal(takeLaunchGift(),0);

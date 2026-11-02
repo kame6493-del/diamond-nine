@@ -3,8 +3,9 @@ import {Clock,Coins,PlayCircle,Play,Bell} from 'lucide-react';
 import type {GameState} from './engine';
 import {localDay,monetizeBridge,useMonetize} from './monetization';
 import {PackShop} from './PackShop';
+import {firstPack,readOncePacks} from './point-products';
 import {
- DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_DAILY_LIMIT,regenLabel,
+ DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_DAILY_LIMIT,STAMINA_PT_SMALL_RESTORE,STAMINA_PT_FULL_COST,DRINK_SET_COUNT,DRINK_SET_COST,canBuyDrinkSet,regenLabel,
  FREE_SEASONS,STAMINA_ENABLED,canBuyStaminaOption,costToFinish,currentRules,formatWait,freeSeasonsLeft,gamesLeft,loadStamina,seasonCost,staminaPtBuysLeft,staminaPtPrice,staminaPtRestore,staminaStage,
  requestStaminaRecover,takeStaminaRecoverRequest,useStamina,type StaminaPtOption,type StaminaView,
 } from './stamina';
@@ -34,6 +35,8 @@ export interface StaminaActions {
  // pt で回復(少し/満タン)。成功したら [使ったpt, 足した量]、できなければ null。
  onBuy:(option:StaminaPtOption)=>[number,number]|null;
  onDrink:()=>boolean;
+ // 回復ドリンク3本をポイントで買う(vc36)。
+ onBuyDrinks?:()=>boolean;
  // 広告(アプリ版のみ)。広告が閉じるまで操作を止めるため、開始と終了を知らせる。
  onAdStart:()=>void;
  onAdReward:(amount:number)=>void;
@@ -54,7 +57,7 @@ export function StaminaPlay(props:{state:GameState;busy:boolean;pawa:boolean;act
 }
 function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
  const live=useStamina(),v=view??live,m=useMonetize();
- const [open,setOpen]=useState(false),[confirm,setConfirm]=useState<StaminaPtOption|null>(null),[note,setNote]=useState(''),[shop,setShop]=useState(false);
+ const [open,setOpen]=useState(false),[confirm,setConfirm]=useState<StaminaPtOption|'drinks'|null>(null),[note,setNote]=useState(''),[shop,setShop]=useState(false);
  // 上部の行動力の札から来た時は回復の欄を開いておく
  useEffect(()=>{if(takeStaminaRecoverRequest())setOpen(true);});
  const left=gamesLeft(state),stage=staminaStage(state),yearCost=seasonCost(state),restCost=costToFinish(state);
@@ -78,9 +81,9 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
  const ptLeft=staminaPtBuysLeft(rec,day);
  const opt=(o:StaminaPtOption)=>({price:staminaPtPrice(o,rec,day),amount:staminaPtRestore(o,rec,now,rules),ok:canBuyStaminaOption(o,rec,state.gems,now,rules,day)});
  const small=opt('small'),fullOpt=opt('full');
- const buy=()=>{if(!confirm)return;const o=confirm;setConfirm(null);const r=actions.onBuy(o);setNote(r?`${count(r[0])} pt で行動力 ＋${r[1]}`:'回復できませんでした。');};
+ const buy=()=>{if(!confirm)return;const o=confirm;setConfirm(null);if(o==='drinks'){setNote(actions.onBuyDrinks?.()?`回復ドリンク ＋${DRINK_SET_COUNT}本`:'買えませんでした。');return;}const r=actions.onBuy(o);setNote(r?`${count(r[0])} pt で行動力 ＋${r[1]}`:'回復できませんでした。');};
  const ptShort=ptLeft>0&&state.gems<Math.min(small.price,fullOpt.price);
- const canShop=!!monetizeBridge();
+ const canShop=!!monetizeBridge(),firstOpen=canShop&&!!m?.packs?.prices[firstPack.id]&&!readOncePacks().includes(firstPack.id);
  const drink=()=>{setNote(actions.onDrink()?`回復ドリンクで行動力 ＋${DRINK_RESTORE}`:'回復できませんでした。');};
  const [notifyNote,setNotifyNote]=useState('');
  const askNotify=()=>{void (typeof window!=="undefined"?window.diamondReminder:undefined)?.ask().then(ok=>setNotifyNote(ok?'満タンになったらお知らせします。':'通知が許可されませんでした。端末の設定から変えられます。'));};
@@ -121,20 +124,37 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
    </div>
    {([['small','少し回復',small],['full','満タンまで回復',fullOpt]] as const).map(([o,label,x])=><div className="st-opt" key={o}>
     <span className="st-opt-icon"><Coins size={18}/></span>
-    <div><b>ポイントで{label}</b><small>{count(x.price)} pt で ＋{x.amount||(o==='full'?0:30)}{o==='full'&&x.amount<=0?'（いまは満タン）':''} · 今日あと {ptLeft} / {STAMINA_PT_DAILY_LIMIT} 回</small></div>
+    <div><b>ポイントで{label}</b><small>{count(x.price)} pt で ＋{x.amount||(o==='full'?0:STAMINA_PT_SMALL_RESTORE)}{o==='full'&&x.amount<=0?'（いまは満タン）':''} · 今日あと {ptLeft} / {STAMINA_PT_DAILY_LIMIT} 回</small></div>
     <button type="button" className={secondary} disabled={!x.ok||busy} onClick={()=>{setNote('');setConfirm(o);}}>{ptLeft<=0?'今日は終了':x.amount<=0?'満タン':state.gems<x.price?'pt が足りない':`＋${x.amount}`}</button>
    </div>)}
    {ptLeft>0&&<p className="st-pt-rule">同じ日の2回目は1.5倍・3回目は2倍の値段です（日付が変わると元に戻ります）。所持 {count(state.gems)} pt</p>}
    {v.drinks>0&&<div className="st-opt">
     <span className="st-opt-icon is-art"><img src={ART+'stamina-drink.webp'} alt="" aria-hidden="true" width={67} height={96}/></span>
-    <div><b>回復ドリンク</b><small>1本 ＋{DRINK_RESTORE} · 所持 {v.drinks}本（ログインと今日の目標でもらえます）</small></div>
+    <div><b>回復ドリンク</b><small>1本 ＋{DRINK_RESTORE} · 所持 {v.drinks}本（ログインで1日1本もらえます）</small></div>
     <button type="button" className={secondary} disabled={busy||v.points+DRINK_RESTORE>STAMINA_HARD_CAP} onClick={drink}>使う</button>
+   </div>}
+   {actions.onBuyDrinks&&<div className="st-opt">
+    <span className="st-opt-icon is-art"><img src={ART+'stamina-drink.webp'} alt="" aria-hidden="true" width={67} height={96}/></span>
+    <div><b>回復ドリンクを買う</b><small>{DRINK_SET_COUNT}本（1本 ＋{DRINK_RESTORE}）{count(DRINK_SET_COST)} pt · 回数の上限なし・とっておける</small></div>
+    <button type="button" className={secondary} disabled={busy||!canBuyDrinkSet(rec,state.gems)} onClick={()=>{setNote('');setConfirm('drinks');}}>{state.gems<DRINK_SET_COST?'pt が足りない':`${DRINK_SET_COUNT}本`}</button>
+   </div>}
+   {canShop&&<div className="st-opt">
+    <span className="st-opt-icon"><Coins size={18}/></span>
+    <div><b>ポイントを買う</b><small>{firstOpen?`はじめての購入だけ ¥${count(firstPack.priceYen)} で ${count(firstPack.points)} pt（満タン回復 ${Math.floor(firstPack.points/STAMINA_PT_FULL_COST)}回分 または スカウト${firstPack.points/3000}回分）`:`¥480 で 10,000 pt から。満タン回復（${count(STAMINA_PT_FULL_COST)} pt）にもスカウトにも使えます`}</small></div>
+    <button type="button" className={secondary} disabled={busy} onClick={()=>setShop(true)}>見る</button>
    </div>}
    {/* 2026-10-30: 回復の欄のプレミアムパスの案内はやめた(パスはメニューから) */}
    {note&&<p className="st-note" role="status">{note}</p>}
   </div>}
   {!showRecover&&note&&<p className="st-note" role="status">{note}</p>}
-  {confirm&&(()=>{const x=confirm==='small'?small:fullOpt;return <div className="st-modal" onClick={()=>setConfirm(null)}><div className="st-dialog" role="dialog" aria-modal="true" aria-label="ポイントで回復" onClick={e=>e.stopPropagation()}>
+  {confirm==='drinks'&&<div className="st-modal" onClick={()=>setConfirm(null)}><div className="st-dialog" role="dialog" aria-modal="true" aria-label="回復ドリンクを買う" onClick={e=>e.stopPropagation()}>
+   <h3>回復ドリンクを{DRINK_SET_COUNT}本買いますか？</h3>
+   <p className="st-dialog-main"><Bolt size={22}/>所持 {v.drinks}本 → <b>{v.drinks+DRINK_SET_COUNT}本</b>（1本 ＋{DRINK_RESTORE}）</p>
+   <p>使うポイント <b>{count(DRINK_SET_COST)} pt</b>（所持 {count(state.gems)} → {count(Math.max(0,state.gems-DRINK_SET_COST))} pt）</p>
+   <p className="st-dialog-sub">使ったポイントは戻せません。</p>
+   <div className="st-dialog-acts"><button type="button" className={secondary} onClick={()=>setConfirm(null)}>やめる</button><button type="button" className={primary} disabled={!canBuyDrinkSet(rec,state.gems)} onClick={buy}>買う</button></div>
+  </div></div>}
+  {confirm&&confirm!=='drinks'&&(()=>{const x=confirm==='small'?small:fullOpt;return <div className="st-modal" onClick={()=>setConfirm(null)}><div className="st-dialog" role="dialog" aria-modal="true" aria-label="ポイントで回復" onClick={e=>e.stopPropagation()}>
    <h3>ポイントで行動力を回復しますか？</h3>
    <p className="st-dialog-main"><Bolt size={22}/>行動力 {v.points} → <b>{v.points+x.amount}</b></p>
    <p>使うポイント <b>{count(x.price)} pt</b>（所持 {count(state.gems)} → {count(Math.max(0,state.gems-x.price))} pt）</p>

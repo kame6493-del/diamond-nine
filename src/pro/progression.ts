@@ -15,9 +15,11 @@ export const currencyName = (_state: GameState) => 'pt';
 // 行動力をやめて1年をいくらでも進められるので、1年ごとに入る量を 10/28(vc25)の水準へ戻す。数値と測った表は BALANCE_1101.md。
 // 2026-11-02 vc35 持ち主「選手が年ごとに衰えたり成長させるのは辞めて」: 年ごとの成長が無くなり、強くなる道はスカウトと覚醒だけ。
 // 完走 600→9,600(スカウト3回分強)と、はじめの選手の上限 ＋7 で、無課金7年目・パス6年目・毎年¥980で3年目に合わせた(BALANCE_1101.md の vc35 の節)。
-export const SEASON_COMPLETE_POINTS = 9600;
-export const GAME_POINTS = 3;
-export const GAME_WIN_POINTS = 2;
+// 2026-11-02 vc36 持ち主「入ってくるポイントが多すぎて、速攻で強くなります。やっぱり課金圧を多くして」: 完走 9,600→3,500、
+// 試合 3/＋2 → 2/＋1、短期決戦 500/250/100 → 300/150/60。上手な遊び方の bot(行動力つき)で無課金12年目前後・パス8年目・購入3〜4年目に(BALANCE_1101.md の vc36 の節)。
+export const SEASON_COMPLETE_POINTS = 3500;
+export const GAME_POINTS = 2;
+export const GAME_WIN_POINTS = 1;
 // プレミアムパス: シーズンを終えるたびに ＋6,000pt(スカウト2回分)。毎年効く中身(2026-11-01)。アプリ版でパスが有効な時だけ。
 export const PASS_SEASON_POINTS = 6000;
 // 補強支援: シーズンを終えるたびに、累計スカウト回数(pulls)に応じて。40回からは無し。
@@ -28,7 +30,7 @@ export const supportPoints = (state: GameState) => state.season.number > SUPPORT
 export const passSeasonPoints = () => premiumMatchBonusActive() ? PASS_SEASON_POINTS : 0;
 export const seasonReward = (state: GameState) => SEASON_COMPLETE_POINTS + supportPoints(state) + passSeasonPoints();
 export const postseasonReward = (_state: GameState, champion: boolean, finalist: boolean) =>
-  champion ? 500 : finalist ? 250 : 100;
+  champion ? 300 : finalist ? 150 : 60;
 export function gameReward(state: GameState, game: GameResult): number {
   const stadium = state.franchise.stadium - 1;
   const mine = game.home === state.club ? game.homeRuns : game.awayRuns;

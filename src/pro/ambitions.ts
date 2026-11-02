@@ -12,17 +12,18 @@ export function seasonGoals(state:GameState){
  // Rank goals count only once the regular season is over, so a hot start cannot claim them.
  const league=leagueFor(s,state.club),table=s.standings.filter(t=>leagueFor(s,t.team)===league).sort(standingOrder);
  const rank=table.findIndex(t=>t.team===state.club)+1,done=s.completed?1:0,teams=table.length;
+ // 2026-11-02 vc36: 報酬を半分に(10個の合計 400 → 200)。
  return [
-  {key:'first-homer',title:'最初の一発',detail:'チームで本塁打を1本',value:hr,goal:1,reward:10,training:0},
-  {key:'five-wins',title:'勝てるチームへ',detail:'シーズン5勝',value:mine.w,goal:5,reward:10,training:0},
-  {key:'thirty-games',title:'開幕の30試合',detail:'30試合をプレイ',value:s.day,goal:30,reward:10,training:0},
-  {key:'twenty-homers',title:'打線に火がついた',detail:'チームで20本塁打',value:hr,goal:20,reward:20,training:0},
-  {key:'sixty-games',title:'折り返しへの助走',detail:'60試合をプレイ',value:s.day,goal:60,reward:10,training:0},
-  {key:'fifty-wins',title:'50の歓喜',detail:'シーズン50勝',value:mine.w,goal:50,reward:30,training:0},
-  {key:'sixty-wins',title:'60勝の壁',detail:'シーズン60勝',value:mine.w,goal:60,reward:40,training:0},
-  {key:'out-of-last',title:'最下位脱出',detail:'シーズンを5位以上で終える',value:done&&rank<teams?1:0,goal:1,reward:60,training:0},
-  {key:'winning-record',title:'勝ち越し',detail:'シーズンを勝ち越して終える',value:done&&mine.w>mine.l?1:0,goal:1,reward:90,training:0},
-  {key:'a-class',title:'Aクラス入り',detail:'シーズンを3位以上で終える',value:done&&rank<=3?1:0,goal:1,reward:120,training:0},
+  {key:'first-homer',title:'最初の一発',detail:'チームで本塁打を1本',value:hr,goal:1,reward:5,training:0},
+  {key:'five-wins',title:'勝てるチームへ',detail:'シーズン5勝',value:mine.w,goal:5,reward:5,training:0},
+  {key:'thirty-games',title:'開幕の30試合',detail:'30試合をプレイ',value:s.day,goal:30,reward:5,training:0},
+  {key:'twenty-homers',title:'打線に火がついた',detail:'チームで20本塁打',value:hr,goal:20,reward:10,training:0},
+  {key:'sixty-games',title:'折り返しへの助走',detail:'60試合をプレイ',value:s.day,goal:60,reward:5,training:0},
+  {key:'fifty-wins',title:'50の歓喜',detail:'シーズン50勝',value:mine.w,goal:50,reward:15,training:0},
+  {key:'sixty-wins',title:'60勝の壁',detail:'シーズン60勝',value:mine.w,goal:60,reward:20,training:0},
+  {key:'out-of-last',title:'最下位脱出',detail:'シーズンを5位以上で終える',value:done&&rank<teams?1:0,goal:1,reward:30,training:0},
+  {key:'winning-record',title:'勝ち越し',detail:'シーズンを勝ち越して終える',value:done&&mine.w>mine.l?1:0,goal:1,reward:45,training:0},
+  {key:'a-class',title:'Aクラス入り',detail:'シーズンを3位以上で終える',value:done&&rank<=3?1:0,goal:1,reward:60,training:0},
  ].map(g=>({...g,id:`season-${s.number}-${g.key}`,claimed:state.franchise.claimed.includes(`season-${s.number}-${g.key}`)}));
 }
 export function claimSeasonGoals(input:GameState):GameState {

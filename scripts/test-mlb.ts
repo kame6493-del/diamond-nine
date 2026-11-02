@@ -72,7 +72,8 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
    // 2026-10-30 夜 持ち主「もっとガンガン引けるように」: 完走1,500＋支援6,000＋短期決戦・目標・試合で 1年に3〜5回。
    // 2026-11-01 夜 持ち主「大盤振る舞い過ぎ」: 完走600＋最初の3年だけ支援3,000＋短期決戦・目標・試合で 1年に約0.4〜1.7回。
    // 2026-11-02 vc35: 年ごとの成長をやめた分、完走 9,600 に。1年に約3.3〜4.7回。
-   assert.ok(draws>=3&&draws<=5.5,`year ${year+1}: ${draws} point scouts`);
+   // 2026-11-02 vc36 持ち主「入ってくるポイントが多すぎる」: 完走 4,000・試合 2/+1。支援のある最初の3年で約2.5回、その後は約1.5回。
+   assert.ok(draws>=1.2&&draws<=3,`year ${year+1}: ${draws} point scouts`);
    assert.equal(done.franchise.tickets,0);state=nextSeason(done);
   }
   assert.deepEqual(state.owned,owned);assert.ok(earned.reduce((a,b)=>a+b,0)<22);

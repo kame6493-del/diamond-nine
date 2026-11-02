@@ -7,8 +7,11 @@ import {formatAvg,playerMap} from '../data';
 import {leagueFor} from '../leagues';
 import {seasonGoals} from '../ambitions';
 import {effectiveOverall} from '../engine';
-import {monetizeBridge} from '../monetization';
+import {monetizeBridge,useMonetize} from '../monetization';
 import {PackShop} from '../PackShop';
+import {PremiumPassCard} from '../MonetizePanel';
+import {PASS_SEASON_POINTS} from '../progression';
+import {firstPack,readOncePacks} from '../point-products';
 
 // 2026-11-01 あと一歩で優勝を逃した年(2〜3位でゲーム差8以内、またはリーグ1位で日本一を逃した)だけ、補強の道を見せる。
 // 押した時だけ一覧が開く。自動では開かない。
@@ -42,6 +45,8 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
  const star=Object.values(season.batting).filter(b=>b.team===state.club).sort((a,b)=>b.hr-a.hr)[0];
  const nextGoals=seasonGoals(state).filter(g=>!g.claimed).slice(0,4);
  const miss=nearMiss(state,card.number),app=!!monetizeBridge(),[shop,setShop]=useState(false);
+ // 2026-11-02 vc36: パスを持っていない人に、このシーズンの差を本当の数で見せる(シーズンごとの ＋6,000pt。試合の1.5倍はさらに上乗せ)。
+ const m=useMonetize(),noPass=app&&!!m&&!m.premium.owned,firstOpen=app&&!!m?.packs?.prices[firstPack.id]&&!readOncePacks().includes(firstPack.id);
  return <div className="pw-result-screen" role="dialog" aria-modal="true" aria-label={`SEASON ${String(card.number).padStart(2,'0')} 終了`} tabIndex={-1} ref={ref}>
   <div className="pw-rs-head"><img src="/assets/pro/pawa/logo.webp" alt="DIAMOND NINE"/><button className="pw-close" onClick={onClose} aria-label="閉じる"><X size={22}/></button></div>
   <h2 className="pw-rs-title">シーズン終了</h2><p className="pw-rs-lead">SEASON {String(card.number).padStart(2,'0')} の結果を確認しましょう！</p>
@@ -54,6 +59,7 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
     <div><dt>シーズン獲得ポイント</dt><dd className="pw-plus">＋{count(card.points)} pt</dd></div>
    </dl>
    {card.goalPoints>0&&card.goalPoints<card.points&&<p className="pw-note">試合など ＋{count(card.points-card.goalPoints)} ・ 目標達成 ＋{count(card.goalPoints)}</p>}
+   {noPass&&<p className="pw-note">プレミアムパスがあれば、このシーズンは さらに ＋{count(PASS_SEASON_POINTS)} pt 以上（スカウト{PASS_SEASON_POINTS/SIMPLE_SCOUT_COST}回分・試合のポイント1.5倍）。</p>}
   </section>
 
   {prevRow&&<section className="pw-panel pw-rs-compare"><header><h3>前シーズンとの比較</h3></header>
@@ -76,7 +82,9 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
 
   {miss&&<section className="pw-panel pw-rs-miss"><header><h3>{miss.lostFinal?'リーグ優勝、日本一まであと一歩':`優勝まで あと ${miss.behind} ゲーム`}</h3></header>
    <p className="pw-note">補強したい所: {miss.weak.map(w=>`${playerMap[w.id]?.name}（総合${w.o}）`).join('・')}。</p>
-   {app&&<button type="button" className="pw-btn pw-white pw-wide" aria-expanded={shop} onClick={()=>setShop(v=>!v)}>{shop?'ポイント購入を閉じる':'ポイント購入を見る'}</button>}
+   {app&&firstOpen&&<p className="pw-note">はじめての購入だけ ¥{count(firstPack.priceYen)} で {count(firstPack.points)} pt（スカウト{firstPack.points/SIMPLE_SCOUT_COST}回分。いつもの ¥480 の3倍）。</p>}
+   {app&&<button type="button" className="pw-btn pw-white pw-wide" aria-expanded={shop} onClick={()=>setShop(v=>!v)}>{shop?'補強の道を閉じる':noPass?'プレミアムパスとポイント購入を見る':'ポイント購入を見る'}</button>}
+   {app&&shop&&noPass&&<PremiumPassCard/>}
    {app&&shop&&<PackShop/>}
   </section>}
   {draws>0?<button className="pw-btn pw-green pw-wide" onClick={onScout}><span className="pw-cap" aria-hidden="true"/>スカウトで補強する（{draws}回分）<ChevronRight size={22}/></button>:<p className="pw-note">次のスカウトまで あと{count(SIMPLE_SCOUT_COST-state.gems)} pt</p>}

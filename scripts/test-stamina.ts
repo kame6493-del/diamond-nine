@@ -23,14 +23,15 @@ const free=staminaRules(false),pass=staminaRules(true);
 
 export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
  test('stamina: limits and regeneration are the documented numbers; waiting always refills a year',()=>{
-  // 2026-10-30 夜 さらに緩めた: 上限 30→100(パス 40→150)・回復 2分→30秒(パス 1分→15秒)・広告 ＋10×5回→＋30×10回・ドリンク ＋10→＋30
-  assert.deepEqual(free,{max:100,regenMs:MIN/2});
-  assert.deepEqual(pass,{max:150,regenMs:MIN/4});
-  assert.equal(STAMINA_PT_COST,4000);assert.equal(STAMINA_AD_POINTS,30);assert.equal(STAMINA_AD_DAILY_LIMIT,10);assert.equal(DRINK_RESTORE,30);
+  // 2026-11-02 vc36 持ち主「やっぱりスタミナ制度をつけてください」: 上限30・30分で1(パス 45・20分で1)・広告 ＋5×2回・ドリンク ＋10・満タン 5,000pt
+  assert.deepEqual(free,{max:30,regenMs:30*MIN});
+  assert.deepEqual(pass,{max:45,regenMs:20*MIN});
+  assert.equal(STAMINA_PT_COST,5000);assert.equal(STAMINA_AD_POINTS,5);assert.equal(STAMINA_AD_DAILY_LIMIT,2);assert.equal(DRINK_RESTORE,10);
   assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
-  // 国内の1年(10)は5分で戻る。満タンなら10年続けて進められる。
-  assert.equal(SEASON_COST.NPB*STAMINA_REGEN_MS,5*MIN);
-  assert.equal(Math.floor(STAMINA_MAX/SEASON_COST.NPB),10);
+  // 国内の1年(10)は5時間で戻る。満タンなら3年続けて進められる。空から満タンまで15時間。
+  assert.equal(SEASON_COST.NPB*STAMINA_REGEN_MS,5*60*MIN);
+  assert.equal(Math.floor(STAMINA_MAX/SEASON_COST.NPB),3);
+  assert.equal(STAMINA_MAX*STAMINA_REGEN_MS,15*60*MIN);
   // どの段階の1年も上限以下(待てば必ず1年進める)
   for(const c of Object.values(SEASON_COST))assert.ok(c<=STAMINA_MAX);
  });
@@ -106,28 +107,29 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
  });
 
  test('stamina: the premium pass raises the limit and recovers faster',()=>{
-  const used=spendStamina(freshStamina(T0,pass),100,T0,pass)!;
-  assert.equal(used.points,50);
-  assert.equal(settle(used,T0+5*MIN,pass).points,70);
-  assert.equal(settle(used,T0+5*MIN,free).points,60);
+  const used=spendStamina(freshStamina(T0,pass),30,T0,pass)!;
+  assert.equal(used.points,15);
+  assert.equal(settle(used,T0+60*MIN,pass).points,18);
+  assert.equal(settle(used,T0+60*MIN,free).points,17);
   assert.equal(settle(used,T0+24*60*MIN,pass).points,PASS_STAMINA_MAX);
   assert.equal(PASS_STAMINA_REGEN_MS<STAMINA_REGEN_MS,true);
   setStaminaPass(true);assert.deepEqual(currentRules(),pass);setStaminaPass(false);assert.deepEqual(currentRules(),free);
   const snap={privacyOptions:false,reward:{available:true,busy:false,left:3,limit:3,points:3000},premium:{status:'ready',owned:false,verified:true,price:'¥480',busy:false,message:''}} as MonetizeSnapshot;
   const html=withBridge(snap,()=>renderToStaticMarkup(createElement(PremiumPassCard)));
-  // 2026-11-01: 行動力をやめたので、パスの説明は「シーズンを終えるたびに ＋3,000 pt」
-  assert.match(html,/シーズンを終えるたびに ＋[0-9,]+ pt/);assert.doesNotMatch(html,/行動力/);
+  // 2026-11-01: パスの説明は「シーズンを終えるたびに ＋6,000 pt」。vc36 で行動力を戻したので、上限と回復の速さも書く。
+  assert.match(html,/シーズンを終えるたびに ＋[0-9,]+ pt/);assert.match(html,/行動力の上限 30 → 45/);assert.match(html,/20分で1回復/);
  });
 
- test('stamina: the old stage table stays defined, but no year costs stamina while it is turned off (2026-11-01)',()=>{
+ test('stamina (vc36): a year costs stamina from season 4, and the panel has only "1年進める" and the recovery',()=>{
   const base=initialState(4242);
   const at=(number:number,pulls:number,circuit?:'MLB'|'SPACE')=>({...base,pulls,season:{...base.season,number,...(circuit?{circuit,club:base.club}:{})}});
-  assert.equal(FREE_SEASONS,10);assert.equal(WARMUP_PULLS,10);assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
-  assert.equal(staminaStage(at(11,9)),'warmup');assert.equal(staminaStage(at(11,10)),'mid');assert.equal(staminaStage(at(12,3,'MLB')),'late');
-  for(const s of [at(1,0),at(11,9),at(11,10),at(12,3,'MLB'),at(20,80,'SPACE')]){assert.equal(seasonCost(s),0);assert.equal(costToFinish(s),0);}
+  // 2026-11-02 vc36: 行動力を戻した。3シーズン目まで無料、4シーズン目から国内10・海外12・宇宙15(慣らしはやめた)。
+  assert.equal(FREE_SEASONS,3);assert.equal(WARMUP_PULLS,0);assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
+  assert.equal(staminaStage(at(3,0)),'free');assert.equal(staminaStage(at(4,0)),'mid');assert.equal(staminaStage(at(12,3,'MLB')),'late');
+  for(const [s,c] of [[at(1,0),0],[at(3,0),0],[at(4,0),10],[at(11,10),10],[at(12,3,'MLB'),12],[at(20,80,'SPACE'),15]] as const){assert.equal(seasonCost(s),c);assert.equal(costToFinish(s),c);}
   const done={...at(12,30),season:{...at(12,30).season,day:seasonGames(base.season),completed:true}};assert.equal(gamesLeft(done),0);
   const html=renderToStaticMarkup(createElement(StaminaPlay,{state:at(12,30),busy:false,pawa:true,actions:{onPlay:()=>{},onBuy:()=>null,onDrink:()=>false,onAdStart:()=>{},onAdReward:()=>{},onAdEnd:()=>{}}}));
-  assert.match(html,/1年進める/);assert.doesNotMatch(html,/1試合<|進められる所まで|st-one|st-part|行動力/);
+  assert.match(html,/1年進める/);assert.match(html,/行動力/);assert.doesNotMatch(html,/1試合<|進められる所まで|st-one|st-part|10連|まとめて引/);
  });
 }
 
@@ -146,22 +148,22 @@ export function registerEconomyTests(test:(name:string,run:()=>void)=>void){
   const fresh=renderToStaticMarkup(createElement(PawaTeam,{state:initialState(4242),onChange:()=>{},onPlayer:()=>{},onImpact:()=>{}}));
   assert.match(fresh,/打率<b>-<\/b>/);
  });
- test('economy: per-year income is back near the 10/28 level (stamina is gone, so years are unlimited)',()=>{
+ test('economy (vc36): per-year income is cut - season 3,500, games 2/+1, postseason 300/150/60, goals 200, daily 900',()=>{
   const s=initialState(4242);
   // 2026-11-01 夜 持ち主「大盤振る舞い過ぎて速攻でクリアできてしまう」: 完走 1,500→600・試合 5/+10→3/+2・支援は最初の3年だけ・目標と今日の目標を 1/5 に
-  assert.equal(SEASON_COMPLETE_POINTS,9600);// vc35: 年ごとの成長をやめた分を完走で
+  assert.equal(SEASON_COMPLETE_POINTS,3500);// vc36 持ち主「入ってくるポイントが多すぎる」: 9,600 → 3,500
   assert.deepEqual(SUPPORT_STEPS.map(x=>[x.under,x.points]),[[6,3000]]);
   for(const [pulls,pts] of [[0,3000],[5,3000],[6,0],[400,0]] as const)assert.equal(supportPoints({...s,pulls}),pts);
   assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:3}}),3000);assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:4}}),0);
-  assert.equal(seasonReward({...s,pulls:0}),12600);assert.equal(seasonReward({...s,pulls:80}),9600);
-  assert.deepEqual([postseasonReward(s,true,true),postseasonReward(s,false,true),postseasonReward(s,false,false)],[500,250,100]);
-  const goals=seasonGoals(s).reduce((n,g)=>n+g.reward,0);assert.equal(goals,400);
-  assert.equal(DAILY_MISSIONS.length,5);assert.equal(DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS,2000);
+  assert.equal(seasonReward({...s,pulls:0}),6500);assert.equal(seasonReward({...s,pulls:80}),3500);
+  assert.deepEqual([postseasonReward(s,true,true),postseasonReward(s,false,true),postseasonReward(s,false,false)],[300,150,60]);
+  const goals=seasonGoals(s).reduce((n,g)=>n+g.reward,0);assert.equal(goals,200);
+  assert.equal(DAILY_MISSIONS.length,5);assert.equal(DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS,900);
   // 進めるだけで入る量は、強いチーム(全勝・優勝・目標ぜんぶ)でもスカウト1回分前後。弱いチームは 1,000pt 前後。
   const lose={home:s.club,away:'g',homeRuns:0,awayRuns:5} as never,win={home:s.club,away:'g',homeRuns:5,awayRuns:0} as never;
   const weak=gameReward(s,lose)*143+SEASON_COMPLETE_POINTS+postseasonReward(s,false,false);
   const best=gameReward(s,win)*143+SEASON_COMPLETE_POINTS+postseasonReward(s,true,true)+goals;
-  assert.ok(weak>=9900&&weak<=10300,`${weak}`);assert.ok(best<=12000,`${best}`);
+  assert.ok(weak>=3800&&weak<=4100,`${weak}`);assert.ok(best<=5000,`${best}`);
  });
 }
 
