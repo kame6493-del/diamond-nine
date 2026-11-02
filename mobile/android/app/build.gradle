@@ -7,8 +7,8 @@ android {
         applicationId "com.diamondninebaseball.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 39
-        versionName "1.4.6"
+        versionCode 40
+        versionName "1.4.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Single source of AdMob IDs (Google test IDs until release): mobile/ads-config.json
         manifestPlaceholders = [admobAppId: new groovy.json.JsonSlurper().parse(rootProject.file("../ads-config.json")).android.appId]

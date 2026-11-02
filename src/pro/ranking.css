@@ -1,0 +1,44 @@
+/* DIAMOND NINE オンラインランキング(下書き)。色はゲームの紺(#0a2a66)に合わせる。組み込みの段で simple.css / pawa の見た目に寄せる。 */
+.d9r{display:flex;flex-direction:column;gap:10px;color:#13284d}
+.d9r-tabs{display:flex;gap:6px}
+/* パワ風の見た目(html[data-look=pawa] .nv-app button{color:inherit})に負けないよう、色は !important */
+.d9r-tabs button{flex:1;padding:8px 2px;border-radius:10px;border:2px solid #0a2a66;background:#fff!important;color:#0a2a66!important;font-weight:700;font-size:14px;white-space:nowrap}
+.d9r-tabs button[aria-selected=true]{background:#0a2a66!important;color:#fff!important}
+.d9r-lead{margin:0;font-size:13px;line-height:1.6}
+.d9r-me{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:8px 10px;border-radius:10px;background:#eef3ff}
+.d9r-me span{font-size:12px;color:#55678a}
+.d9r-me em{margin-left:auto;font-style:normal;font-weight:700}
+.d9r-me input{width:9em}
+.d9r-primary{color:#13284d!important;padding:12px;border:0;border-radius:12px;background:#e8a400;color:#13284d;font-weight:800;font-size:15px}
+.d9r-link{color:#2457c5!important;border:0;background:none;color:#2457c5;text-decoration:underline;padding:4px;font-size:13px}
+.d9r-more{padding:10px;border-radius:10px;border:1px solid #9fb0d0;background:#fff}
+.d9r-note{margin:0;font-size:13px;color:#55678a}
+.d9r-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.d9r-list button{width:100%;display:grid;grid-template-columns:2em 1fr auto;align-items:center;gap:8px;padding:7px 10px;min-height:0;line-height:1.3;color:#13284d!important;border:1px solid #d5ddef;border-radius:10px;background:#fff;text-align:left}
+.d9r-list li.is-me button{border-color:#e8a400;background:#fff8e3}
+.d9r-list li:nth-child(-n+3) .d9r-rank{color:#c98a00}
+.d9r-rank{font-weight:800;font-size:18px;text-align:center}
+.d9r-who{display:flex;flex-direction:column;min-width:0}
+.d9r-who b,.d9r-who small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.d9r-who small,.d9r-years small{color:#6b7a96;font-size:11px}
+.d9r-years{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.d9r-years>span{font-size:12px}
+.d9r-years b{font-size:20px;margin-right:2px}
+.d9r-lineup h3{margin:4px 0 0;display:flex;flex-direction:column}
+.d9r-lineup h3 small{font-size:12px;color:#6b7a96;font-weight:400}
+.d9r-lineup h4{margin:8px 0 0;font-size:14px}
+.d9r-lineup table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.d9r-lineup th,.d9r-lineup td{padding:4px 3px;border-bottom:1px solid #e3e8f3;text-align:center}
+.d9r-lineup td.d9r-name{text-align:left;white-space:nowrap}
+.d9r-small{font-size:11px;color:#6b7a96;margin:0}
+.d9r-big{margin:0;font-size:20px;font-weight:800;text-align:center}
+.d9r-field{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.d9r-field input{padding:8px;font-size:16px}
+/* 設定(メニュー)の入口と「記録を消す」 */
+button.rank-entry-button{width:100%;text-align:left;font:inherit;cursor:pointer}
+.rank-delete{margin-top:14px}
+.rank-delete h3{font-size:14px;margin:0 0 6px}
+.rank-delete p{font-size:12px;margin:0 0 8px;color:#55678a}
+.rank-dialog .d9r{min-width:0}
+.d9r-lineup .d9r-tablewrap{overflow-x:auto}
+.d9r-me b{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

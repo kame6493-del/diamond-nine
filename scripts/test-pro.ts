@@ -34,6 +34,7 @@ import { registerMonetizationTests } from './test-monetization';
 import {registerEconomyTests,registerStaminaTests} from './test-stamina';
 import {registerBalance1101Tests} from './test-balance-1101';
 import { registerArcadeTests } from './test-arcade';
+import { registerRankingTests } from './test-ranking';
 import { seasonConditions } from '../src/pro/conditions';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
@@ -45,8 +46,8 @@ import { redeemURTicket,drawPlayers,initialSandboxState as initialState,nextSeas
 import { battingMetrics,fip,leagueContext } from '../src/pro/sabermetrics';
 import { establishClub,trainPlayer,claimAllMilestones,claimMilestone,upgradeStadium,buildByStrategy,captainPool } from '../src/pro/franchise';
 
-const tests:{name:string;run:()=>void}[]=[];
-const test=(name:string,run:()=>void)=>tests.push({name,run});
+const tests:{name:string;run:()=>void|Promise<void>}[]=[];
+const test=(name:string,run:()=>void|Promise<void>)=>tests.push({name,run});
 test('all 1067 affiliated players have bounded ratings and official roles',()=>{
  assert.equal(npbPlayers.length,1067);assert.equal(players.length,1082);assert.equal(teams.length,12);assert.equal(new Set(players.map(p=>p.id)).size,1082);assert.equal(sourceInfo.asOf,'2026-09-20');
  assert.ok(npbPlayers.every(p=>(p.role==='pitcher')===(p.roster?.registeredPosition==='投手')));
@@ -307,6 +308,7 @@ registerStaminaTests(test);
 registerEconomyTests(test);
 registerBalance1101Tests(test);
 registerArcadeTests(test);
+registerRankingTests(test);
 registerDevelopmentTests(test);
 registerMLBTests(test);
 registerBalanceTests(test);
@@ -332,7 +334,7 @@ registerStealBalanceTests(test);
 registerRunEnvironmentTests(test);
 registerBullpenTests(test);
 let failures=0;
-for(const t of tests){try{t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
+for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);
 if(failures)process.exit(1);
 
