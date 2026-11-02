@@ -47,12 +47,13 @@ export function initialState(seed=Math.floor(Math.random()*0xffffffff)||428374):
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(random.next()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
   return pool;
  };
+ // 2026-11-02 vc35: 年ごとの成長をやめた分、はじめの選手の上限を 52/57/54 → 59/64/61 に(新しく始める人だけ。今のセーブは変わらない)。
  // Cap the displayed rating, with no lower cutoff that would exclude the
  // weakest cards. Starters need a slightly wider pool to fill six unique slots.
- const batters=shuffle(players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional&&ratingOverall(p)<=52));
+ const batters=shuffle(players.filter(p=>!p.mlb&&p.role==='batter'&&!p.provisional&&ratingOverall(p)<=59));
  const lineup:string[]=[],defense:Record<string,string>={};
  for(const slot of rosterSlots){const p=batters.find(p=>!lineup.includes(p.id)&&fitsPosition(p,slot));if(!p)throw new Error('Missing starter position '+slot);lineup.push(p.id);defense[p.id]=slot;}
- const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&ratingOverall(p)<=(pitchingRoleLabel(p)==='先発'?57:54)));
+ const arms=shuffle(players.filter(p=>!p.mlb&&p.role==='pitcher'&&!p.provisional&&(p.pitching?.outs??0)>=30&&ratingOverall(p)<=(pitchingRoleLabel(p)==='先発'?64:61)));
  const pitchers=autoPitchers(arms.map(p=>({...p,overall:random.next()*100})),true),bench=batters.filter(p=>!lineup.includes(p.id)).slice(0,3);
  if(pitchers.length!==14)throw new Error('Missing suitable starter pitchers');
  return {starterScout:createStarterScout(seed),achievements:{},version:1,mode:'career',name:'東京ルーキーズ',club:'t',gems:0,owned:Object.fromEntries([...lineup,...pitchers,...bench.map(p=>p.id)].map(id=>[id,1])),lineup,defense,pitchers,season:emptySeason(),history:[],pulls:0,pity:0,seed,lastPulls:[],franchise:{...freshFranchise(),established:true,tickets:0,points:0,motto:'一枚ずつ、強くなる。'},training:{}};
@@ -353,7 +354,7 @@ export function simulateDays(input:GameState,days:number):GameState{
  if(state.season.day===seasonGames(state.season)){state.season.completed=true;state.season.shareTeam=captureSeasonTeam(state);if(!state.season.rewardClaimed){state.gems+=seasonReward(state);state.season.rewardClaimed=true;}}
  state.seed=random.state;return state.season.completed?recordAchievements(settleLeagueProgress(state)):state;
 }
-// 1年終えたら選手が年を取る(若手は伸び、ベテランは衰える)。sandbox(free)は今までどおり。
+// 1年終えたら選手が年を取る仕組み(vc34)。vc35 で止めた: growOneYear は YEARLY_GROWTH_ENABLED=false の間は何もしない。
 export const advanceCareerYear=(state:GameState):GameState=>isCareer(state)&&state.season.completed?growOneYear(state,state.season.number,id=>playerMap[id]):state;
 export function nextSeason(input:GameState):GameState{
  if(!input.season.completed||input.season.postseason?.stage!=='complete')return input;

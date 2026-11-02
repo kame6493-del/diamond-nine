@@ -2,6 +2,10 @@
 
 2026-09-25。Androidの署名済みAPK/AABを作成。Google Playアプリ登録済み。一般公開・課金販売は未開始。App Store未提出。
 
+## 2026-11-02 Android 35 / 1.4.2（年ごとの成長と衰えをやめた）
+
+alpha に出した（10:52、製品版は vc34 が審査中のまま。差し替えは本体が行う）。持ち主「選手が年ごとに衰えたり成長させるのは辞めて」。成長・衰えを止め、表示を消し、完走 9,600pt とはじめの選手の上限＋7で合わせた。vc34 で付いた＋は残し−は戻す。詳細と表は [BALANCE_1101.md](BALANCE_1101.md) の vc35 の節。Play の premium_pass の説明文を API で直した。
+
 ## 2026-11-01 夜 Android 34 / 1.4.1（バランスの見直し・行動力なし）
 
 alpha だけに出した（製品版は vc33 のまま）。変更・前後の表・測り方は [BALANCE_1101.md](BALANCE_1101.md)。新商品 pt_first_30000（¥480・30,000pt・消費しない＝1アカウント1回）を Play で作成・有効化（ios_release/play/d9_1101_balance/d9_first_pack.py）、RevenueCat に商品と売り場 diamondnine（scripts-rc-setup.py）。commit 677763a。

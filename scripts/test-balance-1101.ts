@@ -4,7 +4,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {initialState,migrateState,nextSeason,validState,effectiveOverall,type GameState} from '../src/pro/engine';
 import {playerMap,players} from '../src/pro/data';
-import {growOneYear,yearlyGrowthDelta,growthBonus,playerAge,ratingOverall,GROWTH_MAX,GROWTH_MIN} from '../src/pro/development';
+import {growOneYear,yearlyGrowthDelta,growthBonus,playerAge,ratingOverall,GROWTH_MAX,GROWTH_MIN,YEARLY_GROWTH_ENABLED} from '../src/pro/development';
 import {STAMINA_ENABLED,costToFinish,seasonCost,freshStamina,settleStaminaRefund,staminaRefund,parseStamina,STAMINA_MAX} from '../src/pro/stamina';
 import {StaminaPlay,StaminaChip} from '../src/pro/StaminaPanel';
 import {firstPack,packById,pointPackIds,pointPacks,isOncePack,packBonusPercent} from '../src/pro/point-products';
@@ -34,18 +34,17 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.equal(staminaRefund(freshStamina(T0)),0,'満タン以下・ドリンク無しは0');
   assert.equal(staminaRefund({...freshStamina(T0),points:400,drinks:99}),30000,'上限 30,000pt');
  });
- test('balance 11/01: players age each year - the young grow, veterans decline, once per season',()=>{
+ test('balance 11/02 (vc35): yearly growth is off - a year never changes ratings; vc34 gains stay, vc34 declines are undone',()=>{
+  assert.equal(YEARLY_GROWTH_ENABLED,false);
   const young=players.find(p=>!p.mlb&&(playerAge(p)??99)<=21)!,old=players.find(p=>!p.mlb&&(playerAge(p)??0)>=36)!;
-  assert.ok(yearlyGrowthDelta(young,0)>=1.5,`${yearlyGrowthDelta(young,0)}`);assert.ok(yearlyGrowthDelta(old,0)<0);
-  assert.ok(yearlyGrowthDelta(young,15)<0,'若手も年を重ねればいつか衰える');
   let s:GameState={...initialState(4242),owned:{[young.id]:1,[old.id]:1}};
-  s=growOneYear(s,1,id=>playerMap[id]);const once=s.careerGrowth!;
-  assert.equal(once[young.id].y,1);assert.ok(once[young.id].b>0);assert.ok(once[old.id].b<0);
-  assert.deepEqual(growOneYear(s,1,id=>playerMap[id]).careerGrowth,once,'同じ年は2回効かない');
-  for(let y=2;y<=40;y++)s=growOneYear(s,y,id=>playerMap[id]);
-  for(const v of Object.values(s.careerGrowth!))assert.ok(v.b>=GROWTH_MIN&&v.b<=GROWTH_MAX);
-  const base=effectiveOverall(young,{[young.id]:1}),grown=effectiveOverall(young,{[young.id]:1},{},{[young.id]:{y:3,b:6}});
-  assert.ok(grown>base,'成長は総合に効く');assert.equal(growthBonus({[young.id]:{y:3,b:5.6}},young.id),6);
+  for(let y=1;y<=20;y++)s=growOneYear(s,y,id=>playerMap[id]);
+  assert.equal(s.careerGrowth,undefined,'年を進めても成長の欄は増えない');assert.equal(s.grownSeason,undefined);
+  const base=effectiveOverall(young,{[young.id]:1});
+  assert.ok(effectiveOverall(young,{[young.id]:1},{},{[young.id]:{y:3,b:6}})>base,'vc34 で伸びた分は残す');
+  assert.equal(effectiveOverall(old,{[old.id]:1},{},{[old.id]:{y:3,b:-5}}),effectiveOverall(old,{[old.id]:1}),'vc34 で衰えた分は戻す');
+  assert.equal(growthBonus({[young.id]:{y:3,b:5.6}},young.id),6);assert.equal(growthBonus({[old.id]:{y:3,b:-4}},old.id),0);
+  assert.ok(GROWTH_MIN<0&&GROWTH_MAX>0);void yearlyGrowthDelta;
  });
  test('balance 11/01: growth survives save/load, junk growth entries are dropped, old saves still load',()=>{
   const s=initialState(4242),id=s.lineup[0];
@@ -55,11 +54,12 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   const legacy=migrateState(JSON.parse(JSON.stringify(s)))!;assert.ok(legacy);assert.equal(legacy.careerGrowth,undefined);
   assert.equal(validState({...m,careerGrowth:{[id]:{y:1,b:99}}}),false);
  });
- test('balance 11/01: nextSeason applies one year of growth to the whole roster',()=>{
-  const s=initialState(77);
-  const done={...s,season:{...s.season,completed:true,day:143,postseason:{stage:'complete'} as never}};
+ test('balance 11/02 (vc35): nextSeason leaves every rating as it was (no aging)',()=>{
+  const s=initialState(77),id=s.lineup[0];
+  const done={...s,careerGrowth:{[id]:{y:1,b:2}},grownSeason:0,season:{...s.season,completed:true,day:143,postseason:{stage:'complete'} as never}};
   const n=nextSeason(done);
-  assert.equal(n.grownSeason,1);assert.equal(Object.keys(n.careerGrowth!).length,Object.keys(s.owned).length);
+  assert.deepEqual(n.careerGrowth,{[id]:{y:1,b:2}},'vc34 の値はそのまま(増えも減りもしない)');assert.equal(n.grownSeason,0);
+  for(const pid of Object.keys(s.owned))assert.equal(effectiveOverall(playerMap[pid],n.owned,n.training,n.careerGrowth),effectiveOverall(playerMap[pid],done.owned,done.training,done.careerGrowth));
  });
  test('balance 11/01: the old 85+ starter offers stay valid; new offers are 74-82',()=>{
   const strong=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=85).slice(0,3).map(p=>p.id);

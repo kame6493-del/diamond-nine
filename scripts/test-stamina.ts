@@ -149,11 +149,11 @@ export function registerEconomyTests(test:(name:string,run:()=>void)=>void){
  test('economy: per-year income is back near the 10/28 level (stamina is gone, so years are unlimited)',()=>{
   const s=initialState(4242);
   // 2026-11-01 夜 持ち主「大盤振る舞い過ぎて速攻でクリアできてしまう」: 完走 1,500→600・試合 5/+10→3/+2・支援は最初の3年だけ・目標と今日の目標を 1/5 に
-  assert.equal(SEASON_COMPLETE_POINTS,600);
+  assert.equal(SEASON_COMPLETE_POINTS,9600);// vc35: 年ごとの成長をやめた分を完走で
   assert.deepEqual(SUPPORT_STEPS.map(x=>[x.under,x.points]),[[6,3000]]);
   for(const [pulls,pts] of [[0,3000],[5,3000],[6,0],[400,0]] as const)assert.equal(supportPoints({...s,pulls}),pts);
   assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:3}}),3000);assert.equal(supportPoints({...s,pulls:0,season:{...s.season,number:4}}),0);
-  assert.equal(seasonReward({...s,pulls:0}),3600);assert.equal(seasonReward({...s,pulls:80}),600);
+  assert.equal(seasonReward({...s,pulls:0}),12600);assert.equal(seasonReward({...s,pulls:80}),9600);
   assert.deepEqual([postseasonReward(s,true,true),postseasonReward(s,false,true),postseasonReward(s,false,false)],[500,250,100]);
   const goals=seasonGoals(s).reduce((n,g)=>n+g.reward,0);assert.equal(goals,400);
   assert.equal(DAILY_MISSIONS.length,5);assert.equal(DAILY_LOGIN_POINTS+DAILY_MISSIONS.reduce((n,m)=>n+m.points,0)+DAILY_ALL_BONUS,2000);
@@ -161,7 +161,7 @@ export function registerEconomyTests(test:(name:string,run:()=>void)=>void){
   const lose={home:s.club,away:'g',homeRuns:0,awayRuns:5} as never,win={home:s.club,away:'g',homeRuns:5,awayRuns:0} as never;
   const weak=gameReward(s,lose)*143+SEASON_COMPLETE_POINTS+postseasonReward(s,false,false);
   const best=gameReward(s,win)*143+SEASON_COMPLETE_POINTS+postseasonReward(s,true,true)+goals;
-  assert.ok(weak>=900&&weak<=1300,`${weak}`);assert.ok(best<=3000,`${best}`);
+  assert.ok(weak>=9900&&weak<=10300,`${weak}`);assert.ok(best<=12000,`${best}`);
  });
 }
 

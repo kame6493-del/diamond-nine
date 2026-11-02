@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Sparkles} from 'lucide-react';
 import {formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from '../engine';
-import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames,careerAge,growthBonus,yearlyGrowthDelta} from '../development';
+import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames} from '../development';
 import {trainPlayer} from '../franchise';
 import {traitDescriptions} from '../wiki-traits';
 import {equipTwoWayPlayer} from '../simple-game';
@@ -49,7 +49,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
     <p className="pw-team-line"><span className="pw-mark" style={{color:team.color}}>{team.mark}</span>{team.short}{player.mlb?' · 海外':''}</p>
     <h3>{player.name}</h3>
     <p className="pw-hand">{player.throws??'—'}投{player.bats}打</p>
-    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':player.positions.map(positionLabel).join('・')||'指名打者'}</dd></div><div><dt>年齢</dt><dd>{(()=>{const age=catalog?growth.age:careerAge(player,state.careerGrowth);return age!==null?`${age}歳`:'—';})()}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}{!catalog&&owned&&(()=>{const g=growthBonus(state.careerGrowth,player.id),d=yearlyGrowthDelta(player,state.careerGrowth?.[player.id]?.y??0);return <div><dt>年ごとの成長</dt><dd>{g>0?`＋${g}`:g<0?`${g}`:'±0'}<small>（来年 {d>0?'伸びる':d<0?'衰える':'横ばい'}）</small></dd></div>;})()}</dl>
+    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':player.positions.map(positionLabel).join('・')||'指名打者'}</dd></div><div><dt>年齢</dt><dd>{growth.age!==null?`${growth.age}歳`:'—'}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}</dl>
    </div>
   </div>
 

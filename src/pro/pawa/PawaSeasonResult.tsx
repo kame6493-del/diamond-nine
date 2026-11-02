@@ -75,7 +75,7 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
   {card.goals.length>0&&<section className="pw-panel"><header><h3>今シーズンの主な達成</h3></header><ul className="pw-rs-goals">{card.goals.map(g=><li key={g.title}><Check size={16}/>{g.title}<span>＋{count(g.reward)} pt</span></li>)}</ul></section>}
 
   {miss&&<section className="pw-panel pw-rs-miss"><header><h3>{miss.lostFinal?'リーグ優勝、日本一まであと一歩':`優勝まで あと ${miss.behind} ゲーム`}</h3></header>
-   <p className="pw-note">補強したい所: {miss.weak.map(w=>`${playerMap[w.id]?.name}（総合${w.o}）`).join('・')}。若い選手は来年も伸びます。</p>
+   <p className="pw-note">補強したい所: {miss.weak.map(w=>`${playerMap[w.id]?.name}（総合${w.o}）`).join('・')}。</p>
    {app&&<button type="button" className="pw-btn pw-white pw-wide" aria-expanded={shop} onClick={()=>setShop(v=>!v)}>{shop?'ポイント購入を閉じる':'ポイント購入を見る'}</button>}
    {app&&shop&&<PackShop/>}
   </section>}

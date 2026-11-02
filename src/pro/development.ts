@@ -82,6 +82,10 @@ export function developedRatings(p:Player,stage=0,bonus=0):Ratings{
 // y = チームで過ごした年数、b = 能力に足す量(マイナスもある)。覚醒・重複とは別に重なる。
 // 年齢 = 2026年の年齢 + チームで過ごした年数。年齢が分からない選手は27歳として扱う。
 // 伸びる量は若いほど大きく、期待値(ドラフト・成績の裏づけ)が高いほど大きい。衰えは期待値に関係なく同じ。
+// 2026-11-02 朝 持ち主「選手が年ごとに衰えたり成長させるのは辞めて」→ vc35 で止めた(YEARLY_GROWTH_ENABLED=false)。
+// 年を取っても能力は変わらない。vc34 で既に付いた分は、伸びた分(＋)だけ残し、衰えた分(−)は戻す(遊ぶ人が損をしない側)。
+// 欄(careerGrowth・grownSeason)はセーブを壊さないため読み書きを残す。新しく増えることはない。
+export const YEARLY_GROWTH_ENABLED=false;
 export interface CareerGrowth {y:number;b:number}
 export type CareerGrowthMap=Record<string,CareerGrowth>;
 export const GROWTH_MIN=-10,GROWTH_MAX=14;
@@ -92,11 +96,11 @@ export function yearlyGrowthDelta(p:Player,yearsOnTeam:number):number{
  if(base<=0)return base;
  return Math.round(base*(.5+growthProfile(p).expectation)*10)/10;
 }
-export const growthBonus=(growth:CareerGrowthMap|undefined,id:string)=>{const g=growth?.[id];return g&&Number.isFinite(g.b)?Math.round(g.b):0;};
+export const growthBonus=(growth:CareerGrowthMap|undefined,id:string)=>{const g=growth?.[id];return g&&Number.isFinite(g.b)?Math.max(0,Math.round(g.b)):0;};
 export const careerAge=(p:Player,growth?:CareerGrowthMap)=>{const a=playerAge(p);return a===null?null:a+(growth?.[p.id]?.y??0);};
 /** 1年ぶん進める。同じシーズンで2回呼んでも1回しか効かない(grownSeason で覚える)。 */
 export function growOneYear<T extends {owned:Record<string,number>;careerGrowth?:CareerGrowthMap;grownSeason?:number}>(state:T,season:number,lookup:(id:string)=>Player|undefined):T{
- if(!Number.isInteger(season)||season<=(state.grownSeason??0))return state;
+ if(!YEARLY_GROWTH_ENABLED||!Number.isInteger(season)||season<=(state.grownSeason??0))return state;
  const next:CareerGrowthMap={};
  for(const id of Object.keys(state.owned)){
   const p=lookup(id);if(!p)continue;

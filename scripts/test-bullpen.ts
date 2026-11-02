@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {initialState,initialSandboxState,migrateState,validState,simulateDays} from '../src/pro/engine';
 import {autoPitchers,players,playerMap} from '../src/pro/data';
 import {buildByStrategy} from '../src/pro/franchise';
+import {ratingOverall} from '../src/pro/development';
 import {pitcherRolePenalty,pitcherSlotRole} from '../src/pro/pitcher-aptitude';
 
 export function registerBullpenTests(test:(name:string,run:()=>void)=>void){
@@ -16,11 +17,12 @@ export function registerBullpenTests(test:(name:string,run:()=>void)=>void){
  });
  test('automatic formation puts the strongest in-role arms in the rotation, ace first',()=>{
   for(let seed=1;seed<=60;seed++){
-   const auto=buildByStrategy(initialState(seed),'balanced'),ids=auto.pitchers,ovr=(id:string)=>playerMap[id].overall,fit=(id:string,i:number)=>pitcherRolePenalty(playerMap[id],pitcherSlotRole(i))===0;
+   const auto=buildByStrategy(initialState(seed),'balanced'),ids=auto.pitchers,ovr=(id:string)=>ratingOverall(playerMap[id]),fit=(id:string,i:number)=>pitcherRolePenalty(playerMap[id],pitcherSlotRole(i))===0;
    const starters=ids.slice(0,6);
    for(const r of ids.slice(6,13))for(const st of starters)assert.ok(!(ovr(r)>ovr(st)&&fit(r,starters.indexOf(st))&&fit(st,ids.indexOf(r))),`seed ${seed}: reliever ${r} (${ovr(r)}) outranks starter ${st} (${ovr(st)})`);
-   const ace=Object.keys(auto.owned).map(id=>playerMap[id]).filter(p=>p.role==='pitcher'&&fit(p.id,0)).sort((a,b)=>b.overall-a.overall)[0];
-   assert.equal(ovr(ids[0]),ace.overall,`seed ${seed}: opening starter is not the best starter`);
+   const ace=Object.keys(auto.owned).map(id=>playerMap[id]).filter(p=>p.role==='pitcher'&&fit(p.id,0)).sort((a,b)=>ratingOverall(b)-ratingOverall(a))[0];
+   // vc35: はじめの選手の上限を上げたら、データの overall と能力から出す総合がずれる投手が混ざった。並べ方(buildByStrategy)と同じ総合で比べる。
+   assert.equal(ovr(ids[0]),ratingOverall(ace),`seed ${seed}: opening starter is not the best starter`);
   }
  });
  test('legacy staff expansion retains the closer, season and points and is idempotent',()=>{

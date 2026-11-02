@@ -4,7 +4,7 @@ import {canBat,fitsPosition,formatAvg,grade,matchesPlayerName,playerMap,teamById
 import {effectiveOverall,type GameState} from '../engine';
 import {buildByStrategy} from '../franchise';
 import {reorderSimplePlayer,replacementPool,replaceSimplePlayer,swapDefense} from '../simple-game';
-import {ownedRatings,playerAge,careerAge} from '../development';
+import {ownedRatings,playerAge} from '../development';
 import {seasonConditions} from '../conditions';
 import {battingAverage,era,ops} from '../engine';
 import {pitcherRolePenalty,pitcherSlotRole,pitchingRatingsForRole,type PitcherRole} from '../pitcher-aptitude';
@@ -124,7 +124,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
    &&(filter.team==='all'||(filter.team==='mlb'?!!p.mlb:p.team===filter.team))
    &&(filter.pos==='all'||(['先','中','抑'].includes(filter.pos)?p.role==='pitcher'&&['◎','○'].includes(aptitudeMark(p,filter.pos as PitcherRole)):p.role!=='pitcher'&&fitsPosition(p,filter.pos)))
    &&(!eligible||!slotOnly||eligible.has(p.id)))
-   .map(p=>({p,age:careerAge(p,state.careerGrowth),overall:ovr(p.id),r:ratingsOf(p.id)}))
+   .map(p=>({p,age:playerAge(p),overall:ovr(p.id),r:ratingsOf(p.id)}))
    .filter(x=>band.value==='all'||x.age!==null&&x.age>=band.min&&x.age<=band.max);
   const key=filter.sort;
   rows.sort((a,b)=>{
@@ -142,7 +142,7 @@ export function PawaTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  },[filter,role,state,picked,slotOnly]);
  const filtered=filter.search!==''||filter.pos!=='all'||filter.age!=='all'||filter.team!=='all'||filter.role!=='auto'||filter.sort!=='overall-desc';
 
- const ageText=(p:Player)=>{const a=careerAge(p,state.careerGrowth);return a===null?'年齢—':`${a}歳`;};
+ const ageText=(p:Player)=>{const a=playerAge(p);return a===null?'年齢—':`${a}歳`;};
  const awakenBadge=(id:string)=>(state.training[id]??0)>0&&<span className="pw-awk" aria-label={`覚醒${state.training[id]}段階`}>覚醒{state.training[id]}</span>;
  const batCells=(r:Ratings)=>([['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]] as const).map(([l,v])=><span key={l} className="pw-rcell"><small>{l}</small><Rank value={v} label={l} showValue/></span>);
  const pitCells=(p:Player,r:Ratings)=>[<span key="v" className="pw-rcell pw-velo-cell"><small>球速</small><b>{p.ratings.velocity}<em>km/h</em></b></span>,...([['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]] as const).map(([l,v])=><span key={l} className="pw-rcell"><small>{l}</small><Rank value={v} label={l} showValue/></span>)];

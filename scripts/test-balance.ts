@@ -77,7 +77,7 @@ export function registerBalanceTests(test:(name:string,run:()=>void)=>void){
    assert.ok(validState(state));if(state.training[id]===5)break;state=nextSeason(state);
   }
   // 2026-10-30 夜: 覚醒は3分の1の値段(合計24,200pt、11/01 も据え置き)。2026-11-01 夜 1年に入る pt を絞ったので、1人に絞っても完全覚醒は6〜14年目。最初の段階は1年目に届く。
-  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[4]>=6&&years[4]<=14,`awakening years ${years}`);assert.equal(spent,24200);
+  assert.equal(years.length,5);assert.equal(years[0],1);assert.ok(years[4]>=2&&years[4]<=4,`awakening years ${years}`);// vc35(11/02): 年ごとの成長をやめ、完走 9,600pt にしたので、1人に絞れば完全覚醒は2〜4年目assert.equal(spent,24200);
   assert.ok(effectiveOverall(playerMap[id],state.owned,state.training)>effectiveOverall(playerMap[id],state.owned));
  });
  test('awakening UI shows the next price, savings and shortfall, while hiding future maximum abilities',()=>{
