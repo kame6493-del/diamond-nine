@@ -80,3 +80,19 @@
 .st-shop .st-shop-close{display:block;width:100%;min-height:46px;margin-top:10px}
 .st-modal{padding-top:calc(16px + var(--dn-top,env(safe-area-inset-top,0px)));padding-bottom:calc(16px + var(--dn-bottom,env(safe-area-inset-bottom,0px)))}
 .st-dialog{max-height:calc(100dvh - 32px - var(--dn-top,env(safe-area-inset-top,0px)) - var(--dn-bottom,env(safe-area-inset-bottom,0px)))}
+/* 2026-11-02 vc38 上部の「回復」ボタンと回復の画面 */
+.st-chip-group{display:inline-flex;align-items:center;gap:0}
+.st-chip-group .st-chip{border-top-right-radius:0;border-bottom-right-radius:0;border-right:0}
+.st-chip-recover{display:inline-flex;align-items:center;min-height:32px;padding:2px 9px;border-radius:0 999px 999px 0;border:1px solid rgba(0,0,0,.12);background:#f0a500;color:#3a2400;font:800 13px/1 system-ui;cursor:pointer;white-space:nowrap}
+.st-chip-recover.is-full{background:#f3e7c4;color:#7a6330}
+.st-chip-group .st-chip.is-empty+.st-chip-recover{background:#e4572e;color:#fff}
+.st-sheet{width:min(100%,420px);display:grid;gap:8px;color:#14264a;--st-ink:#13304f;--st-sub:#4c6280;--st-line:#c9d6e6;--st-bg:#f4f8fd}
+.st-sheet h3{display:flex;align-items:center;gap:6px;margin:0}
+.st-sheet .st-meter{margin:0}
+.st-sheet-lead,.st-sheet-full{margin:0!important;font-size:14px;font-weight:700}
+.st-sheet-full{padding:6px 10px;border-radius:8px;background:#fff4d6;color:#7a5200}
+.st-sheet .st-shop-close{margin-top:2px}
+@media (max-width:420px){
+ .st-chip-recover{min-height:30px;padding:2px 7px;font-size:12px}
+ .st-sheet{padding:12px}
+}

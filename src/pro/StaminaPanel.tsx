@@ -5,7 +5,7 @@ import {localDay,monetizeBridge,useMonetize} from './monetization';
 import {PackShop} from './PackShop';
 import {firstPack,readOncePacks} from './point-products';
 import {
- DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_DAILY_LIMIT,STAMINA_PT_SMALL_RESTORE,STAMINA_PT_FULL_COST,DRINK_SET_COUNT,DRINK_SET_COST,canBuyDrinkSet,regenLabel,
+ DRINK_RESTORE,STAMINA_AD_POINTS,STAMINA_HARD_CAP,STAMINA_PT_DAILY_LIMIT,STAMINA_PT_SMALL_RESTORE,STAMINA_PT_FULL_COST,DRINK_SET_COUNT,DRINK_SET_COST,DRINK_SET_DAILY_LIMIT,canBuyDrinkSet,drinkSetBuysLeft,regenLabel,
  FREE_SEASONS,STAMINA_ENABLED,canBuyStaminaOption,costToFinish,currentRules,formatWait,freeSeasonsLeft,gamesLeft,loadStamina,seasonCost,staminaPtBuysLeft,staminaPtPrice,staminaPtRestore,staminaStage,
  requestStaminaRecover,takeStaminaRecoverRequest,useStamina,type StaminaPtOption,type StaminaView,
 } from './stamina';
@@ -16,19 +16,6 @@ const season=(left:number)=>`${left}試合をまとめて`;
 // 絵は ChatGPT イメージで作った物(2026-10-19、背景透過)。public/assets/pro/stamina/
 const ART='/assets/pro/stamina/';
 const Bolt=({size}:{size:number})=><img className="st-bolt" src={ART+'stamina-bolt.webp'} alt="" width={size} height={size} aria-hidden="true"/>;
-
-// 画面上部の小さな行動力の表示。押すと試合の画面へ。
-export function StaminaChip({onOpen}:{onOpen:()=>void}){
- if(!STAMINA_ENABLED)return null;
- return <StaminaChipLive onOpen={onOpen}/>;
-}
-function StaminaChipLive({onOpen}:{onOpen:()=>void}){
- const v=useStamina();
- // 2026-11-01: 押すと試合の画面で回復の欄(待つ・広告・ポイント・ドリンク)が開く
- return <button type="button" className={'st-chip'+(v.points<=0?' is-empty':'')} onClick={()=>{requestStaminaRecover();onOpen();}} aria-label={`行動力 ${v.points} / ${v.max}${v.full?'':`、次の回復まで ${formatWait(v.nextInMs)}`}`}>
-  <Bolt size={20}/><b>{v.points}</b><small>/{v.max}</small>
- </button>;
-}
 
 export interface StaminaActions {
  onPlay:()=>void;
@@ -56,8 +43,8 @@ export function StaminaPlay(props:{state:GameState;busy:boolean;pawa:boolean;act
  </div></div>;
 }
 function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;view?:StaminaView}){
- const live=useStamina(),v=view??live,m=useMonetize();
- const [open,setOpen]=useState(false),[confirm,setConfirm]=useState<StaminaPtOption|'drinks'|null>(null),[note,setNote]=useState(''),[shop,setShop]=useState(false);
+ const live=useStamina(),v=view??live;
+ const [open,setOpen]=useState(false);
  // 上部の行動力の札から来た時は回復の欄を開いておく
  useEffect(()=>{if(takeStaminaRecoverRequest())setOpen(true);});
  const left=gamesLeft(state),stage=staminaStage(state),yearCost=seasonCost(state),restCost=costToFinish(state);
@@ -66,27 +53,10 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
  const needMs=enough?0:v.nextInMs+Math.max(0,restCost-v.points-1)*v.regenMs;
  const primary=pawa?'pw-btn pw-yellow':'s-primary',secondary=pawa?'pw-btn pw-white':'s-button';
  const empty=!enough,showRecover=empty||open;
- const adInfo=m?.staminaReward,adLeft=adInfo?.left??0,adReady=!!m&&!!adInfo&&!!monetizeBridge()?.showStaminaAd;
- const [adBusy,setAdBusy]=useState(false);
- const watchAd=async()=>{
-  const bridge=monetizeBridge();if(!bridge?.showStaminaAd||busy||adBusy||adLeft<=0)return;
-  setNote('');setAdBusy(true);actions.onAdStart();
-  try{
-   const r=await bridge.showStaminaAd(a=>actions.onAdReward(a));
-   setNote(r==='rewarded'?`行動力 ＋${STAMINA_AD_POINTS}`:r==='dismissed'?'最後まで見ると回復します。':r==='limit'?'今日の広告の回復は終わりました。':r==='failed'?'広告を読み込めませんでした。少し待ってから、もう一度押してください。':r==='busy'?'ほかの広告を表示中です。閉じてからもう一度押してください。':'');
-  }finally{setAdBusy(false);actions.onAdEnd();}
- };
- // ポイントの回復: 値段は同じ日の回数で上がる(stamina.ts)。押すと確かめる画面を出す
- const rec=loadStamina(),now=Date.now(),rules=currentRules(),day=localDay();
- const ptLeft=staminaPtBuysLeft(rec,day);
- const opt=(o:StaminaPtOption)=>({price:staminaPtPrice(o,rec,day),amount:staminaPtRestore(o,rec,now,rules),ok:canBuyStaminaOption(o,rec,state.gems,now,rules,day)});
- const small=opt('small'),fullOpt=opt('full');
- const buy=()=>{if(!confirm)return;const o=confirm;setConfirm(null);if(o==='drinks'){setNote(actions.onBuyDrinks?.()?`回復ドリンク ＋${DRINK_SET_COUNT}本`:'買えませんでした。');return;}const r=actions.onBuy(o);setNote(r?`${count(r[0])} pt で行動力 ＋${r[1]}`:'回復できませんでした。');};
- const ptShort=ptLeft>0&&state.gems<Math.min(small.price,fullOpt.price);
- const canShop=!!monetizeBridge(),firstOpen=canShop&&!!m?.packs?.prices[firstPack.id]&&!readOncePacks().includes(firstPack.id);
- const drink=()=>{setNote(actions.onDrink()?`回復ドリンクで行動力 ＋${DRINK_RESTORE}`:'回復できませんでした。');};
- const [notifyNote,setNotifyNote]=useState('');
- const askNotify=()=>{void (typeof window!=="undefined"?window.diamondReminder:undefined)?.ask().then(ok=>setNotifyNote(ok?'満タンになったらお知らせします。':'通知が許可されませんでした。端末の設定から変えられます。'));};
+ const rec=loadStamina(),day=localDay();
+ const ptShort=staminaPtBuysLeft(rec,day)>0&&state.gems<Math.min(staminaPtPrice('small',rec,day),staminaPtPrice('full',rec,day));
+ const canShop=!!monetizeBridge();
+ const [shopReq,setShopReq]=useState(0);
  // 回復した時はきらめき、満タンになった時はバッジを一度だけ動かす。
  const prev=useRef(v.points),[burst,setBurst]=useState(0),[fullPop,setFullPop]=useState(0);
  useEffect(()=>{
@@ -95,15 +65,10 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
  },[v.points,v.max]);
 
  return <div className={'st-play'+(pawa?' is-pawa':'')}>
-  <div className="st-meter" role="group" aria-label="行動力">
-   <span className="st-meter-label"><Bolt size={28}/>行動力</span>
-   <div className="st-bar" style={{['--st-frame' as string]:`url(${ART}stamina-frame.webp)`}} role="progressbar" aria-valuenow={v.points} aria-valuemin={0} aria-valuemax={v.max}><span className="st-track"><i style={{width:`${Math.min(100,v.points/v.max*100)}%`}}/></span>{burst>0&&<img key={burst} className="st-burst" src={ART+'stamina-sparkle.webp'} alt="" aria-hidden="true"/>}</div>
-   <b className="st-num">{v.points}<small>/{v.max}</small></b>
-   <span className="st-time">{v.full?(v.points>v.max?'上限を超えて回復中':<span className="st-full"><img key={fullPop} className={fullPop?'is-pop':''} src={ART+'stamina-full.webp'} alt="" aria-hidden="true"/>満タン</span>):<>次の回復 <b>{formatWait(v.nextInMs)}</b> · 満タンまで {formatWait(v.fullInMs)}</>}</span>
-  </div>
+  <StaminaMeter v={v} burst={burst} fullPop={fullPop}/>
   {stage==='free'?<p className="st-free">{FREE_SEASONS}シーズン目までは行動力を使いません（あと{freeSeasonsLeft(state)}シーズン）</p>
   :<p className="st-rule">1年進める ＝ 行動力 <b>{yearCost}</b>{stage==='warmup'?'（スカウト10回までは半分）':stage==='late'?'（上のリーグ）':''}</p>}
-  {busy?null:<>{empty&&<div className="st-empty" role="status"><img src={ART+'stamina-tired.webp'} alt="" aria-hidden="true" width={300} height={251}/><p><b>行動力が足りません。</b>あと {formatWait(needMs)} で1年ぶん（{restCost}）がたまります。下の回復から選べます。{ptShort&&canShop&&<>ポイントが足りない時は <button type="button" className="st-shop-link" onClick={()=>setShop(true)}>ポイント購入</button> もできます。</>}</p></div>}
+  {busy?null:<>{empty&&<div className="st-empty" role="status"><img src={ART+'stamina-tired.webp'} alt="" aria-hidden="true" width={300} height={251}/><p><b>行動力が足りません。</b>あと {formatWait(needMs)} で1年ぶん（{restCost}）がたまります。下の回復から選べます。{ptShort&&canShop&&<>ポイントが足りない時は <button type="button" className="st-shop-link" onClick={()=>setShopReq(n=>n+1)}>ポイント購入</button> もできます。</>}</p></div>}
   <div className="st-buttons">
    <button type="button" className={primary+' st-go'} disabled={busy||!enough} onClick={()=>actions.onPlay()}>
     <span><Play size={16} fill="currentColor" aria-hidden="true"/>1年進める</span>
@@ -111,32 +76,110 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
    </button>
    <button type="button" className={secondary+' st-open'} aria-expanded={open} onClick={()=>setOpen(o=>!o)}><span>回復</span><small>{v.drinks?<><img className="st-mini-drink" src={ART+'stamina-drink.webp'} alt="" aria-hidden="true"/>×{v.drinks}</>:'ほか'}</small></button>
   </div></>}
-  {showRecover&&!busy&&<div className="st-recover" aria-label="行動力の回復">
+  {showRecover&&!busy&&<StaminaRecoverOptions state={state} busy={busy} pawa={pawa} actions={actions} v={v} shopRequest={shopReq}/>}
+ </div>;
+}
+
+function StaminaMeter({v,burst=0,fullPop=0}:{v:StaminaView;burst?:number;fullPop?:number}){
+ return <div className="st-meter" role="group" aria-label="行動力">
+  <span className="st-meter-label"><Bolt size={28}/>行動力</span>
+  <div className="st-bar" style={{['--st-frame' as string]:`url(${ART}stamina-frame.webp)`}} role="progressbar" aria-valuenow={v.points} aria-valuemin={0} aria-valuemax={v.max}><span className="st-track"><i style={{width:`${Math.min(100,v.points/v.max*100)}%`}}/></span>{burst>0&&<img key={burst} className="st-burst" src={ART+'stamina-sparkle.webp'} alt="" aria-hidden="true"/>}</div>
+  <b className="st-num">{v.points}<small>/{v.max}</small></b>
+  <span className="st-time">{v.full?(v.points>v.max?'上限を超えて回復中':<span className="st-full"><img key={fullPop} className={fullPop?'is-pop':''} src={ART+'stamina-full.webp'} alt="" aria-hidden="true"/>満タン</span>):<>次の回復 <b>{formatWait(v.nextInMs)}</b> · 満タンまで {formatWait(v.fullInMs)}</>}</span>
+ </div>;
+}
+
+// 画面上部の小さな行動力の表示と「回復」ボタン(vc38 持ち主「良い感じのバランスでスタミナをポイントで回復させられるもの」)。
+// 札か「回復」を押すと、回復の選択肢を1画面に並べる(どの画面からでも)。state・actions が無い時(試験など)は札だけ。
+export function StaminaChip({onOpen,state,pawa=false,busy=false,actions,view}:{onOpen?:()=>void;state?:GameState;pawa?:boolean;busy?:boolean;actions?:StaminaActions;view?:StaminaView}){
+ if(!STAMINA_ENABLED)return null;
+ return <StaminaChipLive onOpen={onOpen} state={state} pawa={pawa} busy={busy} actions={actions} view={view}/>;
+}
+function StaminaChipLive({onOpen,state,pawa,busy,actions,view}:{onOpen?:()=>void;state?:GameState;pawa:boolean;busy:boolean;actions?:StaminaActions;view?:StaminaView}){
+ const live=useStamina(),v=view??live;
+ const [sheet,setSheet]=useState(false);
+ const canSheet=!!state&&!!actions;
+ const openSheet=()=>{if(canSheet)setSheet(true);else{requestStaminaRecover();onOpen?.();}};
+ return <>
+  <span className="st-chip-group">
+   <button type="button" className={'st-chip'+(v.points<=0?' is-empty':'')} onClick={openSheet} aria-label={`行動力 ${v.points} / ${v.max}${v.full?'':`、次の回復まで ${formatWait(v.nextInMs)}`}`}>
+    <Bolt size={20}/><b>{v.points}</b><small>/{v.max}</small>
+   </button>
+   {canSheet&&<button type="button" className={'st-chip-recover'+(v.full?' is-full':'')} onClick={openSheet} aria-label={v.full?'行動力は満タンです。回復の画面を開く':'行動力を回復する'}>回復</button>}
+  </span>
+  {sheet&&canSheet&&<StaminaSheet state={state!} pawa={pawa} busy={busy} actions={actions!} v={v} onClose={()=>setSheet(false)}/>}
+ </>;
+}
+// 回復の画面(上部の「回復」から)。
+export function StaminaSheet({state,pawa,busy,actions,v,onClose}:{state:GameState;pawa:boolean;busy:boolean;actions:StaminaActions;v:StaminaView;onClose:()=>void}){
+ const secondary=pawa?'pw-btn pw-white':'s-button';
+ const restCost=costToFinish(state);
+ return <div className={'st-modal st-sheet-modal'+(pawa?' is-pawa':'')} onClick={onClose}><div className="st-dialog st-sheet" role="dialog" aria-modal="true" aria-label="行動力の回復" onClick={e=>e.stopPropagation()}>
+  <h3><Bolt size={22}/>行動力の回復</h3>
+  <StaminaMeter v={v}/>
+  {v.full?<p className="st-sheet-full" role="status">行動力は満タンです。いまは回復しなくても遊べます。</p>
+  :<p className="st-sheet-lead">次に1回復するまで <b>{formatWait(v.nextInMs)}</b>{restCost>0?<>（1年進める ＝ 行動力 {restCost}）</>:null}</p>}
+  <StaminaRecoverOptions state={state} busy={busy} pawa={pawa} actions={actions} v={v}/>
+  <button type="button" className={secondary+' st-shop-close'} onClick={onClose}>閉じる</button>
+ </div></div>;
+}
+
+// 回復の選択肢(待つ・動画・ポイントで少し/満タン・ドリンクを使う/買う・ポイントを買う)。
+// 試合の画面(足りない時・「回復」を押した時)と、上部の「回復」ボタンの画面(vc38)で同じ物を出す。
+// 満タンの時は、足す物(動画・ポイント・ドリンクを使う)を「満タン」にして押せなくする。ドリンクとポイントを買うのはできる。
+export function StaminaRecoverOptions({state,busy,pawa,actions,v,shopRequest=0}:{state:GameState;busy:boolean;pawa:boolean;actions:StaminaActions;v:StaminaView;shopRequest?:number}){
+ const m=useMonetize();
+ const [confirm,setConfirm]=useState<StaminaPtOption|'drinks'|null>(null),[note,setNote]=useState(''),[shop,setShop]=useState(false);
+ useEffect(()=>{if(shopRequest>0)setShop(true);},[shopRequest]);
+ const primary=pawa?'pw-btn pw-yellow':'s-primary',secondary=pawa?'pw-btn pw-white':'s-button';
+ const full=v.points>=v.max;
+ const adInfo=m?.staminaReward,adLeft=adInfo?.left??0,adReady=!!m&&!!adInfo&&!!monetizeBridge()?.showStaminaAd;
+ const [adBusy,setAdBusy]=useState(false);
+ const watchAd=async()=>{
+  const bridge=monetizeBridge();if(!bridge?.showStaminaAd||busy||adBusy||adLeft<=0||full)return;
+  setNote('');setAdBusy(true);actions.onAdStart();
+  try{
+   const r=await bridge.showStaminaAd(a=>actions.onAdReward(a));
+   setNote(r==='rewarded'?`行動力 ＋${STAMINA_AD_POINTS}`:r==='dismissed'?'最後まで見ると回復します。':r==='limit'?'今日の動画の回復は終わりました。':r==='failed'?'動画を読み込めませんでした。少し待ってから、もう一度押してください。':r==='busy'?'ほかの動画を表示中です。閉じてからもう一度押してください。':'');
+  }finally{setAdBusy(false);actions.onAdEnd();}
+ };
+ // ポイントの回復: 値段は同じ日の回数で上がる(stamina.ts)。押すと確かめる画面を出す
+ const rec=loadStamina(),now=Date.now(),rules=currentRules(),day=localDay();
+ const ptLeft=staminaPtBuysLeft(rec,day),drinkSetLeft=drinkSetBuysLeft(rec,day);
+ const opt=(o:StaminaPtOption)=>({price:staminaPtPrice(o,rec,day),amount:staminaPtRestore(o,rec,now,rules),ok:!full&&canBuyStaminaOption(o,rec,state.gems,now,rules,day)});
+ const small=opt('small'),fullOpt=opt('full');
+ const buy=()=>{if(!confirm)return;const o=confirm;setConfirm(null);if(o==='drinks'){setNote(actions.onBuyDrinks?.()?`回復ドリンク ＋${DRINK_SET_COUNT}本`:'買えませんでした。');return;}const r=actions.onBuy(o);setNote(r?`${count(r[0])} pt で行動力 ＋${r[1]}`:'回復できませんでした。');};
+ const canShop=!!monetizeBridge(),firstOpen=canShop&&!!m?.packs?.prices[firstPack.id]&&!readOncePacks().includes(firstPack.id);
+ const drink=()=>{setNote(actions.onDrink()?`回復ドリンクで行動力 ＋${DRINK_RESTORE}`:'回復できませんでした。');};
+ const [notifyNote,setNotifyNote]=useState('');
+ const askNotify=()=>{void (typeof window!=="undefined"?window.diamondReminder:undefined)?.ask().then(ok=>setNotifyNote(ok?'満タンになったらお知らせします。':'通知が許可されませんでした。端末の設定から変えられます。'));};
+ return <>
+  <div className="st-recover" aria-label="行動力の回復">
    <div className="st-opt">
     <span className="st-opt-icon"><Clock size={18}/></span>
-    <div><b>待つ（無料）</b><small>{v.full?'いまは満タンです':<>{regenLabel(v.regenMs)}で1回復 · 満タンまで {formatWait(v.fullInMs)}</>}</small>{notifyNote&&<small role="status">{notifyNote}</small>}</div>
+    <div><b>待つ（無料）</b><small>{v.full?'いまは満タンです':<>次の回復まで {formatWait(v.nextInMs)} · {regenLabel(v.regenMs)}で1回復 · 満タンまで {formatWait(v.fullInMs)}</>}</small>{notifyNote&&<small role="status">{notifyNote}</small>}</div>
     {typeof window!=="undefined"&&window.diamondReminder&&!v.full&&<button type="button" className={secondary} onClick={askNotify}><Bell size={15}/>満タンで通知</button>}
    </div>
    <div className="st-opt">
     <span className="st-opt-icon"><PlayCircle size={18}/></span>
-    <div><b>広告を見る</b><small>{adReady?`1回 ＋${STAMINA_AD_POINTS} · 今日あと ${adLeft} / ${adInfo!.limit} 回`:'アプリ版で使えます'}</small></div>
-    <button type="button" className={secondary} disabled={!adReady||adLeft<=0||adBusy||busy} onClick={()=>void watchAd()}>{adBusy?'読み込み中…':adLeft<=0&&adReady?'今日は終了':`＋${STAMINA_AD_POINTS}`}</button>
+    <div><b>動画を見る</b><small>{adReady?`1回 ＋${STAMINA_AD_POINTS} · 今日あと ${adLeft} / ${adInfo!.limit} 回`:'アプリ版で使えます'}</small></div>
+    <button type="button" className={secondary} disabled={!adReady||adLeft<=0||adBusy||busy||full} onClick={()=>void watchAd()}>{adBusy?'読み込み中…':full?'満タン':adLeft<=0&&adReady?'今日は終了':`＋${STAMINA_AD_POINTS}`}</button>
    </div>
    {([['small','少し回復',small],['full','満タンまで回復',fullOpt]] as const).map(([o,label,x])=><div className="st-opt" key={o}>
     <span className="st-opt-icon"><Coins size={18}/></span>
-    <div><b>ポイントで{label}</b><small>{count(x.price)} pt で ＋{x.amount||(o==='full'?0:STAMINA_PT_SMALL_RESTORE)}{o==='full'&&x.amount<=0?'（いまは満タン）':''} · 今日あと {ptLeft} / {STAMINA_PT_DAILY_LIMIT} 回</small></div>
-    <button type="button" className={secondary} disabled={!x.ok||busy} onClick={()=>{setNote('');setConfirm(o);}}>{ptLeft<=0?'今日は終了':x.amount<=0?'満タン':state.gems<x.price?'pt が足りない':`＋${x.amount}`}</button>
+    <div><b>ポイントで{label}</b><small>{count(x.price)} pt で ＋{o==='full'?(full?v.max:x.amount):STAMINA_PT_SMALL_RESTORE} · 今日あと {ptLeft} / {STAMINA_PT_DAILY_LIMIT} 回</small></div>
+    <button type="button" className={secondary} disabled={!x.ok||busy} onClick={()=>{setNote('');setConfirm(o);}}>{full||x.amount<=0?'満タン':ptLeft<=0?'今日は終了':state.gems<x.price?'pt が足りない':`＋${x.amount}`}</button>
    </div>)}
    {ptLeft>0&&<p className="st-pt-rule">同じ日の2回目は1.5倍・3回目は2倍の値段です（日付が変わると元に戻ります）。所持 {count(state.gems)} pt</p>}
    {v.drinks>0&&<div className="st-opt">
     <span className="st-opt-icon is-art"><img src={ART+'stamina-drink.webp'} alt="" aria-hidden="true" width={67} height={96}/></span>
-    <div><b>回復ドリンク</b><small>1本 ＋{DRINK_RESTORE} · 所持 {v.drinks}本（ログインで1日1本もらえます）</small></div>
-    <button type="button" className={secondary} disabled={busy||v.points+DRINK_RESTORE>STAMINA_HARD_CAP} onClick={drink}>使う</button>
+    <div><b>回復ドリンクを使う</b><small>1本 ＋{DRINK_RESTORE} · 所持 {v.drinks}本（ログインで1日1本もらえます）</small></div>
+    <button type="button" className={secondary} disabled={busy||full||v.points+DRINK_RESTORE>STAMINA_HARD_CAP} onClick={drink}>{full?'満タン':'使う'}</button>
    </div>}
    {actions.onBuyDrinks&&<div className="st-opt">
     <span className="st-opt-icon is-art"><img src={ART+'stamina-drink.webp'} alt="" aria-hidden="true" width={67} height={96}/></span>
-    <div><b>回復ドリンクを買う</b><small>{DRINK_SET_COUNT}本（1本 ＋{DRINK_RESTORE}）{count(DRINK_SET_COST)} pt · 回数の上限なし・とっておける</small></div>
-    <button type="button" className={secondary} disabled={busy||!canBuyDrinkSet(rec,state.gems)} onClick={()=>{setNote('');setConfirm('drinks');}}>{state.gems<DRINK_SET_COST?'pt が足りない':`${DRINK_SET_COUNT}本`}</button>
+    <div><b>回復ドリンクを買う</b><small>{DRINK_SET_COUNT}本（1本 ＋{DRINK_RESTORE}）{count(DRINK_SET_COST)} pt · 1日{DRINK_SET_DAILY_LIMIT}回・とっておける</small></div>
+    <button type="button" className={secondary} disabled={busy||!canBuyDrinkSet(rec,state.gems,day)} onClick={()=>{setNote('');setConfirm('drinks');}}>{drinkSetLeft<=0?'今日は終了':state.gems<DRINK_SET_COST?'pt が足りない':`${DRINK_SET_COUNT}本`}</button>
    </div>}
    {canShop&&<div className="st-opt">
     <span className="st-opt-icon"><Coins size={18}/></span>
@@ -145,8 +188,7 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
    </div>}
    {/* 2026-10-30: 回復の欄のプレミアムパスの案内はやめた(パスはメニューから) */}
    {note&&<p className="st-note" role="status">{note}</p>}
-  </div>}
-  {!showRecover&&note&&<p className="st-note" role="status">{note}</p>}
+  </div>
   {confirm==='drinks'&&<div className="st-modal" onClick={()=>setConfirm(null)}><div className="st-dialog" role="dialog" aria-modal="true" aria-label="回復ドリンクを買う" onClick={e=>e.stopPropagation()}>
    <h3>回復ドリンクを{DRINK_SET_COUNT}本買いますか？</h3>
    <p className="st-dialog-main"><Bolt size={22}/>所持 {v.drinks}本 → <b>{v.drinks+DRINK_SET_COUNT}本</b>（1本 ＋{DRINK_RESTORE}）</p>
@@ -165,5 +207,5 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
    <h3>ポイント購入</h3><PackShop/>
    <button type="button" className={secondary+' st-shop-close'} onClick={()=>setShop(false)}>閉じる</button>
   </div></div>}
- </div>;
+ </>;
 }

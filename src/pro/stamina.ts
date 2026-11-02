@@ -34,7 +34,9 @@ export const STAMINA_HARD_CAP=400;
 // pt で回復: 上限ぶん足す(国内なら3シーズンぶん)。4,000pt(2026-10-19 経済の見直しで 3,000→4,000)。
 // 3シーズンで入る自動のポイントより高くして、pt で行動力を買い続けると増える、を起こさない。
 // 2026-11-02 vc36: 4,000 → 5,000(満タン＝国内の3年ぶん。3年で入る無課金のポイントより少し安い)。
-export const STAMINA_PT_COST=5000;
+// 2026-11-02 vc38: 5,000 → 10,000(3年ぶん。1年あたり約3,330pt)。5,000 だと、満タン回復で進めた3年に入るポイント(無課金で約12,000)が
+// 値段の倍を超え、ポイントで回復し続けるほど増えた。1日の1回目だけ少し得、2回目からは損になる値段にした(BALANCE_1101.md vc38)。
+export const STAMINA_PT_COST=10000;
 // pt の回復で足す量はパスがあっても同じ。
 // 2026-10-30 夜: ＋30 → ＋100(無料の上限ぶん)。行動力をほぼ縛らない方針にしたので、pt で買って増える形も許す。
 export const STAMINA_PT_RESTORE=30;
@@ -76,6 +78,8 @@ export interface StaminaRecord {
  gift:{day:string;login:boolean;all:boolean};
  // ポイントで回復した回数(日付ごと。2026-11-01)。
  ptBuys?:{day:string;count:number};
+ // ドリンク3本の組を買った回数(日付ごと。2026-11-02 vc38)。
+ drinkBuys?:{day:string;count:number};
  // 行動力をやめた時の精算を済ませたか(2026-11-01)。
  refunded?:boolean;
  // vc36 で行動力を戻した時に満タンから始め直したか(2026-11-02)。
@@ -91,7 +95,8 @@ export function parseStamina(raw:string|null,now:number,rules:StaminaRules=stami
   if(!v||v.v!==1||!okNum(v.points)||!okNum(v.at)||!okNum(v.seen)||!okNum(v.drinks))return freshStamina(now,rules);
   const g=v.gift&&typeof v.gift.day==='string'?{day:v.gift.day,login:!!v.gift.login,all:!!v.gift.all}:{day:'',login:false,all:false};
   const pb=v.ptBuys&&typeof v.ptBuys.day==='string'&&okNum(v.ptBuys.count)?{ptBuys:{day:v.ptBuys.day,count:Math.min(99,Math.floor(v.ptBuys.count))}}:{};
-  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...(v.refunded===true?{refunded:true}:{}),...(v.restarted===true?{restarted:true}:{})};
+  const db=v.drinkBuys&&typeof v.drinkBuys.day==='string'&&okNum(v.drinkBuys.count)?{drinkBuys:{day:v.drinkBuys.day,count:Math.min(99,Math.floor(v.drinkBuys.count))}}:{};
+  return {v:1,points:Math.min(STAMINA_HARD_CAP,Math.floor(v.points)),at:Math.min(v.at,v.seen),seen:v.seen,drinks:Math.min(99,Math.floor(v.drinks)),gift:g,...pb,...db,...(v.refunded===true?{refunded:true}:{}),...(v.restarted===true?{restarted:true}:{})};
  }catch{return freshStamina(now,rules);}
 }
 
@@ -137,7 +142,9 @@ export const canBuyWithPoints=(r:StaminaRecord,gems:number,now:number,rules:Stam
 // 理由は mobile/RELEASE-STATUS.md(2026-11-01)。日付は端末の日付(ログインボーナスと同じ数え方)。
 export type StaminaPtOption='small'|'full';
 // 2026-11-02 vc36: 少し 1,500pt で＋30 → 2,000pt で＋10(1年ぶん)、満タン 5,000pt(＋30)。
-export const STAMINA_PT_SMALL_COST=2000,STAMINA_PT_SMALL_RESTORE=10;
+// 2026-11-02 vc38: 2,000 → 3,500(1年に入る無課金のポイント 約4,000 より少し安い)。
+export const STAMINA_PT_SMALL_COST=3500;
+export const STAMINA_PT_SMALL_RESTORE=10;
 export const STAMINA_PT_FULL_COST=STAMINA_PT_COST;
 export const STAMINA_PT_DAILY_LIMIT=3;
 export const STAMINA_PT_STEP=[1,1.5,2] as const;
@@ -164,11 +171,19 @@ export function buyStaminaOption(option:StaminaPtOption,r:StaminaRecord,gems:num
 }
 // 回復ドリンクをポイントで買う(2026-11-02 vc36 持ち主「回復ドリンクの購入」)。3本 6,000pt(＋10×3)。
 // 1日の回数の上限は無く、持っておいて好きな時に使える分、満タン回復(5,000pt で＋30)より少し高い。99本まで。
-export const DRINK_SET_COUNT=3,DRINK_SET_COST=6000;
-export const canBuyDrinkSet=(r:StaminaRecord,gems:number)=>gems>=DRINK_SET_COST&&r.drinks+DRINK_SET_COUNT<=99;
-export function buyDrinkSet(r:StaminaRecord,gems:number):[StaminaRecord,number]|null{
- if(!canBuyDrinkSet(r,gems))return null;
- return [{...r,drinks:r.drinks+DRINK_SET_COUNT},DRINK_SET_COST];
+// 2026-11-02 vc38: 6,000 → 10,500(1本 3,500pt = 少し回復の1回目と同じ)・1日1組まで。6,000(1本2,000)だと、ドリンクで進めた1年に入る
+// ポイント(約4,000)の方が多く、回数の上限も無いので、買っては進めるだけでポイントが増え続けた。
+export const DRINK_SET_COUNT=3;
+export const DRINK_SET_COST=10500;
+export const DRINK_SET_DAILY_LIMIT=1;
+const drinkBuysOn=(r:StaminaRecord,day:string)=>r.drinkBuys&&r.drinkBuys.day===day?r.drinkBuys.count:0;
+// day を渡すと1日の回数(DRINK_SET_DAILY_LIMIT)も見る。
+export const drinkSetBuysLeft=(r:StaminaRecord,day:string)=>Math.max(0,DRINK_SET_DAILY_LIMIT-drinkBuysOn(r,day));
+export const canBuyDrinkSet=(r:StaminaRecord,gems:number,day?:string)=>gems>=DRINK_SET_COST&&r.drinks+DRINK_SET_COUNT<=99&&(day===undefined||drinkSetBuysLeft(r,day)>0);
+export function buyDrinkSet(r:StaminaRecord,gems:number,day?:string):[StaminaRecord,number]|null{
+ if(!canBuyDrinkSet(r,gems,day))return null;
+ const next={...r,drinks:r.drinks+DRINK_SET_COUNT};
+ return [day===undefined?next:{...next,drinkBuys:{day,count:drinkBuysOn(r,day)+1}},DRINK_SET_COST];
 }
 export function useDrink(r:StaminaRecord,now:number,rules:StaminaRules):StaminaRecord|null{
  if(r.drinks<=0)return null;

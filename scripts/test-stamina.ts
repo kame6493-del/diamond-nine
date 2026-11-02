@@ -26,7 +26,7 @@ export function registerStaminaTests(test:(name:string,run:()=>void)=>void){
   // 2026-11-02 vc36 持ち主「やっぱりスタミナ制度をつけてください」: 上限30・30分で1(パス 45・20分で1)・広告 ＋5×2回・ドリンク ＋10・満タン 5,000pt
   assert.deepEqual(free,{max:30,regenMs:30*MIN});
   assert.deepEqual(pass,{max:45,regenMs:20*MIN});
-  assert.equal(STAMINA_PT_COST,5000);assert.equal(STAMINA_AD_POINTS,5);assert.equal(STAMINA_AD_DAILY_LIMIT,2);assert.equal(DRINK_RESTORE,10);
+  assert.equal(STAMINA_PT_COST,10000);assert.equal(STAMINA_AD_POINTS,5);assert.equal(STAMINA_AD_DAILY_LIMIT,2);assert.equal(DRINK_RESTORE,10);
   assert.deepEqual(SEASON_COST,{warmup:5,NPB:10,MLB:12,SPACE:15});
   // 国内の1年(10)は5時間で戻る。満タンなら3年続けて進められる。空から満タンまで15時間。
   assert.equal(SEASON_COST.NPB*STAMINA_REGEN_MS,5*60*MIN);

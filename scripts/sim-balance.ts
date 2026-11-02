@@ -15,6 +15,18 @@ import {playerMap} from '@d9/data';
 import {awakeningCosts,effectiveOverallFor,yearEnd} from '@d9/sim-shim';
 import {REWARD_AD_DAILY_LIMIT,PREMIUM_DAILY_POINTS,setPremiumMatchBonus} from '@d9/sim-shim';
 import {DAILY_LOGIN_POINTS,DAILY_MISSIONS,DAILY_ALL_BONUS} from '@d9/daily';
+import * as ST from '@d9/stamina';
+// 2026-11-02 vc38: RECOVER="small:3" / "full:1" / "drink:1"(ドリンク3本の組)。行動力が切れた所(1日の年数を使い切った所)で
+// ポイントで回復して続ける。その日の回数ぶん、値段は stamina.ts の段階(1・1.5・2倍)。買えるまで pt をとっておく(スカウトに回さない)。
+// 1年 = 国内の行動力10。「何日目に優勝したか」も出す(回復は日数を縮めるが、年数では早くならない＝得をしない、を見る)。
+const [recKind,recN]=(process.env.RECOVER??'').split(':');const recCount=Number(recN??0)||0;
+const recOne=(i:number)=>{
+ const r=(base:number)=>Math.round(base*ST.STAMINA_PT_STEP[Math.min(i,ST.STAMINA_PT_STEP.length-1)]/50)*50;
+ if(recKind==='small')return {price:r(ST.STAMINA_PT_SMALL_COST),years:ST.STAMINA_PT_SMALL_RESTORE/10};
+ if(recKind==='full')return {price:r(ST.STAMINA_PT_FULL_COST),years:ST.STAMINA_MAX/10};
+ if(recKind==='drink')return {price:ST.DRINK_SET_COST,years:ST.DRINK_SET_COUNT*ST.DRINK_RESTORE/10};
+ return null;
+};
 
 type GameState=ReturnType<typeof initialState>;
 const seeds=Number(process.argv[2]??8),years=Number(process.argv[3]??12),perDay=Number(process.env.YEARS_PER_DAY??3);
@@ -40,32 +52,39 @@ const plans:Plan[]=skilled?[
 ];
 interface Row {ovr:number;wins:number;rank:number;league:boolean;japan:boolean;pulls:number;pt:number;yearPt:number;yearPulls:number}
 const ovrOf=(s:GameState)=>{const ids=[...s.lineup,...s.pitchers.slice(0,9)];return ids.reduce((n,id)=>n+effectiveOverallFor(playerMap[id],s.owned,s.training,s),0)/ids.length;};
-const out:Record<string,{rows:Row[][];firstLeague:number[];firstJapan:number[];start:number[]}>={};
+const out:Record<string,{rows:Row[][];firstLeague:number[];firstJapan:number[];start:number[];firstDay:number[];spentRec:number[]}>={};
 const only=process.env.PLANS?.split(",").map(Number);
 for(const plan of plans.filter((_,i)=>!only||only.includes(i))){
  setPremiumMatchBonus(plan.pass);
- const rows:Row[][]=Array.from({length:years},()=>[]),firstLeague:number[]=[],firstJapan:number[]=[],start:number[]=[];
+ const rows:Row[][]=Array.from({length:years},()=>[]),firstLeague:number[]=[],firstJapan:number[]=[],start:number[]=[],firstDay:number[]=[],spentRec:number[]=[];
  for(let seed=1;seed<=seeds;seed++){
   let s:GameState=initialState(seed*7919);
   const best=s.starterScout!.choices.map((id:string,i:number)=>({i,o:playerMap[id].overall})).sort((a:{o:number},b:{o:number})=>b.o-a.o)[0].i;
   s=buildByStrategy(finishStarterScout(pickStarterCard(s,best)),'balanced');
   start.push(ovrOf(s));
-  let fl=0,fj=0,earned=GIFT;s={...s,gems:s.gems+GIFT};
+  let fl=0,fj=0,fd=0,earned=GIFT;s={...s,gems:s.gems+GIFT};
+  let day=0,dayLeft=0,recDone=0,reserve=0,recSpent=0;
   const spend=()=>{
-   while(s.gems>=SIMPLE_SCOUT_COST){s=drawSimplePlayer(s);}
+   while(s.gems-reserve>=SIMPLE_SCOUT_COST){s=drawSimplePlayer(s);}
    for(;;){
     const regulars=[...s.lineup,...s.pitchers].map(id=>({id,lv:s.training[id]??0})).filter(x=>x.lv<5).sort((a,b)=>awakeningCosts[a.lv]-awakeningCosts[b.lv]);
-    const next=regulars.find(x=>awakeningCosts[x.lv]<=s.gems);if(!next)break;
+    const next=regulars.find(x=>awakeningCosts[x.lv]<=s.gems-reserve);if(!next)break;
     s=trainPlayer(s,next.id);
    }
    s=buildByStrategy(s,'balanced');
   };
   for(let y=1;y<=years;y++){
    const earnedStart=earned,pullsStart=s.pulls;
-   if((y-1)%perDay===0){// 新しい日
+   // 行動力が切れたら、ポイントで回復できる間は続ける(RECOVER)
+   while(dayLeft<=0&&day>0&&recDone<recCount){const o=recOne(recDone);if(!o||s.gems<o.price)break;s={...s,gems:s.gems-o.price};recSpent+=o.price;recDone++;dayLeft+=o.years;}
+   if(dayLeft<=0){// 新しい日
+    day++;dayLeft=perDay;recDone=0;
     let add=dailyPoints+(plan.pass?PREMIUM_DAILY_POINTS:0)+(plan.ads?REWARD_AD_DAILY_LIMIT*SIMPLE_SCOUT_COST:0);
     s={...s,gems:s.gems+add};earned+=add;
    }
+   dayLeft--;
+   // 回復の値段をとっておく(その日まだ買っていない分の一番安い1回)
+   reserve=recCount>recDone?(recOne(recDone)?.price??0):0;
    const bought=plan.buy(y);if(bought)s={...s,gems:s.gems+bought};
    spend();
    const before=s.gems;
@@ -73,20 +92,20 @@ for(const plan of plans.filter((_,i)=>!only||only.includes(i))){
    earned+=s.gems-before;
    const table=rankings(s.season,leagueFor(s.season,s.club)),rank=table.findIndex((r:{team:string})=>r.team===s.club)+1;
    const league=rank===1&&circuitOf(s.season)==='NPB',japan=s.season.postseason?.champion===s.club&&circuitOf(s.season)==='NPB';
-   if(league&&!fl)fl=y;if(japan&&!fj)fj=y;
+   if(league&&!fl){fl=y;fd=day;}if(japan&&!fj)fj=y;
    rows[y-1].push({ovr:ovrOf(s),wins:table[rank-1].w,rank,league,japan,pulls:s.pulls,pt:earned,yearPt:earned-earnedStart+(y===1?GIFT:0),yearPulls:s.pulls-pullsStart});
    s=yearEnd(nextSeason(s));
   }
-  firstLeague.push(fl||99);firstJapan.push(fj||99);
+  firstLeague.push(fl||99);firstDay.push(fl?fd:99);spentRec.push(recSpent);firstJapan.push(fj||99);
  }
- out[plan.name]={rows,firstLeague,firstJapan,start};
+ out[plan.name]={rows,firstLeague,firstJapan,start,firstDay,spentRec};
 }
 const avg=(xs:number[])=>xs.reduce((a,b)=>a+b,0)/Math.max(1,xs.length);
 const med=(xs:number[])=>{const v=[...xs].sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
 const yr=(n:number)=>n>=99?`${years}年で届かず`:`${n}年目`;
-console.log(`シード${seeds}・${years}年・1日${perDay}年 / 1日の配布 ${dailyPoints}pt / スカウト ${SIMPLE_SCOUT_COST}pt`);
+console.log(`${recCount?`回復 ${recKind}×${recCount}/日・`:''}シード${seeds}・${years}年・1日${perDay}年 / 1日の配布 ${dailyPoints}pt / スカウト ${SIMPLE_SCOUT_COST}pt`);
 for(const [name,o] of Object.entries(out)){
- console.log(`\n## ${name}  開始時の総合 ${avg(o.start).toFixed(1)} / 初のリーグ優勝 中央値 ${yr(med(o.firstLeague))}(${o.firstLeague.map(x=>x>=99?'-':x).join(',')}) / 初の日本一 中央値 ${yr(med(o.firstJapan))}`);
+ console.log(`\n## ${name}  開始時の総合 ${avg(o.start).toFixed(1)} / 初のリーグ優勝 中央値 ${yr(med(o.firstLeague))}(${o.firstLeague.map(x=>x>=99?'-':x).join(',')}) / 初の日本一 中央値 ${yr(med(o.firstJapan))} / 初のリーグ優勝の日 中央値 ${med(o.firstDay)>=99?'-':med(o.firstDay)+'日目'} / 回復に使ったpt 平均 ${Math.round(avg(o.spentRec))}`);
  console.log('年	累計スカウト	その年のスカウト	総合	勝ち	順位	リーグ優勝	日本一	その年の無料pt	累計の無料pt');
  o.rows.forEach((r,i)=>console.log([i+1,avg(r.map(x=>x.pulls)).toFixed(0),avg(r.map(x=>x.yearPulls)).toFixed(1),avg(r.map(x=>x.ovr)).toFixed(1),avg(r.map(x=>x.wins)).toFixed(0),avg(r.map(x=>x.rank)).toFixed(1),`${r.filter(x=>x.league).length}/${r.length}`,`${r.filter(x=>x.japan).length}/${r.length}`,Math.round(avg(r.map(x=>x.yearPt))),Math.round(avg(r.map(x=>x.pt)))].join('\t')));
 }
