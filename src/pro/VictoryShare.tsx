@@ -2,7 +2,7 @@ import {saveGameFile} from './native-files';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Camera,Copy,Download,Share2} from 'lucide-react';
 import type {GameState,Season} from './engine';
-import {canShareVictory,publicGameUrl,victoryShareData,victoryPostText,xPostIntent} from './victory-share';
+import {canShareVictory,shareUrls,victoryShareData,victoryPostText,xPostIntent} from './victory-share';
 import {renderVictoryImage,VICTORY_IMAGE_WIDTH,VICTORY_IMAGE_HEIGHT} from './victory-image';
 import './victory-share.css';
 import {track} from './analytics';
@@ -10,7 +10,7 @@ import {noteDailyMission} from './daily';
 
 export function VictoryShare({state,season}:{state:GameState;season:Season}){
  const data=useMemo(()=>victoryShareData(state,season),[season,state.club,state.name,state.lineup,state.pitchers,state.defense,state.owned,state.training]);
- const gameUrl=typeof window==='undefined'?'':window.diamondNativeFiles?'https://diamond-nine-baseball.com/':publicGameUrl(window.location.href);
+ const {imageUrl:gameUrl,postUrl}=typeof window==='undefined'?{imageUrl:'',postUrl:''}:shareUrls(!!window.diamondNativeFiles,window.location.href,'title');
  const [image,setImage]=useState<{url:string;file:File;key:typeof data}|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[sharing,setSharing]=useState(false),[attempt,setAttempt]=useState(0);
  const [zoomed,setZoomed]=useState(false);
  const textArea=useRef<HTMLTextAreaElement>(null),shareLock=useRef(false);
@@ -23,7 +23,7 @@ export function VictoryShare({state,season}:{state:GameState;season:Season}){
   return()=>{cancelled=true;if(objectUrl)URL.revokeObjectURL(objectUrl);};
  },[data,gameUrl,attempt]);
  if(!data)return null;
- const ready=image?.key===data?image:null,text= victoryPostText(data,gameUrl),intent=xPostIntent(text);
+ const ready=image?.key===data?image:null,text= victoryPostText(data,postUrl),intent=xPostIntent(text);
  const native=!!ready&&(!!window.diamondNativeFiles||canShareVictory(navigator,ready.file,window.isSecureContext));
  const download=()=>{if(!ready)return;void saveGameFile(ready.file).then(()=>{noteDailyMission('share');track('share',{content:data.champion?'victory':'season',method:'save'});},()=>setNotice('画像を保存できませんでした。もう一度お試しください。'));};
  const share=async()=>{

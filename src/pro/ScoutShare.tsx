@@ -1,7 +1,7 @@
 import {useRef,useState} from 'react';
 import {Share2} from 'lucide-react';
 import {saveGameFile} from './native-files';
-import {canShareVictory,publicGameUrl,xPostIntent} from './victory-share';
+import {canShareVictory,shareUrls,xPostIntent} from './victory-share';
 import {renderScoutImage,scoutPostText,type ScoutShareData} from './share-kit';
 import {track} from './analytics';
 import {noteDailyMission} from './daily';
@@ -10,10 +10,10 @@ import {noteDailyMission} from './daily';
 // OS share sheet (app) or Web Share; otherwise save the image and open X's composer.
 export function ScoutShare({data}:{data:ScoutShareData}){
  const [busy,setBusy]=useState(false),[notice,setNotice]=useState('');const lock=useRef(false);
- const gameUrl=typeof window==='undefined'?'':window.diamondNativeFiles?'https://diamond-nine-baseball.com/':publicGameUrl(window.location.href);
+ const {imageUrl:gameUrl,postUrl}=typeof window==='undefined'?{imageUrl:'',postUrl:''}:shareUrls(!!window.diamondNativeFiles,window.location.href,'scout');
  const share=async()=>{
   if(lock.current)return;lock.current=true;setBusy(true);setNotice('');
-  const text=scoutPostText(data,gameUrl);
+  const text=scoutPostText(data,postUrl);
   try{
    const blob=await renderScoutImage(data,gameUrl),file=new File([blob],'diamond-nine-scout.png',{type:'image/png'});
    if(window.diamondNativeFiles){await window.diamondNativeFiles.share({files:[file],text,title:'DIAMOND NINE · スカウト'});track('share',{content:'scout',method:'native',tier:data.tier});}

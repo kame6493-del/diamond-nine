@@ -40,6 +40,19 @@ export function victoryShareData(state:GameState,season:Season){
   battingLabel:rows.length>9?'打撃成績 · 打席数上位9人':'打撃成績 · 打席数順'};
 }
 export type VictoryShareData=NonNullable<ReturnType<typeof victoryShareData>>;
+// The app build shares the Play page (with an install referrer) in the post text, so people who
+// see the post can install it directly; diamond-nine-baseball.com (the browser game) has no Play link.
+// The image keeps the short site address. The browser build keeps sharing its own page.
+export const PLAY_APP_ID='com.diamondninebaseball.game';
+export type ShareCampaign='scout'|'title';
+export function playShareUrl(campaign:ShareCampaign):string{
+ return `https://play.google.com/store/apps/details?id=${PLAY_APP_ID}&referrer=${encodeURIComponent(`utm_source=diamondnine&utm_medium=share&utm_campaign=${campaign}`)}`;
+}
+// imageUrl is printed on the card, postUrl goes into the post text.
+export function shareUrls(native:boolean,href:string,campaign:ShareCampaign):{imageUrl:string;postUrl:string}{
+ if(native)return {imageUrl:'https://diamond-nine-baseball.com/',postUrl:playShareUrl(campaign)};
+ const url=publicGameUrl(href);return {imageUrl:url,postUrl:url};
+}
 // Do not put local-only addresses or saved query/hash data into a public post.
 export function publicGameUrl(href:string):string{
  try{

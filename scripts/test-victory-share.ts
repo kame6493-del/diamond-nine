@@ -6,8 +6,11 @@ import {initialState,emptySeason,simulateDays,nextSeason,migrateState,ops,type S
 import {buildByStrategy} from '../src/pro/franchise';
 import {finishPostseason,type Postseason} from '../src/pro/postseason';
 import {captureSeasonTeam,validSeasonTeam} from '../src/pro/season-team';
-import {canShareVictory,publicGameUrl,shareTeamAbilities,victoryShareData,victoryTitle,victoryPostText,xPostIntent} from '../src/pro/victory-share';
+import {canShareVictory,playShareUrl,shareUrls,publicGameUrl,shareTeamAbilities,victoryShareData,victoryTitle,victoryPostText,xPostIntent} from '../src/pro/victory-share';
 import {VictoryShare} from '../src/pro/VictoryShare';
+import {scoutPostText,scoutShareData} from '../src/pro/share-kit';
+import {MoreApps} from '../src/pro/MoreApps';
+import {MORE_APPS,playUrl,promoSource} from '../src/pro/more-apps';
 
 const winner=(number=1):Season=>{const s=emptySeason(number);return {...s,day:143,completed:true,standings:s.standings.map(t=>({...t,w:t.team==='t'?100:60,l:t.team==='t'?43:83}))};};
 const post=(champion:string,stage:Postseason['stage']='complete')=>({stage,champion,series:[]} as Postseason);
@@ -65,5 +68,27 @@ export function registerVictoryShareTests(test:(name:string,run:()=>void)=>void)
   assert.equal(canShareVictory(supported,file,true),true);assert.deepEqual(passed,{files:[file]});assert.equal(canShareVictory(supported,file,false),false);
   assert.equal(canShareVictory({...supported,canShare:()=>false},file,true),false);assert.equal(canShareVictory({...supported,canShare:()=>{throw new Error();}},file,true),false);
   assert.equal(canShareVictory({} as Navigator,file,true),false);
+ });
+ test('app shares put the Play page with an install referrer in the post text (scout / title); the browser build keeps its own page',()=>{
+  const scout='https://play.google.com/store/apps/details?id=com.diamondninebaseball.game&referrer=utm_source%3Ddiamondnine%26utm_medium%3Dshare%26utm_campaign%3Dscout';
+  const title='https://play.google.com/store/apps/details?id=com.diamondninebaseball.game&referrer=utm_source%3Ddiamondnine%26utm_medium%3Dshare%26utm_campaign%3Dtitle';
+  assert.equal(playShareUrl('scout'),scout);assert.equal(playShareUrl('title'),title);
+  assert.deepEqual(shareUrls(true,'https://localhost/index.html','scout'),{imageUrl:'https://diamond-nine-baseball.com/',postUrl:scout});
+  assert.deepEqual(shareUrls(true,'https://localhost/index.html','title'),{imageUrl:'https://diamond-nine-baseball.com/',postUrl:title});
+  assert.deepEqual(shareUrls(false,'https://diamond-nine-baseball.com/?save=x','title'),{imageUrl:'https://diamond-nine-baseball.com/',postUrl:'https://diamond-nine-baseball.com/'});
+  assert.deepEqual(shareUrls(false,'http://127.0.0.1:4178/','scout'),{imageUrl:'',postUrl:''});
+  const s={...initialState(),season:winner(3)},data=victoryShareData(s,s.season)!,text=victoryPostText(data,title);
+  assert.ok(text.endsWith('\n'+title));assert.ok(!text.includes('diamond-nine-baseball.com'));
+  const p=players[0],scoutText=scoutPostText(scoutShareData(p,{[p.id]:1},{},'gold',true,true),scout);
+  assert.ok(scoutText.endsWith('\n'+scout));assert.ok(!scoutText.includes('diamond-nine-baseball.com'));
+ });
+ test('settings list other games by the developer (Haru) with crosspromo referrers, never adult apps or prices',()=>{
+  assert.deepEqual(MORE_APPS.map(a=>a.id),['jp.harunobouken.app']);
+  assert.equal(playUrl('jp.harunobouken.app',promoSource(true)),'https://play.google.com/store/apps/details?id=jp.harunobouken.app&referrer=utm_source%3Ddiamondnine%26utm_medium%3Dcrosspromo%26utm_campaign%3Dsettings');
+  assert.equal(promoSource(false),'diamondnine_web');
+  for(const a of MORE_APPS){assert.ok(!/kachimake/i.test(a.id));assert.ok(!/無料|円|¥|No\.1|最強/.test(a.name+a.line));}
+  const html=renderToStaticMarkup(createElement(MoreApps));
+  assert.ok(html.includes('作者のほかのゲーム'));assert.ok(html.includes('ハルの冒険'));assert.ok(html.includes('/assets/pro/more/haru.png'));
+  assert.ok(html.includes('href="https://play.google.com/store/apps/details?id=jp.harunobouken.app&amp;referrer=utm_source%3Ddiamondnine_web%26utm_medium%3Dcrosspromo%26utm_campaign%3Dsettings"'));
  });
 }

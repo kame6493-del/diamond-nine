@@ -54,6 +54,8 @@ if(Capacitor.isNativePlatform()){
  document.addEventListener('click',event=>{
   const anchor=(event.target as Element)?.closest?.('a');if(!anchor)return;
   const url=new URL(anchor.href,location.href);
+  // Play links go to the Play Store app (Capacitor hands the navigation to an ACTION_VIEW intent) so the referrer reaches the Install Referrer.
+  if(url.protocol==='https:'&&url.hostname==='play.google.com'){event.preventDefault();location.assign(url.href);return;}
   if(['http:','https:'].includes(url.protocol)&&url.origin!==location.origin){event.preventDefault();void Browser.open({url:url.href}).catch(()=>alert('リンクを開けませんでした。'));}
  });
 }
