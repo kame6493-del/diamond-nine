@@ -114,10 +114,14 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.deepEqual(n.careerGrowth,{[id]:{y:1,b:2}},'vc34 の値はそのまま(増えも減りもしない)');assert.equal(n.grownSeason,0);
   for(const pid of Object.keys(s.owned))assert.equal(effectiveOverall(playerMap[pid],n.owned,n.training,n.careerGrowth),effectiveOverall(playerMap[pid],done.owned,done.training,done.careerGrowth));
  });
- test('balance 11/01: the old 85+ starter offers stay valid; new offers are 74-82',()=>{
+ test('balance 11/01 + vc41: starter offers from 85+ are valid again, and saves holding the vc34-40 74-82 offers stay valid',()=>{
   const strong=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=85).slice(0,3).map(p=>p.id);
   assert.equal(strong.length,3);
   assert.ok(validStarterScout({version:1,choices:strong,selected:null,completed:false},{}));
+  const mid=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=74&&ratingOverall(p)<=82).slice(0,3).map(p=>p.id);
+  assert.ok(validStarterScout({version:1,choices:mid,selected:null,completed:false},{}));
+  const weak=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)<70).slice(0,3).map(p=>p.id);
+  assert.ok(!validStarterScout({version:1,choices:weak,selected:null,completed:false},{}));
  });
  test('balance 11/01 (vc39): first-purchase pack - ¥480 for 3,600,000pt (3x the usual ¥480), one per account, sold beside the six packs',()=>{
   assert.equal(firstPack.id,'pt_first_30000');assert.equal(firstPack.points,3600000);assert.equal(firstPack.priceYen,480);
@@ -142,21 +146,22 @@ export function registerBalance1101Tests(test:(name:string,run:()=>void)=>void){
   assert.ok(r);assert.equal(r!.rank,2);assert.equal(r!.behind,4);assert.equal(r!.weak.length,2);
   assert.equal(nearMiss(mk(t=>t===s.club?50:t===rival?95:60),s.season.number),null);
   assert.equal(nearMiss(mk(t=>t===s.club?60:t===rival?84:50),s.season.number),null,'12ゲーム差は出さない');
-  assert.equal(scoutOdds(s).mlb,.02,'確率は変えていない');
+  assert.ok(Math.abs(scoutOdds(s).mlb-.0125)<1e-12,'vc41 の確率');
  });
- test('balance 11/03 (vc39): ¥10,000 of points is enough to collect every player on average, and buying never changes the odds',()=>{
+ test('balance 11/03 (vc39, vc41): ¥10,000 of points collects the ordinary band on average, and buying never changes the odds',()=>{
   const dom=players.filter(p=>!p.mlb).length,all=players.length;
-  // 国内は全員同じ確率(1−2%)。全員そろうまでの期待回数 n·H(n)/0.98(海外15人は30回ごとの確定で先にそろう)。
-  let h=0;for(let k=1;k<=dom;k++)h+=1/k;
-  const expected=dom*h/(1-.02),draws=pointPacks.at(-1)!.points/SIMPLE_SCOUT_COST;
-  assert.ok(draws>=expected*1.15,`¥10,000 = ${draws}回 / 期待 ${Math.round(expected)}回`);
+  // vc41: 高レアを下げたので ¥10,000(10,000回)では全員そろうとは限らない(数字は BALANCE_1101.md の vc41)。
+  // 国内の通常の段だけは ¥10,000 で平均してそろう(期待回数 n·H(n)/率)。
+  const std=scoutOdds(initialState()).bands.find(b=>b.id==='domStandard')!;let h=0;for(let k=1;k<=std.count;k++)h+=1/k;
+  const expected=std.count*h/std.rate,draws=pointPacks.at(-1)!.points/SIMPLE_SCOUT_COST;
+  assert.ok(draws>=expected*1.1,`¥10,000 = ${draws}回 / 通常の段の期待 ${Math.round(expected)}回`);
   assert.ok(all>=1000&&all-dom===15,`${all}`);
   // 確率は持っている pt・パスの有無で変わらない。表示(scoutPlayerOdds)と合計1。
   const s=initialState(4242),rich={...s,gems:30000000};
   setPremiumMatchBonus(true);const a=scoutPlayerOdds(rich);setPremiumMatchBonus(false);const b=scoutPlayerOdds(s);
   assert.deepEqual([...a.entries()],[...b.entries()]);
   const sum=[...b.values()].reduce((x,y)=>x+y,0);assert.ok(Math.abs(sum-1)<1e-9);
-  const domOdds=players.filter(p=>!p.mlb).map(p=>b.get(p.id)!);assert.ok(Math.max(...domOdds)-Math.min(...domOdds)<1e-12,'国内は全員同じ');
+  const domOdds=players.filter(p=>!p.mlb&&ratingOverall(p)<85).map(p=>b.get(p.id)!);assert.ok(Math.max(...domOdds)-Math.min(...domOdds)<1e-12,'国内の通常の段は全員同じ');
   // 全部そろえた時の特典(コンプガチャ)は無い: 図鑑の達成では pt も選手も増えない
   const full={...s,owned:Object.fromEntries(players.map(p=>[p.id,1]))};
   assert.equal(collectSimpleRewards(full).gems,collectSimpleRewards({...full,owned:s.owned}).gems);

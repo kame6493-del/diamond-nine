@@ -1,6 +1,5 @@
 import {grade,teamById,type Player} from './data';
 import {ownedRatings,ratingOverall} from './development';
-import {DRAFT_EVENT,draftEventActive} from './draft-event';
 import type {ScoutTier} from './scout-presentation';
 
 // Hashtags on every post. Brand tags first so the game is findable; genre tags
@@ -8,7 +7,8 @@ import type {ScoutTier} from './scout-presentation';
 // while the draft event runs.
 export const SHARE_TAGS=['#DIAMONDNINE','#ダイヤモンドナイン','#野球ゲーム','#プロ野球','#スマホゲーム'] as const;
 // During the draft week the campaign tags take the place of #スマホゲーム so posts stay within 280.
-export const shareTags=(now:Date|null=new Date())=>(draftEventActive(now)?[...SHARE_TAGS.filter(t=>t!=='#スマホゲーム'),DRAFT_EVENT.campaignTag,DRAFT_EVENT.tag]:[...SHARE_TAGS]).join(' ');
+// 2026-11-03 vc41: ドラフト会議ウィークをなくした(期間中のタグも無し)。
+export const shareTags=(_now:Date|null=new Date())=>[...SHARE_TAGS].join(' ');
 
 // X counts most CJK characters and emoji as 2 and every URL as 23. Posts must stay
 // within 280 or the intent page refuses to post them.

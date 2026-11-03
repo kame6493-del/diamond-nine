@@ -14,7 +14,7 @@ export function registerStarterScoutTests(test:(name:string,run:()=>void)=>void)
   assert.ok(starterScoutPool.length>=3);
   for(let seed=1;seed<=100;seed++){
    const offer=createStarterScout(seed);assert.deepEqual(offer,createStarterScout(seed));assert.equal(new Set(offer.choices).size,3);
-   for(const id of offer.choices){assert.ok(!playerMap[id].mlb);const o=ratingOverall(playerMap[id]);assert.ok(o>=74&&o<=82,'2026-11-01: 74〜82 から選ぶ');}
+   for(const id of offer.choices){assert.ok(!playerMap[id].mlb);const o=ratingOverall(playerMap[id]);assert.ok(o>=85,'2026-11-03 vc41: 総合85以上から選ぶ');assert.ok(!playerMap[id].provisional);}
   }
   const state=initialState();assert.ok(validState(state));assert.ok(starterScoutActive(state));assert.equal(Object.keys(state.owned).length,24);assert.equal(state.gems,0);
   assert.ok(state.starterScout!.choices.every(id=>!state.owned[id]));
@@ -58,7 +58,7 @@ export function registerStarterScoutTests(test:(name:string,run:()=>void)=>void)
  test('starter screen has exactly three accessible blind choices and reveals only the earned card',()=>{
   const state=initialState(),props={sound:false,onPick:()=>true,onFinish:()=>{},onPlayer:()=>{}};
   const html=renderToStaticMarkup(createElement(StarterScout,{...props,state}));
-  assert.equal([...html.matchAll(/枚目のカードを選ぶ/g)].length,3);assert.ok(html.includes('スタートスカウト'));assert.ok(html.includes('総合 74 以上'));
+  assert.equal([...html.matchAll(/枚目のカードを選ぶ/g)].length,3);assert.ok(html.includes('スタートスカウト'));assert.ok(html.includes('総合 85 以上'));
   for(const id of state.starterScout!.choices)assert.ok(!html.includes(playerMap[id].name));
   const picked=pickStarterCard(state,1),result=renderToStaticMarkup(createElement(StarterScout,{...props,state:picked}));
   assert.ok(result.includes(playerMap[picked.starterScout!.selected!].name));assert.ok(result.includes('チームに入れて開幕する'));assert.ok(!result.includes('枚目のカードを選ぶ'));

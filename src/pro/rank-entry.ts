@@ -36,9 +36,21 @@ export function hasNgWord(s:string):boolean{
 // 12文字まで。絵文字など2単位の文字があっても、ルールの size() <= 12 を確実に通るよう UTF-16 の単位でも12に収める
 export const cleanName=(s:string)=>{const a=Array.from(s.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g,'').trim()).slice(0,12);while(a.join('').length>12)a.pop();return a.join('');};
 export const validDisplayName=(s:string)=>{const n=cleanName(s);return n.length>=1&&n===s&&!hasNgWord(n);};
+/** チーム名(20文字まで)。セーブのチーム名(state.name)を初めの値にし、宇宙リーグ制覇の記録では本人が直せる。 */
+export const cleanTeamName=(s:string)=>{const a=Array.from(s.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g,'').trim()).slice(0,20);while(a.join('').length>20)a.pop();return a.join('');};
+export const validTeamName=(s:string)=>{const n=cleanTeamName(s);return n.length>=1&&n===s&&!hasNgWord(n);};
+/** セーブにあるチーム名(優勝した年の写し → 今のチーム名)。 */
+export const saveTeamName=(state:GameState,lg:RankLeague)=>cleanTeamName(championSeason(state,lg)?.shareTeam?.name||state.name||'');
+
+// ---------- 宇宙リーグ制覇の記録(2026-11-03 vc41 持ち主「宇宙リーグ制覇した人の名前、チーム名、オーダーを残す。1回きりでいい」) ----------
+// d9_space_hof/{uid} に1人1回だけ。中身は最短優勝の1件と同じ形(表示名・チーム名・年数・成績・打順9人・先発6人・版・時刻)。
+// 1回きりはルールで縛る: 作成だけ許し、更新は断る。消すことはできる(個人の記録を消す権利のため)が、
+// 同時に作る d9_space_once/{uid}(時刻だけ・消せない)が残るので、消した後にもう一度は書けない。
+export const HOF_LEAGUE:RankLeague='space';
 /** 初回の表示名。端末ごとに1回だけ作って覚える(ranking.ts)。 */
 export const autoDisplayName=(random=Math.random)=>'監督'+String(Math.floor(random()*9000)+1000);
 
+export const championYearsLabel=(y:number,hof=false)=>`${y}年で${hof?'制覇':'優勝'}`;
 const champion=(s:Season,club:string)=>s.completed&&s.postseason?.stage==='complete'&&s.postseason.champion===club;
 const allSeasons=(state:GameState)=>[state.season,...(state.parkedSeason?[state.parkedSeason]:[]),...(state.additionalParkedSeasons??[]),...state.history];
 
@@ -62,13 +74,13 @@ const batter=(p:SnapshotPlayer):RankBatter=>({i:p.id,n:shortName(p.id),pos:p.pos
 const pitcher=(p:SnapshotPlayer):RankPitcher=>({i:p.id,n:shortName(p.id),o:int(p.overall,1,150),v:int(p.ratings.velocity,0,170),ct:int(p.ratings.control,0,99),st:int(p.ratings.stamina,0,99),bk:int(p.ratings.breaking,0,99)});
 
 /** 登録する中身。作れない時(写しが無い・形がルールに合わない)は null。 */
-export function buildEntry(state:GameState,lg:RankLeague,displayName:string,version:string):RankEntry|null{
+export function buildEntry(state:GameState,lg:RankLeague,displayName:string,version:string,teamName?:string):RankEntry|null{
  const season=championSeason(state,lg);if(!season?.shareTeam)return null;
  const me=season.standings.find(s=>s.team===state.club);if(!me)return null;
  const team=season.shareTeam;
  const entry:RankEntry={
   n:cleanName(displayName),
-  tn:fit((team.name||state.name||'').trim(),20)||'DIAMOND NINE',
+  tn:fit(cleanTeamName(teamName??(team.name||state.name||'')),20)||'DIAMOND NINE',
   y:season.number,
   v:fit(version||'web',24)||'web',
   rec:{w:me.w,l:me.l,d:me.d},

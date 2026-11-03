@@ -3,10 +3,9 @@ import {X} from 'lucide-react';
 import {playerMap,players,type Player,type Ratings} from '../data';
 import {effectiveOverall,type GameState} from '../engine';
 import {bestUpgrade} from '../career-roster';
-import {MLB_GUARANTEE_EVERY,MLB_SCOUT_CHANCE,SIMPLE_SCOUT_COST,mlbScoutCountdown,scoutOdds} from '../simple-game';
+import {MLB_SCOUT_CHANCE,SIMPLE_SCOUT_COST,scoutOdds} from '../simple-game';
 import {scoutDuration,scoutPresentation,type ScoutTier} from '../scout-presentation';
 import {mlbPlayers} from '../mlb-players';
-import {DRAFT_EVENT,DRAFT_ROOKIE_CHANCE,draftEventActive,draftEventEndLabel,draftRookiePool} from '../draft-event';
 import {ScoutShare} from '../ScoutShare';
 import {scoutShareData} from '../share-kit';
 import {isRookie,ownedRatings,playerAge} from '../development';
@@ -59,11 +58,9 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
  const money=useMonetize();
  const pull=hasDrawn?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
  const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
- const remaining=mlbScoutCountdown(state);
  const {tier,overall}=scoutPresentation(player,state.owned,state.training);
- const draftWeek=draftEventActive(new Date());
- // 提供割合は抽選と同じ計算(scoutOdds)から。次の1回の確率
- const rates=scoutOdds(state,new Date()),pct=(x:number)=>`${(x*100).toFixed(3)}%`;
+ // 提供割合は抽選と同じ計算(scoutOdds)から
+ const rates=scoutOdds(state),pct=(x:number)=>`${+(x*100).toFixed(3)}%`,pct4=(x:number)=>`${(x*100).toFixed(4)}%`;
  const equipped=player&&[...state.lineup,...state.pitchers].includes(player.id);
  const old=upgrade&&kept!==state.pulls?playerMap[upgrade.oldId]:null;
  const showResult=!!player&&!!pull&&!drawing;
@@ -84,9 +81,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <div><small>カード収集</small><b>{progress.collected}<em>/{progress.total}</em></b></div>
    <div><small>打線の総合</small><b>{avg(state.lineup)}</b></div>
    <div><small>投手陣の総合</small><b>{avg(state.pitchers)}</b></div>
-   <div><small>海外確定まで</small><b>{remaining}<em>回</em></b></div>
   </section>
-  {draftWeek&&<p className="pw-sc-event"><b>{DRAFT_EVENT.name}</b> 〜{draftEventEndLabel()} · 国内の{Math.round(DRAFT_ROOKIE_CHANCE*100)}%がルーキー</p>}
 
   <div className="pw-sc-stage">
   {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult&&ratings?<section className={'pw-sc-result pw-tier-'+tier+(cmp?' has-cmp':'')} aria-live="polite">
@@ -118,8 +113,8 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
    <ScoutShare key={'share-'+state.pulls} data={scoutShareData(player!,state.owned,state.training,tier,pull!.isNew,isRookie(player!))}/>
   </section>:<section className="pw-sc-idle pw-sc-idle2">
    <div className="pw-sc-idle-top"><img src="/assets/pro/pawa/draw-card-back.webp" alt="" width={120} height={168}/>
-   <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{100-MLB_SCOUT_CHANCE*100}%・海外{MLB_SCOUT_CHANCE*100}%。国内の選手は全員同じ確率です。</p></div></div>
-   <ul className="pw-sc-odds" aria-label="提供割合のあらまし"><li><b>国内</b>{100-MLB_SCOUT_CHANCE*100}%</li><li><b>海外</b>{MLB_SCOUT_CHANCE*100}%</li><li><b>海外確定まで</b>あと{remaining}回</li></ul>
+   <div><h2>選手カードを1枚引く</h2><ul className="pw-tier-legend-list"><li data-tier="standard"><b>カード</b>ふつう</li><li data-tier="gold"><b>金カード</b>総合85以上・海外</li><li data-tier="rainbow"><b>虹カード</b>総合95以上</li></ul><p>国内{pct(1-MLB_SCOUT_CHANCE)}・海外{pct(MLB_SCOUT_CHANCE)}。くわしくは「提供割合」へ。</p></div></div>
+   <ul className="pw-sc-odds" aria-label="提供割合のあらまし"><li><b>虹カード</b>{pct(rates.bands.filter(b=>b.id.endsWith('Rainbow')).reduce((n,b)=>n+b.rate,0))}</li><li><b>金カード</b>{pct(rates.bands.filter(b=>b.id.endsWith('Gold')).reduce((n,b)=>n+b.rate,0))}</li><li><b>カード</b>{pct(rates.bands.find(b=>b.id==='domStandard')!.rate)}</li></ul>
    <div className="pw-sc-weak"><h3>補強したい所<small>総合が低い順</small></h3><div>{([['打線',state.lineup.map((id,i)=>({id,tag:`${i+1}番 ${state.defense[id]}`}))],['投手陣',state.pitchers.map((id,i)=>({id,tag:i<6?`先発${i+1}`:i===13?'抑え':`中継ぎ${i-5}`}))]] as const).map(([title,list])=><ul key={title} aria-label={title}><li className="pw-sc-weak-h">{title}</li>{[...list].map(x=>({...x,o:effectiveOverall(playerMap[x.id],state.owned,state.training,state.careerGrowth)})).sort((a,b)=>a.o-b.o).slice(0,3).map(x=><li key={x.id}><small>{x.tag}</small><button style={fitName(playerMap[x.id].name,92,13)} data-player-id={x.id} onClick={()=>onPlayer?.(playerMap[x.id])}>{playerMap[x.id].name}</button><b>{x.o}</b></li>)}</ul>)}</div></div>
   </section>}
   </div>
@@ -140,8 +135,8 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   </div></div>}
   {odds&&<div className="pw-modal pw-sheet-modal" onClick={()=>setOdds(false)}><div className="pw-sheet" role="dialog" aria-modal="true" aria-label="提供割合" onClick={e=>e.stopPropagation()}>
    <header className="pw-sheet-head"><h2>提供割合</h2><button className="pw-close" onClick={()=>setOdds(false)} aria-label="閉じる"><X size={22}/></button></header>
-   <section className="pw-panel pw-odds"><ul><li className="is-world"><span><b>海外選手</b><small>30回ごとに未所持の海外選手が確定(あと{remaining}回 · {MLB_GUARANTEE_EVERY-remaining}/{MLB_GUARANTEE_EVERY})</small></span><em>{pct(rates.mlb)}</em></li>{rates.rookie>0&&<li className="is-hot"><span><b>ルーキー</b><small>{DRAFT_EVENT.name}の期間中だけ · {draftRookiePool.length}人</small></span><em>{pct(rates.rookie)}</em></li>}<li><span><b>国内選手</b><small>{players.length-mlbPlayers.length}人 · 全員同じ確率</small></span><em>{pct(rates.domestic)}</em></li></ul>
-   <p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。1人 {count(SIMPLE_SCOUT_COST)} pt。通常は国内リーグ {100-MLB_SCOUT_CHANCE*100}%・海外リーグ {MLB_SCOUT_CHANCE*100}%です。国内リーグの選手は、野手・投手やチームの強さに関係なく、全員が同じ確率です（今のチームに合わせて出やすくする仕組みはありません）。{draftWeek&&`${DRAFT_EVENT.name}の期間中（〜${draftEventEndLabel()}）は、国内リーグの抽選のうち${Math.round(DRAFT_ROOKIE_CHANCE*100)}%をルーキー${draftRookiePool.length}人から、残り${100-Math.round(DRAFT_ROOKIE_CHANCE*100)}%を国内リーグ全員から同じ確率で選びます。`}30回ごとの確定時は未所持の海外選手から同じ確率で抽選し、全員所持の場合は海外選手全員が対象になります。同じ選手を獲得すると、その選手の能力が ＋1 上がります（最大 ＋5）。</p></section>
+   <section className="pw-panel pw-odds"><ul>{rates.bands.map(b=><li key={b.id} className={b.id.startsWith('mlb')?'is-world':b.id==='domStandard'?'':'is-hot'}><span><b>{b.label}</b><small>{b.detail} · {b.count}人 · 1人 {pct4(b.each)}</small></span><em>{pct(b.rate)}</em></li>)}</ul>
+   <p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。1人 {count(SIMPLE_SCOUT_COST)} pt。カードの段（総合は覚醒前の値）ごとに上の確率で決め、同じ段の中では全員が同じ確率です。野手・投手やチームの強さ、ポイントの購入・プレミアムパスで確率は変わりません。何回引いても確定する枠（天井）はありません。同じ選手を獲得すると、その選手の能力が ＋1 上がります（最大 ＋5）。7枚目からは {count(300)} pt に替わります。</p></section>
   </div></div>}
  </div>;
 }

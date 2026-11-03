@@ -4,7 +4,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {mlbPlayers} from '../src/pro/mlb-players';
 import {players,npbPlayers,playerMap,teamById} from '../src/pro/data';
 import {initialState,simulateDays,effectiveOverall,validState,migrateState,nextSeason,rng} from '../src/pro/engine';
-import {collectSimpleRewards,drawSimplePlayer,equipTwoWayPlayer,mlbScoutCountdown,SIMPLE_SCOUT_COST} from '../src/pro/simple-game';
+import {collectSimpleRewards,drawSimplePlayer,equipTwoWayPlayer,SIMPLE_SCOUT_COST} from '../src/pro/simple-game';
 import {simulatePostseason} from '../src/pro/postseason';
 import {matchupProbabilities} from '../src/pro/matchup';
 import {TradingCard} from '../src/pro/CardDeck';
@@ -45,15 +45,17 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
   assert.ok(pitBoost.walk<pitBase.walk&&pitBoost.walk/pitBase.walk>.94);assert.ok(pitBoost.strikeout>pitBase.strikeout&&pitBoost.strikeout/pitBase.strikeout<1.08);assert.ok(pitBoost.homeRun<pitBase.homeRun&&pitBoost.homeRun/pitBase.homeRun>.94);
   for(const p of mlbPlayers)for(const probability of Object.values(matchupProbabilities(p.role==='batter'?p:batter,p.role==='pitcher'?p:pitcher)))assert.ok(Number.isFinite(probability)&&probability>=0&&probability<=1);
  });
- test('30th point scout guarantees an unowned MLB player, including saves containing obsolete tickets',()=>{
+ test('2026-11-03 vc41: no overseas guarantee - the 30th scout is an ordinary draw, saves with an old countdown or tickets still load and draw',()=>{
   const base=initialState(),id='mlb-660271';
-  const state={...base,pulls:29,gems:6000,owned:{...base.owned,...Object.fromEntries(mlbPlayers.filter(p=>p.id!==id).map(p=>[p.id,1]))},franchise:{...base.franchise,claimed:['contract-1','contract-2','career-draw'],tickets:1}};
-  const next=drawSimplePlayer(state);assert.equal(next.lastPulls[0].playerId,id);assert.equal(next.lastPulls[0].guaranteed,true);assert.equal(next.pulls,30);assert.equal(next.gems,3000);assert.equal(mlbScoutCountdown(next),30);assert.equal(next.franchise.tickets,0);assert.ok(validState(next));
+  const state={...base,pulls:29,pity:29,gems:6000,owned:{...base.owned,...Object.fromEntries(mlbPlayers.filter(p=>p.id!==id).map(p=>[p.id,1]))},franchise:{...base.franchise,claimed:['contract-1','contract-2','career-draw'],tickets:1}};
+  assert.ok(validState(state));
+  const next=drawSimplePlayer(state);assert.equal(next.lastPulls[0].guaranteed,false);assert.equal(next.pulls,30);assert.equal(next.pity,0);assert.equal(next.franchise.tickets,0);assert.ok(validState(next));
   assert.equal(collectSimpleRewards(next),next);assert.equal(drawSimplePlayer({...base,gems:2999}).gems,2999);
-  const complete={...state,owned:{...state.owned,[id]:1},franchise:{...state.franchise,tickets:0}};
-  assert.ok(playerMap[drawSimplePlayer(complete).lastPulls[0].playerId].mlb);
+  // 30回目・60回目でも、別の seed で海外以外が出る(確定していない)
+  let domestic=0;for(let seed=1;seed<=40;seed++){const r=drawSimplePlayer({...state,seed});if(!playerMap[r.lastPulls[0].playerId].mlb)domestic++;}
+  assert.ok(domestic>=35,`30回目の国内 ${domestic}/40`);
  });
- test('ordinary point scouting follows the 2% MLB pool and obsolete tickets do not affect the draw',()=>{
+ test('ordinary point scouting follows the 1.25% MLB bands and obsolete tickets do not affect the draw',()=>{
   const random=rng(9929343),base=initialState();let major=0;
   for(let i=0;i<4000;i++){
    random.next();const seed=random.state;
@@ -62,7 +64,7 @@ export function registerMLBTests(test:(name:string,run:()=>void)=>void){
    if(playerMap[point.lastPulls[0].playerId].mlb)major++;
    assert.deepEqual(stocked,point);
   }
-  assert.ok(major>=45&&major<=120,`MLB outcomes ${major}/4000`);
+  assert.ok(major>=25&&major<=80,`MLB outcomes ${major}/4000`);// 1.25% = 50
  });
  test('multi-year economy earns a handful of point scouts each year and keeps balances and cards',()=>{
   let state=initialState(20260923);const owned={...state.owned},earned:number[]=[];

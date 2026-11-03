@@ -3,11 +3,12 @@ import {ratingOverall} from './development';
 import type {GameState} from './engine';
 
 export interface StarterScoutState {version:1;choices:string[];selected:string|null;completed:boolean}
-// 2026-11-01 夜 持ち主「最初から強すぎる」: はじめに選ぶ3人を 総合85以上(上位3%) → 総合74〜82(上位7〜15%ほど) に。
-// 主力の1人にはなるが、それだけで優勝争いには届かない強さ。前の版で配られた3人(85以上)を持つセーブもそのまま読める(eligible に残す)。
-export const STARTER_MIN_OVERALL=74,STARTER_MAX_OVERALL=82,LEGACY_STARTER_MIN_OVERALL=85;
-export const starterScoutPool=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=STARTER_MIN_OVERALL&&ratingOverall(p)<=STARTER_MAX_OVERALL);
-const eligible=new Set([...starterScoutPool,...players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=LEGACY_STARTER_MIN_OVERALL)].map(p=>p.id));
+// 2026-11-01 夜 持ち主「最初から強すぎる」で 総合74〜82 にしていた。
+// 2026-11-03 vc41 持ち主「初期の引く選手に関しては総合85以上の選手にしてください」: はじめに選ぶ3人を 国内の総合85以上(覚醒前・暫定査定を除く)から。
+// 通常のスカウトとは別(提供割合は変わらない。ポイントも pulls も使わない)。vc34〜40 の 74〜82 の3人を持つセーブもそのまま読める(eligible に残す)。
+export const STARTER_MIN_OVERALL=85,PREVIOUS_STARTER_MIN_OVERALL=74,PREVIOUS_STARTER_MAX_OVERALL=82;
+export const starterScoutPool=players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=STARTER_MIN_OVERALL);
+const eligible=new Set([...starterScoutPool,...players.filter(p=>!p.mlb&&!p.provisional&&ratingOverall(p)>=PREVIOUS_STARTER_MIN_OVERALL&&ratingOverall(p)<=PREVIOUS_STARTER_MAX_OVERALL)].map(p=>p.id));
 
 export function createStarterScout(seed:number):StarterScoutState {
  // Independent RNG: preparing the welcome offer does not consume paid draws.

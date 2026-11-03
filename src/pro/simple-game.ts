@@ -2,15 +2,27 @@ import {canBat,fitsPosition,playerMap,players,type Player} from './data';
 import {rng,type GameState} from './engine';
 import {claimAllMilestones} from './franchise';
 import {claimSeasonGoals} from './ambitions';
-import {DRAFT_ROOKIE_CHANCE,draftEventActive,draftRookiePool} from './draft-event';
+import {ratingOverall} from './development';
 
 export const SIMPLE_SCOUT_COST=3000;
 export const DUPLICATE_POINTS=300;
-export const MLB_SCOUT_CHANCE=.02;
-export const MLB_GUARANTEE_EVERY=30;
-export const mlbScoutCountdown=(s:GameState)=>MLB_GUARANTEE_EVERY-s.pulls%MLB_GUARANTEE_EVERY;
-const majorPool=players.filter(p=>p.mlb),domesticPool=players.filter(p=>!p.mlb);
-
+// 2026-11-03 vc41 持ち主「高レア選手に関してはもうちょいガチャから低確率で出るように」「海外選手に関しては確定までのガチャは無いように」
+// 「ルーキーとかは無くして・ドラフト会議ウィークはなくして」。
+// 段(レア度は覚醒前のカードの総合で決める。演出の 虹=95以上・金=85以上と海外 と同じ線)ごとに確率を決め、段の中は全員同じ確率。
+// 前(vc33〜40): 国内98%を全員同じ・海外2%・30回ごとに未所持の海外選手が確定。後: 下の表。30回ごとの確定は無い。
+export const SCOUT_BANDS=[
+ {id:'mlbRainbow',label:'海外・虹カード',detail:'海外リーグ・総合95以上',rate:.0025},
+ {id:'mlbGold',label:'海外・金カード',detail:'海外リーグ・総合94以下',rate:.01},
+ {id:'domRainbow',label:'国内・虹カード',detail:'国内リーグ・総合95以上',rate:.0005},
+ {id:'domGold',label:'国内・金カード',detail:'国内リーグ・総合85〜94',rate:.0135},
+ {id:'domStandard',label:'国内・カード',detail:'国内リーグ・総合84以下',rate:.9735},
+] as const;
+export type ScoutBandId=typeof SCOUT_BANDS[number]['id'];
+export const scoutBandOf=(p:Player):ScoutBandId=>{const o=ratingOverall(p);return p.mlb?(o>=95?'mlbRainbow':'mlbGold'):o>=95?'domRainbow':o>=85?'domGold':'domStandard';};
+export const scoutBandPools:Record<ScoutBandId,Player[]>={mlbRainbow:[],mlbGold:[],domRainbow:[],domGold:[],domStandard:[]};
+for(const p of players)scoutBandPools[scoutBandOf(p)].push(p);
+/** 海外の合計(1.25%)。 */
+export const MLB_SCOUT_CHANCE=SCOUT_BANDS.filter(b=>b.id.startsWith('mlb')).reduce((n,b)=>n+b.rate,0);
 // Existing saves keep their players, training, results and reward claim IDs.
 // The simplified game never consults card rarity, pity or scout themes.
 export function collectSimpleRewards(input:GameState):GameState {
@@ -19,41 +31,34 @@ export function collectSimpleRewards(input:GameState):GameState {
  return state.franchise.tickets?{...state,franchise:{...state.franchise,tickets:0}}:state;
 }
 
-// `now` enables the limited-time draft event; tests and old callers pass nothing and keep the normal odds.
-// 2026-11-01 持ち主「補強ブーストみたいなのはやめて」: 今の主力より強い選手から選ぶ「補強チャンス」(35%)と、
-// 打線が弱いので野手を出やすくする寄せ(野手60%・投手40%)を外した。国内は全員が同じ確率(海外2%と30回ごとの確定、
-// ドラフト会議ウィークのルーキー枠はそのまま)。
+// 2026-11-01 持ち主「補強ブーストみたいなのはやめて」: 補強チャンス(35%)と野手寄せ(60/40)は外したまま。チームの強さ・課金・パスで確率は変わらない。
 // Average overall of the regulars (used by the scout screen's "補強したい所" list only; it does not change the odds).
 export const upgradeFloor=(state:GameState,arm:boolean)=>{const o=(arm?state.pitchers:state.lineup).map(id=>playerMap[id]?.overall??0);return o.reduce((n,x)=>n+x,0)/Math.max(1,o.length);};
-/** 次の1回の提供割合。抽選(drawSimplePlayer)と表示の両方がこれを使う。 */
-export function scoutOdds(state:GameState,now:Date|null=null){
- const guaranteed=(state.pulls+1)%MLB_GUARANTEE_EVERY===0;
- if(guaranteed)return {guaranteed,mlb:1,rookie:0,domestic:0};
- const rookie=draftEventActive(now)?(1-MLB_SCOUT_CHANCE)*DRAFT_ROOKIE_CHANCE:0;
- return {guaranteed,mlb:MLB_SCOUT_CHANCE,rookie,domestic:1-MLB_SCOUT_CHANCE-rookie};
+/** 提供割合。抽選(drawSimplePlayer)と表示の両方がこれを使う。引数は前の形のまま(どの状態・日時でも同じ数)。 */
+export function scoutOdds(_state?:GameState,_now?:Date|null){
+ const bands=SCOUT_BANDS.map(b=>({...b,count:scoutBandPools[b.id].length,each:b.rate/Math.max(1,scoutBandPools[b.id].length)}));
+ return {guaranteed:false as const,mlb:MLB_SCOUT_CHANCE,domestic:1-MLB_SCOUT_CHANCE,bands};
 }
 /** 選手1人ごとの確率(テストで表示と突き合わせる)。 */
-export function scoutPlayerOdds(state:GameState,now:Date|null=null):Map<string,number>{
- const o=scoutOdds(state,now),m=new Map<string,number>(),add=(pool:Player[],p:number)=>{for(const x of pool)m.set(x.id,(m.get(x.id)??0)+p/pool.length);};
- if(o.guaranteed){const missing=majorPool.filter(p=>!state.owned[p.id]);add(missing.length?missing:majorPool,1);return m;}
- add(majorPool,o.mlb);if(o.rookie)add(draftRookiePool,o.rookie);add(domesticPool,o.domestic);
+export function scoutPlayerOdds(state?:GameState,now?:Date|null):Map<string,number>{
+ const m=new Map<string,number>();
+ for(const b of scoutOdds(state,now).bands)for(const p of scoutBandPools[b.id])m.set(p.id,b.each);
  return m;
 }
-export function drawSimplePlayer(input:GameState,now:Date|null=null):GameState {
+export function drawSimplePlayer(input:GameState,_now:Date|null=null):GameState {
  if(input.gems<SIMPLE_SCOUT_COST)return input;
- const state=structuredClone(input),random=rng(state.seed),odds=scoutOdds(input,now);
- const guaranteed=odds.guaranteed;
- const major=guaranteed||random.next()<MLB_SCOUT_CHANCE;
- const missing=majorPool.filter(p=>!state.owned[p.id]);
- const rookie=!major&&draftEventActive(now)&&random.next()<DRAFT_ROOKIE_CHANCE;
- const from=major?(guaranteed&&missing.length?missing:majorPool):rookie?draftRookiePool:domesticPool;
+ const state=structuredClone(input),random=rng(state.seed);
+ let roll=random.next(),band:ScoutBandId='domStandard';
+ for(const b of SCOUT_BANDS){if(roll<b.rate){band=b.id;break;}roll-=b.rate;}
+ const from=scoutBandPools[band];
  const player=from[Math.floor(random.next()*from.length)];
  // 2026-10-30 夜: 7枚目以降の換金 80 → 300pt(たくさん引くと重なるため)。
  const copies=(state.owned[player.id]??0)+1,trainingReward=copies>6?DUPLICATE_POINTS:0;
  state.gems-=SIMPLE_SCOUT_COST;state.pulls++;state.franchise.tickets=0;
  state.owned[player.id]=copies;state.gems+=trainingReward;
+ // 古いセーブの pity(前の版の天井の数)は読めるが使わない。毎回0にする。
  state.seed=random.state;state.pity=0;
- state.lastPulls=[{playerId:player.id,copies,isNew:copies===1,guaranteed,trainingReward}];
+ state.lastPulls=[{playerId:player.id,copies,isNew:copies===1,guaranteed:false,trainingReward}];
  return collectSimpleRewards(state);
 }
 

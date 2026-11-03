@@ -5,40 +5,30 @@ import {players,playerMap} from '../src/pro/data';
 import {initialState,emptySeason,type Season} from '../src/pro/engine';
 import type {Postseason} from '../src/pro/postseason';
 import {isRookie} from '../src/pro/development';
-import {drawSimplePlayer,SIMPLE_SCOUT_COST} from '../src/pro/simple-game';
-import {DRAFT_EVENT,DRAFT_ROOKIE_CHANCE,draftEventActive,draftRookiePool} from '../src/pro/draft-event';
+import {drawSimplePlayer,SIMPLE_SCOUT_COST,scoutOdds,scoutPlayerOdds,scoutBandOf} from '../src/pro/simple-game';
 import {SHARE_TAGS,scoutPostText,scoutShareData,shareTags,xWeightedLength} from '../src/pro/share-kit';
 import {seasonShareTitle,victoryPostText,victoryShareData} from '../src/pro/victory-share';
 import {VictoryShare} from '../src/pro/VictoryShare';
 import {ScoutShare} from '../src/pro/ScoutShare';
 import {cleanParams,track} from '../src/pro/analytics';
 
-const inEvent=new Date(2026,9,23,12),beforeEvent=new Date(2026,9,15,23,59),afterEvent=new Date(2026,10,4,0,1);
+const inEvent=new Date(2026,9,23,12),beforeEvent=new Date(2026,9,15,23,59);
 const finished=(rankOf:string,number=5):Season=>{const s=emptySeason(number);return {...s,day:143,completed:true,postseason:{stage:'complete',champion:'g',series:[]} as Postseason,standings:s.standings.map(t=>({...t,w:t.team===rankOf?100:t.team==='t'?50:70,l:t.team===rankOf?43:t.team==='t'?93:73}))};};
 
 export function registerGrowthFeatureTests(test:(name:string,run:()=>void)=>void){
- test('draft week runs on its local calendar days only, and the rookie pool is last year\'s domestic draft class',()=>{
-  assert.equal(draftEventActive(beforeEvent),false);assert.equal(draftEventActive(inEvent),true);assert.equal(draftEventActive(afterEvent),false);
-  assert.equal(draftEventActive(new Date(2026,9,16,0,0)),true);assert.equal(draftEventActive(new Date(2026,10,3,23,59)),true);
-  assert.equal(draftEventActive(null),false);assert.equal(draftEventActive(new Date('x')),false);
-  assert.ok(draftRookiePool.length>=50);assert.ok(draftRookiePool.every(p=>!p.mlb&&isRookie(p)));
+ test('2026-11-03 vc41: draft week is gone - rookies are ordinary domestic players, the date never changes a draw, and the odds have no rookie row',()=>{
+  const inOldEvent=new Date(2026,9,23,12),base={...initialState(),gems:SIMPLE_SCOUT_COST*4000,seed:4242};
+  let plain=base,dated=base;
+  for(let i=0;i<200;i++){plain=drawSimplePlayer(plain);dated=drawSimplePlayer(dated,inOldEvent);}
+  assert.deepEqual(dated.owned,plain.owned);assert.equal(dated.seed,plain.seed);
+  assert.ok(scoutOdds(base,inOldEvent).bands.every(b=>!/ルーキー|rookie/i.test(b.id+b.label+b.detail)));
+  const rookies=players.filter(p=>!p.mlb&&isRookie(p)),per=scoutPlayerOdds(base,inOldEvent);
+  assert.ok(rookies.length>=50);
+  for(const p of rookies)assert.equal(per.get(p.id),scoutOdds(base).bands.find(b=>b.id===scoutBandOf(p))!.each,'ルーキーも同じ段の他の選手と同じ確率');
  });
- test('scouting outside the draft week is unchanged; inside it about 30% of domestic draws are rookies and MLB odds are untouched',()=>{
-  const base={...initialState(),gems:SIMPLE_SCOUT_COST*4000,seed:4242};
-  let plain=base,outside=base;
-  for(let i=0;i<50;i++){plain=drawSimplePlayer(plain);outside=drawSimplePlayer(outside,afterEvent);}
-  assert.deepEqual(outside.owned,plain.owned);assert.equal(outside.seed,plain.seed);
-  const domesticRookieShare=players.filter(p=>!p.mlb&&isRookie(p)).length/players.filter(p=>!p.mlb).length;
-  let s=base,rookies=0,domestic=0,overseas=0;
-  for(let i=0;i<3000;i++){s=drawSimplePlayer(s,inEvent);const p=playerMap[s.lastPulls[0].playerId];if(p.mlb)overseas++;else{domestic++;if(isRookie(p))rookies++;}}
-  const expected=DRAFT_ROOKIE_CHANCE+(1-DRAFT_ROOKIE_CHANCE)*domesticRookieShare,share=rookies/domestic;
-  assert.ok(Math.abs(share-expected)<.04,`rookie share ${share.toFixed(3)} vs ${expected.toFixed(3)}`);
-  assert.ok(overseas>=100&&overseas<=200,`overseas ${overseas}`);// 2% + every 30th guaranteed
-  assert.equal(s.pulls,base.pulls+3000);
- });
- test('every post carries the brand and genre hashtags, adds the draft tag only during the event, and fits X\'s 280 limit',()=>{
+ test('every post carries the brand and genre hashtags (no draft tag any more), and fits X\'s 280 limit',()=>{
   for(const tag of SHARE_TAGS)assert.ok(shareTags(beforeEvent).includes(tag));
-  assert.ok(!shareTags(beforeEvent).includes(DRAFT_EVENT.tag));assert.ok(shareTags(inEvent).includes(DRAFT_EVENT.tag));assert.ok(shareTags(inEvent).includes(DRAFT_EVENT.campaignTag));
+  assert.equal(shareTags(inEvent),shareTags(beforeEvent));assert.ok(!shareTags(inEvent).includes('#ドラフト会議'));
   assert.equal(xWeightedLength('abc'),3);assert.equal(xWeightedLength('野球'),4);assert.equal(xWeightedLength('https://example.com/very/long/path?x=1'),23);
   const url='https://diamond-nine-baseball.com/';
   const longest=[...players].sort((a,b)=>b.name.length-a.name.length)[0];

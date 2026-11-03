@@ -46,7 +46,15 @@ export function fakeBackend(uid='me-uid',opts:{busy?:boolean;now?:()=>number}={}
    const old=store.get(ref.path);if(!old)throw Object.assign(new Error('not-found'),{code:'not-found'});
    store.set(ref.path,{...old,...fill(data)});api.writes++;
   },
-  async deleteDoc(ref:any){busy();if(ref.id!==uid)throw deny();store.delete(ref.path);api.writes++;},
+  async deleteDoc(ref:any){busy();if(ref.id!==uid)throw deny();if(ref.path.startsWith('d9_space_once/'))throw deny();store.delete(ref.path);api.writes++;},
+  // 宇宙リーグ制覇の記録: d9_space_once と d9_space_hof を一緒に作るだけ。どちらかが既にあれば全部断る(ルールと同じ)
+  writeBatch:()=>{const ops:Array<[any,any]>=[];return {set:(ref:any,data:any)=>{ops.push([ref,data]);},async commit(){
+   busy();
+   for(const [ref] of ops){if(ref.id!==uid||store.has(ref.path))throw deny();}
+   const paths=ops.map(([r])=>r.path);
+   if(!paths.some(p=>p.startsWith('d9_space_once/'))||[...store.keys()].includes('d9_space_once/'+uid))throw deny();
+   for(const [ref,data] of ops)store.set(ref.path,fill(data));api.writes+=ops.length;
+  }};},
  };
  Object.assign(api,{F,db:{fake:true},user:{uid}});
  return api;
@@ -54,5 +62,5 @@ export function fakeBackend(uid='me-uid',opts:{busy?:boolean;now?:()=>number}={}
 
 /** 撮影用: 他の人の記録を並べる */
 export function seedRows(b:ReturnType<typeof fakeBackend>,lg:string,rows:Array<Record<string,any>>){
- rows.forEach((r,i)=>b.store.set(`d9_rank/${lg}/runs/${r.uid??'u'+i}`,{...r,at:ts(r.atMs??Date.UTC(2026,10,1)+i*3600_000),nt:ts(r.atMs??Date.UTC(2026,10,1))}));
+ rows.forEach((r,i)=>b.store.set(lg==='hof'?`d9_space_hof/${r.uid??'u'+i}`:`d9_rank/${lg}/runs/${r.uid??'u'+i}`,{...r,at:ts(r.atMs??Date.UTC(2026,10,1)+i*3600_000),nt:ts(r.atMs??Date.UTC(2026,10,1))}));
 }

@@ -2,7 +2,7 @@
 // らくがき運動会の app/www/online.js と同じ作り: 匿名ログイン + Firestore だけ、SDK は gstatic から必要な時に読む(バンドルを太らせない)。
 // 読み取りを減らす: 上位20件を端末に60分覚える / 自分の記録は端末に覚えて読まない / 混み合い(429)・つながらない時は1日以内の古い覚えを出す。
 // ルールは d9_ranking_1103/firestore.rules。並びは y(年数)の小さい順 → at(登録時刻)の早い順。
-import {RANK_LEAGUES,autoDisplayName,cleanName,fromWire,toWire,validDisplayName,validEntry,type RankEntry,type RankLeague} from './rank-entry';
+import {HOF_LEAGUE,RANK_LEAGUES,autoDisplayName,cleanName,fromWire,toWire,validDisplayName,validEntry,type RankEntry,type RankLeague} from './rank-entry';
 
 const V='12.4.0';
 const FB=`https://www.gstatic.com/firebasejs/${V}/`;
@@ -149,6 +149,50 @@ export async function rename(name:string):Promise<void>{
  }
 }
 
+// ---------- 宇宙リーグ制覇の記録(1人1回きり。rank-entry.ts の HOF_LEAGUE の説明) ----------
+const HOF_PATH='d9_space_hof',ONCE_PATH='d9_space_once',HOF_TOP='d9r_top_hof';
+const hofKey=()=>'d9r_hof_'+uid();
+/** この端末(uid)で、もう残したか。残した時の年数・名前・チーム名を覚える。 */
+export const myHof=()=>LS.get<{y:number;n:string;tn:string}>(hofKey());
+/** 宇宙リーグ制覇の一覧(早く制覇した順)。listTop と同じく上位20件を60分覚え、混み合い時は古い覚えを出す。 */
+export async function listHof(more=false):Promise<TopCache>{
+ const c=LS.get<TopCache>(HOF_TOP);
+ if(c&&Date.now()-c.at<TOP_MS&&(!more||c.rows.length>FIRST_PAGE||!c.more))return c;
+ try{
+  await init();
+  let q=F.query(F.collection(db,HOF_PATH),F.orderBy('y'),F.orderBy('at'),F.limit(more?MORE_PAGE:FIRST_PAGE));
+  const base=more&&c&&Date.now()-c.at<TOP_MS?c.rows:[];
+  if(base.length){const last=base[base.length-1];q=F.query(q,F.startAfter(last.y,F.Timestamp.fromMillis(last.at)));}
+  const snap=count(await guard(()=>F.getDocs(q)));
+  const rows=[...new Map([...base,...snap.docs.map(toRow).filter((r:RankRow|null):r is RankRow=>!!r)].map(r=>[r.uid,r])).values()].sort(order).slice(0,50);
+  const out:TopCache={at:base.length?c!.at:Date.now(),rows,more:snap.docs.length===(more?MORE_PAGE:FIRST_PAGE)&&rows.length<50};
+  LS.set(HOF_TOP,out);
+  return out;
+ }catch(e:any){
+  if(e?.busy&&c&&Date.now()-c.at<STALE_MS)return {...c,stale:true};
+  throw e;
+ }
+}
+/** 宇宙リーグ制覇の記録を残す。1回きり: sent(書いた)/ already(もう残してある。上書きしない)。 */
+export async function submitHof(entry:RankEntry):Promise<'sent'|'already'>{
+ if(!validEntry(entry,HOF_LEAGUE))throw new Error('この記録は登録できない形です');
+ if(myHof())return 'already';
+ await init();
+ const id=uid(),batch=F.writeBatch(db);
+ batch.set(F.doc(db,ONCE_PATH,id),{at:F.serverTimestamp()});
+ batch.set(F.doc(db,HOF_PATH,id),{...toWire(entry),at:F.serverTimestamp()});
+ try{await guard(()=>batch.commit());}
+ catch(e:any){
+  if(e?.busy||!/permission/i.test(String(e?.code??e?.message)))throw e;
+  // 断られた = もう残してある(別の端末・消した後など)。端末にも覚えて、二度と送らない
+  LS.set(hofKey(),{y:0,n:'',tn:''});return 'already';
+ }
+ LS.set(hofKey(),{y:entry.y,n:entry.n,tn:entry.tn});
+ const c=LS.get<TopCache>(HOF_TOP);
+ if(c){c.rows=[...c.rows.filter(r=>r.uid!==id),{...entry,uid:id,at:Date.now()}].sort(order).slice(0,50);LS.set(HOF_TOP,c);}
+ return 'sent';
+}
+
 /** 自分の記録を全部消す(設定の「ランキングの記録を消す」用)。 */
 export async function deleteMine():Promise<'deleted'|'none'>{
  // 一度もランキングを使っていない端末は、ログインもせずに終わる(新しい ID を作らない)
@@ -159,6 +203,13 @@ export async function deleteMine():Promise<'deleted'|'none'>{
   LS.del(myKey(id));
   const c=LS.get<TopCache>(topKey(id));
   if(c){c.rows=c.rows.filter(r=>r.uid!==uid());LS.set(topKey(id),c);}
+ }
+ // 宇宙リーグ制覇の記録(名前・チーム名・オーダー)も消す。1回きりの印(d9_space_once、時刻だけ)は残るので、もう一度は残せない
+ if(myHof()){
+  await guard(()=>F.deleteDoc(F.doc(db,HOF_PATH,uid())));
+  const c=LS.get<TopCache>(HOF_TOP);
+  if(c){c.rows=c.rows.filter(r=>r.uid!==uid());LS.set(HOF_TOP,c);}
+  LS.set(hofKey(),{y:0,n:'',tn:''});
  }
  return 'deleted';
 }

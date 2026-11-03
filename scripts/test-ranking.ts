@@ -5,8 +5,8 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialSandboxState,simulateDays,nextSeason,type GameState} from '../src/pro/engine';
 import {finishPostseason} from '../src/pro/postseason';
 import {seasonGames} from '../src/pro/leagues';
-import {RANK_LEAGUES,autoDisplayName,bestYear,buildEntry,championSeason,cleanName,fromWire,hasNgWord,toWire,validDisplayName,validEntry,type RankEntry} from '../src/pro/rank-entry';
-import {BUSY_MSG,deleteMine,listTop,myBest,rename,stats,submit,useBackend,displayName} from '../src/pro/ranking';
+import {RANK_LEAGUES,championYearsLabel,validTeamName,saveTeamName,autoDisplayName,bestYear,buildEntry,championSeason,cleanName,fromWire,hasNgWord,toWire,validDisplayName,validEntry,type RankEntry} from '../src/pro/rank-entry';
+import {BUSY_MSG,deleteMine,listHof,listTop,myBest,myHof,rename,stats,submit,submitHof,useBackend,displayName} from '../src/pro/ranking';
 import {fakeBackend,seedRows} from '../src/pro/rank-fake';
 import {rankPromptFor} from '../src/pro/RankRegisterPrompt';
 import {LineupView,RankingScreen} from '../src/pro/RankingScreen';
@@ -142,12 +142,48 @@ export function registerRankingTests(add:Test){
   resetStorage();useBackend(fakeBackend('me'));
   const {after}=championSave();
   const html=renderToStaticMarkup(createElement(RankingScreen,{state:after,version:'web'}));
-  assert.match(html,/海外リーグ/);assert.match(html,/宇宙リーグ/);assert.match(html,/国内リーグ/);assert.match(html,/最短優勝/);
+  assert.match(html,/海外リーグ/);for(const t of [">海外<",">宇宙<",">国内<",">宇宙制覇<"])assert.ok(html.includes(t),t);assert.match(html,/最短優勝/);
   const e=buildEntry(after,'npb','かんとく','web')!;
   const row={...e,uid:'x',at:Date.UTC(2026,10,3)};
   const lineup=renderToStaticMarkup(createElement(LineupView,{row,league:'国内リーグ',onBack:()=>{}}));
   assert.equal((lineup.match(/<tr>/g)??[]).length,2+9+6,'見出し2行・打順9人・先発6人');
-  assert.match(lineup,/優勝したときのスタメン/);
+  assert.match(lineup,/優勝したときのオーダー/);assert.match(lineup,/国内リーグを<b>1年<\/b>で優勝/);assert.match(lineup,/かんとく/);
+  useBackend(null);resetStorage();
+ });
+
+ test('vc41 ranking: rows lead with the years (fewest first), show name and team, and offer the lineup; my line says how many years',async()=>{
+  resetStorage();const fake=fakeBackend('me');useBackend(fake);
+  const {after}=championSave(),e=buildEntry(after,'npb','かんとく','web')!;
+  seedRows(fake,'npb',[{uid:'a',...toWire({...e,n:'先輩',tn:'札幌ベアーズ'}),y:3},{uid:'b',...toWire({...e,n:'後輩'}),y:1,atMs:Date.UTC(2026,10,2)},{uid:'c',...toWire({...e,n:'同期'}),y:1,atMs:Date.UTC(2026,10,1)}]);
+  const top=await listTop('npb');assert.deepEqual(top.rows.map(r=>r.n),['同期','後輩','先輩'],'年数の少ない順、同じ年数は先に達成した人');
+  assert.equal(championYearsLabel(3),'3年で優勝');assert.equal(championYearsLabel(7,true),'7年で制覇');
+  const html=renderToStaticMarkup(createElement(RankingScreen,{state:after,version:'web',initial:'npb'}));
+  assert.match(html,/宇宙制覇/,'宇宙リーグ制覇のタブ');assert.match(html,/あなたは1年で優勝/);
+  assert.equal(saveTeamName(after,'npb').length>0,true,'セーブのチーム名を初めの値に');
+  assert.ok(validTeamName('東京ルーキーズ'));assert.equal(validTeamName('しねしねズ'),false);assert.equal(validTeamName('a'.repeat(21)),false);
+  useBackend(null);resetStorage();
+ });
+ test('vc41 space hall of fame: once per uid - first write lands, a second or a rewrite is refused, deleting keeps the once mark, and the list is fewest years first',async()=>{
+  resetStorage();const fake=fakeBackend('me');useBackend(fake);
+  const base=buildEntry(championSave().after,'npb','かんとく','1.4.8 (41)')!;
+  const e={...base,y:7,tn:'宇宙ルーキーズ',rec:{w:100,l:60,d:2}};
+  assert.ok(validEntry(e,'space'));assert.equal(validEntry({...e,y:4},'space'),false,'宇宙は5年目から');
+  assert.equal(await submitHof(e),'sent');
+  assert.equal(fake.store.get('d9_space_hof/me').tn,'宇宙ルーキーズ');assert.equal(fake.store.get('d9_space_hof/me').y,7);assert.ok(fake.store.has('d9_space_once/me'));
+  assert.deepEqual(myHof(),{y:7,n:'かんとく',tn:'宇宙ルーキーズ'});
+  assert.equal(await submitHof({...e,y:5}),'already','2回目は送らない');
+  // 端末の覚えが消えても(入れ直しで同じ uid など)サーバーが断る
+  mem.delete('d9r_hof_me');assert.equal(await submitHof({...e,y:5}),'already');assert.equal(fake.store.get('d9_space_hof/me').y,7,'上書きされない');
+  await rename('新しい名前');assert.equal(fake.store.get('d9_space_hof/me').n,'かんとく','制覇の記録は名前を変えても残した時のまま');
+  seedRows(fake,'hof',[{uid:'x',...toWire({...e,n:'先人'}),y:6},{uid:'z',...toWire({...e,n:'遅い人'}),y:9}]);
+  const list=await listHof();assert.deepEqual(list.rows.map(r=>[r.n,r.y]),[['先人',6],['かんとく',7],['遅い人',9]]);
+  const html=renderToStaticMarkup(createElement(RankingScreen,{state:championSave().after,version:'web',initial:'hof'}));
+  assert.match(html,/何年で制覇したか/);assert.match(html,/1回きり/);
+  const lineup=renderToStaticMarkup(createElement(LineupView,{row:list.rows[1],league:'宇宙リーグ',hof:true,onBack:()=>{}}));
+  assert.match(lineup,/宇宙リーグを<b>7年<\/b>で制覇/);assert.match(lineup,/宇宙ルーキーズ/);assert.equal((lineup.match(/<tr>/g)??[]).length,2+9+6);
+  assert.equal(await deleteMine(),'deleted');
+  assert.equal(fake.store.has('d9_space_hof/me'),false,'名前・チーム名・オーダーは消える');assert.ok(fake.store.has('d9_space_once/me'),'1回きりの印は残る');
+  mem.delete('d9r_hof_me');assert.equal(await submitHof(e),'already','消した後にもう一度は書けない');
   useBackend(null);resetStorage();
  });
 }

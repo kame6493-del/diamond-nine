@@ -6,7 +6,7 @@ import {TradingCard} from './CardDeck';
 import {ScoutCharge,ScoutArrival,scoutDuration} from './ScoutEffects';
 import {scoutPresentation} from './scout-presentation';
 import {gameSound,prepareGameAudio,stopGameAudio} from './game-audio';
-import {STARTER_MIN_OVERALL} from './starter-scout';
+import {STARTER_MIN_OVERALL,starterScoutPool} from './starter-scout';
 import './starter-scout.css';
 
 export function StarterScout({state,sound,onPick,onFinish,onPlayer}:{state:GameState;sound:boolean;onPick:(index:number,name:string)=>boolean;onFinish:(name:string)=>void;onPlayer:(p:Player)=>void}){
@@ -42,7 +42,7 @@ export function StarterScout({state,sound,onPick,onFinish,onPlayer}:{state:GameS
     <span className="starter-card-back"><span className="starter-card-crown"><Crown/></span><b>9</b><span className="starter-card-brand">DIAMOND<br/>NINE</span><span className="starter-card-stars" aria-hidden="true">✦ ✦ ✦</span></span>
     <span className="starter-choice-number">0{index+1}<ArrowRight size={15}/></span>
    </button>)}</div>
-   <div className="starter-event-note"><Sparkles size={16}/><p>ポイント消費なし · 選べるのは1枚<br/><small>初期チームに、選んだ選手が加わります。</small></p></div><a className="starter-help" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
+   <div className="starter-event-note"><Sparkles size={16}/><p>ポイント消費なし · 選べるのは1枚<br/><small>初期チームに、選んだ選手が加わります。国内リーグの総合{STARTER_MIN_OVERALL}以上の{starterScoutPool.length}人から3人（通常のスカウトとは別）。</small></p></div><a className="starter-help" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
   </>:<div className={'starter-reward s-scout-panel scout-tier-'+tier}>
    {opening?<><h1>カードをオープン！</h1><ScoutCharge tier={tier} onSkip={()=>finish.current?.()}/></>:<div className="s-scout-main">
     <div className="s-scout-result"><ScoutArrival tier={tier} overall={overall} major={false}/><p className="starter-joined">最初の主力が加入！</p><div className={'scout-reveal animate__animated '+(tier==='rainbow'?'animate__zoomInDown':'animate__bounceIn')}><TradingCard player={player} state={state} onPlayer={onPlayer}/></div></div>

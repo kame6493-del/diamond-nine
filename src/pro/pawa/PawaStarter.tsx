@@ -3,7 +3,7 @@ import {playerMap,type Player} from '../data';
 import type {GameState} from '../engine';
 import {scoutDuration,scoutPresentation} from '../scout-presentation';
 import {drawSounds,prepareGameAudio,revealSounds,stopGameAudio} from '../game-audio';
-import {STARTER_MIN_OVERALL} from '../starter-scout';
+import {STARTER_MIN_OVERALL,starterScoutPool} from '../starter-scout';
 import {PawaCard,cardRatings} from './PawaCard';
 import {playerAge} from '../development';
 import {AbilityRow,PawaScoutCharge} from './PawaScout';
@@ -42,7 +42,7 @@ export function PawaStarter({state,sound,onPick,onFinish,onPlayer}:{state:GameSt
     <div className="pw-backs">{offer.choices.map((id,index)=><button key={id} className={'pw-back-card'+(chosen===index?' is-chosen':'')} aria-label={`${index+1}枚目のカードを選ぶ`} aria-pressed={chosen===index} onClick={()=>setChosen(index)} disabled={opening||!validName}><img src="/assets/pro/pawa/card-back.webp" alt=""/></button>)}</div>
     <p className="pw-pick-hint">{chosen===null?'カードをタップして、1人選んでください。':`${chosen+1}枚目を選んでいます`}</p>
    </div>
-   <div className="pw-panel pw-about"><h2>スタートスカウトについて</h2><p>この中から好きな選手を1人選んで、チームに迎えることができます。</p><p>登場する選手は すべて <b>OVR{STARTER_MIN_OVERALL} 以上</b>！ キミのチームの核となる選手を選ぼう。ポイントは使いません。</p></div>
+   <div className="pw-panel pw-about"><h2>スタートスカウトについて</h2><p>この中から好きな選手を1人選んで、チームに迎えることができます。</p><p>登場する選手は すべて <b>OVR{STARTER_MIN_OVERALL} 以上</b>！ 国内リーグの総合{STARTER_MIN_OVERALL}以上の{starterScoutPool.length}人から3人が並びます（覚醒前の総合・通常のスカウトの提供割合とは別）。ポイントは使いません。</p></div>
    <button className="pw-btn pw-yellow pw-wide pw-start" disabled={chosen===null||opening||!validName} onClick={()=>chosen!==null&&choose(chosen)}><span className="pw-ball" aria-hidden="true"/>このカードに決める</button>
    <a className="pw-link" href="/guide.html" target="_blank" rel="noopener noreferrer">はじめての方へ · 遊び方ガイド ↗</a>
   </>:opening?<PawaScoutCharge tier={tier} player={player} state={state} onSkip={()=>finish.current?.()}/>:<div className={'pw-panel pw-result pw-tier-'+tier}>

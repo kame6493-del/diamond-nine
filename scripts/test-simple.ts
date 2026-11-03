@@ -4,7 +4,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialState,simulateDays,validState,migrateState,rng,nextSeason} from '../src/pro/engine';
 import {players,playerMap} from '../src/pro/data';
 import {finishPostseason,simulatePostseason} from '../src/pro/postseason';
-import {MLB_SCOUT_CHANCE,SIMPLE_SCOUT_COST,scoutOdds,scoutPlayerOdds,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
+import {SCOUT_BANDS,scoutBandOf,scoutBandPools,SIMPLE_SCOUT_COST,scoutOdds,scoutPlayerOdds,collectSimpleRewards,drawSimplePlayer,replacementPool,replaceSimplePlayer,moveSimplePlayer} from '../src/pro/simple-game';
 import SimpleApp,{SimpleSeason,SimpleStats,SimpleScout} from '../src/pro/SimpleApp';
 import {scoutPresentation,scoutDuration} from '../src/pro/scout-presentation';
 import {ratingOverall} from '../src/pro/development';
@@ -45,12 +45,13 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
   assert.ok(scoutDuration('gold',false)>scoutDuration('standard',false));
   for(const tier of ['standard','gold','rainbow'] as const)assert.equal(scoutDuration(tier,true),180);
  });
- test('simple scouts ignore legacy rarity and pity while retaining the published league pools',()=>{
+ test('simple scouts ignore legacy rarity and pity while drawing from the published bands',()=>{
   const base=initialState();base.gems=10000;
   for(const seed of [1,99,44321,2026,999999,4294967295]){
-   // 2026-11-01: 補強チャンスと野手寄せを外した。海外2%、それ以外は国内全員から同じ確率
-   const random=rng(seed),major=random.next()<.02,from=players.filter(p=>!!p.mlb===major),expected=from[Math.floor(random.next()*from.length)].id;
-   for(const [pulls,pity] of [[0,0],[4,49],[9,42],[49,49]]){
+   // 2026-11-03 vc41: 段(SCOUT_BANDS)を1回目の乱数で決め、段の中から2回目の乱数で同じ確率で選ぶ。天井は無い
+   const random=rng(seed);let roll=random.next(),band:string='domStandard';for(const b of SCOUT_BANDS){if(roll<b.rate){band=b.id;break;}roll-=b.rate;}
+   const from=scoutBandPools[band as keyof typeof scoutBandPools],expected=from[Math.floor(random.next()*from.length)].id;
+   for(const [pulls,pity] of [[0,0],[4,49],[9,42],[29,49],[59,0]]){
     const start={...base,seed,pulls,pity},snapshot=JSON.stringify(start),next=drawSimplePlayer(start);
     assert.equal(next.lastPulls[0].playerId,expected);assert.equal(next.lastPulls.length,1);
     assert.equal(next.lastPulls[0].guaranteed,false);assert.equal(next.pity,0);assert.equal(next.pulls,pulls+1);
@@ -58,23 +59,35 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
    }
   }
  });
- test('2026-11-01 no scout boost: shown odds equal the draw, every domestic player has the same chance whatever the team, and draws follow it',()=>{
+ test('2026-11-03 vc41 odds: high rarity is rarer (rainbow about half, gold about 2/3 of vc40), the bands sum to 100%, the shown odds equal the draw, and nothing changes them',()=>{
   const weak={...initialState(),gems:SIMPLE_SCOUT_COST*30000,seed:4242};
   const strong={...weak,lineup:[...weak.lineup].reverse()};
-  for(const st of [weak,strong]){
-   const o=scoutOdds(st);assert.equal(o.mlb,MLB_SCOUT_CHANCE);assert.equal(o.rookie,0);assert.ok(Math.abs(o.mlb+o.domestic-1)<1e-12);
-   const per=scoutPlayerOdds(st);let sum=0;for(const v of per.values())sum+=v;assert.ok(Math.abs(sum-1)<1e-12);
-   const dom=players.filter(p=>!p.mlb),each=o.domestic/dom.length;
-   for(const p of dom)assert.ok(Math.abs(per.get(p.id)!-each)<1e-15,'same chance for every domestic player');
+  const o=scoutOdds(weak),rate=(id:string)=>o.bands.find(b=>b.id===id)!.rate;
+  assert.deepEqual(o.bands.map(b=>[b.id,b.rate]),[['mlbRainbow',.0025],['mlbGold',.01],['domRainbow',.0005],['domGold',.0135],['domStandard',.9735]]);
+  assert.ok(Math.abs(o.bands.reduce((n,b)=>n+b.rate,0)-1)<1e-12);assert.ok(Math.abs(o.mlb-.0125)<1e-12);assert.ok(Math.abs(o.mlb+o.domestic-1)<1e-12);
+  // vc40 の段の確率(国内98%を全員同じ・海外2%を15人で同じ)と比べる
+  const count=(id:string)=>scoutBandPools[id as keyof typeof scoutBandPools].length,dom=players.filter(p=>!p.mlb).length,mlbN=players.filter(p=>p.mlb).length;
+  const oldRainbow=.98*count('domRainbow')/dom+.02*count('mlbRainbow')/mlbN,oldGold=.98*count('domGold')/dom+.02*count('mlbGold')/mlbN;
+  const newRainbow=rate('domRainbow')+rate('mlbRainbow'),newGold=rate('domGold')+rate('mlbGold');
+  assert.ok(newRainbow/oldRainbow>.4&&newRainbow/oldRainbow<.6,`虹 ${newRainbow/oldRainbow}`);
+  assert.ok(newGold/oldGold>.6&&newGold/oldGold<.75,`金 ${newGold/oldGold}`);
+  for(const b of o.bands){assert.equal(b.count,count(b.id));assert.ok(b.count>0);}
+  for(const p of players){const band=scoutBandOf(p),ovr=ratingOverall(p);assert.equal(band.startsWith('mlb'),!!p.mlb);
+   if(band.endsWith('Rainbow'))assert.ok(ovr>=95);else if(band==='domGold')assert.ok(ovr>=85&&ovr<95);else if(band==='domStandard')assert.ok(ovr<85);else assert.ok(ovr<95);}
+  // 1人ずつ: 段の率/段の人数、合計1、高い段ほど1人あたりも低い
+  for(const st of [weak,strong,{...weak,pulls:29},{...weak,pulls:59,pity:49}]){
+   const per=scoutPlayerOdds(st);let sum=0;for(const v of per.values())sum+=v;assert.ok(Math.abs(sum-1)<1e-12);assert.equal(per.size,players.length);
+   for(const b of o.bands)for(const p of scoutBandPools[b.id])assert.ok(Math.abs(per.get(p.id)!-b.rate/b.count)<1e-15);
+   assert.equal(scoutOdds(st).guaranteed,false,'30回目でも確定しない');
   }
+  const each=(id:string)=>rate(id)/count(id);
+  assert.ok(each('domRainbow')<each('domGold')&&each('domGold')<each('domStandard'));
   assert.deepEqual([...scoutPlayerOdds(weak)],[...scoutPlayerOdds(strong)]);
-  const g=scoutOdds({...weak,pulls:29});assert.equal(g.guaranteed,true);assert.equal(g.mlb,1);
-  // 20,000 draws: overseas and batter/pitcher shares match the stated equal odds
-  let s=weak,mlb=0,arms=0;const n=20000;
-  for(let i=0;i<n;i++){s=drawSimplePlayer({...s,gems:SIMPLE_SCOUT_COST,pulls:0});const p=playerMap[s.lastPulls[0].playerId];if(p.mlb)mlb++;else if(p.role==='pitcher')arms++;}
-  const dom=players.filter(p=>!p.mlb),armShare=dom.filter(p=>p.role==='pitcher').length/dom.length;
-  assert.ok(Math.abs(mlb/n-MLB_SCOUT_CHANCE)<.004,`mlb ${mlb/n}`);
-  assert.ok(Math.abs(arms/(n-mlb)-armShare)<.012,`pitchers ${arms/(n-mlb)} vs ${armShare}`);
+  // 30,000 draws follow the shown bands (no extra overseas pick every 30th)
+  let s=weak;const n=30000,hits:Record<string,number>={};
+  for(let i=0;i<n;i++){s=drawSimplePlayer({...s,gems:SIMPLE_SCOUT_COST});const b=scoutBandOf(playerMap[s.lastPulls[0].playerId]);hits[b]=(hits[b]??0)+1;assert.equal(s.lastPulls[0].guaranteed,false);}
+  for(const b of o.bands){const got=(hits[b.id]??0)/n,sd=Math.sqrt(b.rate*(1-b.rate)/n);assert.ok(Math.abs(got-b.rate)<5*sd+1e-4,`${b.id} ${got} vs ${b.rate}`);}
+  assert.equal(s.pulls,n);
  });
  test('every simple scout costs 3000 and old tickets or ten-draw milestones cannot create free draws',()=>{
   const zero=initialState();assert.equal(drawSimplePlayer(zero),zero);
