@@ -1967,3 +1967,14 @@ html[data-look=pawa] .nv-app .pw-cand .pw-b4-top{display:flex;flex-wrap:wrap;ali
 html[data-look=pawa] .nv-app .pw-roleapt .pw-apt,html[data-look=pawa] .nv-app .pw-cmp-apt .pw-apt{width:16px;height:16px}
 html[data-look=pawa] .nv-app .pw-roleapt .pw-apt-none,html[data-look=pawa] .nv-app .pw-cmp-apt .pw-apt-none{font-size:13px;line-height:16px;color:var(--mu);text-align:center}
 @media (max-width:999px){html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-head .pw-b5-main{justify-content:flex-end}html[data-look=pawa] .nv-app .pw-board5 .pw-b5-plist .pw-b5-head .pw-b5-sub{justify-content:flex-start}html[data-look=pawa] .nv-app .pw-slot-sheet .pw-sheet-head h2 .pw-roleapts,html[data-look=pawa] .nv-app .pw-slot-sheet .pw-sheet-head h2 .pw-poschips{margin-left:6px}}
+/* ===== 2026-11-03 宇宙リーグの球団名(7〜8字)を順位表で切らない。スマホは欄に収まる大きさに縮める ===== */
+@media (max-width:999px){
+ html[data-look=pawa] .nv-app .pw-tname .pw-tname-t,html[data-look=pawa] .nv-app .pw-last2-vs .pw-tname-t{font-size:var(--nm,inherit)}
+ html[data-look=pawa] .nv-app .pw-tname{text-overflow:clip}
+}
+/* 直近の試合の行: 狭い画面では直近10試合の印を次の行へ回し、相手の名前と点を切らない */
+@media (max-width:420px){
+ html[data-look=pawa] .nv-app .pw-last2{flex-wrap:wrap;row-gap:2px}
+ html[data-look=pawa] .nv-app .pw-last2>b{white-space:nowrap}
+ html[data-look=pawa] .nv-app .pw-last2-form{flex-basis:100%;justify-content:flex-end}
+}

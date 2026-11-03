@@ -7,6 +7,7 @@ import {DRINK_RESTORE,buyStaminaOption,type StaminaPtOption,addStamina,claimDrin
 import {monetizeBridge,seasonInterstitialDue,useMonetize} from './monetization';
 import {spaceUnlocked,circuitLabel,circuitOf,seasonGames,leagueFor,leagueProgress,titleFor,NPB_TITLES_TO_MLB,type Circuit} from './leagues';
 import {switchLeague} from './engine';
+import {setDisplayCircuit} from './space-aliens';
 import {AchievementsPanel} from './CareerAchievements';
 import {VictoryShare} from './VictoryShare';
 import {TeamSeasonStats} from './TeamSeasonStats';
@@ -231,6 +232,8 @@ export default function SimpleApp({profile='career',onProfileChange}:{profile?:P
  // Season end opens nothing by itself (no band either): the results/celebration open from the season tab's 結果を見る button.
  const [pendingCelebration,setPendingCelebration]=useState<TitleCelebrationEvent|null>(null),[lastCard,setLastCard]=useState<SeasonCard|null>(null);
  const starter=starterScoutActive(state);
+ // 宇宙リーグの間は、相手の名前・球団名を宇宙人の物で出す(見た目だけ。space-aliens.ts)。
+ setDisplayCircuit(circuitOf(state.season));
  const [tutorialReplay,setTutorialReplay]=useState(0);
  const [look,setLookState]=useState<Look>(readLook),pawa=look==='pawa';
  const changeLook=(next:Look)=>{saveLook(next);setLookState(next);};

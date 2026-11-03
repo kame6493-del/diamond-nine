@@ -1,3 +1,4 @@
+import {SPACE_TEAM_ROWS} from './space-aliens';
 // Display aliases only. Player/team IDs and the reference snapshots stay stable.
 export function maskPlayerName(name:string):string{
  if(name.includes('〇'))return name;
@@ -33,23 +34,9 @@ const locations:Record<string,[name:string,mark:string,short?:string]>={
 
 // Stable display identities for the space circuit. Save/schedule IDs are shared
 // with the overseas circuit, so aliases must always be resolved per season.
-export const spaceTeams:Record<string,{name:string;short:string;mark:string}>=Object.fromEntries(([
- ['108','ソーラーフレアーズ','SOL'],['109','ルナガーディアンズ','LUN'],
- ['110','マーズブレイカーズ','MAR'],['111','ジュピタータイタンズ','JUP'],
- ['112','サターンリングス','SAT'],['113','ネプチューンウェーブス','NEP'],
- ['114','マーキュリーブレイズ','MER'],['115','ヴィーナスウィングス','VEN'],
- ['116','ウラヌスストームズ','URA'],['117','プルートシャドウズ','PLU'],
- ['118','オリオンスターズ','ORI'],['119','シリウスキングス','SIR'],
- ['120','ベガアローズ','VEG'],['121','アルタイルファルコンズ','ALT'],
- ['133','テラパイオニアーズ','TER'],['134','デネブフェニックス','DEN'],
- ['135','リゲルナイツ','RIG'],['136','アンタレススコーピオンズ','ANT'],
- ['137','ポラリスセントリーズ','POL'],['138','アンドロメダレギオン','AND'],
- ['139','ペガサスフライヤーズ','PEG'],['140','ドラコファングス','DRA'],
- ['141','ケンタウルスランサーズ','CEN'],['142','カシオペアクラウンズ','CAS'],
- ['143','フェニックスノヴァ','PHX'],['144','コメットストライカーズ','COM'],
- ['145','ネビュラミラージュ','NEB'],['146','パルサーボルツ','PUL'],
- ['147','クエーサードミナーズ','QSR'],['158','エクリプスレイヴンズ','ECL'],
-] as const).map(([id,name,mark])=>[`mlb-${id}`,{name,short:name,mark}]));
+// 2026-11-03: coined alien club names (space-aliens.ts). short = the nickname used in tables.
+export const spaceTeams:Record<string,{name:string;short:string;mark:string}>=Object.fromEntries(
+ SPACE_TEAM_ROWS.map(([id,place,nickname,mark])=>[`mlb-${id}`,{name:`${place}・${nickname}`,short:nickname,mark}]));
 
 export function teamLocation(id:string){
  const location=locations[id];

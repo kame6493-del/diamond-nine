@@ -4,6 +4,10 @@ import {ownedRatings,ratingOverall} from '../development';
 import type {GameState} from '../engine';
 import {JerseyArt} from '../CardDeck';
 import {pitchingRoleLabel} from '../wiki-players';
+import {isSpaceAlien} from '../mlb-opponents';
+import {alienOverall,alienVelocity} from '../space-aliens';
+/** 球速の見た目(宇宙リーグの相手は宇宙の目盛り。計算は元の km/h)。 */
+export const shownVelocity=(p:Player)=>isSpaceAlien(p)?alienVelocity(p.ratings.velocity):p.ratings.velocity;
 
 export type Tier='standard'|'gold'|'rainbow';
 // Same thresholds as the scout reveal (scout-presentation.ts).
@@ -56,12 +60,12 @@ export function OvrBox({value,player,size='m'}:{value:number;player?:Player;size
 /** 選手カード: 枠の色(通常=青・金・虹)、総合のランク札、チーム色のユニフォームの絵、背番号と名前。人の絵は描かない。 */
 export function PawaCard({player,state,base=false,size='m',onClick,label}:{player:Player;state:GameState;base?:boolean;size?:'s'|'m'|'l';onClick?:()=>void;label?:string}){
  const ratings=cardRatings(player,state,base),overall=ratingOverall(player,ratings),tier=tierFor(player,overall);
- const team=teamById(player.team),pos=roleLabel(player),number=player.mlb?.number??player.roster?.number;
+ const alien=isSpaceAlien(player),team=teamById(player.team,alien?{circuit:'SPACE'}:undefined),pos=roleLabel(player),number=player.mlb?.number??player.roster?.number;
  const body=<>
-  <span className="nc-ovrtop"><small>総合</small><b>{overall}</b></span>
+  <span className="nc-ovrtop"><small>総合</small><b>{alien?alienOverall(overall):overall}</b></span>
   <span className="nc-pos">{pos.length>2?pos.slice(0,2):pos}</span>
   <span className="nc-art"><JerseyArt player={player}/></span>
-  <span className="nc-plate"><b>{player.name}</b>{size!=='s'&&<small>{team.short}{player.mlb?' · 海外':''}</small>}</span>
+  <span className="nc-plate"><b>{player.name}</b>{size!=='s'&&<small>{team.short}{alien?' · 宇宙':player.mlb?' · 海外':''}</small>}</span>
  </>;
  const cls=`nv-card nc-${size} nc-${tier}`;
  const style={'--team-tint':team.color} as CSSProperties;
@@ -72,7 +76,7 @@ export function PawaCard({player,state,base=false,size='m',onClick,label}:{playe
 export function GradeRow({player,ratings,mode=player.role,big=false,values=true}:{player:Player;ratings:Ratings;mode?:'batter'|'pitcher';big?:boolean;values?:boolean}){
  const list=mode==='pitcher'?[['球速',null],['制球',ratings.control],['スタミナ',ratings.stamina],['変化',ratings.breaking]] as const:[['ミート',ratings.contact],['パワー',ratings.power],['走力',ratings.speed],['肩',ratings.arm],['守備',ratings.field]] as const;
  return <div className={'nv-grades'+(big?' is-big':'')}>{list.map(([label,value])=>value===null
-  ?<div key={label} className="nv-grade nv-velocity"><small>{label}</small><b>{player.ratings.velocity}</b><em>km/h</em></div>
+  ?<div key={label} className="nv-grade nv-velocity"><small>{label}</small><b>{shownVelocity(player)}</b><em>km/h</em></div>
   :<div key={label} className="nv-grade"><small>{label}</small><Rank value={value} label={label} showValue={values}/></div>)}</div>;
 }
 
@@ -80,7 +84,7 @@ export function GradeRow({player,ratings,mode=player.role,big=false,values=true}
 export function StatList({player,ratings,mode=player.role}:{player:Player;ratings:Ratings;mode?:'batter'|'pitcher'}){
  const rows=mode==='pitcher'?[['制球',ratings.control],['スタミナ',ratings.stamina],['変化',ratings.breaking]] as const:[['ミート',ratings.contact],['パワー',ratings.power],['走力',ratings.speed],['肩',ratings.arm],['守備',ratings.field]] as const;
  return <dl className="pw-statlist">
-  {mode==='pitcher'&&<div><dt>球速</dt><dd><b className="pw-statlist-velo">{player.ratings.velocity}<small>km/h</small></b></dd></div>}
+  {mode==='pitcher'&&<div><dt>球速</dt><dd><b className="pw-statlist-velo">{shownVelocity(player)}<small>km/h</small></b></dd></div>}
   {rows.map(([label,v])=>{const n=cap(v);return <div key={label}><dt>{label}</dt><dd><Rank value={n} label={label}/><b>{n}</b><span className="pw-statbar" aria-hidden="true"><i data-rank={grade(n)} style={{width:`${n}%`}}/></span></dd></div>;})}
  </dl>;
 }

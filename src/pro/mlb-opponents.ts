@@ -2,6 +2,7 @@ import snapshot from './mlb-opponents2026.json';
 import {batting,pitching,mlbPlayers,mlbTeams} from './mlb-players';
 import type {Player,Ratings} from './data';
 import {maskPlayerName,teamLocation} from './display-names';
+import {buildAlienNames,currentDisplayCircuit} from './space-aliens';
 
 export const mlbLeagueTeams=snapshot.teams.map(t=>({id:`mlb-${t.id}`,...teamLocation(`mlb-${t.id}`),league:t.league,division:t.division,color:mlbTeams.find(m=>m.id===`mlb-${t.id}`)?.color??'#174a85'}));
 const bound=(v:number,min=35,max=92)=>Math.round(Math.max(min,Math.min(max,v)));
@@ -24,3 +25,12 @@ export const mlbOpponentPlayers:Player[]=snapshot.entries.map(e=>{
   mlb:{id:e.id,birthDate:known?.mlb?.birthDate??'',number:e.number,profileUrl:`https://www.mlb.com/player/${e.id}`,asOf:snapshot.asOf,assignment:mlbLeagueTeams.find(t=>t.id===`mlb-${e.team}`)!.name,twoWay:positions.includes('DH')&&role==='pitcher',statsYear:{hitting:pa?2026:null,pitching:bf?2026:null},pitches:known?.mlb?.pitches??[]},
  };
 });
+
+// 宇宙リーグでは同じカード(同じ id・同じ能力)が宇宙人として出る。名前だけ、遊んでいるリーグで替える
+// (setDisplayCircuit)。計算は ratings だけを見るので、名前の替えは試合に入らない。
+export const spaceAlienNames=buildAlienNames(mlbOpponentPlayers);
+export const isSpaceAlien=(p:{id:string;opponentOnly?:boolean})=>!!p.opponentOnly&&currentDisplayCircuit()==='SPACE'&&spaceAlienNames.has(p.id);
+for(const p of mlbOpponentPlayers){
+ const earth=p.name,alien=spaceAlienNames.get(p.id)!;
+ Object.defineProperty(p,'name',{enumerable:true,configurable:true,get:()=>currentDisplayCircuit()==='SPACE'?alien:earth});
+}

@@ -8,6 +8,7 @@ import {effectiveOverall,type GameState} from './engine';
 import {buildByStrategy} from './franchise';
 import {reorderSimplePlayer,replacementPool,replaceSimplePlayer,swapDefense} from './simple-game';
 import {pitchingRoleLabel} from './wiki-players';
+import {isSpaceAlien} from './mlb-opponents';
 import {ownedRatings,playerAge,ratingOverall} from './development';
 import {CardAbilities} from './CardAbilities';
 import {ReplacementPreview} from './ReplacementPreview';
@@ -27,8 +28,10 @@ export function Burst({kind='gold'}:{kind?:'gold'|'cyan'}){
 export const uniformColors:Record<string,[string,string,string]>={t:['#ffe136','#141820','#141820'],g:['#252a31','#ff822e','#fff'],db:['#006bd8','#fff','#fff'],c:['#e52f43','#fff','#fff'],s:['#163966','#99e838','#fff'],d:['#0d4bc6','#fff','#fff'],h:['#fff','#ffbb19','#1a2535'],f:['#138cda','#fff','#fff'],m:['#262731','#bbbfc9','#fff'],e:['#8d2440','#ffbf4a','#fff'],b:['#122441','#c9a15d','#fff'],l:['#143552','#7cc6d8','#fff']};
 Object.assign(uniformColors,{'mlb-119':['#f9fcff','#005a9c','#005a9c'],'mlb-112':['#0e3386','#cc3433','#fff'],'mlb-117':['#002d62','#eb6e1f','#fff'],'mlb-108':['#ba0021','#003263','#fff'],'mlb-135':['#fdf8e4','#2f241d','#9c6c13'],'mlb-145':['#272c35','#c4ced4','#fff'],'mlb-141':['#134a8e','#fdfdff','#fff'],'mlb-121':['#002d72','#ff5910','#ff5910'],'mlb-115':['#f1edf8','#333366','#694899'],'mlb-111':['#bd3039','#0c2340','#fff']});
 export function JerseyArt({player}:{player:Player}){
- const [main,trim,number]=uniformColors[player.team]??['#355cbb','#fff','#fff'];
- return <svg className="deck-jersey" viewBox="0 0 160 148" aria-hidden="true" data-uniform={player.team}><path d="m49 18 18-7q13 15 26 0l18 7 37 26-22 34-19-15 7 73q-34 10-68 0l7-73-19 15-22-34Z" fill={main} stroke={trim} strokeWidth="3"/><path d="m49 18 18-7 13 17 13-17 18 7-20 29H69Z" fill={trim}/><path d="M80 39v101M18 46l20 14M142 46l-20 14" stroke={trim} strokeWidth="5"/><text x="80" y="81" textAnchor="middle" fill={number} fontSize="13" fontWeight="900">{teamById(player.team).mark}</text><text x="80" y="115" textAnchor="middle" fill={number} fontSize="30" fontWeight="900">{player.mlb?.number??player.roster?.number??'9'}</text></svg>;
+ // 宇宙リーグの相手(宇宙人)は宇宙の球団の印と、宇宙のユニフォームの色(見た目だけ)。
+ const alien=isSpaceAlien(player);
+ const [main,trim,number]=alien?['#1b1340','#7cf5ff','#7cf5ff']:uniformColors[player.team]??['#355cbb','#fff','#fff'];
+ return <svg className="deck-jersey" viewBox="0 0 160 148" aria-hidden="true" data-uniform={player.team}><path d="m49 18 18-7q13 15 26 0l18 7 37 26-22 34-19-15 7 73q-34 10-68 0l7-73-19 15-22-34Z" fill={main} stroke={trim} strokeWidth="3"/><path d="m49 18 18-7 13 17 13-17 18 7-20 29H69Z" fill={trim}/><path d="M80 39v101M18 46l20 14M142 46l-20 14" stroke={trim} strokeWidth="5"/><text x="80" y="81" textAnchor="middle" fill={number} fontSize="13" fontWeight="900">{teamById(player.team,alien?{circuit:'SPACE'}:undefined).mark}</text><text x="80" y="115" textAnchor="middle" fill={number} fontSize="30" fontWeight="900">{player.mlb?.number??player.roster?.number??'9'}</text></svg>;
 }
 export function TradingCard({player,state,slot,selected=false,compact=false,onPlayer,baseOnly=false}:{player:Player;state:GameState;slot?:string;selected?:boolean;compact?:boolean;onPlayer?:(p:Player)=>void;baseOnly?:boolean}){
  const team=teamById(player.team),level=baseOnly?0:state.training[player.id]??0,ratings=baseOnly?player.ratings:ownedRatings(player,state.owned,state.training,state.careerGrowth);

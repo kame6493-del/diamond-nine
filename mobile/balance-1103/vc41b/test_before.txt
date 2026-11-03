@@ -1,0 +1,476 @@
+
+> gakkou-yakyubu-monogatari@0.1.0 test
+> node scripts/test-pro.mjs
+
+PASS all 1067 affiliated players have bounded ratings and official roles
+PASS 143 dates, all teams once per date, 25 domestic and 3 interleague meetings
+FAIL valid starter roster and saved-state guards AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:397864:12)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS full season accounting: wins, runs, hits, earned runs and plate appearances
+PASS single-day and batch simulations give identical results, no repeated finish reward
+PASS next season preserves collection and keeps exact historical record
+PASS batting-order moves preserve defensive assignments and relief usage is distributed
+PASS scout costs, fixed ten-pull floor, UR pity and repeated-player ownership
+PASS sabermetric denominators, missing samples, and league FIP calibration
+PASS club founding, training, stadium, strategy and rewards are persistent and bounded
+PASS old saved games migrate without losing collection, currency or seasons
+PASS UZR defense excludes DH, penalizes unfamiliar positions and uses training
+PASS theme scouts preserve rarity floors, pity and exactly published weights
+PASS defense handling uses positional priors without inventing range
+PASS UR tickets are guaranteed, preserve pity and currency, and migrate once
+PASS bulk mission rewards match individual claims and cannot repeat
+PASS screenshot UZR keeps provenance, negative values, missing rows and team identity
+PASS UZR rating is exposure-adjusted, finite and keeps source figures untouched
+PASS official roster covers every team including developmental players, excluding departures
+PASS new players keep missing actual stats and safely play a complete season
+PASS old collections and orders survive roster and role corrections without resets
+PASS complete postseason preserves all 143-game records and rewards once
+PASS 2026 CS advantage and tied-series advancement follow the published rules
+PASS postseason saves reject corrupted stage, scores, stats and repeated rewards
+PASS player form changes by period and year without mutating real abilities
+PASS cards always render five numeric batting abilities or measured pitching speed
+FAIL random starting rosters vary across every slot while remaining weak, complete and duplicate-free AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:395491:16)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS a saved random roster resumes unchanged and never rerolls on migration
+FAIL career starts with 24 real players, valid positions, modest strength and zero currency AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:395531:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+FAIL wins, draws and losses credit only the shared wallet; daily and batch rewards agree AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+2 !== 5
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:395557:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 2,
+  expected: 5,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS single draws guarantee SR at five and SSR at ten, with UR pity taking precedence
+PASS immediate upgrades respect positions and ownership and retain the benched player
+PASS career runs the full year with one-time rewards and keeps its collection in the next season
+PASS legacy and career save slots load independently without modifying the old save
+PASS career screens offer one card and earned points without a free top-up or ten-card action
+PASS each batting and pitching ability affects its corresponding simulated event
+PASS running and throwing abilities affect advancement and stolen bases without changing real records
+PASS event probabilities remain a valid distribution across the entire player pool
+PASS wiki-informed assessment distinguishes sample size, home-run production and pitcher workload
+PASS a scouted player accumulates stats only after being put in the order
+PASS season report shows batting average, HR, RBI and OPS calculated from actual simulated records
+PASS all twelve 2026 Wiki pages are represented, with 809 unique matched players and explicit exclusions
+PASS cross-team spot checks reproduce the published six abilities, including non-rounded values
+PASS unlisted players and missing fields retain evidence-based fallback, never borrowed identities
+PASS Wiki ability overrides change simulated probabilities rather than resetting their anchor
+FAIL pitch repertoire, secondary positions and contextual traits have bounded gameplay effects AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert27.ok(pitchers.slice(0, 6).every((id) => playerMap[id].wikiAssessment?.pitcherRoles["\u5148"] === "\u25CE"))
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:396038:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+PASS source and ability detail show all-team coverage, pitch levels and supported versus reference traits
+PASS per-game box scores and scoring highlights reconcile with season totals, including mirrored players
+PASS game heroes use this game only and legacy scores remain readable
+PASS season objectives pay once, preserve currency and unlock independently next year
+PASS select contracts alternate SR and SSR, require earned draws and cannot be redeemed twice
+PASS duplicates beyond full awakening credit the shared wallet for normal, ticket and selected rewards
+PASS bench recommendations respect published pitching roles and keep owned cards after a swap
+PASS new screens show actual game performance, clear contract cost and season objectives without UZR
+PASS multi-season archives retain aggregate records while bounding detailed replay storage
+PASS small-sample home run estimates reflect absolute published power rather than league average
+PASS saves from simulated games appear in the season table and player details
+PASS scout presentation rewards displayed OVR and MLB acquisition without introducing rarity
+PASS simple scouts ignore legacy rarity and pity while drawing from the published bands
+PASS 2026-11-03 vc41 odds: high rarity is rarer (rainbow about half, gold about 2/3 of vc40), the bands sum to 100%, the shown odds equal the draw, and nothing changes them
+PASS every simple scout costs 3000 and old tickets or ten-draw milestones cannot create free draws
+PASS simple migration auto-collects rewards without changing existing players, abilities or results
+PASS simple replacement preserves positions, rejects unowned players and keeps outgoing players
+PASS simple season stats render batting, UZR and four pitching statistics including saves
+PASS simple application has three main choices and acquisition has no rarity or second reveal step
+PASS simple complete-season flow preserves the 143-game stats through playoffs and next year
+PASS reward ads count per local day and reset the next day
+PASS interstitials skip pass owners, respect the cooldown and wait for three scouts
+PASS ad pacing leaves new players alone and keeps a ten-minute gap (2026-10-30); ads and the pass are worth a scout
+PASS browser rewards ignore the premium flag and render no ad or pass UI
+PASS point packs (vc39): same ids and yen prices, cheaper per draw as they grow, ¥10,000 is 10,000 scouts
+PASS minors get a monthly cap: 15 and under 5,000 yen, 16-17 10,000 yen, adults none; unknown age cannot buy
+PASS pack shop: browser build shows app-only buttons; the app shows store prices, or a retry when the store cannot be reached
+PASS premium pass shows store prices only and disables purchase until the product exists
+PASS 2026-10-28 ad scouts on home and result: label, remaining count, hidden when used up there, kept (disabled) on the scout page
+PASS 2026-10-30 full-screen ads: every third season after the grace, never at launch, never twice within ten minutes, never for pass owners
+PASS stamina: limits and regeneration are the documented numbers; waiting always refills a year
+PASS stamina: players without a record (existing saves) and broken records start full
+PASS stamina: spending and time-based recovery
+PASS stamina: turning the clock back never recovers, and a forward-then-back trick freezes recovery
+PASS stamina: points refill, drinks, gifts and the hard cap
+PASS stamina: rewarded-ad recovery has its own daily limit
+PASS stamina: the premium pass raises the limit and recovers faster
+PASS stamina (vc39): no stamina - every year is free to play, and the panel has only "1年進める"
+PASS team: each batter shows this season average, home runs, RBI and OPS, with "-" before the first plate appearance
+PASS economy (vc36): per-year income is cut - season 3,500, games 2/+1, postseason 300/150/60, goals 200, daily 900
+PASS balance 11/03 (vc39): stamina is gone again - every year is free, no chip, no recover button, no drinks
+PASS balance 11/02 (vc36): an old stamina record restarts full once; refunded players keep their points; over-cap stock is kept
+PASS balance 11/02 (vc36): drinks can be bought with points, 3 for 6,000, kept for later
+PASS balance 11/02 (vc38): point recovery does not pay for itself - a year from points costs about what a year earns, and drinks are 1 set a day
+PASS balance 11/03 (vc39): leftover stamina above the free cap and drinks turn into points once, at the vc38 prices
+PASS balance 11/02 (vc35): yearly growth is off - a year never changes ratings; vc34 gains stay, vc34 declines are undone
+PASS balance 11/01: growth survives save/load, junk growth entries are dropped, old saves still load
+PASS balance 11/02 (vc35): nextSeason leaves every rating as it was (no aging)
+PASS balance 11/01 + vc41: starter offers from 85+ are valid again, and saves holding the vc34-40 74-82 offers stay valid
+PASS balance 11/01 (vc39): first-purchase pack - ¥480 for 3,600,000pt (3x the usual ¥480), one per account, sold beside the six packs
+PASS balance 11/01: premium pass season points only in the app while owned
+PASS balance 11/01: the near-miss panel shows only when the title was close
+PASS balance 11/03 (vc39, vc41): ¥10,000 of points collects the ordinary band on average, and buying never changes the odds
+FAIL team reset starts over and provides a complete restorable copy without deleting any save AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:397392:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS reset aborts when a backup cannot be saved; invalid or cross-profile backups cannot restore
+FAIL compact deck preserves 21 roster slots and abilities, with bench selection available on demand AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+23 !== 21
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:397426:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 23,
+  expected: 21,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+FAIL complete reset removes acquired cards, duplicates, development, seasons and every reset snapshot of this club AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:397455:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS complete reset keeps existing saves when writing the fresh club fails
+PASS ranking: the first title year comes from achievements and the lineup from shareTeam, career mode only
+PASS ranking: malformed entries and names are refused before sending
+PASS ranking: the register prompt appears only for a new fastest title, and never while ranking is off
+PASS ranking: register, list (cached), slower record, rename and delete with the fake Firestore
+PASS ranking: when Firestore is busy (quota) the game shows the busy note and an old table, never an exception to the game
+PASS ranking: screens render (list shell, lineup with 9 batters and 6 starters)
+PASS vc41 ranking: rows lead with the years (fewest first), show name and team, and offer the lineup; my line says how many years
+PASS vc41 space hall of fame: once per uid - first write lands, a second or a rewrite is refused, deleting keeps the once mark, and the list is fewest years first
+PASS all players have finite monotonic staged growth with varied prospects and modest veteran growth
+PASS awakening charges every stage once, rejects insufficient funds and persists existing stages
+PASS display and simulation use exactly the same developed abilities, including fielding, running and pitching
+PASS automatic batting orders reserve cleanup power, lead with speed and keep all defensive positions
+PASS tap and drag operations insert batting order and exchange defense without duplicates or lost cards
+PASS player details hide awakening forecasts at every stage and preserve current overall, traits and team colors
+PASS overall stays monotonic above 100 for elite abilities, on the same scale for pitchers and batters
+PASS fully awakened roster plays 143 games with conserved batting and pitching totals and no repeated reward
+PASS 2026 Japanese MLB roster includes 15 verified identities with distinct teams and individualized game ratings
+PASS Ohtani uses one owned card for DH and starting pitcher through save reload and a full 143-game season
+PASS Modest MLB league adjustments affect hit, home run, strikeout and walk probabilities
+PASS 2026-11-03 vc41: no overseas guarantee - the 30th scout is an ordinary draw, saves with an old countdown or tickets still load and draw
+PASS ordinary point scouting follows the 1.25% MLB bands and obsolete tickets do not affect the draw
+PASS multi-year economy earns a handful of point scouts each year and keeps balances and cards
+FAIL MLB cards show both Ohtani ability sets and accessible player details without rarity labels AssertionError [ERR_ASSERTION]: MLB
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:394545:205)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+PASS scouting and awakening debit the same displayed wallet in either order without a second currency
+PASS legacy point migration conserves both balances once and rejects invalid balances before combining
+PASS pitcher and batter OVR distributions align for the full, Wiki and established NPB pools
+PASS pitcher OVR remains monotonic in every pitching skill with the same ceiling and no roster dependence
+PASS every awakening stage has an exact escalating price and rejects a one-point shortage without charging
+PASS legacy awakening stages and point balances migrate without back-charging at the new prices
+PASS one focused prospect needs multiple years for late stages while early awakening is attainable in year one
+PASS awakening UI shows the next price, savings and shortfall, while hiding future maximum abilities
+PASS three regular-season league titles unlock MLB before the playoffs, while losses and gaps break the streak
+PASS legacy Japan-Series streaks are rebuilt from regular-season standings and previously unlocked MLB access is kept
+PASS playoff elimination does not cancel league titles, and a Japan-Series title from second place does not count
+PASS MLB schedule contains 30 clubs, 162 games each, 81 home dates and every opponent
+PASS promotion happens only at the next season, keeps the squad and points, and survives save reload
+PASS MLB plays 162 games with conserved batting/pitching totals, actual steals and one-time rewards
+PASS MLB playoffs use division winners and wild cards, then a valid 11-series bracket through the World Series
+PASS MLB is tougher than NPB and a deep awakened roster improves both wins and championship contention
+PASS season and player details show stolen bases, league promotion and World Series copy without new menus
+PASS achievement years are recorded from actual league and postseason outcomes and retained after archives expire
+PASS league switching preserves both in-progress seasons, cards, training, random state and wallet without repeat rewards
+PASS a returning NPB manager stays in NPB for subsequent seasons and season identifiers never collide
+PASS switching is gated by earned MLB access and invalid parked seasons or milestone records cannot load
+PASS NPB-to-MLB translation reduces batting and pitching performance while preserving displayed abilities and MLB card baselines
+PASS MLB event probabilities remain valid for the full roster and all awakening stages
+FAIL achievement celebrations show the attained year and league controls remain compact and disabled during simulation AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert4.ok(render(unlocked()).includes("NPB\u3067\u7ACB\u3066\u76F4\u3059"))
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:392533:13)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+PASS third consecutive NPB league title unlocks a first ceremony even after losing the Japan Series
+PASS one or two titles, interrupted streaks and a Japan Series win alone cannot unlock a ceremony
+PASS first World Series title celebrates the correct year and repeated or previously archived titles stay silent
+PASS World Series loss, regular season success and an unfinished series do not celebrate
+PASS importing a different season, circuit or club cannot masquerade as a just-played first achievement
+PASS both ceremony variants identify the first milestone with an immediate close, sound control and results action
+PASS catalog covers every collectible exactly once, separates Japanese MLB cards, and supports every club
+PASS age-band boundaries include ages 18 and 24, exclude adjacent ages, and leave unknown ages last in both directions
+PASS bench filters combine age, team, role and normalized player names without changing the save or roster
+PASS overall and club sorting stay deterministic and use the developed values shown on cards
+PASS catalog renders a bounded card page with league, club and age filters; unowned cards expose details without acquisition actions
+PASS catalog cards, ability sorting and details never reveal awakening or duplicate bonuses, including two-way players
+PASS collection progress counts distinct acquisitions, partitions filters and reflects complete resets
+PASS official growth evidence covers every collectible and MLB opponent, including verified draft types
+PASS draft position matters for comparable prospects, fades with experience, and performance can overcome it
+PASS tiny samples stay near neutral, and completed growth keeps player specialties
+PASS revised growth preserves base ratings, purchased stages, wallet and historical stats on reload
+PASS player cards and details contain abilities without assessment explanations, external sources or potential forecasts
+PASS victory sharing appears for actual league and series championships, including repeat wins, but never unfinished or losing seasons
+FAIL season end freezes real team abilities and archived victory images survive later training, reorder, rename and save reload AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+'救援' !== '抑え'
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:392886:15)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '救援',
+  expected: '抑え',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+FAIL shared player abilities include the whole saved order even without batting stats and do not expose mutable save objects AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+14 !== 12
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:392915:13)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 14,
+  expected: 12,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS share team averages exclude DH from fielding and count a two-way card once in overall
+PASS share URLs exclude local addresses and private query data, and X receives the exact editable promotional text
+PASS native image sharing is used only for secure contexts with supported PNG files; unsupported and rejected capabilities fall back
+PASS 2026-11-03 vc41: draft week is gone - rookies are ordinary domestic players, the date never changes a draw, and the odds have no rookie row
+PASS every post carries the brand and genre hashtags (no draft tag any more), and fits X's 280 limit
+PASS every finished season is shareable with its final rank; unfinished seasons and open postseasons are not
+PASS scout share renders a labelled button whose wording follows the card tier
+PASS analytics sends only named game facts and is a silent no-op without the native bridge
+PASS daily goals pay each reward once per local day, add the all-clear bonus once, and reset the next day
+PASS storage-backed daily helpers are idempotent and silent outside the browser
+PASS daily panel lists five goals and only shows a claim button for finished, unclaimed ones
+PASS the rating prompt waits for two play days and a happy moment, then stays quiet for the gap
+PASS feedback form link names the build and device and nothing else
+PASS rank goals wait for the end of the regular season and match the final table
+PASS daily reminders land at 19:00 tomorrow and three days out, and the ask waits for a native app and a finished season
+PASS autumn showdown week pays its bonus once a day when a season ends, only inside the window
+PASS team averages use summed opportunities, include former starters, and exclude opponents and postseason stats
+PASS errors use the defensive side and count an at-bat without a hit, RBI or earned run on a direct error score
+PASS runs after an error should have ended the inning are unearned, while a later walk still gets an RBI
+PASS new errors are retained in archived and reloaded seasons, with no playoff contamination or legacy fabrication
+PASS extreme defensive deficits soften without caps, lost ledger data or lost league centering
+PASS UZR is zero-centered separately in every domestic and overseas league and preserves saved events
+PASS UZR centers uniformly negative ledgers by defensive exposure, not equal shares per player
+PASS UZR records the actual fielding roster and in-play exposure, sums individual contributions and excludes DH
+PASS UZR reacts to position penalties and awakening without rewriting already played defense
+PASS legacy UZR is not invented and mixed seasons retain their recorded game count
+PASS UZR survives saves and archived box-score compaction with no postseason contamination
+PASS UZR supports MLB and survives parking and resuming a league
+PASS UZR saves reject malformed ledgers while allowing signed fractional run values
+PASS league scoring sums all clubs, filters by league and weights ERA by actual outs, including interleague games
+PASS MLB totals contain all 30 teams with the custom club in the American League once
+PASS simulated league totals reconcile with scores and survive archived box-score removal without including postseason data
+PASS team metric ranks use only the same league, allow ties, reverse ERA and leave unplayed rates unranked
+PASS games behind is measured against each league leader, handles half games and excludes draws from win percentage
+PASS MLB metric ranks compare 15 clubs in the correct league including the custom club
+FAIL team UZR ranks sum actual fielders, allow ties and never rank missing or mismatched recording periods AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert13.ok(Math.abs(t.uzr - 5) < 1e-9)
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:393626:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+PASS NPB starts with attainable wins, recruitment improves results, and developed regulars can win the league
+PASS opponents do not get stronger when the user collects or awakens cards, in either league
+PASS negative CPU ability adjustments affect defense and errors too, without changing player cards or DH defense
+PASS NPB tuning preserves played games and saved progression when a season resumes
+PASS MLB remains tougher than NPB, while recruitment and deep development make the World Series attainable
+PASS MLB translation keeps a modest batting/pitching penalty and never double-penalizes MLB cards
+PASS an ongoing MLB season keeps played results, balances and cards through reload and an NPB round trip
+PASS all collectible, legacy and opponent names are masked, with stable IDs and canonical search
+PASS all 12 NPB and 30 MLB clubs use unique geographic names consistently in cards and leagues
+FAIL new clubs offer three distinct strong NPB cards without changing the weak initial roster AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:393878:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+FAIL starter picks grant exactly one card once without spending points or advancing paid guarantees AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+27 !== 25
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:393888:16)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 27,
+  expected: 25,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+FAIL starter completion equips the earned player, persists and never returns after opening day AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+27 !== 25
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:393916:16)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 27,
+  expected: 25,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS legacy saves stay untouched and malformed starter rewards cannot load
+FAIL reset creates a fresh welcome event and restore keeps its already-claimed reward AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+26 !== 24
+
+    at Object.run (file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:393949:14)
+    at file:///C:/Users/yuichi1/Downloads/chatgpt/%E6%A0%84%E5%86%A0%E3%83%8A%E3%82%A4%E3%83%B3%E3%81%BF%E3%81%9F%E3%81%84%E3%81%AA%E3%82%B2%E3%83%BC%E3%83%A0/node_modules/.tmp/test-pro.mjs:398362:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 26,
+  expected: 24,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+PASS starter screen has exactly three accessible blind choices and reveals only the earned card
+PASS listed defensive positions retain their previous performance and all unfamiliar positions are harder than weak secondary positions
+PASS unfamiliar defense increases hits and errors without changing walks, strikeouts or home runs; DH is excluded
+PASS untrained catchers allow more steals and untrained outfielders allow more advancement, including awakened cards
+PASS defense swaps preserve saves and card abilities while the warning appears only for misplaced fielders
+POSITION DEFENSE season comparison (4 seasons each): {"natural":{"runs":1483,"hits":4246,"errors":250},"misplaced":{"runs":1673,"hits":4464,"errors":289}}
+PASS paired complete seasons concede more runs, hits and errors after swapping two defensive specialists
+PASS team screen explains role penalties without modifying card data
+PASS pitching role grades preserve suitable abilities and penalize unfamiliar roles without mutating cards
+PASS role mismatch changes actual plate appearance odds in both leagues
+PASS missing role data falls back to workload and save experience
+PASS space is locked until a world title and hidden from the pre-title season screen
+PASS all three ongoing leagues survive switching, reload and resume without duplicating rewards
+SPACE balance (8 seasons per squad): [{"name":"NPB選抜・未覚醒","wins":70.75,"titles":0,"playoffs":0},{"name":"混成選抜・覚醒3","wins":88.25,"titles":1,"playoffs":6},{"name":"混成選抜・覚醒5","wins":99.25,"titles":4,"playoffs":8}]
+PASS space is harder than overseas but a deeply developed team can win without guaranteed titles
+PASS steal tendencies retain runner and catcher skills with bounded growth and small-sample estimates
+Stolen-base balance (4 seasons per stage): [{"stage":0,"teamAverage":64,"max":34,"leagueMax":47},{"stage":5,"teamAverage":72.25,"max":35,"leagueMax":53}]
+PASS complete seasons keep ordinary and awakened stolen bases plausible and preserve accounting
+Run environment: {"circuit":"NPB","samples":5,"rpg":3.6167832167832166,"avg":0.24121041593392994,"obp":0.3019927369474394,"slg":0.34886083864160383,"ops":0.6508535755890432,"hrPerTeamGame":0.6168997668997669,"era":3.3150040803637353,"kPct":0.19861746636458386}
+Run environment: {"circuit":"MLB","samples":5,"rpg":4.414238683127572,"avg":0.24463620946033007,"obp":0.3177854091005084,"slg":0.40216908056104034,"ops":0.7199544896615487,"hrPerTeamGame":1.1893415637860083,"era":4.133902296373822,"kPct":0.2196811836341071}
+Run environment: {"circuit":"SPACE","samples":5,"rpg":4.35761316872428,"avg":0.24773096376038234,"obp":0.31014677323804,"slg":0.4158171314556169,"ops":0.7259639046936569,"hrPerTeamGame":1.2232510288065843,"era":4.12720905711493,"kPct":0.20943619181580006}
+PASS NPB keeps a 2023-2025 NPB scoring environment, MLB and Space a modern MLB-like one, with consistent sacrifice-fly accounting
+PASS 14-arm staffs and automatic formations have six starters and eight suitable relievers
+PASS automatic formation puts the strongest in-role arms in the rotation, ace first
+PASS legacy staff expansion retains the closer, season and points and is idempotent
+Eight-reliever appearances: [
+  62, 60, 55, 49,
+  51, 51, 73, 48
+]
+PASS all eight bullpen arms appear over a season with conserved pitching totals
+225/242 checks passed; NPB 858 / MLB 2430 league games per complete season.
+exit 1

@@ -19,7 +19,7 @@ export const effectiveOverallFor=(p,owned,training,state)=>ratingOverall(p,${has
 export const yearEnd=s=>${hasYearly?'advanceCareerYear(s)':'s'};`;
 await mkdir('node_modules/.tmp',{recursive:true});
 const out=join(here,'node_modules/.tmp',`sim-balance-${process.pid}-${Date.now()}.mjs`);
-await build({entryPoints:[join(here,'scripts/sim-balance.ts')],outfile:out,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent',
+await build({entryPoints:[join(here,process.env.D9_ENTRY??'scripts/sim-balance.ts')],outfile:out,bundle:true,platform:'node',format:'esm',packages:'external',logLevel:'silent',
  define:{__DIAMOND_APP__:'true',__DIAMOND_ANDROID__:'true'},loader:{'.css':'empty'},
  plugins:[{name:'d9',setup(b){
   b.onResolve({filter:/^@d9\/sim-shim$/},()=>({path:'sim-shim',namespace:'d9shim'}));
