@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {Crown,PlayCircle} from 'lucide-react';
 import {PREMIUM_DAILY_POINTS,monetizeBridge,useMonetize} from './monetization';
 import {PREMIUM_MATCH_MULTIPLIER} from './platform-economy';
@@ -6,6 +6,7 @@ import {PASS_SEASON_POINTS,SEASON_COMPLETE_POINTS} from './progression';
 import {PASS_STAMINA_MAX,PASS_STAMINA_REGEN_MS,STAMINA_ENABLED,STAMINA_MAX,STAMINA_REGEN_MS,regenLabel} from './stamina';
 import {canSpend,monthlyLimit,PREMIUM_PASS_PRICE_YEN,readAgeBand,readSpent,saveAgeBand,type AgeBand} from './point-products';
 import {AgeAsk} from './PackShop';
+import {noteReviewPaywall} from './review';
 import './point-shop.css';
 import './monetize.css';
 
@@ -38,6 +39,7 @@ export function RewardAdButton({disabled,onStart,onReward,onEnd,label='広告を
 // Premium pass purchase / restore. Price comes only from the store; never invented.
 export function PremiumPassCard(){
  const m=useMonetize(),[asking,setAsking]=useState(false),[note,setNote]=useState('');
+ useEffect(()=>{noteReviewPaywall();},[]);// 購入画面の前後30分は評価の窓を出さない
  if(!m)return null;
  const {premium}=m,bridge=monetizeBridge();
  // 未成年の月の上限にパスも数える(パックと同じ記録)。年齢が未回答なら先に聞く。

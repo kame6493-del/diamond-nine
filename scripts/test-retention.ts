@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {DAILY_ALL_BONUS,DAILY_LOGIN_POINTS,DAILY_MISSIONS,LAUNCH_GIFT,claimLogin,claimMission,freshDay,launchGiftOpen,markMission,noteDailyMission,parseDailyRecord,takeDailyLogin,takeLaunchGift} from '../src/pro/daily';
 import {DailyPanel} from '../src/pro/DailyPanel';
-import {REVIEW_GAP_DAYS,maybeAskReview,notePlayDay,parseReview,reviewDue} from '../src/pro/review';
+import {REVIEW_GAP_DAYS,REVIEW_MAX_ASKS,REVIEW_MIN_DAYS_INSTALLED,REVIEW_PAYWALL_QUIET_MIN,maybeAskReview,notePlayDay,noteReviewPaywall,parseReview,reviewDue,reviewMoment} from '../src/pro/review';
 import {FEEDBACK_FORM,deviceLabel,feedbackUrl} from '../src/pro/feedback';
 import {seasonGoals} from '../src/pro/ambitions';
 import {AUTUMN_EVENT,autumnEventActive,claimAutumnBonus} from '../src/pro/autumn-event';
@@ -46,22 +47,73 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
    for(const m of DAILY_MISSIONS)assert.ok(html.includes(m.label));assert.ok(!html.includes('daily-claim'));assert.ok(html.includes('あと5つ'));
   });
  });
- test('the rating prompt waits for two play days and a happy moment, then stays quiet for the gap',()=>{
-  const now=Date.UTC(2026,9,20);let r=parseReview(null);
-  assert.equal(reviewDue(r,now),false);r=notePlayDay(notePlayDay(r,'2026-10-19'),'2026-10-19');assert.equal(reviewDue(r,now),false);
-  r=notePlayDay(r,'2026-10-20');assert.equal(reviewDue(r,now),true);
-  assert.equal(reviewDue({...r,askedAt:now},now+(REVIEW_GAP_DAYS-1)*DAY),false);assert.equal(reviewDue({...r,askedAt:now},now+REVIEW_GAP_DAYS*DAY),true);
-  assert.deepEqual(parseReview('{bad'),{days:[],askedAt:0});
+ test('the rating prompt waits 3 days from install and two play days, then stays quiet 30 days, at most 3 times (vc42)',()=>{
+  const t0=Date.UTC(2026,9,20,3);let r=parseReview(null);
+  assert.deepEqual([REVIEW_GAP_DAYS,REVIEW_MIN_DAYS_INSTALLED,REVIEW_MAX_ASKS,REVIEW_PAYWALL_QUIET_MIN],[30,3,3,30]);
+  assert.equal(reviewDue(r,t0),false);
+  r=notePlayDay(notePlayDay(r,'2026-10-20',t0),'2026-10-20',t0+1000);assert.equal(r.firstAt,t0,'first launch is kept');
+  r=notePlayDay(r,'2026-10-21',t0+DAY);
+  assert.equal(reviewDue(r,t0+DAY),false,'two play days but only 1 day since install');
+  assert.equal(reviewDue(r,t0+3*DAY-1),false);assert.equal(reviewDue(r,t0+3*DAY),true);
+  // one play day only: not yet, even after a week
+  assert.equal(reviewDue(notePlayDay(parseReview(null),'2026-10-20',t0),t0+7*DAY),false);
+  // ask -> 29 days quiet -> 30th day ok -> 3 asks max
+  const now=t0+3*DAY;let x=reviewMoment(r,'title',now);assert.equal(x.ask,true);assert.equal(x.record.asks,1);
+  assert.equal(reviewMoment(x.record,'title',now+29*DAY).ask,false);
+  x=reviewMoment(x.record,'title',now+30*DAY);assert.equal(x.ask,true);assert.equal(x.record.asks,2);
+  x=reviewMoment(x.record,'title',now+60*DAY);assert.equal(x.ask,true);assert.equal(x.record.asks,3);
+  assert.equal(reviewMoment(x.record,'title',now+3000*DAY).ask,false,'never a 4th time');
+  // a moment that does not ask does not count
+  assert.deepEqual(reviewMoment(r,'title',t0+DAY).record,r);
+ });
+ test('gold and rainbow count only the first card of each tier; a title counts every time',()=>{
+  const t0=Date.UTC(2026,9,20,3),now=t0+5*DAY;
+  const r=notePlayDay(notePlayDay(parseReview(null),'2026-10-20',t0),'2026-10-21',t0+DAY);
+  // first gold on day 1 (too early): no ask, but the first gold is used up
+  let x=reviewMoment(r,'gold',t0+DAY);assert.equal(x.ask,false);assert.deepEqual(x.record.tiers,['gold']);
+  assert.equal(reviewMoment(x.record,'gold',now).ask,false,'second gold is not a first');
+  x=reviewMoment(x.record,'rainbow',now);assert.equal(x.ask,true,'first rainbow after day 3');assert.deepEqual(x.record.tiers,['gold','rainbow']);
+  const later=reviewMoment(x.record,'rainbow',now+40*DAY);assert.equal(later.ask,false);
+  assert.equal(reviewMoment(x.record,'title',now+40*DAY).ask,true);
+ });
+ test('no rating prompt within 30 minutes of a purchase screen',()=>{
+  const t0=Date.UTC(2026,9,20,3),now=t0+5*DAY;
+  const r={...notePlayDay(notePlayDay(parseReview(null),'2026-10-20',t0),'2026-10-21',t0+DAY),paywallAt:now-29*60000};
+  assert.equal(reviewMoment(r,'title',now).ask,false);
+  assert.equal(reviewMoment(r,'title',now+60000).ask,true);
+ });
+ test('older saves keep working: first play day becomes the install day and a past ask counts once',()=>{
+  const r=parseReview(JSON.stringify({days:['2026-10-01','2026-10-02'],askedAt:Date.UTC(2026,9,5)}));
+  assert.equal(r.firstAt,Date.parse('2026-10-01T00:00:00'));assert.equal(r.asks,1);assert.deepEqual(r.tiers,[]);assert.equal(r.paywallAt,0);
+  assert.deepEqual(parseReview('{bad'),{days:[],askedAt:0,firstAt:0,asks:0,tiers:[],paywallAt:0});
+  assert.equal(parseReview(JSON.stringify({days:[],askedAt:0,asks:9})).asks,REVIEW_MAX_ASKS);
+  assert.deepEqual(parseReview(JSON.stringify({days:[],askedAt:0,tiers:['gold','x',1]})).tiers,['gold']);
+ });
+ test('the bridge is the store window only: web never asks, the app asks once and remembers it on the device',()=>{
+  const t0=Date.UTC(2026,9,20,3),now=t0+5*DAY;
+  const r=notePlayDay(notePlayDay(parseReview(null),'2026-10-20',t0),'2026-10-21',t0+DAY);
   const g=globalThis as {window?:unknown;localStorage?:unknown},oldW=g.window;let asked=0;
   assert.equal(maybeAskReview('title',now),false,'no bridge on the web');
   withStorage(()=>{
    g.window={diamondReview:{request:async()=>{asked++;}}};
    try{
-    assert.equal(maybeAskReview('title',now),false);
+    assert.equal(maybeAskReview('title',now),false,'nothing recorded yet');
     (g.localStorage as Storage).setItem('diamond-nine-review',JSON.stringify(r));
-    assert.equal(maybeAskReview('rainbow',now),true);assert.equal(maybeAskReview('title',now+DAY),false);assert.equal(asked,1);
+    noteReviewPaywall(now-60000);assert.equal(maybeAskReview('title',now),false,'right after the shop');
+    assert.equal(maybeAskReview('rainbow',now+31*60000),true);assert.equal(maybeAskReview('title',now+DAY),false);assert.equal(asked,1);
+    const saved=parseReview((g.localStorage as Storage).getItem('diamond-nine-review'));
+    assert.equal(saved.asks,1);assert.deepEqual(saved.tiers,['rainbow']);assert.equal(saved.askedAt,now+31*60000);
    }finally{g.window=oldW;}
   });
+ });
+ test('the rating prompt is wired only to happy moments: a won title, first gold/rainbow card; the shop marks the quiet time',()=>{
+  const app=readFileSync('src/pro/SimpleApp.tsx','utf8'),calls=app.match(/maybeAskReview\([^)]*\)/g)??[];
+  assert.deepEqual([...calls].sort(),["maybeAskReview('title')","maybeAskReview(tier)"]);
+  assert.ok(app.includes("if(tier==='rainbow'||tier==='gold')setTimeout(()=>maybeAskReview(tier),1800);"));
+  assert.ok(/next\.season\.postseason\.champion===next\.club\)setTimeout\(\(\)=>maybeAskReview\('title'\)/.test(app),'title: right after the season is won');
+  assert.ok(!/onNext=\{[^}]*maybeAskReview/.test(app),'not on the next-season button (the interstitial ad shows there)');
+  for(const f of ['src/pro/PackShop.tsx','src/pro/MonetizePanel.tsx'])assert.ok(readFileSync(f,'utf8').includes('noteReviewPaywall()'),f);
+  const src=readFileSync('src/pro/review.ts','utf8');assert.ok(!/星|★|stars?\b|rating\s*[<>]/i.test(src.replace(/\/\/.*$/gm,'')),'no star picker or rating filter of our own');
  });
  test('feedback form link names the build and device and nothing else',()=>{
   const android=deviceLabel({Capacitor:{getPlatform:()=>'android'},diamondAppVersion:'1.1 (11)',navigator:{userAgent:'Mozilla/5.0 (Linux; Android 15; 2506BPN68R) Chrome/130'}});

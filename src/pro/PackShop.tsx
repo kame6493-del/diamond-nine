@@ -1,6 +1,7 @@
 import {useEffect,useState} from 'react';
 import {AGE_BANDS,allPointPacks,canSpend,firstPack,monthlyLimit,packBonusPercent,packDraws,pointPacks,readAgeBand,readOncePacks,readSpent,saveAgeBand,yenPerDraw,type AgeBand} from './point-products';
 import {monetizeBridge,useMonetize} from './monetization';
+import {noteReviewPaywall} from './review';
 import {STAMINA_ENABLED,STAMINA_PT_FULL_COST} from './stamina';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
@@ -16,6 +17,7 @@ export function AgeAsk({onChoose,onCancel}:{onChoose:(band:AgeBand)=>void;onCanc
  *  初めて買う前に年齢の区分を聞き、未成年は月の上限を超える購入を止める。 */
 export function PackShop(){
  const m=useMonetize(),bridge=monetizeBridge();
+ useEffect(()=>{noteReviewPaywall();},[]);// 購入画面の前後30分は評価の窓を出さない
  const [age,setAge]=useState<AgeBand|null>(()=>readAgeBand()),[asking,setAsking]=useState<string|null>(null),[note,setNote]=useState('');
  const packs=m?.packs,limit=monthlyLimit(age),offline=!!m&&packs?.status==='unavailable',firstOpen=!readOncePacks().includes(firstPack.id);
  // 開いた時にストアにつながっていなければ読み直す(起動時の通信の失敗で「販売準備中」のままにしない)。
