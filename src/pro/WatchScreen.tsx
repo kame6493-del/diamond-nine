@@ -25,7 +25,7 @@ import {circuitOf} from './leagues';
 import {isSpaceAlien} from './mlb-opponents';
 import {alienVelocity} from './space-aliens';
 import {gameSound,prepareWatchAudio,stopGameAudio} from './game-audio';
-import {benchOf,callText,countOf,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,longArm,newTally,paMillis,pitchMillis,pitchPlan,playMillis,readSpeed,saveSpeed,speeds,SPEED_KEY,staminaLeft,tallyBegin,tallyEnd,tallyPitch,type PitchTally,type Speed} from './watch';
+import {benchOf,callText,countOf,holdsAfter,tacticWho,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,longArm,newTally,paMillis,pitchMillis,pitchPlan,playMillis,readSpeed,saveSpeed,speeds,SPEED_KEY,staminaLeft,tallyBegin,tallyEnd,tallyPitch,type PitchTally,type Speed} from './watch';
 import {fieldPlay,trackAt,SPOTS,BOX,batSide,throwHand,type FieldPlay} from './watch-play';
 import {BAT_TACTICS,PITCH_TACTICS,batTacticFor,batTacticLabel,batTacticNote,pitchFit,pitchTacticFor,pitchTacticLabel,pitchTacticNote,tacticNote,type BatTactic,type PitchTactic} from './tactics';
 import {avgText,batLine,batMove,eraText,ipText,pitLine,pitMove,snapshot,type BatLine,type BatMove,type Move,type PitLine,type PitMove} from './live-stats';
@@ -195,7 +195,10 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const before=l.sit;
   // この試合の成績を、見せた所まで写す(打席の結果を見せたこの瞬間に、札と成績表の数が変わる)。
   l.shownBat=snapshot(l.tabBat??undefined);l.shownPit=snapshot(l.tabPit??undefined);
-  if(show&&lastPA){
+  if(show&&lastPA&&!holdsAfter(lastPA,l.nextSit)){
+   // 攻守が替わった・次の打席から投手が替わる: 帯はすぐ次の場面の打者と投手にする(前の投手を残さない)。
+   l.hold=null;l.moves=null;if(l.nextSit&&l.nextSit.side!==lastPA.side)l.flash='チェンジ';
+  }else if(show&&lastPA){
    const e=lastPA,bt=e.side===0?l.g.away:l.g.home,pt=e.side===0?l.g.home:l.g.away,bk=`${bt}|${e.batter}`,pk=`${pt}|${e.pitcher}`;
    l.hold={side:e.side,batter:e.batter,slot:e.slot,pitcher:e.pitcher,pitchers:before?.pitchers};
    l.moves={n:++l.moveNo,bat:batMove(batLine(season.batting[bk],beforeBat[bk]),batLine(season.batting[bk],l.shownBat[bk])),pit:pitMove(pitLine(season.pitching[pk],beforePit[pk]),pitLine(season.pitching[pk],l.shownPit[pk]))};
@@ -401,6 +404,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   </div>;
  };
  /** 作戦の切り替え(常に並べる): 攻撃の時は次の打者へ(長打狙い・ミート打ち・積極的に・慎重に)、守りの時は今の投手へ(直球中心〜ストライク中心)。 */
+ /** 帯にいま出ている打者(mineBat)または投手。結果を見せている間は残した人、投げている途中はいま打席の人。 */
+ const shownWho=(mineBat:boolean)=>{const s=l.hold??shownSit;return s?(mineBat?s.batter:s.pitcher):null;};
  const quickRow=()=>{
   const t=target();if(!t||control<0)return null;const mineBat=t.side===control;
   const id=mineBat?t.batter:t.pitcher,own=mineBat?t.tactics.batter[id]??null:t.tactics.pitcher?.[id]??null;
@@ -408,7 +413,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const keys=(mineBat?BAT_TACTICS:PITCH_TACTICS) as string[];
   const label=(k:string)=>mineBat?batTacticLabel[k as BatTactic]:pitchTacticLabel[k as PitchTactic];
   return <div className={'wt-quick '+(mineBat?'is-bat':'is-pitch')} role="group" aria-label={mineBat?`次の打者 ${nameOf(id)} への作戦`:`投手 ${nameOf(id)} への作戦`}>
-   <p className="wt-quick-who"><small>{mineBat?(l.phase==='pitch'?'次の打者':'打者'):'投手'}</small><b>{nameOf(id)}</b></p>
+   <p className="wt-quick-who"><small>{tacticWho(mineBat,id,shownWho(mineBat))}</small><b>{nameOf(id)}</b></p>
    {keys.map(k=>{const on=now===k,mineOnly=own===k,lb=label(k),cut=lb.endsWith('中心')?lb.length-2:lb.length;
     return <button key={k} className={'wt-qt'+(on?' is-on':'')+(on&&!mineOnly&&team===k?' is-team':'')} aria-pressed={on} onClick={()=>quickTactic(mineBat?'bat':'pitch',k)}><b>{lb.slice(0,cut)}</b>{cut<lb.length&&<small>{lb.slice(cut)}</small>}</button>;})}
   </div>;

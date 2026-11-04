@@ -139,3 +139,12 @@ export const homeRunMillis=(speed:Speed)=>2600/speed;
 export const playMillis=(speed:Speed)=>2000/speed;
 /** 1球の時間(投げる演出)。 */
 export const pitchMillis=(speed:Speed)=>paMillis(speed)*.16;
+
+// ---- 打席の結果を見せた後の帯(11/4 深夜の直し) ----
+// 打席の結果を見せた直後は、その打者と投手を帯に残して、変わった成績を見せる。ただし攻守が替わる時(3つ目のアウト)と、
+// 次の打席から投手が替わる時は残さない: グラウンドと回の表示はもう次の場面なので、帯もいま投げている投手・いま打つ打者にする。
+// (残すと、1回裏なのに1回表に投げた相手の投手が「投」の帯に出ていた。)
+export function holdsAfter(e:{side:number;pitcher:string},next:{side:number;pitcher:string}|null){return !next||(next.side===e.side&&next.pitcher===e.pitcher);}
+/** 作戦の欄の名前の前に付ける言葉。帯に出ている人と作戦を出す相手が違う時は「次の」を付ける。
+ *  mineBat=自分が攻めている(作戦は打者へ)、守っている時は投手へ。shown=帯に出ている打者または投手の id。 */
+export function tacticWho(mineBat:boolean,id:string,shown:string|null){return (shown&&shown!==id?'次の':'')+(mineBat?'打者':'投手');}
