@@ -5,25 +5,41 @@
 // 乱数: その日の試合は今までどおり1本の乱数の列を順に使う。自分の試合は、その位置から監督の指示を受けながら回す。
 // 何も指示しなければ、おまかせ(1年進める)とまったく同じ結果。指示を出すと、その試合と、その後の結果が変わる。
 import {gameSteps,playGame,rng,simulateDays,type GameResult,type GameState,type LiveStep,type OwnRunner,type WatchOrder} from './engine';
-import {newPostseason,simulatePostseason} from './postseason';
+import {newPostseason,simulatePostseason,type PostSeries} from './postseason';
 import {circuitOf} from './leagues';
 import {seriesName} from './watch';
 import {emptyFielding} from './fielding-stats';
 
 export type KeyKind='opening'|'post';
-export interface KeyGame {kind:KeyKind;label:string;key:string;series?:string}
-/** 次に進める日に、自分のチームの大事な試合があるか。あれば、その試合の名前と、止まった場所の印(key)。 */
+export interface KeyGame {kind:KeyKind;label:string;key:string;series?:string;reason?:string}
+/** 次に進める日に、自分のチームの大事な試合があるか。あれば、その試合の名前と、止まった場所の印(key)。
+ * 11/4 夜(持ち主「CS シリーズは全部じゃなくて、大事な試合だけ監督として出来るようにして」): 短期決戦は、各シリーズの第1戦と、
+ * どちらかがあと1勝で勝ち抜け・優勝になる試合(王手。アドバンテージの勝ちも数える。最終戦もここに入る)だけ。途中の試合は null(止まらない)。
+ * reason=なぜ大事かの一言(ホームの札の見出し)。 */
 export function keyGameAhead(state:GameState):KeyGame|null{
  const season=state.season,club=state.club;
  if(!season.completed){
   if(season.day!==0||season.results.length>0)return null;
-  return {kind:'opening',label:'開幕戦',key:`${club}|${season.number}|r0`};
+  return {kind:'opening',label:'開幕戦',key:`${club}|${season.number}|r0`,reason:'開幕戦'};
  }
  if(season.postseason?.stage==='complete')return null;
- const post=season.postseason??newPostseason(season),space=circuitOf(season)==='SPACE';
+ const post=season.postseason??newPostseason(season),circuit=circuitOf(season),space=circuit==='SPACE';
  const s=post.series.find(x=>x.stage===post.stage&&!x.winner&&(x.higher===club||x.lower===club));
  if(!s)return null;
- return {kind:'post',label:`${seriesName(s,space)} 第${s.results.length+1}戦`,key:`${club}|${season.number}|p${post.day}|${s.id}|${s.results.length}`,series:seriesKey(state,s.id)};
+ const reason=keyReason(s,club,circuit,post.series.filter(x=>x!==s&&x.results.length>0&&(x.higher===club||x.lower===club)).length===0);
+ if(!reason)return null;
+ return {kind:'post',label:`${seriesName(s,space)} 第${s.results.length+1}戦`,key:`${club}|${season.number}|p${post.day}|${s.id}|${s.results.length}`,series:seriesKey(state,s.id),reason};
+}
+/** 短期決戦の試合が大事か(第1戦・王手)。大事でなければ ''。first=自分のチームの最初のシリーズ(「CS 進出!」)。 */
+export function keyReason(s:Pick<PostSeries,'stage'|'wins'|'target'|'results'|'higher'>,club:string,circuit:string,first:boolean):string{
+ const name=seriesName(s,circuit==='SPACE'),mine=s.higher===club?0:1;
+ const prize=s.stage==='japan'?'国内王座':s.stage==='world'?(circuit==='SPACE'?'宇宙王座':'世界王座'):'勝ち抜け';
+ const reachMine=s.wins[mine]>=s.target-1,reachThem=s.wins[1-mine]>=s.target-1;
+ if(reachMine&&reachThem)return `最終決戦! 勝てば${prize}`;
+ if(reachMine)return `王手! 勝てば${prize}`;
+ if(reachThem)return '負ければ終わり';
+ if(s.results.length===0)return first?'プレーオフ進出!':`${name} 第1戦`;
+ return '';
 }
 /** 短期決戦の印(シーズンとシリーズ)。「このシリーズの残りを一気に進める」に使う。 */
 export const seriesKey=(state:GameState,id:string)=>`${state.club}|${state.season.number}|${id}`;
@@ -73,7 +89,7 @@ export function finishLive(g:ManagedGame,inputs:(WatchOrder|null)[]):GameResult{
 // ---- 途中で閉じた時の続き(端末に覚える。セーブデータとは別なので、セーブは壊れない) ----
 export interface SavedManage {v:1;key:string;control:number;inputs:(WatchOrder|null)[];mode?:'manage'|'watch'}
 export const manageKey=(profile:string)=>`diamond-nine-managed-${profile}`;
-const validOrder=(o:unknown):boolean=>o===null||(!!o&&typeof o==='object'&&typeof (o as {kind?:unknown}).kind==='string'&&['bunt','steal','ibb','pinch','runner','field','pitcher','tactic'].includes((o as {kind:string}).kind));
+const validOrder=(o:unknown):boolean=>o===null||(!!o&&typeof o==='object'&&typeof (o as {kind?:unknown}).kind==='string'&&['bunt','steal','ibb','pinch','runner','field','pitcher','move','tactic'].includes((o as {kind:string}).kind));
 export function readManage(profile:string,key:string,storage?:Pick<Storage,'getItem'>):SavedManage|null{
  try{const v=JSON.parse((storage??localStorage).getItem(manageKey(profile))??'null');
   if(!v||v.v!==1||v.key!==key||!Number.isInteger(v.control)||!Array.isArray(v.inputs)||v.inputs.length>20000||!v.inputs.every(validOrder))return null;

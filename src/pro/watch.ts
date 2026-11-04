@@ -93,11 +93,12 @@ export function callText(kind:LiveKind,name:string,slot:number,runs:number,innin
   case 'PINCH':return `選手交代: 代打 ${name}${extra?.replaced?`(${extra.replaced} に代わって)`:''}`;
   case 'RUNNER':return `選手交代: 代走 ${name}${extra?.replaced?`(${extra.replaced} に代わって)`:''}`;
   case 'FIELD':return `選手交代: 守備に ${name}${extra?.replaced?`(${extra.replaced} に代わって)`:''}`;
+  case 'MOVE':return `守備位置の変更: ${name}${extra?.replaced?`と ${extra.replaced} が入れ替わり`:''}`;
   case 'PITCHER':return `投手交代: ${extra?.pitcher??name} がマウンドへ`;
   default:return `${who}、${w}。`;
  }
 }
-export const isPlateAppearance=(kind:LiveKind)=>!['SB','CS','PINCH','RUNNER','FIELD','PITCHER'].includes(kind);
+export const isPlateAppearance=(kind:LiveKind)=>!['SB','CS','PINCH','RUNNER','FIELD','PITCHER','MOVE'].includes(kind);
 
 // ---- 速さ(端末に覚える) ----
 export const SPEED_KEY='diamond-nine-watch-speed';

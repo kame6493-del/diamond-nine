@@ -9,11 +9,13 @@ const sandbox=(c:Circuit)=>{const s=initialSandboxState();if(c!=='NPB'){s.season
 const weak=()=>{const s=initialState(5);return s;};
 function game(g:ManagedGame,order:WatchOrder|null){
  const gen=liveGame(g),ev:LiveEvent[]=[];let step=gen.next(),sent=false;
- while(!step.done){let x:WatchOrder|null=null;if(step.value.type==='event')ev.push(step.value.e);else if(!sent){sent=true;x=order;}step=gen.next(x);}
+ // 11/4 夜: 投手ごとの作戦(id が '@starter' の時は、自分のチームの先発投手)
+ while(!step.done){let x:WatchOrder|null=null;if(step.value.type==='event')ev.push(step.value.e);else if(!sent){const st=order&&order.kind==='tactic'&&order.id==='@starter';if(!st){sent=true;x=order;}else if(step.value.s.side!==g.control){sent=true;x={...order,id:step.value.s.pitcher};}}step=gen.next(x);}
  return {r:step.value,ev};
 }
 const configs:[string,WatchOrder|null][]=[['作戦なし',null],['長打狙い',{kind:'tactic',scope:'team',tactic:'power'}],['ミート打ち',{kind:'tactic',scope:'team',tactic:'contact'}],['積極的に',{kind:'tactic',scope:'team',tactic:'aggressive'}],['慎重に',{kind:'tactic',scope:'team',tactic:'patient'}],
- ['直球中心',{kind:'tactic',scope:'pitch',tactic:'fastball'}],['変化球中心',{kind:'tactic',scope:'pitch',tactic:'breaking'}],['ボール球中心',{kind:'tactic',scope:'pitch',tactic:'ball'}],['ストライク中心',{kind:'tactic',scope:'pitch',tactic:'strike'}]];
+ ['直球中心',{kind:'tactic',scope:'pitch',tactic:'fastball'}],['変化球中心',{kind:'tactic',scope:'pitch',tactic:'breaking'}],['ボール球中心',{kind:'tactic',scope:'pitch',tactic:'ball'}],['ストライク中心',{kind:'tactic',scope:'pitch',tactic:'strike'}],
+ ['先発だけボール球中心',{kind:'tactic',scope:'pitcher',id:'@starter',tactic:'ball'}],['先発だけストライク中心',{kind:'tactic',scope:'pitcher',id:'@starter',tactic:'strike'}]];
 const pct=(a:number,b:number)=>(100*a/Math.max(1,b)).toFixed(1);
 for(const [name,state] of [['国内(強いチーム)',sandbox('NPB')],['国内(始めたばかり)',weak()],['海外',sandbox('MLB')],['宇宙',sandbox('SPACE')]] as [string,GameState][]){
  const g0=managedGame(state)!;

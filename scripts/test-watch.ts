@@ -13,7 +13,7 @@ import {playerMap,canBat} from '../src/pro/data';
 import {readSpeed,saveSpeed,paMillis,homeRunMillis,SPEED_KEY,pitchesFor,countOf,gradeOf} from '../src/pro/watch';
 import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,readManage,saveManage,clearManage,manageKey,type ManagedGame} from '../src/pro/managed';
 import {PawaSeason} from '../src/pro/pawa/PawaSeason';
-import {KeyGameStop} from '../src/pro/SimpleApp';
+import {KeyGameCard} from '../src/pro/SimpleApp';
 
 type Orders=(s:LiveSituation,events:LiveEvent[])=>WatchOrder|null;
 /** 画面と同じやり方で試合を回す(渡した値を全部覚える)。 */
@@ -185,20 +185,21 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
   const r8=drive(g,(s)=>s.side===side?{kind:'ibb'}:{kind:'bunt'});
   assert.ok(sameBox(r8.result!,auto));
  });
- test('screens: no more "今年の名場面を観る"; the stop screen offers 監督して戦う / おまかせで観る / 一気に進める (and 続きから after closing mid-game)',()=>{
+ test('screens: no more "今年の名場面を観る"; the home card offers 監督して戦う / 一気に進める (and 続きから after closing mid-game)',()=>{
   const done=plainYear(sandbox('NPB'));
   const html=renderToStaticMarkup(createElement(PawaSeason,{state:done,busy:false,progress:0,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:''}));
   assert.ok(!html.includes('今年の名場面を観る'));assert.ok(!html.includes('wt-watch-btn'));
   const state=sandbox('NPB'),g=managedGame(state)!;
-  const stop=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:state,game:g,saved:null},name:state.name,club:state.club,onManage:()=>{},onRestart:()=>{},onWatch:()=>{},onAuto:()=>{}}));
-  for(const x of ['開幕戦','監督して戦う','おまかせで観る','一気に進める','結果はそのままシーズンに入ります'])assert.ok(stop.includes(x),x);
-  assert.ok(!stop.includes('続きから'));
-  const resume=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:state,game:g,saved:[null,null]},name:state.name,club:state.club,onManage:()=>{},onRestart:()=>{},onWatch:()=>{},onAuto:()=>{}}));
+  const card=(at:GameState,game:ManagedGame,saved:boolean)=>renderToStaticMarkup(createElement(KeyGameCard,{game,at,name:at.name,club:at.club,saved,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
+  const stop=card(state,g,false);
+  for(const x of ['開幕戦','監督して戦う','一気に進める','次の大事な試合'])assert.ok(stop.includes(x),x);
+  assert.ok(!stop.includes('おまかせで観る'));assert.ok(!stop.includes('続きから'));
+  const resume=card(state,g,true);
   assert.ok(resume.includes('続きから監督する'));assert.ok(resume.includes('この試合を最初からやり直す'));
   // 短期決戦で止まった時は、ここまでの勝ち数を出す
   const {stops}=runYear(state,()=>null);const post=stops.find(x=>x.g.kind==='post');
   if(post){let s=state;while(!s.season.completed)s=simulateDays(s,7);while(keyGameAhead(s)?.key!==post.g.key)s=simulatePostseason(s,1);
-   const ph=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:s,game:managedGame(s)!,saved:null},name:s.name,club:s.club,onManage:()=>{},onRestart:()=>{},onWatch:()=>{},onAuto:()=>{}}));
+   const ph=card(s,managedGame(s)!,false);
    assert.ok(ph.includes('勝ち抜け'));assert.ok(ph.includes(post.g.label));}
  });
 }

@@ -11,7 +11,7 @@ import { gameReward,isCareer,seasonReward,type Profile } from './progression';
 import { pitchingRoleLabel } from './wiki-players';
 import {defenseAtPosition} from './position-defense';
 import { validGameBox } from './game-log';
-import {tacticRates,batTacticFor,emptyTactics,isBatTactic,isPitchTactic,type Tactics,type BatTactic,type PitchTactic} from './tactics';
+import {tacticRates,batTacticFor,pitchTacticFor,emptyTactics,isBatTactic,isPitchTactic,type Tactics,type BatTactic,type PitchTactic} from './tactics';
 import {claimSeasonGoals} from './ambitions';
 import {ownedRatings,ratingOverall,growthBonus,growOneYear,validCareerGrowth,type CareerGrowthMap} from './development';
 import {recordAchievements,achievementNames,type Achievements} from './achievements';
@@ -161,8 +161,8 @@ export function nextMatchPreview(state:GameState){
 // (interactive=false の時は途中で止まらず、乱数の使い方も前の playGame と同じ)。
 // 観戦モード(WatchScreen)は interactive=true で打席の前ごとに止め、監督の指示(WatchOrder)を受け取る。
 // 指示が無ければ記録と同じ試合になる。指示を出すと、そこから先は「もしも」の試合(シーズンの成績には入れない)。
-export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string}|{kind:'tactic';scope:'team'|'batter'|'pitch';id?:string;tactic:string|null};
-export type LiveKind='BB'|'HBP'|'K'|'OUT'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER';
+export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string}|{kind:'move';slot:number;position:string}|{kind:'tactic';scope:'team'|'batter'|'pitch'|'pitcher';id?:string;tactic:string|null};
+export type LiveKind='BB'|'HBP'|'K'|'OUT'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER'|'MOVE';
 export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string;tactic?:[BatTactic|null,PitchTactic|null]}
 export interface LiveSituation {inning:number;side:number;outs:number;bases:(string|null)[];batter:string;slot:number;pitcher:string;score:[number,number];line:number[][];hits:[number,number];errors:[number,number];lineups:string[][];defense:Record<string,string>[];pitchers:string[][];usedPitchers:string[][];removed:string[][];ibbLeft:number;batToday:Record<string,BatStats>;pitToday:Record<string,PitStats>;tactics:Tactics}
 export type LiveStep={type:'decide';s:LiveSituation}|{type:'event';e:LiveEvent};
@@ -272,14 +272,16 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
     let order:WatchOrder|null|undefined=null;
     if(interactive)for(let guard=0;guard<40;guard++){
      const slot=battingOrder[side]%9;
-     order=yield {type:'decide',s:{inning:inning+1,side,outs:out,bases:bases.map(b=>b?.id??null),batter:rosters[side].lineup[slot],slot,pitcher:pitcherId,score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],lineups:rosters.map(r=>[...r.lineup]),defense:rosters.map(r=>({...r.defense})),pitchers:rosters.map(r=>[...r.pitchers]),usedPitchers:usedPitchers.map(s=>[...s]),removed:removed.map(x=>[...x]),ibbLeft:IBB_PER_INNING-walksOrdered,batToday:tables.batting,pitToday:tables.pitching,tactics:{team:tactics.team,batter:{...tactics.batter},pitch:tactics.pitch}}};
+     order=yield {type:'decide',s:{inning:inning+1,side,outs:out,bases:bases.map(b=>b?.id??null),batter:rosters[side].lineup[slot],slot,pitcher:pitcherId,score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],lineups:rosters.map(r=>[...r.lineup]),defense:rosters.map(r=>({...r.defense})),pitchers:rosters.map(r=>[...r.pitchers]),usedPitchers:usedPitchers.map(s=>[...s]),removed:removed.map(x=>[...x]),ibbLeft:IBB_PER_INNING-walksOrdered,batToday:tables.batting,pitToday:tables.pitching,tactics:{team:tactics.team,batter:{...tactics.batter},pitch:tactics.pitch,pitcher:{...tactics.pitcher}}}};
      if(!order)break;
      if(order.kind==='tactic'){
       // 作戦: いつでも出せる(打撃の作戦は自分の攻撃の時、投手の作戦は自分の守りの時に効く)。試合は進まない。
       if(control>=0){const t=order.tactic;
        if(order.scope==='pitch'){if(t===null||isPitchTactic(t))tactics.pitch=t;}
        else if(order.scope==='team'){if(t===null||isBatTactic(t))tactics.team=t;}
-       else if(order.scope==='batter'&&typeof order.id==='string'&&playerMap[order.id]){if(t===null)delete tactics.batter[order.id];else if(isBatTactic(t))tactics.batter[order.id]=t;}}
+       else if(order.scope==='batter'&&typeof order.id==='string'&&playerMap[order.id]){if(t===null)delete tactics.batter[order.id];else if(isBatTactic(t))tactics.batter[order.id]=t;}
+       // 11/4 夜(持ち主「長打狙いとかその辺」を打席ごとに): 投手ごとの指示(チーム全体の投手の作戦より優先)。
+       else if(order.scope==='pitcher'&&typeof order.id==='string'&&playerMap[order.id]){if(t===null)delete tactics.pitcher[order.id];else if(isPitchTactic(t))tactics.pitcher[order.id]=t;}}
       order=null;continue;
      }
      if(order.kind==='pinch'){
@@ -297,6 +299,14 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
       const old=rosters[defense].lineup[order.slot];
       if(defense!==control||!old||substituteBlock(rosters[defense].lineup,removed[defense],order.id)){order=null;continue;}
       substitute(defense,order.slot,order.id,order.position);yield ev('FIELD',order.id,order.slot,0,order,old);order=null;continue;
+     }
+     if(order.kind==='move'){
+      // 守備位置の入れ替え(11/4 夜 持ち主「守備交代するときにポジションが出てないから、何が何かわからない」): 代打・代走で入った選手なども、
+      // 守っている側の野手の中で位置を入れ替える。指定した位置にいた選手が、元の位置へ回る。指名打者(DH)とは入れ替えない。
+      const r=rosters[defense],pos=order.position,who=r.lineup[order.slot],from=who?r.defense[who]:undefined,other=r.lineup.find(x=>x!==who&&r.defense[x]===pos);
+      if(defense!==control||!who||!from||from==='DH'||pos==='DH'||from===pos||!other){order=null;continue;}
+      r.defense[other]=from;r.defense[who]=pos;defenses[defense]=buildDefense(defense,[]);matchupCache.clear();
+      yield ev('MOVE',who,order.slot,0,order,other);order=null;continue;
      }
      if(order.kind==='pitcher'){
       if(defense!==control||usedPitchers[defense].has(order.id)||!rosters[defense].pitchers.includes(order.id)){order=null;continue;}
@@ -339,7 +349,7 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
      const errorSlope=Math.abs(field)>1e-10?(fieldingErrorRate(0)-fieldingErrorRate(field))/field:.2;
      rates={...current,rangeSlope,errorSlope};matchupCache.set(cacheKey,rates);
     }
-    const batT=side===control?batTacticFor(tactics,id):null,pitT=defense===control?tactics.pitch:null;
+    const batT=side===control?batTacticFor(tactics,id):null,pitT=defense===control?pitchTacticFor(tactics,pitcherId):null;
     const r=batT||pitT?tacticRates(rates,batT,pitT,pitT==='fastball'||pitT==='breaking'?pitchingRatingsForRole(pitcher,gameRatings(pitcher,pitchBonus,stageFor(defense,pitcherId)),pitcherRole):undefined):rates;
     const {walk:walkRate,hbp:hbpRate,strikeout:kRate,homeRun:hrRate,hit:hitRate}=r;
     const recordContact=()=>{for(const f of defenses[defense].fielders){const share=(f.skill-60)*.0012/defenses[defense].fielders.length;creditFieldingContact(f.row,share*r.rangeSlope,share*r.errorSlope/(1-kRate-hrRate));}};
@@ -400,7 +410,7 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
     }
     }
     if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play:play||(kind==='BUNT'?'スクイズ':kind==='IBB'?'押し出し四球':''),runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
-    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined,undefined,control>=0?[side===control?batTacticFor(tactics,id):null,defense===control?tactics.pitch:null]:undefined);
+    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined,undefined,control>=0?[side===control?batTacticFor(tactics,id):null,defense===control?pitchTacticFor(tactics,pitcherId):null]:undefined);
     if(side===1&&inning>=8&&scores[1]>scores[0])break;
     if(bases[0]&&!bases[1]&&out<3&&!bases[0].stealConsidered){
      bases[0].stealConsidered=true;

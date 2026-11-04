@@ -4,6 +4,7 @@
 // 決めるので、見た目と実況・結果は食い違わない。試合の乱数は使わない(演出だけ)。座標はグラウンドの枠の % (左上 0,0)。
 import type {LiveEvent,LiveKind} from './engine';
 import {playWord} from './watch';
+import {playerMap} from './data';
 
 /** [x%, y%, 下へのずれ(px)]。ずれは捕手だけ: 本塁の板と人形は px の大きさなので、本塁の真後ろ(下)に px で置く(2026-11-04 持ち主「捕手の位置、ちょっとおかしい」)。 */
 export type Pt=[number,number,number?];
@@ -13,6 +14,25 @@ export const BASES:Pt[]=[[78,68],[50,40],[22,68]];
 /** 捕手: 本塁(50,91)の真下。板の下の端(+8px)のすぐ下に頭が来る所(足元 +34px)。グラウンドの下に捕手の分の帯(24px)を足してある(watch.css .wt-dia)。 */
 export const CATCHER_DROP=34;
 export const SPOTS:Record<string,Pt>={捕:[50,91,CATCHER_DROP],一:[73,60],二:[63,45],三:[27,60],遊:[37,45],外0:[20,33],外1:[50,24],外2:[80,33],投:[50,63]};
+
+// ---- 右打ち・左打ち・投手の左右(2026-11-04 夜 持ち主「右と左別に立つようにして」) ----
+// 選手データの bats(右・左・両)と throws(右・左)をそのまま使う(実在の選手のデータ)。無い時だけ、id から決まった形で決める(4人に1人が左)。
+export type Hand='R'|'L';
+const idHash=(id:string)=>{let h=2166136261;for(let i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+/** 投手の投げる腕。 */
+export function throwHand(id:string):Hand{
+ const t=playerMap[id]?.throws;
+ return t==='左'?'L':t==='右'?'R':idHash(id)%4===0?'L':'R';
+}
+/** 打者が立つ打席。右打=R(三塁側・画面の左)、左打=L(一塁側・画面の右)。両打ちは投手の反対(右投手なら左打席)。 */
+export function batSide(id:string,pitcher:string):Hand{
+ const b=playerMap[id]?.bats;
+ if(b==='左')return 'L';if(b==='右')return 'R';
+ if(b==='両')return throwHand(pitcher)==='L'?'R':'L';
+ return idHash(id)%4===0?'L':'R';
+}
+/** 打席の立つ所(本塁 50,91 の左右)。 */
+export const BOX:Record<Hand,Pt>={R:[41,93],L:[59,93]};
 const INFIELD=['一','二','三','遊','投'],OUTFIELD=['外0','外1','外2'];
 /** 外野の打球の落ちる所(浅い・深い・スタンド)。 */
 const OF:Record<string,{shallow:Pt;deep:Pt;stand:Pt}>={
@@ -47,7 +67,7 @@ export function basePath(from:number,to:number):Pt[]{
 }
 /** 走者(打者も)の動き。塁の前後の並びから、どこからどこへ進んだかを読む。 */
 function runnerTracks(e:LiveEvent,before:(string|null)[],start:number,perBase:number):Track[]{
- const out:Track[]=[];
+ const out:Track[]=[],box=BOX[batSide(e.batter,e.pitcher)];
  const move=(id:string,from:number,to:number,fade?:boolean)=>{const n=Math.max(1,to-from),pts=basePath(from,to);out.push({who:'r:'+id,pts,t0:start,t1:Math.min(.98,start+perBase*n),fade:fade?[Math.min(.98,start+perBase*n),1]:undefined});};
  before.forEach((id,b)=>{
   if(!id)return;const to=e.bases.indexOf(id);
@@ -58,9 +78,11 @@ function runnerTracks(e:LiveEvent,before:(string|null)[],start:number,perBase:nu
  if(['SB','CS'].includes(e.kind))return out;
  if(e.kind==='K')return out;
  const to=e.bases.indexOf(e.batter);
- if(to>=0)move(e.batter,-1,to);
- else if(e.kind==='HR')move(e.batter,-1,3,true);
- else out.push({who:'r:'+e.batter,pts:[HOME,toward(HOME,BASES[0],.55)],t0:start,t1:start+perBase*.55,fade:[start+perBase*.55,Math.min(1,start+perBase*.55+.15)]});// アウト: 一塁へ走りかけて消える
+ // 打者は立っていた打席から走り出す(左打者は一塁に近い)
+ const fromBox=(t:Track)=>{t.pts=[box,...t.pts.slice(1)];};
+ if(to>=0){move(e.batter,-1,to);fromBox(out[out.length-1]);}
+ else if(e.kind==='HR'){move(e.batter,-1,3,true);fromBox(out[out.length-1]);}
+ else out.push({who:'r:'+e.batter,pts:[box,toward(HOME,BASES[0],.55)],t0:start,t1:start+perBase*.55,fade:[start+perBase*.55,Math.min(1,start+perBase*.55+.15)]});// アウト: 一塁へ走りかけて消える
  return out;
 }
 /** 1つの出来事(打席・盗塁)の動き。before=その前の塁。 */
@@ -75,7 +97,7 @@ export function fieldPlay(e:LiveEvent,before:(string|null)[]):FieldPlay{
  }
  if(k==='K')return {...base,type:'strikeout',length:0};
  if(k==='BB'||k==='HBP'||k==='IBB')return {...base,type:'walk',tracks:runnerTracks(e,before,0,.9),length:.5};
- if(['PINCH','RUNNER','FIELD','PITCHER'].includes(k))return {...base,type:'none',length:0};
+ if(['PINCH','RUNNER','FIELD','PITCHER','MOVE'].includes(k))return {...base,type:'none',length:0};
  if(k==='BUNT'||k==='BUNT_FAIL'){
   const land:Pt=k==='BUNT'?[42,81]:[47,86],f=k==='BUNT'?nearest(land,['捕','投','三','一']):'捕';
   const tracks=runnerTracks(e,before,.12,.3);

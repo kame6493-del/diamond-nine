@@ -9,13 +9,13 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {initialSandboxState,emptySeason,simulateDays,type GameResult,type GameState,type LiveSituation,type LiveEvent,type WatchOrder} from '../src/pro/engine';
-import {finishPostseason,simulatePostseason} from '../src/pro/postseason';
+import {finishPostseason,simulatePostseason,newPostseason} from '../src/pro/postseason';
 import {type Circuit} from '../src/pro/leagues';
-import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,stopAt,readNoStop,saveNoStop,NO_STOP_KEY,readManage,saveManage,type ManagedGame,type StopRules} from '../src/pro/managed';
-import {KeyGameStop} from '../src/pro/SimpleApp';
+import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,stopAt,keyReason,readNoStop,saveNoStop,NO_STOP_KEY,readManage,saveManage,type ManagedGame,type StopRules} from '../src/pro/managed';
+import {KeyGameCard} from '../src/pro/SimpleApp';
 import {tacticRates,pitchFit,batTacticFor,emptyTactics,BAT_TACTICS,PITCH_TACTICS,type BatTactic,type PitchTactic} from '../src/pro/tactics';
 import {fieldPlay,trackAt,BASES,HOME} from '../src/pro/watch-play';
-import {callText,playWord,readSpeed,AUTO_SPEED_KEY,SPEED_KEY,pitchesFor} from '../src/pro/watch';
+import {callText,playWord,readSpeed,SPEED_KEY,pitchesFor} from '../src/pro/watch';
 import {playerMap} from '../src/pro/data';
 
 const sandbox=(circuit:Circuit)=>{const s=initialSandboxState();if(circuit!=='NPB'){s.season=emptySeason(1,circuit,s.club);s.leagueProgress={basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:0};}return s;};
@@ -44,7 +44,7 @@ function runYear(state:GameState,choose:(g:ManagedGame)=>Choice,rules:Partial<St
  return {s,stops};
 }
 const memory=()=>{const store=new Map<string,string>();return {store,getItem:(k:string)=>store.get(k)??null,setItem:(k:string,v:string)=>{store.set(k,v);},removeItem:(k:string)=>{store.delete(k);}};};
-const stopHtml=(at:GameState,g:ManagedGame,saved:unknown[]|null=null,mode?:'manage'|'watch')=>renderToStaticMarkup(createElement(KeyGameStop,{stop:{at,game:g,saved,mode},name:at.name,club:at.club,onManage:()=>{},onRestart:()=>{},onWatch:()=>{},onAuto:()=>{},onSeries:()=>{}}));
+const cardHtml=(at:GameState,g:ManagedGame,saved=false)=>renderToStaticMarkup(createElement(KeyGameCard,{game:g,at,name:at.name,club:at.club,saved,onManage:()=>{},onRestart:()=>{},onAuto:()=>{},onSeries:()=>{}}));
 /** 自分の側の作戦を最初の判断で出し、そのまま最後まで。 */
 const withTactic=(scope:'team'|'pitch',tactic:string):Orders=>{let sent=false;return ()=>{if(sent)return null;sent=true;return {kind:'tactic',scope,tactic};};};
 /** 同じ試合を乱数の位置だけ変えて何試合も回し、自分のチーム(打撃)と相手(打撃=自分の投手の結果)の打席の結果を数える。 */
@@ -65,40 +65,63 @@ function tally(g:ManagedGame,orders:()=>Orders,n:number){
 const rate=(x:{pa:number},k:number)=>k/Math.max(1,x.pa);
 
 export function registerTacticTests(test:(name:string,run:()=>void)=>void){
- test('key game choice (11/4): the stop screen offers 監督して戦う / おまかせで観る / 一気に進める; short series also offer "このシリーズの残りを一気に進める"; opening day the same three',()=>{
+ test('key game card (11/4 夜): no forced choice window; the home card offers 監督して戦う / 一気に進める (no おまかせで観る); short series also "このシリーズの残りを一気に進める"; 続きから after closing',()=>{
   const state=sandbox('NPB'),g=managedGame(state)!;
-  const open=stopHtml(state,g);
-  for(const x of ['開幕戦','監督して戦う','おまかせで観る','一気に進める','大事な試合でも止まらない'])assert.ok(open.includes(x),x);
+  const open=cardHtml(state,g);
+  for(const x of ['開幕戦','監督して戦う','一気に進める','大事な試合でも止まらない','順位表'])assert.ok(open.includes(x),x);
+  assert.ok(!open.includes('おまかせで観る'),'おまかせで観るは無い');
   assert.ok(!open.includes('このシリーズの残りを一気に進める'),'開幕戦にシリーズの選択は無い');
   assert.ok(!open.includes('続きから'));
-  assert.ok(stopHtml(state,g,[null],'watch').includes('続きから観る'));
-  assert.ok(stopHtml(state,g,[null],'manage').includes('続きから監督する'));
-  // 短期決戦で止まった所
+  assert.ok(cardHtml(state,g,true).includes('続きから監督する'));assert.ok(cardHtml(state,g,true).includes('この試合を最初からやり直す'));
+  assert.ok(!open.includes('wt-stop'),'全画面の選ぶ窓ではない');
+  // 短期決戦で止まった所(第1戦)
   let s=state;while(!s.season.completed)s=simulateDays(s,7);
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<200)s=simulatePostseason(s,1);
   const pg=managedGame(s);assert.ok(pg&&pg.kind==='post'&&pg.series,'短期決戦で止まる');
-  const post=stopHtml(s,pg!);
-  for(const x of ['監督して戦う','おまかせで観る','一気に進める','このシリーズの残りを一気に進める','勝ち抜け'])assert.ok(post.includes(x),x);
+  const post=cardHtml(s,pg!);
+  for(const x of ['監督して戦う','一気に進める','このシリーズの残りを一気に進める','勝ち抜け','プレーオフ進出!'])assert.ok(post.includes(x),x);
+  assert.ok(!post.includes('おまかせで観る'));
  });
- test('key game choice: おまかせで観る, 一気に進める, the series skip and the 止まらない setting all equal the plain "1年進める" year',()=>{
+ test('key games in short series (11/4 夜): only game 1 of each series and games where either side is one win away (advantage wins count) stop; the middle games run on; results equal the plain "1年進める" year',()=>{
+  let middle=0,keys=0,reach=0;
   for(const circuit of ['NPB','MLB','SPACE'] as Circuit[]){
    const state=sandbox(circuit),plain=JSON.stringify(plainYear(state));
-   const watched=runYear(state,()=>'watch');
-   assert.equal(JSON.stringify(watched.s),plain,`おまかせで観る ${circuit}`);
-   assert.ok(watched.stops.length>=1&&watched.stops[0].g.label==='開幕戦');
-   if(circuit!=='NPB')continue;// 一気に進める・シリーズ・止まらないは国内で(どれも同じ計算の道を通る。時間を短くする)
-   assert.equal(JSON.stringify(runYear(state,()=>'auto').s),plain,`一気に進める ${circuit}`);
-   // シリーズの残りを一気に: そのシリーズでは2度と止まらない(次のシリーズではまた止まる)
+   // 一気に進める(止まるたびに)= 1年進める
+   const auto=runYear(state,()=>'auto');
+   assert.equal(JSON.stringify(auto.s),plain,`一気に進める ${circuit}`);
+   assert.ok(auto.stops.length>=1&&auto.stops[0].g.label==='開幕戦');
+   // 1日ずつ: 自分のシリーズの試合の前で、止まる = 第1戦か王手
+   let x=state;while(!x.season.completed)x=simulateDays(x,7);
+   let g2=0;while(x.season.postseason?.stage!=='complete'&&g2++<300){
+    const post=x.season.postseason??newPostseason(x.season),ser=post.series.find(q=>q.stage===post.stage&&!q.winner&&(q.higher===x.club||q.lower===x.club));
+    if(ser){const expected=ser.results.length===0||ser.wins[0]>=ser.target-1||ser.wins[1]>=ser.target-1;const k=stopAt(x,{noStop:false,skipSeries:null});
+     assert.equal(!!k,expected,`${circuit} ${ser.id} 第${ser.results.length+1}戦 ${ser.wins.join('-')}/${ser.target}`);
+     if(k){keys++;assert.ok(k.reason&&k.reason.length>0,'なぜ大事かの一言');if(ser.results.length>0){reach++;assert.ok(/王手|負ければ終わり|最終決戦/.test(k.reason!),k.reason);}}else middle++;}
+    x=simulatePostseason(x,1);
+   }
+   void x;
+   if(circuit!=='NPB')continue;
    const sk=runYear(state,g=>g.kind==='post'?'series':'auto');
    assert.equal(JSON.stringify(sk.s),plain,`シリーズを一気に ${circuit}`);
-   const perSeries=new Map<string,number>();for(const x of sk.stops)if(x.g.series)perSeries.set(x.g.series,(perSeries.get(x.g.series)??0)+1);
+   const perSeries=new Map<string,number>();for(const y of sk.stops)if(y.g.series)perSeries.set(y.g.series,(perSeries.get(y.g.series)??0)+1);
    assert.ok([...perSeries.values()].every(n=>n===1),'1つのシリーズで止まるのは最初の1回だけ');
-   const all=runYear(state,()=>'auto').stops.filter(x=>x.g.kind==='post').length;
-   assert.ok(perSeries.size<=all);
-   // 設定「大事な試合でも止まらない」
    const ns=runYear(state,()=>'manage',{noStop:true});
    assert.equal(ns.stops.length,0,'止まらない');assert.equal(JSON.stringify(ns.s),plain);
+   // 監督して何も指示しない試合も、1年進めると同じ(おまかせで観るの代わりの一致の試験)
+   assert.equal(JSON.stringify(runYear(state,()=>'manage').s),plain,'監督して指示なし = 1年進める');
   }
+  assert.ok(keys>0&&middle>0,`途中の試合(止まらない)も、止まる試合もある middle=${middle} keys=${keys}`);
+  // 王手の言葉(アドバンテージの勝ちも数える)
+  const base={stage:'final' as const,target:4,higher:'A',results:[1] as unknown as GameResult[]};
+  assert.equal(keyReason({...base,wins:[3,0]},'A','NPB',false),'王手! 勝てば勝ち抜け');
+  assert.equal(keyReason({...base,wins:[3,3]},'A','NPB',false),'最終決戦! 勝てば勝ち抜け');
+  assert.equal(keyReason({...base,wins:[1,3]},'A','NPB',false),'負ければ終わり');
+  assert.equal(keyReason({...base,wins:[2,1]},'A','NPB',false),'');
+  assert.equal(keyReason({...base,stage:'japan',wins:[3,1]},'A','NPB',false),'王手! 勝てば国内王座');
+  assert.equal(keyReason({...base,stage:'world',wins:[1,3]},'B','SPACE',false),'王手! 勝てば宇宙王座');
+  assert.equal(keyReason({stage:'final',target:4,higher:'A',results:[],wins:[3,0]},'A','NPB',false),'王手! 勝てば勝ち抜け','アドバンテージ3勝(仮)の第1戦は王手');
+  assert.equal(keyReason({stage:'first',target:2,higher:'A',results:[],wins:[0,0]},'B','NPB',true),'プレーオフ進出!');
+  void reach;
  });
  test('settings: 大事な試合でも止まらない is off (stops) by default, is remembered on the device, and only skips the stop',()=>{
   const st=memory();
@@ -109,12 +132,10 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   const state=sandbox('NPB');
   assert.equal(stopAt(state,{noStop:false,skipSeries:null})?.label,'開幕戦');
   assert.equal(stopAt(state,{noStop:true,skipSeries:null}),null);
-  // 観戦の速さ: おまかせで観るは最初2倍(監督の速さとは別に覚える)
-  const sp=memory();assert.equal(readSpeed(sp,AUTO_SPEED_KEY,2),2);assert.equal(readSpeed(sp,SPEED_KEY,1),1);
-  sp.setItem(AUTO_SPEED_KEY,'4');assert.equal(readSpeed(sp,AUTO_SPEED_KEY,2),4);assert.equal(readSpeed(sp,SPEED_KEY,1),1);
-  // 途中で閉じた「おまかせで観る」は、観る形のまま続きから
+  const sp=memory();assert.equal(readSpeed(sp,SPEED_KEY,1),1);
+  // 前の版で「おまかせで観る」のまま閉じた試合も読める(監督の試合として続きから)
   const g=managedGame(state)!,store=memory();saveManage('career',{v:1,key:g.key,control:g.control,inputs:[null,null],mode:'watch'},store);
-  assert.equal(readManage('career',g.key,store)?.mode,'watch');
+  assert.deepEqual(readManage('career',g.key,store)?.inputs,[null,null]);
   store.setItem('diamond-nine-managed-career',JSON.stringify({v:1,key:g.key,control:0,inputs:[],mode:'hack'}));assert.equal(readManage('career',g.key,store),null);
  });
  test('tactics: the multipliers move the plate-appearance odds the stated way and stay within a few to about fifteen percent',()=>{
