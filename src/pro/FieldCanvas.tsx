@@ -1,6 +1,7 @@
 // 試合の画面のグラウンド(2026-11-05 作り直し)。本物の縮尺のグラウンド(field-sim.ts、メートル)を、捕手の後ろの少し高い所から見た形でキャンバスに描く。
 // 芝・土・線・塁は大きさが変わった時だけ裏のキャンバスに1回描き、動きの間は人形とボールだけを毎コマ描く(スマホで重くならないように)。
 // 解像度は表示の最大3倍(端末の倍率まで)で持つ。人形は ChatGPT で今の絵柄に合わせて描いたコマ(sprite-atlas.ts)、無いコマは今の絵を回す・ずらすで補う。
+// 11/5 朝: 打者と捕手は、捕手の後ろから見た向き(背中が見える)に描き直した。右打者は左の打席で一塁側を向き、左打者は左右を返す。
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {actorAt,ballAt,fenceAt,BAGS,PLATE,RUBBER,type ActorAt,type Choreo,type Pose,type V} from './field-sim';
 import {ATLAS,type FrameName} from './sprite-atlas';
@@ -65,6 +66,8 @@ function drawFor(a:ActorAt,t:number):Draw{
   return m[a.pose];
  }
  const runner=a.role!=='f';
+ // 捕手は本塁の後ろで、投手の方を向いている(見る人には背中)。11/5 朝 持ち主「捕手の向きがおかしい」→ ChatGPT で後ろ姿を描き直した。
+ if(a.pos==='C'&&Math.hypot(a.p[0],a.p[1])<4.5&&['crouch','catch','ready','cover','ctrthrow'].includes(a.pose))return a.pose==='catch'?{frame:'catch_catch',base:'fielder'}:a.pose==='ctrthrow'?{frame:'catch_throw',base:'fielder'}:{frame:'catch_crouch',base:'fielder'};
  switch(a.pose){
   case 'run':case 'jog':return runner?{frame:step>0?'run_run1':'run_run2',base:'runner',dy:Math.abs(step)*-1.5}:{frame:step>0?'field_run1':'field_run2',base:'fielder',rot:step*5,dy:Math.abs(step)*-1.5};
   case 'lead':return {frame:'run_lead',base:'runner',rot:-4,sy:.94};
@@ -73,7 +76,7 @@ function drawFor(a:ActorAt,t:number):Draw{
   case 'sad':return {frame:'run_sad',base:runner?'runner':'fielder',rot:8,sy:.93};
   case 'grounder':return {frame:'field_grounder',base:'fielder',sy:.88};
   case 'fly':return {frame:'field_fly',base:'fielder',sy:1.05,rot:-4};
-  case 'catch':return {frame:a.pos==='C'?'catch_crouch':'field_fly',base:'fielder'};
+  case 'catch':return {frame:'field_fly',base:'fielder'};
   case 'throw':return {frame:'field_throw1',base:'fielder',rot:-12};
   case 'throw2':return {frame:'field_throw2',base:'fielder',rot:16};
   case 'ctrthrow':return {frame:'catch_throw',base:'fielder',rot:14};
@@ -170,7 +173,8 @@ export function FieldCanvas({scene,className='',children,onSize}:{scene:FieldSce
    const sw=useFrame?fr![2]:im.naturalWidth,sh=useFrame?fr![3]:im.naturalHeight,sx0=useFrame?fr![0]:0,sy0=useFrame?fr![1]:0;
    const hh=h*(useFrame?(fr![4]??1):1)*(useFrame?1:(d.sy??1)),ww=hh*sw/sh;
    g.save();g.globalAlpha=a.o;g.translate(x,y+(d.dy??0)*h/30);
-   let flip=flipBase?-1:1;if(face<0&&!(a.role==='b'&&['stance','stride','swing','miss','follow','bunt'].includes(a.pose))&&!(a.pos==='P'&&['set','windup','kick','release','follow'].includes(a.pose)))flip*=-1;
+   // 捕手の後ろ姿は左右を返さない(返すとミットと投げる手が入れ替わる)。
+   let flip=flipBase?-1:1;if(face<0&&!d.frame?.startsWith('catch_')&&!(a.role==='b'&&['stance','stride','swing','miss','follow','bunt'].includes(a.pose))&&!(a.pos==='P'&&['set','windup','kick','release','follow'].includes(a.pose)))flip*=-1;
    void face;face=0;
    g.scale(flip,1);
    if(!useFrame&&d.rot)g.rotate(d.rot*Math.PI/180);

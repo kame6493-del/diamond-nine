@@ -25,6 +25,8 @@ import {substituteBlock,IBB_PER_INNING,type BatStats,type GameResult,type GameSt
 import {liveGame,type ManagedGame} from './managed';
 import {formatAvg,formatIP,fitsPosition,playerMap,teamById,type Ratings} from './data';
 import {defenseAtPosition} from './position-defense';
+import {posFitLine} from './lineup';
+import {GRADE_GUIDE} from './AbilityTag';
 import {circuitOf} from './leagues';
 import {isSpaceAlien} from './mlb-opponents';
 import {alienVelocity} from './space-aliens';
@@ -454,7 +456,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
     {pits.map(p=><li key={'p'+p.playerId}><b>{nameOf(p.playerId)}</b><span>{formatIP(p.outs)}回 {l.pitchCount[`${control>=0?control:0}|${p.playerId}`]??0}球 {p.so}奪三振 {p.er}自責</span></li>)}
     {theirHr.slice(0,2).map(b=><li key={'h'+b.playerId} className="is-rival"><b>{nameOf(b.playerId)}</b><span>(相手){b.hr}本塁打 {b.rbi}打点</span></li>)}</ul>
    <p className="wt-final-note">この結果がシーズンの成績・順位{g.kind==='post'?'・勝ち上がり':''}に入ります。</p>
-   <div className="wt-final-btns"><button className="wt-navy" onClick={()=>openSheet('box')}>成績表</button><button className="wt-gold" onClick={finish}>結果を残して次へ</button></div></section>;
+   <div className="wt-final-btns"><button className="wt-navy" onClick={()=>openSheet('box')}>成績表</button><button className="wt-gold" onClick={finish}>次へ</button></div></section>;
  };
 
  // ---- シート ----
@@ -481,7 +483,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
  };
  return <div className="wt-root" role="dialog" aria-modal="true" aria-label="試合観戦">
   <div className="wt-wrap wt-one">
-   <header className="wt-head"><button className="wt-back" aria-label={fin?'結果を残して次へ':'試合を中断して戻る'} onClick={back}>{fin?'次へ':'中断'}</button><FitTitle label={g.label} teams={`${teamName(g.away)} - ${teamName(g.home)}`}/><div><button onClick={()=>openSheet('opp')}>相手チーム</button><button onClick={()=>openSheet('box')}>成績表</button></div></header>
+   <header className="wt-head"><button className="wt-back" aria-label={fin?'次へ':'試合を中断して戻る'} onClick={back}>{fin?'次へ':'中断'}</button><FitTitle label={g.label} teams={`${teamName(g.away)} - ${teamName(g.home)}`}/><div><button onClick={()=>openSheet('opp')}>相手チーム</button><button onClick={()=>openSheet('box')}>成績表</button></div></header>
    {scoreboard()}
    {!fin&&field()}
    <div className={'wt-call'+(l.log[0]?.gold?' is-gold':'')} aria-live="polite"><em aria-hidden="true">実況</em><span>{l.log[0]?.note&&<b className={'wt-note-tag is-'+(l.log[0].note.good?'good':'bad')}>{l.log[0].note.text}</b>}{l.log[0]?.text??'プレイボール!'}</span></div>
@@ -520,7 +522,7 @@ function TacticSheet({sit,control,ratingsFor,onApply,onClose}:{sit:LiveSituation
   {pr&&pitcher&&<p className="wt-note">いまの投手 {nameOf(pitcher)}: 球速 {Math.round(pr.velocity)}km・変化球 {gradeOf(pr.breaking)}</p>}
   <div className="wt-tcs">{opt(!t.pitch,'なし','ふだんどおり',()=>onApply({kind:'tactic',scope:'pitch',tactic:null}))}{PITCH_TACTICS.map(k=><span key={k}>{opt(t.pitch===k,pitchTacticLabel[k],pitchTacticNote[k],()=>onApply({kind:'tactic',scope:'pitch',tactic:k}),fitText(fit(k)))}</span>)}</div>
   <p className="wt-note">効き方は数%〜十数%です。作戦を出した試合の結果も、そのままシーズンに入ります。</p>
-  <div className="wt-final-btns is-sticky"><button className="wt-gold" onClick={onClose}>この作戦で続ける</button></div>
+  <div className="wt-final-btns is-sticky"><button className="wt-gold" onClick={onClose}>決定</button></div>
  </div></div>;
 }
 
@@ -536,7 +538,7 @@ export function positionNames(lineup:string[],defense:Record<string,string>):Rec
  for(const id of lineup){const p=defense[id];out[id]=p==='外'?OF_NAMES[of++%3]:p==='DH'?'指':p;}
  return out;
 }
-const canPlay=(id:string)=>{const p=playerMap[id];if(!p)return '—';const list=[p.position,...(p.positions??[])].filter((x,i,a)=>x&&a.indexOf(x)===i);return list.map(x=>x==='外'?'外野':x==='内'?'内野':posLabel(x)).slice(0,4).join('・')||'—';};
+const canPlay=(id:string)=>{const f=posFitLine(id);return f.length?f.map(x=>`${x.pos}${x.mark}`).join(' '):'—';};
 function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l:Live;sit:LiveSituation;ids:string[];club:string;ratingsFor:(side:number,id:string)=>Ratings;box:{bat:Record<string,BatStats>;pit:Record<string,PitStats>};batOf:(t:string,id:string)=>BatLine;pitOf:(t:string,id:string)=>PitLine;onApply:(o:WatchOrder)=>void;onClose:()=>void}){
  void club;
  const side=l.control,atBat=sit.side===side,team=ids[side];
@@ -586,7 +588,7 @@ function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l
   <div className="wt-tabs" role="tablist">{(atBat?['pinch','runner']:['field','pitcher'] as SubTab[]).map(t=><button key={t} role="tab" aria-selected={tab===t} aria-disabled={!!tabWhy[t as SubTab]} className={(tab===t?'is-on':'')+(tabWhy[t as SubTab]?' is-off':'')} onClick={()=>choose(t as SubTab)}>{({pinch:'代打',runner:'代走',field:'守備交代',pitcher:'投手交代'} as Record<string,string>)[t]}</button>)}</div>
   {tab==='field'&&<>
    <h4 className="wt-band">1. 代える位置を選ぶ</h4>
-   <div className="wt-posgrid">{fielderSlots.map(([id,i])=>{const g=posGrade(id,defense[id]);return <button key={id} className={slot===i?'is-on':''} aria-pressed={slot===i} onClick={()=>{setSlot(i);setPick(null);}}><b>{names[id]}</b><span><small>{i+1}番</small><i>{nameOf(id)}</i></span>{gradeBadge(g)}</button>;})}
+   <div className="wt-posgrid">{fielderSlots.map(([id,i])=>{const g=posGrade(id,defense[id]);return <button key={id} className={slot===i?'is-on':''} aria-pressed={slot===i} onClick={()=>{setSlot(i);setPick(null);}}><b>{names[id]}</b><span><small>{i+1}番</small><i>{nameOf(id)}</i></span>{g&&<em className="wt-pg-def"><small>守備</small>{gradeBadge(g)}</em>}</button>;})}
     <button className="is-pitcher" onClick={()=>choose('pitcher')}><b>投</b><span><small>投手</small><i>{nameOf(sit.pitcher)}</i></span><em>交代へ</em></button></div>
    {slot===null?<p className="wt-note">代える選手の位置を押してください。次に、入れる選手(控え)か、位置を入れ替える選手を選びます。</p>:<>
     <h4 className="wt-band">2. {names[targetId]}({target+1}番 {nameOf(targetId)})に入れる選手</h4>
@@ -603,7 +605,7 @@ function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l
    <h4 className="wt-band">ベンチの選手({tab==='pinch'?'代打':'代走'})</h4><div className="wt-list">{bench.length?bench.map(benchRow):<p className="wt-note">ベンチに出せる選手がいません。チーム画面で控えを増やすと、代打・代走・守備交代に出せます。</p>}</div></>}
   {tab==='pitcher'&&<><h4 className="wt-band">ブルペン(投手交代)</h4><div className="wt-list">{sit.pitchers[side].filter(id=>id!==sit.pitcher).map(penRow)}</div></>}
   {tab!=='pitcher'&&(tab!=='field'||slot!==null)&&<><h4 className="wt-band">打順と守備位置(交代後の予定)</h4><table className="wt-order"><thead><tr><th>打順</th><th>選手名</th><th>守備</th></tr></thead><tbody>{after.lu.map((id,i)=><tr key={i} className={i===target||(pick?.swap&&id===pick.id)?'is-target':''}><td>{i+1}</td><td>{nameOf(id)}</td><td>{after.names[id]}</td></tr>)}</tbody></table></>}
-  <p className="wt-note">退いた選手・もう投げた投手は、この試合に戻れません。</p>
+  <p className="wt-note">{GRADE_GUIDE}。守れる所の ◎=本職 ○=守れる △=苦手。退いた選手・もう投げた投手は、この試合に戻れません。</p>
   <div className="wt-final-btns is-sticky"><button className="wt-gold" disabled={!pick||!!tabWhy[tab]} onClick={decide}>決定</button><button className="wt-navy" onClick={onClose}>やめる</button></div>
  </div></div>;
 }
@@ -623,9 +625,9 @@ function TeamSheet({team,other,l,ids,teamName,ratingsFor,batOf,pitOf,onClose}:{t
   {other&&<div className="wt-choose">{ids.map(id=><button key={id} className={shown===id?'is-on':''} onClick={()=>setShown(id)}>{teamName(id)}</button>)}</div>}
   <div className="wt-team-head"><img src={`/assets/pro/watch/fielder_${side>=0&&ids[side]===l.base.club?'blue':'red'}.webp`} alt=""/><div><h3>{teamName(shown)}</h3><div className="wt-strength"><span>チームの強さ</span>{strength.map(([k,v])=><p key={k}><small>{k}</small><b className={gradeClass(v)}>{gradeOf(v)}</b></p>)}</div></div></div>
   <div className="wt-tabs" role="tablist">{([['bat','打者'],['pit','投手'],['bench','ベンチ']] as const).map(([k,t])=><button key={k} role="tab" aria-selected={tab===k} className={tab===k?'is-on':''} onClick={()=>setTab(k)}>{t}</button>)}</div>
-  <div className="wt-scroll">{tab==='pit'?<table className="wt-roster"><thead><tr><th></th><th>投手</th><th>km</th><th>制球</th><th>スタ</th><th>変化</th><th>今季</th></tr></thead><tbody>{pitchers.map(pitRow)}</tbody></table>
-   :<table className="wt-roster"><thead><tr><th>打順</th><th>選手</th><th>守</th><th>ミ</th><th>パ</th><th>走</th><th>守</th><th>今季</th></tr></thead><tbody>{tab==='bat'?lineup.map((id,i)=>batRow(id,i)):bench.length?bench.map(id=>batRow(id,null)):<tr><td colSpan={8}>控えの野手はいません</td></tr>}</tbody></table>}</div>
-  <p className="wt-note">能力は試合の計算に使う値(相手の補正込み)。ミ=ミート・パ=パワー・走=走力・守=守備、スタ=スタミナ。宇宙リーグの相手は99を超えて S+ になる能力があります。</p>
+  <div className="wt-scroll">{tab==='pit'?<table className="wt-roster"><thead><tr><th></th><th>投手</th><th>球速</th><th>制球</th><th>スタミナ</th><th>変化</th><th>今季</th></tr></thead><tbody>{pitchers.map(pitRow)}</tbody></table>
+   :<table className="wt-roster"><thead><tr><th>打順</th><th>選手</th><th>位置</th><th>ミート</th><th>パワー</th><th>走力</th><th>守備</th><th>今季</th></tr></thead><tbody>{tab==='bat'?lineup.map((id,i)=>batRow(id,i)):bench.length?bench.map(id=>batRow(id,null)):<tr><td colSpan={8}>控えの野手はいません</td></tr>}</tbody></table>}</div>
+  <p className="wt-note">{GRADE_GUIDE}。能力は試合の計算に使う値(相手の補正込み)。宇宙リーグの相手は99を超えて S+ になる能力があります。</p>
  </Sheet>;
 }
 

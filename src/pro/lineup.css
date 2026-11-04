@@ -59,4 +59,35 @@
 .lu-root .pw-rank-wrap{display:inline-flex}
 .lu-root .pw-rank{display:grid;place-items:center;border-radius:6px;font-style:normal;font-weight:900;color:#fff}
 .lu-root .pw-rank[data-rank=S]{background:#c98a00}.lu-root .pw-rank[data-rank=A]{background:#e0245e}.lu-root .pw-rank[data-rank=B]{background:#f05a1a}.lu-root .pw-rank[data-rank=C]{background:#e89400}.lu-root .pw-rank[data-rank=D]{background:#a8a000}.lu-root .pw-rank[data-rank=E]{background:#23a04f}.lu-root .pw-rank[data-rank=F]{background:#2a7fe0}.lu-root .pw-rank[data-rank=G]{background:#7b8794}
-@media (max-width:370px){.lu-abs{grid-template-columns:repeat(4,20px)}.lu-root .lu-abs .pw-rank{width:20px;height:20px;font-size:12px}.lu-row-main,.lu-pit{gap:5px;padding:4px 6px}}
+@media (max-width:370px){.lu-row-main,.lu-pit{gap:5px;padding:4px 6px}}
+/* 11/5 朝: 能力に項目名と棒、守れる位置(◎○△)、投手の役割の適性。行は2段(上=名前と適性、下=能力)。 */
+.lu-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.lu-top{display:flex;align-items:center;gap:6px;min-width:0}
+.lu-row-main,.lu-pit{align-items:center}
+.lu-root .lu-abs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;width:100%}
+.lu-root .lu-abs.is-p{grid-template-columns:1.15fr 1fr 1fr 1fr}
+.lu-fits{flex:none;display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:52%}
+.lu-fits i{font-style:normal;font-size:12px;font-weight:900;line-height:18px;padding:0 4px;border-radius:5px;white-space:nowrap}
+.lu-fits i.is-main{background:#1766e8;color:#fff}
+.lu-fits i.is-ok{background:#dff3e4;color:#16702f}
+.lu-fits i.is-weak{background:#fff1c9;color:#8a5a00}
+.lu-fits i.is-no{background:#eceff4;color:#6b7686}
+.lu-pos{min-width:56px}
+.lu-posmark{font-size:15px;line-height:1;font-weight:900}
+.lu-pos.is-main .lu-posmark{color:#1766e8}.lu-pos.is-ok .lu-posmark{color:#16702f}.lu-pos.is-weak .lu-posmark{color:#b07400}.lu-pos.is-no .lu-posmark{color:#b81d26}
+.lu-pos:not(.is-bad) small{color:#3d5a8f}
+.lu-posbar .lu-pb-top{display:flex;align-items:center;gap:3px}
+.lu-posbar .lu-pb-top b{font-size:16px;font-weight:900}
+.lu-posbar button.is-main .lu-pb-top b{color:#1766e8}.lu-posbar button.is-ok .lu-pb-top b{color:#16702f}.lu-posbar button.is-weak .lu-pb-top b{color:#b07400}.lu-posbar button.is-no .lu-pb-top b{color:#b81d26}
+.lu-posbar button.is-no small{color:#b81d26}
+.lu-posbig{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr 76px;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#fff;border:2px solid #7fb2f0}
+.lu-posbig .lu-pbm{font-size:34px;font-weight:900;line-height:1;width:40px;text-align:center}
+.lu-posbig span:nth-child(2){display:flex;flex-direction:column;gap:2px;min-width:0}
+.lu-posbig b{font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-posbig em{font-style:normal;font-size:13px;font-weight:900;line-height:1.3}
+.lu-posbig.is-main{border-color:#1766e8}.lu-posbig.is-main .lu-pbm,.lu-posbig.is-main em{color:#1766e8}
+.lu-posbig.is-ok .lu-pbm,.lu-posbig.is-ok em{color:#16702f}
+.lu-posbig.is-weak{border-color:#e0a000;background:#fffaf0}.lu-posbig.is-weak .lu-pbm,.lu-posbig.is-weak em{color:#a86c00}
+.lu-posbig.is-no{border-color:#e8333c;background:#fff0f0}.lu-posbig.is-no .lu-pbm,.lu-posbig.is-no em{color:#b81d26}
+.lu-pit .lu-rest{align-self:center}
+@media (max-width:370px){.lu-root .lu-abs{gap:2px}.ab-tag{padding:2px 3px 3px}.ab-tag b{font-size:15px}.ab-tag.is-kmh b{font-size:13px}.lu-fits i{font-size:11px;padding:0 3px}.lu-posbig{grid-template-columns:auto 1fr 64px}}

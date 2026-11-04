@@ -68,20 +68,20 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
  test('key game card (11/4 夜): no forced choice window; the home card offers 監督して戦う / 一気に進める (no おまかせで観る); short series also "このシリーズの残りを一気に進める"; 続きから after closing',()=>{
   const state=sandbox('NPB'),g=managedGame(state)!;
   const open=cardHtml(state,g);
-  for(const x of ['開幕戦','監督して戦う','一気に進める','「1年進める」と同じ結果'])assert.ok(open.includes(x),x);
+  for(const x of ['開幕戦','監督して戦う','一気に進める'])assert.ok(open.includes(x),x);
   // 11/5 持ち主「『監督して戦う』だけでいいです。作戦うんちゃらかんちゃらはいらない」「止まっている間は…こういう文言はいらない」
   for(const x of ['大事な試合でも止まらない','止まっている間','作戦・バント','次の大事な試合'])assert.ok(!open.includes(x),x);
   assert.ok(!open.includes('おまかせで観る'),'おまかせで観るは無い');
-  assert.ok(!open.includes('このシリーズの残りを一気に進める'),'開幕戦にシリーズの選択は無い');
+  assert.ok(!open.includes('シリーズを一気に'),'開幕戦にシリーズの選択は無い');
   assert.ok(!open.includes('続きから'));
-  assert.ok(cardHtml(state,g,true).includes('続きから監督する'));assert.ok(cardHtml(state,g,true).includes('この試合を最初からやり直す'));
+  assert.ok(cardHtml(state,g,true).includes('続きから監督する'));assert.ok(cardHtml(state,g,true).includes('やり直す'));
   assert.ok(!open.includes('wt-stop'),'全画面の選ぶ窓ではない');
   // 短期決戦で止まった所(第1戦)
   let s=state;while(!s.season.completed)s=simulateDays(s,7);
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<200)s=simulatePostseason(s,1);
   const pg=managedGame(s);assert.ok(pg&&pg.kind==='post'&&pg.series,'短期決戦で止まる');
   const post=cardHtml(s,pg!);
-  for(const x of ['監督して戦う','一気に進める','このシリーズの残りを一気に進める','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
+  for(const x of ['監督して戦う','一気に進める','シリーズを一気に','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
   assert.ok(!post.includes('止まっている間'));
   assert.ok(!post.includes('おまかせで観る'));
  });

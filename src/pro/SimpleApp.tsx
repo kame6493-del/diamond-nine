@@ -102,9 +102,9 @@ export function KeyGameCard({game,at,name,club,saved,busy,onManage,onRestart,onA
   <h2 className="kg-head">{lead&&<em>{lead}</em>}<span>{game.label}</span><b>vs {label(rival)}</b></h2>
   <div className="kg-btns">
    <button className="kg-manage" disabled={busy} onClick={onManage}>{saved?'続きから監督する':'監督して戦う'}</button>
-   <button className="kg-auto" disabled={busy} onClick={onAuto}>一気に進める<small>「1年進める」と同じ結果</small></button>
-   {series&&onSeries&&<button className="kg-series-btn" disabled={busy} onClick={onSeries}>このシリーズの残りを一気に進める</button>}
-   {saved&&<button className="kg-restart" disabled={busy} onClick={onRestart}>この試合を最初からやり直す</button>}
+   <button className="kg-auto" disabled={busy} onClick={onAuto}>一気に進める</button>
+   {series&&onSeries&&<button className="kg-series-btn" disabled={busy} onClick={onSeries}>シリーズを一気に</button>}
+   {saved&&<button className="kg-restart" disabled={busy} onClick={onRestart}>やり直す</button>}
   </div>
  </section>;
 }

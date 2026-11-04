@@ -168,7 +168,7 @@ export function register1105Tests(test:(name:string,run:()=>void)=>void){
  test('home card and notices (11/5): the card is just the game name and opponent with 監督して戦う / 一気に進める; no "タップで閉じる" anywhere in the game',()=>{
   const state=initialSandboxState(),g=managedGame(state)!;
   const html=renderToStaticMarkup(createElement(KeyGameCard,{game:g,at:state,name:state.name,club:state.club,saved:false,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
-  for(const x of ['開幕戦','vs','監督して戦う','一気に進める','「1年進める」と同じ結果'])assert.ok(html.includes(x),x);
+  for(const x of ['開幕戦','vs','監督して戦う','一気に進める'])assert.ok(html.includes(x),x);
   for(const x of ['次の大事な試合','止まっている間','作戦・バント','大事な試合でも止まらない'])assert.ok(!html.includes(x),x);
   const walk=(dir:string):string[]=>readdirSync(dir,{withFileTypes:true}).flatMap(d=>d.isDirectory()?walk(`${dir}/${d.name}`):/\.(tsx|ts)$/.test(d.name)?[`${dir}/${d.name}`]:[]);
   for(const f of walk('src')){const t=readFileSync(f,'utf8').split('\n').filter(l=>!/^\s*\/\//.test(l)).join('\n');assert.ok(!/タップで閉じる|タップで次へ|タップして続ける/.test(t),f);}

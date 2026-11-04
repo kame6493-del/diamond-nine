@@ -5,6 +5,8 @@
 import {canBat,fitsPosition,playerMap} from './data';
 import type {GameState} from './engine';
 import {seasonConditions} from './conditions';
+import {positionDefensePenalty} from './position-defense';
+import {pitcherRolePenalty,type PitcherRole} from './pitcher-aptitude';
 
 export interface StartOrder {lineup:string[];defense:Record<string,string>;pitchers:string[]}
 export const POSITION_NEED:Record<string,number>={捕:1,一:1,二:1,三:1,遊:1,外:3};
@@ -72,3 +74,35 @@ export function restDays(s:Pick<GameState,'season'>,o:StartOrder,id:string):numb
 export function formOf(s:GameState,id:string):number{return seasonConditions(s).find(c=>c.playerId===id)?.boost??0;}
 /** 本職か(その守備位置を守れるか)。 */
 export const isNative=(id:string,pos:string)=>pos==='DH'||!!playerMap[id]&&fitsPosition(playerMap[id],pos);
+
+// ---- 適性の表示(11/5 朝 持ち主「選手のポジション適性がわからない。投手も同じ」) ----
+export type FitMark='◎'|'○'|'△'|'×';
+export interface PosFit {pos:string;mark:FitMark;main:boolean;text:string}
+const FIELD_POS=['捕','一','二','三','遊','外'];
+/** 守備位置の適性。◎=本職(登録の守備位置)、○=守れる、△=守れるが苦手(守備が少し下がる)、×=守ったことがない(守備が大きく下がる)。
+ *  計算は試合と同じ positionDefensePenalty(本職でない位置ほど守備が下がる)。 */
+export function posFit(id:string,pos:string):PosFit{
+ const p=playerMap[id];
+ if(!p||pos==='DH')return {pos,mark:'○',main:false,text:pos==='DH'?'打つだけ(守らない)':'—'};
+ const main=p.position===pos||(p.position==='内'&&['一','二','三','遊'].includes(pos));
+ if(main)return {pos,mark:'◎',main:true,text:'本職'};
+ if(!fitsPosition(p,pos))return {pos,mark:'×',main:false,text:'本職ではありません(守備が大きく下がります)'};
+ const pen=positionDefensePenalty(p,pos);
+ return pen>=18?{pos,mark:'△',main:false,text:'本職ではありません(守備が少し下がります)'}:{pos,mark:'○',main:false,text:'本職ではありません(守れます)'};
+}
+/** 守れる位置の短い一覧(「捕◎ 一○ 三△」)。× は出さない。本職を先頭に。 */
+export function posFitLine(id:string):PosFit[]{
+ const all=FIELD_POS.map(pos=>posFit(id,pos)).filter(f=>f.mark!=='×');
+ const order:Record<FitMark,number>={'◎':0,'○':1,'△':2,'×':3};
+ return all.sort((a,b)=>order[a.mark]-order[b.mark]||FIELD_POS.indexOf(a.pos)-FIELD_POS.indexOf(b.pos));
+}
+/** 投手の役割の適性(先発・中継ぎ・抑え)。試合の計算と同じ pitcherRolePenalty: 0=◎か○、5=△、12=×。公表の適性(wiki)がある時はその◎○をそのまま使う。 */
+export function roleFits(id:string):{role:PitcherRole;name:string;mark:FitMark}[]{
+ const p=playerMap[id];const names:Record<PitcherRole,string>={先:'先発',中:'中継ぎ',抑:'抑え'};
+ return (['先','中','抑'] as PitcherRole[]).map(role=>{
+  if(!p)return {role,name:names[role],mark:'×' as FitMark};
+  const w=p.wikiAssessment?.pitcherRoles?.[role],pen=pitcherRolePenalty(p,role);
+  const mark:FitMark=w==='◎'||w==='○'?w:pen===0?'◎':pen<=5?'△':'×';
+  return {role,name:names[role],mark};
+ });
+}

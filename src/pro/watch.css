@@ -443,3 +443,6 @@ html .simple-app .kg-toast{position:fixed;left:50%;top:calc(70px + var(--safe-ar
 .wt-root .wt-duel.is-strip.is-abil .wt-strip-line{line-height:15px}
 .wt-root .wt-so small:nth-of-type(2){margin-left:4px}
 @media (prefers-reduced-motion:reduce){.wt-root .wt-mini u{transition:none}}
+/* 11/5 朝: 位置の札の段に「守備」と項目名を付ける */
+.wt-root .wt-posgrid button>em.wt-pg-def{grid-area:gr;display:flex;align-items:center;gap:2px;font-style:normal}
+.wt-root .wt-posgrid button>em.wt-pg-def small{font-size:11px;font-weight:800;color:var(--wt-muted)}
