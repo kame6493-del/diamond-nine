@@ -9,7 +9,14 @@ Card draw images (from 2026-10-15): made with ChatGPT image generation for this 
 Sound effects (in use from 2026-10-11, card-draw set replaced 2026-10-15): 効果音ラボ https://soundeffect-lab.info/
 Terms: https://soundeffect-lab.info/agreement/ (free for commercial use; credit optional; no redistribution of the files)
 Files and their original names: /audio/selab/LICENSE.txt
-Game-watch sounds (from 2026-11-04, the one-game watch screen): the same 効果音ラボ terms. audio/selab/watch/ — hit (metal-bat1「金属バットで打つ1」), catch (ball-mitt-catch1「ボールをミットでキャッチ1」), strikeout (ball-mitt-catch2「ボールをミットでキャッチ2」), cheer (people-stadium-cheer2「スタジアムの歓声2」), homerun (metal-bat-cheers1「金属バットと歓声1」), gameset (people-stadium-applause1「スタジアムの拍手」). Leading silence trimmed and loudness matched only.
+Game-watch sounds (from 2026-11-04, the one-game watch screen): the same 効果音ラボ terms. audio/selab/watch/ — catch (ball-mitt-catch1「ボールをミットでキャッチ1」), strikeout (ball-mitt-catch2「ボールをミットでキャッチ2」), cheer (people-stadium-cheer2「スタジアムの歓声2」), gameset (people-stadium-applause1「スタジアムの拍手」). Leading silence trimmed and loudness matched only.
+Bat sounds (from 2026-11-04 late night, replacing the metal-bat hit and home-run sounds): wooden baseball bat recordings,
+"Bat Hit" by martinimeniscus (Florentine Films SFX), Freesound, CC0 1.0 Universal
+ https://creativecommons.org/publicdomain/zero/1.0/
+ - audio/freesound/bat/hit-strong.mp3 <- sound 162876 https://freesound.org/people/martinimeniscus/sounds/162876/ (clean hits; home runs add the cheer above)
+ - audio/freesound/bat/hit-jammed.mp3 <- sound 162873 https://freesound.org/people/martinimeniscus/sounds/162873/ (jammed contact, bunts)
+ - audio/freesound/bat/foul.mp3 <- sound 162866 https://freesound.org/people/martinimeniscus/sounds/162866/ (foul balls)
+ Leading silence trimmed, shortened with a fade-out and peak level set only. Details: /audio/freesound/bat/LICENSE.txt
 
 Scout 10-draw reveal (from 2026-11-04): no new files. It reuses the same 効果音ラボ card-draw sounds above (deal「カードを場に出す」, roll「ドラムロール」, flip「カードをめくる」, cymbal「ロールの閉め」, reveal「キラッ1」, gold「シャキーン3」, rainbow「きらきら輝く4」) and, only for a rainbow card, audio/selab/watch/cheer.mp3 (people-stadium-cheer2「スタジアムの歓声2」). Images: the card-draw images above.
 

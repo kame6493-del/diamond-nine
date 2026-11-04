@@ -1,0 +1,21 @@
+Wooden baseball bat hits (in use from 2026-11-04, the game screen of DIAMOND NINE)
+
+Source: Freesound, user martinimeniscus, pack "Florentine Films SFX"
+ https://freesound.org/people/martinimeniscus/
+License: Creative Commons 0 (CC0 1.0 Universal) — no attribution required; credited here anyway.
+ https://creativecommons.org/publicdomain/zero/1.0/
+
+ hit-strong.mp3 <- "Bat Hit 12 FF092.aif" (sound 162876, "Baseball Bat hit close Ext.")
+                   https://freesound.org/people/martinimeniscus/sounds/162876/
+                   used for clean hits, extra-base hits, sacrifice flies and home runs (home runs add audio/selab/watch/cheer.mp3)
+ hit-jammed.mp3 <- "Bat Hit 11 FF093.aif" (sound 162873, "Baseball Bat hit close Ext.")
+                   https://freesound.org/people/martinimeniscus/sounds/162873/
+                   used for jammed contact: outs in play, bunts and errors
+ foul.mp3       <- "Bat Hit 5 FF099.aif" (sound 162866, "Baseball Bat hit close, Ext.")
+                   https://freesound.org/people/martinimeniscus/sounds/162866/
+                   used for foul balls (each F pitch)
+
+Taken from the public high-quality previews (cdn.freesound.org/previews/162/<id>_2320755-hq.mp3).
+Processing only: leading silence removed, cut to 0.75 / 0.6 / 0.5 s with a 0.15 s fade-out, peak level set
+(-2 / -4 / -6 dBFS), stereo 44.1 kHz 128 kbps MP3. No synthesis, no added effects.
+These replace the metal-bat recordings from 効果音ラボ (metal-bat1, metal-bat-cheers1), which were removed.

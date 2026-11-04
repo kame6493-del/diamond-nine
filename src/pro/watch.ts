@@ -10,6 +10,7 @@ import {growthBonus} from './development';
 import {seasonConditions} from './conditions';
 import {pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
 import type {GameResult,GameState,LiveKind,WatchKind} from './engine';
+import {pitchLength,type BatTactic} from './tactics';
 
 export interface Watchable {key:string;label:string;short:string;game:GameResult;mine:boolean;series?:string}
 const kindLabel:Record<Exclude<WatchKind,'post'>,string>={opening:'開幕戦',clinch:'リーグ優勝が決まった試合',showdown:'最終戦 首位攻防'};
@@ -58,6 +59,28 @@ export function pitchesFor(kind:LiveKind,seed:number,lengthen=0):string[]{
  if(endBall){while(b<4){b++;seq.push('B');}}else if(endK){while(k<3){k++;seq.push('S');}}else seq.push('X');
  return seq;
 }
+/** 1打席の球の並び(11/4 夜)。投げる演出と、飛ばした時の球数の両方でこれを使う(作戦の「慎重に・積極的に」で長さが変わる)。
+ *  paNo はその試合の何打席目か(1から)。同じ打席は、観ても飛ばしても同じ並びになる。 */
+export const pitchPlan=(kind:LiveKind,paNo:number,bat:BatTactic|null=null)=>pitchesFor(kind,paNo*2654435761,pitchLength(bat));
+// ---- 投手の球数(11/4 夜 持ち主「投球数は1球ずつちゃんと増えるようにして」) ----
+// 1球見せるたびに +1(tallyPitch)。打席の結果を出す時(飛ばし・倍速・「次の打席へ」も)に、その打席の残りの球をまとめて足す(tallyEnd)。
+// 1打席の合計は、いつも pitchPlan の球の数と同じ。試合の終わりの球数は、成績表と同じ表(count)から読む。
+export interface PitchTally {count:Record<string,number>;key:string|null;done:number}
+export const newTally=(count:Record<string,number>={}):PitchTally=>({count,key:null,done:0});
+/** 打席の最初の球の前に呼ぶ(key=「守っている側|投手」)。 */
+export function tallyBegin(t:PitchTally,key:string){t.key=key;t.done=0;}
+/** 1球投げた: その投手の球数を 1 足す。 */
+export function tallyPitch(t:PitchTally){if(!t.key)return;t.count[t.key]=(t.count[t.key]??0)+1;t.done++;}
+/** 打席が終わった: 合計 total 球のうち、まだ足していない分を足す(足した数を返す)。 */
+export function tallyEnd(t:PitchTally,key:string,total:number){
+ const rest=Math.max(0,total-(t.key===key?t.done:0));t.count[key]=(t.count[key]??0)+rest;t.key=null;t.done=0;return rest;
+}
+/** 今日の残りのスタミナ(0〜1)。先発は スタミナの能力から決まる球数(およそ 80〜110球)、中継ぎ・抑えは 15〜40球ほどで 0 になる。
+ *  試合の計算の交代(先発は 5〜8回)と同じ向き: スタミナが高いほど、同じ球数でも残りが多い。1球ごとに減る。 */
+export function staminaBudget(stamina:number,starter:boolean){return starter?Math.round((4.5+stamina/55+.8)*15):Math.round(15+Math.max(0,stamina)/4);}
+/** 先発の長さで数える投手: 今日の先発、または先発の枠(投手の並びの1〜6番目)の投手(早い回の交代で長く投げる時)。 */
+export const longArm=(id:string,used:string[]=[],pitchers:string[]=[])=>used[0]===id||(pitchers.indexOf(id)>=0&&pitchers.indexOf(id)<6);
+export function staminaLeft(stamina:number,pitches:number,starter:boolean){const b=staminaBudget(stamina,starter);return Math.max(0,Math.min(1,1-pitches/Math.max(1,b)));}
 export const countOf=(seq:string[])=>({b:Math.min(3,seq.filter(x=>x==='B').length),s:Math.min(2,seq.filter(x=>x==='S'||x==='F').length)});
 
 // ---- 実況の文と、グラウンドの打球の向き(同じ表から選ぶので、実況と打球の向きは食い違わない) ----

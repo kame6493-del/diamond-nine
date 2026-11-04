@@ -4,18 +4,24 @@
 const files={
  deal:'selab/deal.mp3',flip:'selab/flip.mp3',roll:'selab/roll.mp3',cymbal:'selab/cymbal.mp3',
  reveal:'selab/reveal.mp3',gold:'selab/gold.mp3',rainbow:'selab/rainbow.mp3',
- join:'selab/join.mp3',win:'selab/win.mp3',awaken:'selab/awaken.mp3',
+ join:'selab/join.mp3',awaken:'selab/awaken.mp3',
  // 以前の見た目・お祝い演出が使う名前。新しい音へ置き換えた。
  draw:'selab/deal.mp3',impact:'selab/cymbal.mp3',voice:'selab/cymbal.mp3',
  // 観戦モード(2026-11-04)。同じ効果音ラボ。出典は /audio/selab/LICENSE.txt。観戦の画面を開いた時だけ読む(prepareWatchAudio)。
  // 10回まとめて引く(2026-11-04)の虹カード: いつもの虹の音に、観戦モードと同じ「スタジアムの歓声2」を重ねる(新しい素材は足していない)。
  rainbowCheer:'selab/watch/cheer.mp3',
- hit:'selab/watch/hit.mp3',catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',homerun:'selab/watch/homerun.mp3',gameset:'selab/watch/gameset.mp3',
+ // 11/4 夜(持ち主「バットに当たった音が金属音なので、これ違う音に変えて。評判の良いフリー音声で。前提はプロ野球なので」): 打球音を
+ // 効果音ラボの金属バット(カキーン)から、Freesound の CC0 の木製バットの録音(martinimeniscus「Bat Hit」、Florentine Films SFX)に替えた。
+ // 芯で捉えた強い当たり(安打・長打・本塁打)/詰まった当たり(凡打・バント)/ファウル の3つ。本塁打は強い当たり+歓声(cheer)。出典は /audio/freesound/bat/LICENSE.txt。
+ hitStrong:'freesound/bat/hit-strong.mp3',hitJammed:'freesound/bat/hit-jammed.mp3',foul:'freesound/bat/foul.mp3',
+ catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',gameset:'selab/watch/gameset.mp3',
 } as const;
-const watchSounds=['hit','catch','strikeout','cheer','homerun','gameset'] as const;
+const watchSounds=['hitStrong','hitJammed','foul','catch','strikeout','cheer','gameset'] as const;
+/** 鳴らす音の名前とファイル(試験で、打球音が新しい木製バットの録音を指しているかを確かめる)。 */
+export const soundFiles:Readonly<Record<string,string>>=files;
 export type Sound=keyof typeof files;
 // 音量のつり合い(耳に刺さらない程度にそろえる)。
-const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,win:.38,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hit:.45,catch:.4,strikeout:.4,cheer:.3,homerun:.4,gameset:.35};
+const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hitStrong:.55,hitJammed:.5,foul:.35,catch:.4,strikeout:.4,cheer:.3,gameset:.35};
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
 const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound}>();
 let context:AudioContext|null=null,epoch=0;

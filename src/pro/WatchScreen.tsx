@@ -12,6 +12,10 @@
 // 「さっき言った長打狙いとかその辺」「おまかせで観るはいらない」): 右打者は三塁側・左打者は一塁側に立つ(両打ちは投手の反対。watch-play.ts の batSide)、
 // 左投手は左腕で投げる。画面はスクロールなしの1画面(グラウンドが残りの高さを使う)。長打狙い〜ストライク中心は、操作の欄に常に並べて1タップで
 // 次の打者・今の投手に出す(打者ごと・投手ごと)。結果の一文に作戦が効いたかを足す(tactics.ts の tacticNote)。「おまかせで観る」は外した。
+// 11/4 夜おそく(持ち主「試合の時、ミート・パワー・走力が、投手のコントロール・スタミナ・球速が、能力として見れるようにして」「投球数は1球ずつ
+// ちゃんと増えるようにして」「奪三振数も見えるようにして」「バットに当たった音が金属音なので…前提はプロ野球なので」): 打者と投手の帯に能力の段と短い棒を
+// 常に出す(段の色と記号は、対決・交代のシートと同じ gradeOf/gradeClass)。投手のスタミナは今日の残り(1球ごとに減る。watch.ts の staminaLeft)。
+// 球数は1球見せるたびに +1、飛ばした時は残りをまとめて足す(watch.ts の tally*)。打球音は木製バット(game-audio.ts)。
 import {useEffect,useLayoutEffect,useReducer,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import {substituteBlock,IBB_PER_INNING,type BatStats,type GameResult,type GameState,type LiveEvent,type LiveSituation,type LiveStep,type PitStats,type WatchOrder} from './engine';
 import {liveGame,type ManagedGame} from './managed';
@@ -21,9 +25,9 @@ import {circuitOf} from './leagues';
 import {isSpaceAlien} from './mlb-opponents';
 import {alienVelocity} from './space-aliens';
 import {gameSound,prepareWatchAudio,stopGameAudio} from './game-audio';
-import {benchOf,callText,countOf,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,paMillis,pitchesFor,pitchMillis,playMillis,readSpeed,saveSpeed,speeds,SPEED_KEY,type Speed} from './watch';
+import {benchOf,callText,countOf,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,longArm,newTally,paMillis,pitchMillis,pitchPlan,playMillis,readSpeed,saveSpeed,speeds,SPEED_KEY,staminaLeft,tallyBegin,tallyEnd,tallyPitch,type PitchTally,type Speed} from './watch';
 import {fieldPlay,trackAt,SPOTS,BOX,batSide,throwHand,type FieldPlay} from './watch-play';
-import {BAT_TACTICS,PITCH_TACTICS,batTacticFor,batTacticLabel,batTacticNote,pitchFit,pitchLength,pitchTacticFor,pitchTacticLabel,pitchTacticNote,tacticNote,type BatTactic,type PitchTactic} from './tactics';
+import {BAT_TACTICS,PITCH_TACTICS,batTacticFor,batTacticLabel,batTacticNote,pitchFit,pitchTacticFor,pitchTacticLabel,pitchTacticNote,tacticNote,type BatTactic,type PitchTactic} from './tactics';
 import {avgText,batLine,batMove,eraText,ipText,pitLine,pitMove,snapshot,type BatLine,type BatMove,type Move,type PitLine,type PitMove} from './live-stats';
 import {createPortal} from 'react-dom';
 import './watch.css';
@@ -37,7 +41,7 @@ interface Live {
  sit:LiveSituation|null;queue:LiveEvent[];nextSit:LiveSituation|null;result:GameResult|null;finished:GameResult|null;
  phase:'decide'|'pitch';pitches:string[];pitchShown:number;last:LiveEvent|null;
  log:{text:string;gold?:boolean;note?:{text:string;good:boolean}|null}[];highlights:{inning:number;side:number;text:string}[];
- pitchCount:Record<string,number>;slotOf:Record<string,number>;posOf:Record<string,string>;
+ pitchCount:Record<string,number>;tally:PitchTally;slotOf:Record<string,number>;posOf:Record<string,string>;
  pending:WatchOrder|null;paNo:number;fx:{kind:'hr';title:string;sub:string}|null;flash:string|null;
  steps:Step[];play:{d:FieldPlay;start:number;ms:number;e:LiveEvent}|null;shownBases:(string|null)[]|null;animated:boolean;
  tabBat:Record<string,BatStats>|null;tabPit:Record<string,PitStats>|null;shownBat:Record<string,BatStats>;shownPit:Record<string,PitStats>;
@@ -68,6 +72,17 @@ function Grade({v,label,wide=false}:{v:number;label:string;wide?:boolean}){
 function Velocity({r,id,wide=false}:{r:Ratings;id:string;wide?:boolean}){
  const v=Math.round(r.velocity),shown=isSpaceAlien(playerMap[id])?alienVelocity(v):v,score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
  return <div className={'wt-ab'+(wide?' is-wide':'')}><small>球速</small><b className={'wt-kmh '+gradeClass(score)}>{shown}<em>km</em></b><i><u className={gradeClass(score)} style={{width:`${Math.max(6,Math.min(100,score))}%`}}/></i></div>;
+}
+/** 帯の小さな能力(11/4 夜おそく): 上に名前、下に段と短い棒。段の色と記号はシートの Grade と同じ。
+ *  left を渡すとスタミナ: 棒は今日の残り(1球ごとに減る)、残り3割を切ると赤。 */
+export function Mini({v,label,left}:{v:number;label:string;left?:number}){
+ const w=left===undefined?Math.max(6,Math.min(100,v)):Math.round(left*100);
+ return <div className={'wt-mini'+(left!==undefined?' is-stamina'+(left<.3?' is-low':''):'')} aria-label={`${label} ${gradeOf(v)}${left!==undefined?` 今日の残り${w}%`:''}`} data-left={left!==undefined?w:undefined}>
+  <small>{label}</small><b className={gradeClass(v)}>{gradeOf(v)}</b><i><u className={gradeClass(v)} style={{width:`${w}%`}}/></i></div>;
+}
+function MiniVelocity({r,id}:{r:Ratings;id:string}){
+ const v=Math.round(r.velocity),shown=isSpaceAlien(playerMap[id])?alienVelocity(v):v,score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
+ return <div className="wt-mini is-kmh" aria-label={`球速 ${shown}km/h`}><small>球速</small><b className={gradeClass(score)}>{shown}<em>km</em></b><i><u className={gradeClass(score)} style={{width:`${Math.max(6,Math.min(100,score))}%`}}/></i></div>;
 }
 /** 変わった数字: 「.287→.290」の形で、良くなった(up)・悪くなった(down)の色で少し光らせる。n は光らせ直すための番号。 */
 function Moved({from,to,move,n,unit='',arrow=true}:{from:string;to:string;move?:Move;n?:number;unit?:string;arrow?:boolean}){
@@ -127,15 +142,15 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
  const club=state.club,season=game.base.season,space=circuitOf(state.season)==='SPACE';
  const teamName=(id:string)=>id===club?state.name:teamById(id,season).short;
  const teamShort=(id:string)=>{const n=teamName(id);return n.length>5?n.slice(0,4):n;};
- const play=(k:Parameters<typeof gameSound>[0])=>{if(soundRef.current)gameSound(k);};
+ const play=(k:Parameters<typeof gameSound>[0],delay=0)=>{if(soundRef.current)gameSound(k,delay);};
  const clear=()=>{if(timer.current!==undefined){clearTimeout(timer.current);timer.current=undefined;}};
  const later=(ms:number,fn:()=>void)=>{clear();timer.current=window.setTimeout(()=>{timer.current=undefined;fn();},Math.max(0,ms));};
 
  // ---- 試合を開く(途中で閉じていた時は、覚えた指示の並びで続きまで進める) ----
  const open=()=>{
   clear();stopGameAudio();
-  const l:Live={g:game,gen:liveGame(game),base:game.base,control:game.control,inputs:[],started:false,sit:null,queue:[],nextSit:null,result:null,finished:null,phase:'decide',pitches:[],pitchShown:0,last:null,log:[],highlights:[],pitchCount:{},slotOf:{},posOf:{},pending:null,paNo:0,fx:null,flash:null,steps:[],play:null,shownBases:null,animated:false,tabBat:null,tabPit:null,shownBat:{},shownPit:{},hold:null,moves:null,moveNo:0};
-  L.current=l;
+  const l:Live={g:game,gen:liveGame(game),base:game.base,control:game.control,inputs:[],started:false,sit:null,queue:[],nextSit:null,result:null,finished:null,phase:'decide',pitches:[],pitchShown:0,last:null,log:[],highlights:[],pitchCount:{},tally:newTally(),slotOf:{},posOf:{},pending:null,paNo:0,fx:null,flash:null,steps:[],play:null,shownBases:null,animated:false,tabBat:null,tabPit:null,shownBat:{},shownPit:{},hold:null,moves:null,moveNo:0};
+  l.tally=newTally(l.pitchCount);L.current=l;
   pump(l,null,true);reveal(l,true);
   const back=saved??[];let guard=0;
   while(l.inputs.length<back.length&&!l.finished&&guard++<20000){pump(l,back[l.inputs.length],true);reveal(l,true);}
@@ -164,11 +179,13 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    if(e.runs>0)l.highlights.push({inning:e.inning,side:e.side,text});
    if(isPlateAppearance(e.kind)){
     lastPA=e;
-    const thrown=l.phase==='pitch'&&l.pitches.length?l.pitches.length:pitchesFor(e.kind,++l.paNo*2654435761).length;
-    l.pitchCount[`${1-e.side}|${e.pitcher}`]=(l.pitchCount[`${1-e.side}|${e.pitcher}`]??0)+thrown;
+    // 球数: 投げる演出で見せた球はもう足してある。残り(飛ばした時は全部)をここで足す。並びは観ても飛ばしても pitchPlan で同じ。
+    const thrown=l.phase==='pitch'&&l.pitches.length?l.pitches.length:pitchPlan(e.kind,++l.paNo,e.tactic?.[0]??null).length;
+    tallyEnd(l.tally,`${1-e.side}|${e.pitcher}`,thrown);
     if(!quiet){
-     if(e.kind==='HR'){play('homerun');homeRun=e;}
-     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play('hit');if(e.runs)play('cheer');}
+     // 本塁打は芯で捉えた木製バットの音(打球が飛ぶ所で鳴らしてある)と歓声。
+     if(e.kind==='HR'){if(!l.animated)play('hitStrong');play('cheer',.12);homeRun=e;}
+     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play(e.kind==='E'?'hitJammed':'hitStrong');if(e.runs)play('cheer');}
      else if(e.kind==='K')play('strikeout');else{play('catch');if(e.runs)play('cheer');}
     }
    }
@@ -223,13 +240,15 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   if(!st){reveal(l,false);render();wait();return;}
   const sp=speedRef.current;
   if(st.type==='pitches'){
-   l.paNo++;l.pitches=pitchesFor(st.e.kind,l.paNo*2654435761,pitchLength(st.e.tactic?.[0]??null));l.pitchShown=0;render();
+   l.paNo++;l.pitches=pitchPlan(st.e.kind,l.paNo,st.e.tactic?.[0]??null);l.pitchShown=0;tallyBegin(l.tally,`${1-st.e.side}|${st.e.pitcher}`);render();
    const per=pitchMillis(sp);
-   const next=()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;c.pitchShown++;render();
+   // 1球ごと: カウントと投手の球数(とスタミナの棒)が1つ進む。ファウルは木製バットの軽い音。
+   const next=()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;c.pitchShown++;tallyPitch(c.tally);if(c.pitches[c.pitchShown-1]==='F')play('foul');render();
     if(c.pitchShown<c.pitches.length)later(per,next);else{if(!c.steps.length||c.steps[0].type!=='play')c.shownBases=st.e.bases;later(per*.5,()=>runStep(c));}};
    later(per,next);return;
   }
-  if(['ground','liner','fly','hr','bunt'].includes(st.d.type))play('hit');
+  // 打球音: 安打・長打・本塁打・犠牲フライ=芯で捉えた強い当たり、凡打・バント・エラー=詰まった当たり。
+  if(['ground','liner','fly','hr','bunt'].includes(st.d.type))play(['1B','2B','3B','HR','SF'].includes(st.e.kind)?'hitStrong':'hitJammed');
   const ms=playMillis(sp)*st.d.length;
   l.play={d:st.d,start:performance.now(),ms,e:st.e};render();
   later(ms,()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;c.play=null;c.shownBases=st.e.bases;render();runStep(c);});
@@ -357,7 +376,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    <div className="wt-lamps"><p><small>B</small>{lamp(c.b,3,'is-b')}</p><p><small>S</small>{lamp(c.s,2,'is-s')}</p><p><small>O</small>{lamp(Math.min(2,outs),2,'is-o')}</p></div>
   </div>;
  };
- /** 打者と投手の要点だけの細い帯(打率・防御率の変化)。押すと詳しい能力のシート。 */
+ /** 打者と投手の帯(11/4 夜おそく): 能力の段と短い棒を常に出す(打者=ミート・パワー・走力、投手=球速・制球・スタミナ)。
+  *  投手のスタミナの棒は今日の残り(1球ごとに減る)。成績は 打率・本塁打・打点・今日 / 防御率・球数・奪三振(今日と今季)。押すと詳しい能力のシート。 */
  const duelCards=()=>{
   // 打席の結果を見せた直後は、その打者と投手を次の打席が始まるまで残す(変わった成績を見せる)。
   const h=l.hold,s=h??(shownSit&&{side:shownSit.side,batter:shownSit.batter,slot:shownSit.slot,pitcher:shownSit.pitcher,pitchers:shownSit.pitchers});
@@ -366,11 +386,18 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const mv=h?l.moves:null,bm=mv?.bat??null,pm=mv?.pit??null,n=mv?.n;
   const bl=batOf(bt,s.batter),pl=pitOf(pt,s.pitcher),hand=batSide(s.batter,s.pitcher),arm=throwHand(s.pitcher);
   const bats=playerMap[s.batter]?.bats==='両'?'両打':hand==='L'?'左打':'右打';
-  return <div className="wt-duel is-strip" role="button" tabIndex={0} onClick={()=>openSheet('duel')} onKeyDown={e=>{if(e.key==='Enter')openSheet('duel');}} aria-label="打者と投手(押すと詳しい能力)">
+  const br=ratingsFor(s.side,s.batter,s.pitchers),pr=ratingsFor(1-s.side,s.pitcher,s.pitchers);
+  const pitches=l.pitchCount[`${1-s.side}|${s.pitcher}`]??0,starter=longArm(s.pitcher,(sit??shownSit)?.usedPitchers[1-s.side],(sit??shownSit)?.pitchers[1-s.side]);
+  const left=staminaLeft(pr.stamina,pitches,starter),soToday=p?.so??0,soFrom=pm?.so?soToday-(pm.to.so-pm.from.so):soToday;
+  return <div className="wt-duel is-strip is-abil" role="button" tabIndex={0} onClick={()=>openSheet('duel')} onKeyDown={e=>{if(e.key==='Enter')openSheet('duel');}} aria-label="打者と投手(押すと詳しい能力)">
    <div className={'wt-card '+(bt===club?'is-mine':'is-rival')}><h3><em>{s.slot+1}番</em><span>{nameOf(s.batter)}</span><i className="wt-hand">{bats}</i></h3>
-    <p className="wt-strip-line"><small>打率</small><Moved from={bm?avgText(bm.from):''} to={avgText(bl)} move={bm?.avg} n={n}/><Moved from={bm?String(bm.from.hr):''} to={String(bl.hr)} move={bm?.hr} arrow={false} n={n} unit="本"/>{!(bm?.avg)&&<span className="wt-today">今日{b&&b.pa?`${b.ab}-${b.hits}`:'-'}</span>}</p></div>
+    <div className="wt-minis"><Mini v={br.contact} label="ミート"/><Mini v={br.power} label="パワー"/><Mini v={br.speed} label="走力"/></div>
+    <p className="wt-strip-line"><small>打率</small><Moved from={bm?avgText(bm.from):''} to={avgText(bl)} move={bm?.avg} n={n}/><Moved from={bm?String(bm.from.hr):''} to={String(bl.hr)} move={bm?.hr} arrow={false} n={n} unit="本"/></p>
+    <p className="wt-strip-line"><small>打点</small><Moved from={bm?String(bm.from.rbi):''} to={String(bl.rbi)} move={bm?.rbi} arrow={false} n={n}/><span className="wt-today">今日{b&&b.pa?`${b.ab}-${b.hits}`:'-'}</span></p></div>
    <div className={'wt-card '+(pt===club?'is-mine':'is-rival')}><h3><em className="is-p">投</em><span>{nameOf(s.pitcher)}</span><i className="wt-hand">{arm==='L'?'左投':'右投'}</i></h3>
-    <p className="wt-strip-line"><small>防御率</small><Moved from={pm?eraText(pm.from):''} to={eraText(pl)} move={pm?.era} n={n}/>{!(pm?.era)&&<span className="wt-today">{p?`${formatIP(p.outs)}回${l.pitchCount[`${1-s.side}|${s.pitcher}`]??0}球`:'登板直後'}</span>}</p></div>
+    <div className="wt-minis"><MiniVelocity r={pr} id={s.pitcher}/><Mini v={pr.control} label="制球"/><Mini v={pr.stamina} label="スタミナ" left={left}/></div>
+    <p className="wt-strip-line"><small>防御率</small><Moved from={pm?eraText(pm.from):''} to={eraText(pl)} move={pm?.era} n={n}/><span className="wt-today" data-pitches={pitches}>{pitches}球</span></p>
+    <p className="wt-strip-line wt-so" data-so-today={soToday} data-so-season={pl.so}><small>奪三振 今日</small><Moved from={String(soFrom)} to={String(soToday)} move={pm?.so} arrow={false} n={n}/><small>今季</small><Moved from={pm?String(pm.from.so):''} to={String(pl.so)} move={pm?.so} arrow={false} n={n}/></p></div>
   </div>;
  };
  /** 作戦の切り替え(常に並べる): 攻撃の時は次の打者へ(長打狙い・ミート打ち・積極的に・慎重に)、守りの時は今の投手へ(直球中心〜ストライク中心)。 */
@@ -407,7 +434,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   return <section className="wt-final is-compact"><h3>{verdict&&<span className={'is-'+(verdict==='勝ち'?'win':verdict==='負け'?'lose':'draw')}>{verdict}</span>}<b>{teamShort(g.away)} {fin.awayRuns} - {fin.homeRuns} {teamShort(g.home)}</b></h3>
    <p className="wt-final-dec">{dec('wins')&&<span><em className="is-w">勝</em>{nameOf(dec('wins')!.playerId)}</span>}{dec('losses')&&<span><em className="is-l">負</em>{nameOf(dec('losses')!.playerId)}</span>}{dec('saves')&&<span><em className="is-s">S</em>{nameOf(dec('saves')!.playerId)}</span>}</p>
    <ul className="wt-final-stars">{stars.map(b=><li key={b.playerId}><b>{nameOf(b.playerId)}</b><span>{batText(b)}</span></li>)}
-    {pits.map(p=><li key={'p'+p.playerId}><b>{nameOf(p.playerId)}</b><span>{formatIP(p.outs)}回 {p.hits}被安打 {p.er}自責 {p.so}奪三振</span></li>)}
+    {pits.map(p=><li key={'p'+p.playerId}><b>{nameOf(p.playerId)}</b><span>{formatIP(p.outs)}回 {l.pitchCount[`${control>=0?control:0}|${p.playerId}`]??0}球 {p.so}奪三振 {p.er}自責</span></li>)}
     {theirHr.slice(0,2).map(b=><li key={'h'+b.playerId} className="is-rival"><b>{nameOf(b.playerId)}</b><span>(相手){b.hr}本塁打 {b.rbi}打点</span></li>)}</ul>
    <p className="wt-final-note">この結果がシーズンの成績・順位{g.kind==='post'?'・勝ち上がり':''}に入ります。</p>
    <div className="wt-final-btns"><button className="wt-navy" onClick={()=>openSheet('box')}>成績表</button><button className="wt-gold" onClick={finish}>結果を残して次へ</button></div></section>;
@@ -576,7 +603,7 @@ function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l
   {tab==='runner'&&<div className="wt-choose">{sit.bases.map((id,b)=>id&&<button key={b} className={base===b?'is-on':''} onClick={()=>{setBase(b);setPick(null);}}>{['一','二','三'][b]}塁 {nameOf(id)}({names[id]??''})</button>)}</div>}
   {(tab==='pinch'||tab==='runner'||tab==='pitcher')&&tr&&<div className="wt-target"><img src={`/assets/pro/watch/${tab==='pitcher'?'pitcher':tab==='runner'?'runner':'batter'}_blue.webp`} alt=""/><div><h3>{tab==='pitcher'?<em className="is-p">投手</em>:<em>{target+1}番 {names[targetId]}</em>}{nameOf(targetId)}<small>{tab==='pitcher'?`いま投げている・${throwHand(targetId)==='L'?'左投':'右投'}`:tab==='runner'?`${['一','二','三'][base]}塁の走者`:'いまの打者'}</small></h3>
    <div className="wt-abs is-row">{tab==='pitcher'?<><Velocity r={tr} id={targetId}/><Grade v={tr.stamina} label="スタミナ"/><Grade v={tr.control} label="制球"/><Grade v={tr.breaking} label="変化球"/></>:<><Grade v={tr.contact} label="ミート"/><Grade v={tr.power} label="パワー"/><Grade v={tr.speed} label="走力"/><Grade v={tr.field} label="守備"/></>}</div>
-   <p className="wt-today">今日 {tab==='pitcher'?(pToday?`${formatIP(pToday.outs)}回 ${l.pitchCount[`${side}|${sit.pitcher}`]??0}球 ${pToday.er}自責 ${pToday.so}奪三振`:'—'):(box.bat[`${team}|${targetId}`]?`${box.bat[`${team}|${targetId}`].ab}打数${box.bat[`${team}|${targetId}`].hits}安打`:'—')}</p></div></div>}
+   <p className="wt-today">今日 {tab==='pitcher'?(pToday?`${formatIP(pToday.outs)}回 ${l.pitchCount[`${side}|${sit.pitcher}`]??0}球 ${pToday.er}自責 ${pToday.so}奪三振 スタミナ残り${Math.round(staminaLeft(tr.stamina,l.pitchCount[`${side}|${sit.pitcher}`]??0,longArm(sit.pitcher,sit.usedPitchers[side],sit.pitchers[side]))*100)}%`:'—'):(box.bat[`${team}|${targetId}`]?`${box.bat[`${team}|${targetId}`].ab}打数${box.bat[`${team}|${targetId}`].hits}安打`:'—')}</p></div></div>}
   {(tab==='pinch'||tab==='runner')&&<><p className="wt-note">入った選手は、{nameOf(targetId)}の守備位置({names[targetId]})に入ります。守りの回に「守備・投手交代」→「守備交代」で、位置を入れ替えられます。</p>
    <h4 className="wt-band">ベンチの選手({tab==='pinch'?'代打':'代走'})</h4><div className="wt-list">{bench.length?bench.map(benchRow):<p className="wt-note">ベンチに出せる選手がいません。チーム画面で控えを増やすと、代打・代走・守備交代に出せます。</p>}</div></>}
   {tab==='pitcher'&&<><h4 className="wt-band">ブルペン(投手交代)</h4><div className="wt-list">{sit.pitchers[side].filter(id=>id!==sit.pitcher).map(penRow)}</div></>}
