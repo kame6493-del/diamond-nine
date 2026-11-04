@@ -59,7 +59,7 @@ export function register1104fTests(test:(name:string,run:()=>void)=>void){
   for(const k of ['hit','homerun','win'])assert.equal(soundFiles[k],undefined,`${k}(金属バット)は使わない`);
   for(const f of Object.values(soundFiles)){assert.ok(!/metal/.test(f));assert.ok(existsSync('public/audio/'+f),`public/audio/${f} がある`);}
   for(const f of ['selab/watch/hit.mp3','selab/watch/homerun.mp3','selab/win.mp3'])assert.ok(!existsSync('public/audio/'+f),`${f}(金属音)は外した`);
-  const credits=readFileSync('public/THIRD_PARTY_ASSETS.txt','utf8'),lic=readFileSync('public/audio/freesound/bat/LICENSE.txt','utf8');
+  const credits=readFileSync('public/THIRD_PARTY_ASSETS.txt','utf8'),lic=readFileSync('public/audio/freesound/bat-LICENSE.txt','utf8');
   for(const id of ['162876','162873','162866']){assert.ok(credits.includes(id),`THIRD_PARTY_ASSETS に ${id}`);assert.ok(lic.includes(id));}
   assert.ok(/CC0|Creative Commons 0/.test(lic));
   const src=readFileSync('src/pro/WatchScreen.tsx','utf8');

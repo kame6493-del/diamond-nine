@@ -12,7 +12,7 @@ const files={
  rainbowCheer:'selab/watch/cheer.mp3',
  // 11/4 夜(持ち主「バットに当たった音が金属音なので、これ違う音に変えて。評判の良いフリー音声で。前提はプロ野球なので」): 打球音を
  // 効果音ラボの金属バット(カキーン)から、Freesound の CC0 の木製バットの録音(martinimeniscus「Bat Hit」、Florentine Films SFX)に替えた。
- // 芯で捉えた強い当たり(安打・長打・本塁打)/詰まった当たり(凡打・バント)/ファウル の3つ。本塁打は強い当たり+歓声(cheer)。出典は /audio/freesound/bat/LICENSE.txt。
+ // 芯で捉えた強い当たり(安打・長打・本塁打)/詰まった当たり(凡打・バント)/ファウル の3つ。本塁打は強い当たり+歓声(cheer)。出典は /audio/freesound/bat-LICENSE.txt。
  hitStrong:'freesound/bat/hit-strong.mp3',hitJammed:'freesound/bat/hit-jammed.mp3',foul:'freesound/bat/foul.mp3',
  catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',gameset:'selab/watch/gameset.mp3',
 } as const;
