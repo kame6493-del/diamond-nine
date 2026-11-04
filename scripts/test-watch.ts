@@ -53,14 +53,16 @@ const sameBox=(a:GameResult,b:GameResult)=>JSON.stringify([a.home,a.away,a.homeR
 const aggressive=(side:number):Orders=>s=>s.side===side?(s.bases[0]&&!s.bases[1]?{kind:'steal'}:s.outs<2&&(s.bases[0]||s.bases[1])?{kind:'bunt'}:null):(s.bases[1]&&!s.bases[0]?{kind:'ibb'}:null);
 
 export function registerWatchTests(test:(name:string,run:()=>void)=>void){
- test('managed games: "1年進める" stops before opening day and every own postseason game; choosing おまかせ every time equals the unpaused year',()=>{
+ test('managed games: "1年進める" stops before opening day and the key games of each own series (game 1 and clinchers); choosing 一気に進める every time equals the unpaused year',()=>{
   for(const [circuit,state] of [['NPB',sandbox('NPB')],['MLB',sandbox('MLB')],['SPACE',sandbox('SPACE')],['NPB',majorState(77,'NPB')]] as [Circuit,GameState][]){
    const plain=plainYear(state),{s,stops}=runYear(state);
    assert.equal(JSON.stringify(s),JSON.stringify(plain),`おまかせの1年が違う ${circuit}`);
    assert.equal(stops[0].g.label,'開幕戦');assert.equal(stops[0].g.kind,'opening');
-   // 止まった試合 = 開幕戦 + 自分のチームが出た短期決戦の全試合
-   const own=(plain.season.postseason?.series??[]).flatMap(x=>x.results).filter(g=>g.home===plain.club||g.away===plain.club).length;
-   assert.equal(stops.length,1+own,`止まった数 ${circuit}`);
+   // 止まった試合 = 開幕戦 + 自分のチームが出た短期決戦の大事な試合(各シリーズの第1戦と王手の試合。11/4 夜から。途中の試合は止まらない)
+   const mineSeries=(plain.season.postseason?.series??[]).filter(x=>x.higher===plain.club||x.lower===plain.club);
+   const own=mineSeries.flatMap(x=>x.results).length;
+   assert.ok(stops.length-1>=mineSeries.length&&stops.length-1<=own,`止まった数 ${circuit} ${stops.length-1} / シリーズ ${mineSeries.length} / 試合 ${own}`);
+   assert.ok(stops.slice(1).every(x=>!!x.g.reason),'なぜ大事かの一言');
    assert.ok(stops.slice(1).every(x=>x.g.kind==='post'&&/第\d+戦$/.test(x.g.label)));
    const top=circuit==='NPB'?'国内王座決定戦':circuit==='SPACE'?'宇宙王座決定戦':'世界王座決定戦';
    if((plain.season.postseason?.series??[]).some(x=>(x.stage==='japan'||x.stage==='world')&&[x.higher,x.lower].includes(plain.club)))assert.ok(stops.some(x=>x.g.label.startsWith(top)),top);
