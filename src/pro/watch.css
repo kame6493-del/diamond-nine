@@ -1,0 +1,241 @@
+/* 観戦モード(2026-11-04 vc43)。手本: ChatGPT のデザイン案 d9w_01〜07(夜のスタジアムの紺・金の縁・白い札)。
+   文字は 11px 以上、押す所は高さ 44px 以上(360x640 と 412x915 で確かめる)。 */
+.wt-root{--wt-navy:#0a1a3f;--wt-navy2:#13306e;--wt-navy3:#1b3f8f;--wt-gold:#e0b23c;--wt-gold2:#ffd970;--wt-white:#f7f9ff;--wt-ink:#0d1b3a;--wt-muted:#4f5f82;--wt-blue:#2856c7;--wt-red:#c0303a;
+ position:fixed;inset:0;z-index:1200;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;color:var(--wt-white);
+ background:radial-gradient(120% 50% at 50% 0%,#24489a 0%,var(--wt-navy) 58%,#061127 100%) fixed,var(--wt-navy);
+ font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:14px;line-height:1.35;
+ padding:var(--safe-area-inset-top,env(safe-area-inset-top,0px)) 0 var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
+.wt-root *{box-sizing:border-box;min-width:0}
+.wt-root button,.wt-root select{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wt-root .wt-wrap{max-width:520px;margin:0 auto;padding:8px 10px 18px;display:flex;flex-direction:column;gap:7px}
+.wt-root .wt-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.wt-root .wt-empty{padding:30px 10px;font-size:15px;line-height:1.7}
+
+/* 上の帯 */
+.wt-root .wt-head{display:flex;align-items:center;gap:6px}
+.wt-root .wt-back{flex:none;min-height:44px;min-width:56px;padding:0 10px;border-radius:12px;border:1.5px solid var(--wt-gold);background:linear-gradient(#18397f,#0b1d47);color:#fff;font-weight:800;font-size:14px}
+.wt-root .wt-logo{flex:1;margin:0;display:flex;flex-direction:column;line-height:1.1}
+.wt-root .wt-logo b{font:italic 900 14px/1 "Arial Black",Impact,sans-serif;letter-spacing:.02em;background:linear-gradient(#fff6c9,#ffd23f 55%,#c98a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wt-root .wt-logo span{font-size:12px;color:#d6e0ff;font-weight:700;margin-top:3px}
+.wt-root .wt-head>div{display:flex;gap:5px;flex:none}
+.wt-root .wt-head>div button{min-height:44px;padding:0 9px;border-radius:12px;border:1.5px solid var(--wt-gold);background:linear-gradient(#18397f,#0b1d47);color:#fff;font-weight:800;font-size:13px;white-space:nowrap}
+.wt-root .wt-title{display:block;position:relative}
+.wt-root .wt-title select{width:100%;min-height:44px;appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center;border-radius:999px;border:2px solid var(--wt-gold);background:linear-gradient(90deg,#0b1d47,#1b3f8f 50%,#0b1d47);color:var(--wt-gold2);font-weight:900;font-size:16px;padding:6px 34px;box-shadow:0 0 12px rgba(255,217,112,.35)}
+.wt-root .wt-title::after{content:"";position:absolute;right:16px;top:50%;width:9px;height:9px;border-right:2.5px solid var(--wt-gold2);border-bottom:2.5px solid var(--wt-gold2);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+
+/* スコアボード */
+.wt-root .wt-score{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#f4f6fb;color:var(--wt-ink);border:2.5px solid var(--wt-gold);border-radius:10px;overflow:hidden;font-size:14px;font-variant-numeric:tabular-nums;font-weight:800}
+.wt-root .wt-score th{background:var(--wt-navy2);color:#fff;font-weight:700;font-size:12px;padding:3px 0}
+.wt-root .wt-score td{text-align:center;padding:4px 0;border-left:1px solid #d8deec}
+.wt-root .wt-score .wt-tm{width:52px;text-align:left;padding-left:5px;white-space:nowrap;overflow:hidden;font-size:13px;border-left:0}
+.wt-root .wt-score td.wt-tm.is-mine{color:#1c46a8}.wt-root .wt-score td.wt-tm.is-rival{color:#b8262f}
+.wt-root .wt-score .r{width:26px;background:#fbe9b0}.wt-root .wt-score th.r{background:var(--wt-gold);color:var(--wt-ink)}
+.wt-root .wt-score th:nth-last-child(-n+2),.wt-root .wt-score td:nth-last-child(-n+2){width:24px}
+.wt-root .wt-status{margin:0;text-align:center;font-size:12px;color:#bcd0ff}
+.wt-root .wt-status.is-whatif{background:#5a1f2a;color:#ffe1e5;border:1.5px solid #ff8f9c;border-radius:8px;padding:5px 8px;font-weight:700}
+
+/* グラウンド */
+.wt-root .wt-field{position:relative;height:190px;border-radius:14px;overflow:hidden;border:2px solid #2a4c9a;box-shadow:inset 0 10px 18px rgba(0,0,0,.35);background:#2f8a3a center/100% 100% no-repeat}
+.wt-root .wt-field::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:linear-gradient(#0b1d47,transparent);pointer-events:none}
+.wt-root .wt-field.is-empty{height:60px}
+.wt-root .wt-fig{position:absolute;width:28px;height:auto;transform:translate(-50%,-80%);filter:drop-shadow(0 2px 1px rgba(0,0,0,.45));pointer-events:none}
+.wt-root .wt-fig.is-batter{width:34px}.wt-root .wt-fig.is-pitcher{width:30px}.wt-root .wt-fig.is-runner{width:28px}
+.wt-root .wt-base.is-home{width:20px;opacity:1}.wt-root .wt-base{position:absolute;width:16px;transform:translate(-50%,-50%);pointer-events:none;opacity:.9}
+.wt-root .wt-base.is-on{filter:drop-shadow(0 0 6px #ffd970) sepia(1) saturate(4) hue-rotate(5deg)}
+.wt-root .wt-field.is-loaded{box-shadow:inset 0 0 22px rgba(255,217,112,.65)}
+.wt-root .wt-tag{position:absolute;transform:translate(-50%,-100%);z-index:2;min-height:32px;display:flex;align-items:center;gap:3px;background:#fff;color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:999px;font-size:12px;padding:0 9px;font-weight:800;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.35)}
+.wt-root .wt-tag b{font-size:15px}
+
+/* カウント */
+.wt-root .wt-count{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;background:linear-gradient(#ffffff,#e4e9f5);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:14px;padding:5px 12px}
+.wt-root .wt-count.is-loaded{box-shadow:0 0 14px rgba(255,217,112,.9)}
+.wt-root .wt-inn b{display:block;font-size:18px;line-height:1.15}
+.wt-root .wt-inn span{font-size:13px;color:var(--wt-muted);font-weight:700}
+.wt-root .wt-inn em{font-style:normal;font-size:12px;background:var(--wt-gold);color:var(--wt-ink);border-radius:5px;padding:1px 6px;margin-left:6px}
+.wt-root .wt-lamps p{margin:0;display:flex;align-items:center;gap:4px;height:17px}
+.wt-root .wt-lamps small{width:13px;font-weight:900;font-size:13px}
+.wt-root .wt-lamps i{width:13px;height:13px;border-radius:50%;background:#c9d0df;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.wt-root .wt-lamps i.is-b{background:#2fcf5c}.wt-root .wt-lamps i.is-s{background:#ffc928}.wt-root .wt-lamps i.is-o{background:#ef3b3b}
+.wt-root .wt-dia{position:relative;width:54px;height:44px}
+.wt-root .wt-dia i{position:absolute;width:17px;height:17px;transform:rotate(45deg);border:2px solid #8b97b3;background:#fff}
+.wt-root .wt-dia i.is-on{background:var(--wt-gold2);border-color:#d49a12;box-shadow:0 0 6px #ffd970}
+.wt-root .wt-dia .d1{left:18px;top:2px}.wt-root .wt-dia .d0{left:34px;top:19px}.wt-root .wt-dia .d2{left:2px;top:19px}
+
+/* 打者と投手の札 */
+.wt-root .wt-duel{display:grid;grid-template-columns:1fr 1fr;gap:6px;cursor:pointer}
+.wt-root .wt-card{background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:6px 7px;box-shadow:0 2px 0 #9a7a1e}
+.wt-root .wt-card h3{margin:0 0 4px;font-size:15px;display:flex;align-items:center;gap:5px;line-height:1.2}
+.wt-root .wt-card h3 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wt-root em{font-style:normal}
+.wt-root .wt-card h3 em,.wt-root .wt-vs b em,.wt-root .wt-target h3 em{flex:none;background:linear-gradient(#ffe28a,#d4a12a);color:var(--wt-ink);font-size:12px;border-radius:5px;padding:1px 5px;font-weight:900}
+.wt-root em.is-p{background:var(--wt-blue);color:#fff}
+.wt-root .wt-card.is-rival h3{color:#9b1c27}.wt-root .wt-card.is-mine h3{color:#1c3f98}
+.wt-root .wt-today{margin:4px 0 0;font-size:12px;font-weight:800}
+.wt-root .wt-season{margin:1px 0 0;font-size:12px;color:var(--wt-muted)}
+.wt-root .wt-abs{display:grid;gap:2px}
+.wt-root .wt-ab{display:grid;grid-template-columns:44px 30px 1fr;align-items:center;gap:3px;font-size:12px}
+.wt-root .wt-ab small{color:var(--wt-muted);font-size:11px;font-weight:700;white-space:nowrap}
+.wt-root .wt-ab b{font-size:16px;font-weight:900;text-align:center;font-style:italic}
+.wt-root .wt-ab b.wt-kmh{font-size:12px;font-style:normal;white-space:nowrap;text-align:left}
+.wt-root .wt-ab b.wt-kmh em{font-size:11px;margin-left:1px}
+.wt-root .wt-ab i{height:7px;background:#dfe5f2;border-radius:4px;overflow:hidden}
+.wt-root .wt-ab u{display:block;height:100%;border-radius:4px}
+.wt-root .wt-abs.is-big .wt-ab,.wt-root .wt-ab.is-wide{grid-template-columns:62px 36px 1fr;font-size:14px}
+.wt-root .wt-ab.is-wide small{font-size:13px}.wt-root .wt-ab.is-wide b{font-size:21px}.wt-root .wt-ab.is-wide i{height:10px}.wt-root .wt-ab.is-wide b.wt-kmh{font-size:14px}
+.wt-root .wt-abs.is-row{grid-template-columns:repeat(4,1fr);gap:4px}
+.wt-root .wt-abs.is-row .wt-ab{grid-template-columns:1fr;text-align:center;gap:1px;background:#eef2fa;border-radius:6px;padding:2px 3px}
+.wt-root .wt-abs.is-row .wt-ab b{font-size:18px}.wt-root .wt-abs.is-row .wt-ab b.wt-kmh{text-align:center;font-size:13px}
+
+/* 段の色(data.ts の gradeColor と同じ。S+ は虹) */
+.wt-root .g-S{color:#c98a00}.wt-root .g-A{color:#e0245e}.wt-root .g-B{color:#f05a1a}.wt-root .g-C{color:#e89400}.wt-root .g-D{color:#a8a000}.wt-root .g-E{color:#23a04f}.wt-root .g-F{color:#2a7fe0}.wt-root .g-G{color:#7b8794}
+.wt-root .g-SP{background:linear-gradient(90deg,#ff4f9a,#ffb300,#3fd16b,#2a8cff,#a35bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.wt-root u.g-S{background:#c98a00}.wt-root u.g-A{background:#e0245e}.wt-root u.g-B{background:#f05a1a}.wt-root u.g-C{background:#e89400}.wt-root u.g-D{background:#a8a000}.wt-root u.g-E{background:#23a04f}.wt-root u.g-F{background:#2a7fe0}.wt-root u.g-G{background:#7b8794}
+.wt-root u.g-SP{background:linear-gradient(90deg,#ff4f9a,#ffb300,#3fd16b,#2a8cff,#a35bff);-webkit-background-clip:border-box;background-clip:border-box}
+
+/* 実況 */
+.wt-root .wt-call{display:flex;gap:8px;align-items:center;background:linear-gradient(90deg,#0e2557,#1b3f8f);border:2px solid var(--wt-gold);border-radius:12px;padding:7px 10px;min-height:50px;transform:skewX(-4deg)}
+.wt-root .wt-call>*{transform:skewX(4deg)}
+.wt-root .wt-call em{flex:none;background:linear-gradient(#ffe28a,#d4a12a);color:var(--wt-ink);font-weight:900;font-size:12px;border-radius:6px;padding:3px 7px}
+.wt-root .wt-call span{font-weight:800;font-size:15px;line-height:1.35}
+.wt-root .wt-call.is-gold{background:linear-gradient(90deg,#6b4a00,#c08a12);box-shadow:0 0 14px rgba(255,217,112,.7)}
+
+/* 監督の操作・速さ */
+.wt-root .wt-manager{position:relative;border:2px solid #3e5fae;border-radius:14px;padding:16px 7px 7px;margin-top:8px;background:rgba(10,26,63,.6)}
+.wt-root .wt-manager h3{position:absolute;left:50%;top:-12px;transform:translateX(-50%);margin:0;font-size:13px;background:linear-gradient(#13306e,#0a1a3f);border:1.5px solid #6d86c8;color:#fff;border-radius:8px;padding:2px 14px;white-space:nowrap}
+.wt-root .wt-mgs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.wt-root .wt-mg{position:relative;min-height:48px;background:linear-gradient(#ffffff,#dfe6f5);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;font-weight:900;font-size:14px;line-height:1.15;padding:2px}
+.wt-root .wt-mg.is-off{background:#8892aa;border-color:#6b7590;color:#e3e7f1}
+.wt-root .wt-mg.is-pending{background:linear-gradient(#fff3b8,#f4c542);box-shadow:0 0 10px rgba(255,217,112,.8)}
+.wt-root .wt-mg small{position:absolute;right:2px;top:-9px;background:var(--wt-gold);color:var(--wt-ink);font-size:11px;border-radius:6px;padding:0 4px}
+.wt-root .wt-mg small.is-on{background:#ef3b3b;color:#fff;left:2px;right:auto}
+.wt-root .wt-hint{margin:6px 2px 0;font-size:13px;color:#ffe9a8;font-weight:700}
+.wt-root .wt-speed{display:grid;grid-template-columns:repeat(3,.75fr) 6px 1.15fr 1.25fr;gap:5px;align-items:center}
+.wt-root .wt-speed>i{width:2px;height:30px;background:#3e5fae;justify-self:center}
+.wt-root .wt-speed button{min-height:48px;background:linear-gradient(#18397f,#0b1d47);color:#fff;border:2px solid #6d86c8;border-radius:999px;font-weight:900;font-size:14px;padding:0 4px;white-space:nowrap}
+.wt-root .wt-speed button.is-on{background:linear-gradient(#fff2a6,#f4c542 55%,#d39a10);color:var(--wt-ink);border-color:var(--wt-gold2);box-shadow:0 0 12px rgba(255,217,112,.8)}
+.wt-root .wt-speed button:disabled{opacity:.45}
+
+/* 監督の操作と速さは画面の下に留める(360x640 でもスクロールせずに押せる) */
+.wt-root .wt-dock{position:sticky;bottom:0;z-index:5;margin:0 -10px;padding:4px 10px calc(8px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));background:linear-gradient(rgba(6,17,39,0),#061127 18%);display:flex;flex-direction:column;gap:6px}
+.wt-root .wt-dock .wt-manager{margin-top:10px}
+/* 試合後 */
+.wt-root .wt-final{background:var(--wt-white);color:var(--wt-ink);border:2.5px solid var(--wt-gold);border-radius:14px;padding:10px;text-align:center}
+.wt-root .wt-final h3{margin:0 0 6px;font-size:17px;line-height:1.4}
+.wt-root .wt-final h3 span{display:inline-block;background:linear-gradient(#ffe28a,#d4a12a);border-radius:999px;padding:1px 10px;margin-right:6px;font-size:14px}
+.wt-root .wt-final p{margin:0 0 8px;font-size:13px}
+.wt-root .wt-whatif-note{color:#8a1d2b;font-weight:700}
+.wt-root .wt-final-btns{display:flex;gap:8px}
+.wt-root .wt-final-btns button{flex:1;min-height:48px;border-radius:999px;font-weight:900;font-size:15px}
+.wt-root .wt-gold{background:linear-gradient(#fff2a6,#f4c542 55%,#d39a10);border:2px solid #b8860b;color:var(--wt-ink)}
+.wt-root .wt-gold:disabled{opacity:.45}
+.wt-root .wt-navy{background:linear-gradient(#2a56b8,#0e2a6b);border:2px solid var(--wt-gold);color:#fff}
+
+/* 演出 */
+.wt-root .wt-hr{position:fixed;inset:0;z-index:1300;overflow:hidden;cursor:pointer;background:radial-gradient(circle at 50% 45%,rgba(255,217,112,.4),rgba(5,15,40,.62) 60%);animation:wt-fade var(--d) ease forwards}
+.wt-root .wt-hr-word{position:absolute;top:33%;left:0;right:0;margin:0;text-align:center;white-space:nowrap;font:italic 900 clamp(34px,12.5vw,58px)/1 "Arial Black",Impact,sans-serif;background:linear-gradient(#fffbe0,#ffd23f 45%,#e09b00 60%,#fff1a0);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2px #8a4b00;filter:drop-shadow(0 4px 0 #5a1d10) drop-shadow(0 0 16px rgba(255,217,112,.9));animation:wt-pop var(--d) ease both}
+.wt-root .wt-hr-sub{position:absolute;top:50%;left:8%;right:8%;margin:0;text-align:center;font-weight:900;font-size:19px;color:var(--wt-ink);background:linear-gradient(#fff,#e8edf7);border:3px solid var(--wt-gold);border-radius:999px;padding:8px 10px;box-shadow:0 0 14px rgba(255,217,112,.8);animation:wt-pop var(--d) ease both}
+.wt-root .wt-hr-ball{position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 0 14px #fff,0 0 30px #8fd3ff;left:45%;top:80%;animation:wt-fly var(--d) cubic-bezier(.2,.7,.4,1) forwards}
+.wt-root .wt-cf{position:absolute;top:-12px;width:8px;height:13px;border-radius:2px;animation:wt-fall var(--d) linear forwards}
+.wt-root .wt-flash{position:fixed;left:0;right:0;top:40%;z-index:1250;text-align:center;font-weight:900;font-size:34px;font-style:italic;color:var(--wt-gold2);background:linear-gradient(90deg,transparent,#0a1a3fee 16%,#0a1a3fee 84%,transparent);border-top:3px solid var(--wt-gold);border-bottom:3px solid var(--wt-gold);padding:10px 0;text-shadow:0 0 12px #ffd970,0 2px 0 #5a3a00;pointer-events:none;animation:wt-pop 1.6s ease both}
+@keyframes wt-pop{0%{transform:scale(.2);opacity:0}25%{transform:scale(1.12);opacity:1}40%{transform:scale(1)}85%{opacity:1}100%{opacity:0}}
+@keyframes wt-fly{0%{transform:translate(0,0) scale(1)}100%{transform:translate(120px,-560px) scale(.3);opacity:0}}
+@keyframes wt-fall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(105vh) rotate(540deg)}}
+@keyframes wt-fade{0%,85%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.wt-root .wt-hr-word,.wt-root .wt-hr-sub,.wt-root .wt-flash{animation-name:wt-fade}.wt-root .wt-hr-ball,.wt-root .wt-cf{display:none}}
+
+/* シート */
+.wt-root .wt-sheet-back{position:fixed;inset:0;z-index:1260;background:rgba(3,10,30,.72);display:flex;align-items:flex-end;justify-content:center}
+.wt-root .wt-sheet{width:100%;max-width:520px;max-height:92dvh;overflow:auto;overscroll-behavior:contain;background:linear-gradient(#13306e,#0a1a3f 30%);color:var(--wt-white);border:2.5px solid var(--wt-gold);border-bottom:0;border-radius:18px 18px 0 0;padding:10px 10px calc(14px + env(safe-area-inset-bottom,0px))}
+.wt-root .wt-sheet>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.wt-root .wt-sheet>header h2{margin:0;font-size:18px;color:#fff}
+.wt-root .wt-x{min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--wt-gold);background:linear-gradient(#2a56b8,#0e2a6b);color:#fff;font-weight:900;font-size:14px}
+.wt-root .wt-note{font-size:12px;color:#c9d6f5;margin:8px 2px;line-height:1.55}
+.wt-root .wt-band{margin:10px 0 6px;text-align:center;font-size:14px;color:#fff;background:linear-gradient(90deg,transparent,#1b3f8f 15%,#1b3f8f 85%,transparent);border-top:1.5px solid var(--wt-gold);border-bottom:1.5px solid var(--wt-gold);padding:4px 0}
+.wt-root .wt-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:6px 0}
+.wt-root .wt-tabs button{min-height:46px;border-radius:12px 12px 4px 4px;border:2px solid #6d86c8;background:linear-gradient(#18397f,#0b1d47);color:#fff;font-weight:900;font-size:14px;padding:0 4px}
+.wt-root .wt-tabs button.is-on{background:linear-gradient(#fff2a6,#f4c542 55%,#d39a10);color:var(--wt-ink);border-color:var(--wt-gold2)}
+.wt-root .wt-tabs button.is-off{opacity:.5}
+.wt-root .wt-choose{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.wt-root .wt-choose button{min-height:44px;padding:0 10px;border-radius:10px;border:1.5px solid #6d86c8;background:#0e2557;color:#fff;font-weight:800;font-size:13px}
+.wt-root .wt-choose button.is-on{border-color:var(--wt-gold2);background:#2b4b9b;box-shadow:0 0 8px rgba(255,217,112,.6)}
+.wt-root .wt-choose label{display:flex;flex-direction:column;gap:3px;width:100%;font-size:12px;color:#c9d6f5}
+.wt-root .wt-choose select{min-height:44px;border-radius:10px;border:1.5px solid var(--wt-gold);background:#fff;color:var(--wt-ink);font-size:14px;padding:0 8px}
+
+/* 対決 */
+.wt-root .wt-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;text-align:center;border-radius:14px;padding:6px;background:linear-gradient(90deg,rgba(192,48,58,.35),rgba(10,26,63,.2) 50%,rgba(40,86,199,.4))}
+.wt-root .wt-vs img{height:86px;width:auto;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+.wt-root .wt-vs b{display:flex;justify-content:center;align-items:center;gap:4px;font-size:16px;background:#fff;color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:999px;padding:3px 8px;margin-top:4px;white-space:nowrap;overflow:hidden}
+.wt-root .wt-vs small{display:block;font-size:12px;color:#d6e0ff;margin-top:2px}
+.wt-root .wt-vs strong{font:italic 900 40px/1 "Arial Black",Impact,sans-serif;background:linear-gradient(#fffbe0,#ffd23f 50%,#d48a00);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px #7a3a00;align-self:center;padding:0 4px}
+.wt-root .wt-vs-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.wt-root .wt-vs-cols>.wt-abs{background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:6px}
+.wt-root .wt-stat{margin:0;background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:5px;text-align:center}
+.wt-root .wt-stat dt{font-size:12px;font-weight:900;color:#fff;border-radius:999px;padding:1px 0;margin-top:3px}
+.wt-root .wt-stat.is-red dt{background:linear-gradient(#c63b54,#8f1f33)}.wt-root .wt-stat.is-blue dt{background:linear-gradient(#3a6fd8,#1b3f8f)}
+.wt-root .wt-stat dd{margin:3px 0;font-size:13px;font-weight:800}
+.wt-root .wt-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:8px;background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:6px}
+.wt-root .wt-legend>span{font-size:12px;font-weight:900;margin-right:2px}
+.wt-root .wt-legend b span{font:inherit}.wt-root .wt-legend b{font:italic 900 16px/1 "Arial Black",sans-serif;width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:#eef2fa;border:1.5px solid var(--wt-gold)}
+.wt-root .wt-legend small{width:100%;font-size:11px;color:var(--wt-muted)}
+
+/* 走者 */
+.wt-root .wt-runner{background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:8px;margin-bottom:8px}
+.wt-root .wt-runner h3{margin:0 0 6px;font-size:16px}.wt-root .wt-runner h3 small{margin-left:8px;font-size:12px;color:var(--wt-muted)}
+.wt-root .wt-runner p{margin:6px 0 0;font-size:13px}
+
+/* 交代 */
+.wt-root .wt-target{display:grid;grid-template-columns:62px 1fr;gap:6px;align-items:center;background:var(--wt-white);color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:12px;padding:6px}
+.wt-root .wt-target img{width:60px}
+.wt-root .wt-target h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+.wt-root .wt-target h3 small{font-size:12px;color:var(--wt-muted);font-weight:700}
+.wt-root .wt-list{display:flex;flex-direction:column;gap:6px}
+.wt-root .wt-pr{display:grid;grid-template-columns:40px 1fr;grid-template-areas:"img name" "ab ab" "btn btn";gap:4px 6px;align-items:center;background:var(--wt-white);color:var(--wt-ink);border:2px solid #c9d2e6;border-radius:12px;padding:6px}
+.wt-root .wt-pr>img{grid-area:img;width:38px}.wt-root .wt-pr>img.is-gray{filter:grayscale(1) opacity(.6)}
+.wt-root .wt-pr-name{grid-area:name}.wt-root .wt-pr-name b{font-size:16px;display:block}.wt-root .wt-pr-name small{font-size:12px;color:var(--wt-muted)}
+.wt-root .wt-pr-ab{grid-area:ab}.wt-root .wt-pr-ab p{margin:3px 0 0;font-size:12px;color:var(--wt-muted);text-align:center}
+.wt-root .wt-pr-btn{grid-area:btn;min-height:46px;border-radius:12px;border:2px solid #b8860b;background:linear-gradient(#fff2a6,#f4c542 55%,#d39a10);color:var(--wt-ink);font-weight:900;font-size:14px}
+.wt-root .wt-pr-btn.is-off{background:#7d869c;border-color:#5e677d;color:#f0f2f7;font-size:13px}
+.wt-root .wt-pr.is-off{background:#d6dbe6}
+.wt-root .wt-pr.is-pick{border-color:var(--wt-gold2);box-shadow:0 0 0 2px var(--wt-gold),0 0 12px rgba(255,217,112,.8)}
+@media (min-width:400px){.wt-root .wt-pr{grid-template-columns:40px 1fr 104px;grid-template-areas:"img name btn" "ab ab btn"}}
+.wt-root .wt-order{width:100%;border-collapse:collapse;background:var(--wt-white);color:var(--wt-ink);border-radius:10px;overflow:hidden;font-size:13px}
+.wt-root .wt-order th{background:var(--wt-navy2);color:#fff;font-size:12px;padding:3px}.wt-root .wt-order td{text-align:center;padding:4px 3px;border-bottom:1px solid #dde3ef}
+.wt-root .wt-order tr.is-target td{background:#ffe9a0;font-weight:900}
+.wt-root .is-sticky{position:sticky;bottom:-14px;margin-top:10px;padding:8px 0 4px;background:linear-gradient(transparent,#0a1a3f 30%)}
+
+/* 相手チーム・成績表 */
+.wt-root .wt-team-head{display:grid;grid-template-columns:60px 1fr;gap:8px;align-items:center;background:linear-gradient(#18397f,#0b1d47);border:2px solid var(--wt-gold);border-radius:14px;padding:6px}
+.wt-root .wt-team-head img{width:58px}
+.wt-root .wt-team-head h3{margin:0 0 4px;font-size:19px;color:var(--wt-gold2)}
+.wt-root .wt-strength{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.wt-root .wt-strength>span{font-size:11px;font-weight:900;background:linear-gradient(#ffe28a,#d4a12a);color:var(--wt-ink);border-radius:6px;padding:2px 5px}
+.wt-root .wt-strength p{margin:0;display:flex;align-items:center;gap:3px;background:#fff;color:var(--wt-ink);border-radius:8px;padding:1px 7px}
+.wt-root .wt-strength small{font-size:12px;font-weight:800}.wt-root .wt-strength b{font:italic 900 18px/1.2 "Arial Black",sans-serif}
+.wt-root .wt-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.wt-root .wt-roster,.wt-root .wt-bx{width:100%;border-collapse:separate;border-spacing:0 3px;font-size:13px;font-variant-numeric:tabular-nums}
+.wt-root .wt-roster th,.wt-root .wt-bx th{background:var(--wt-navy2);color:#fff;font-size:11px;font-weight:700;padding:3px 2px;white-space:nowrap}
+.wt-root .wt-roster td,.wt-root .wt-bx td{background:var(--wt-white);color:var(--wt-ink);text-align:center;padding:5px 2px;font-weight:700}
+.wt-root .wt-roster tr.is-target td,.wt-root .wt-bx tr.is-target td{background:#ffe9a0}
+.wt-root .wt-roster td:first-child,.wt-root .wt-bx td:first-child{border-radius:8px 0 0 8px}.wt-root .wt-roster td:last-child,.wt-root .wt-bx td:last-child{border-radius:0 8px 8px 0}
+.wt-root .wt-bx{font-size:12.5px}.wt-root .wt-bx th{font-size:11px}.wt-root .wt-bx td{padding:5px 1px}.wt-root td.wt-nm{text-align:left;white-space:nowrap;max-width:7em;overflow:hidden;text-overflow:ellipsis}
+.wt-root td.wt-nm small{margin-left:4px;font-size:11px;background:#dfe5f2;border-radius:4px;padding:0 3px}
+.wt-root .wt-no{width:30px;color:var(--wt-ink)}
+.wt-root .wt-roster td .wt-medal{font:italic 900 16px/1 "Arial Black",sans-serif}
+.wt-root .wt-ss{font-size:12px;line-height:1.15}
+.wt-root .wt-box-head{background:linear-gradient(#18397f,#0b1d47);border:2px solid var(--wt-gold);border-radius:14px;padding:8px;text-align:center}
+.wt-root .wt-box-head>span{display:inline-block;background:linear-gradient(#ffe28a,#d4a12a);color:var(--wt-ink);border-radius:999px;padding:1px 10px;font-weight:900;font-size:13px}
+.wt-root .wt-box-head>b{display:block;font-size:17px;margin-top:4px}
+.wt-root .wt-box-head>p{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin:6px 0 0;font-size:13px}
+.wt-root .wt-box-head>p span{background:#fff;color:var(--wt-ink);border-radius:999px;padding:2px 8px;font-weight:800}
+.wt-root .wt-box-head .wt-whatif-note{display:block;background:#ffe1e5;border-radius:8px;padding:4px}
+.wt-root em.is-w,.wt-root em.is-l,.wt-root em.is-s{display:inline-block;color:#fff;border-radius:5px;padding:0 4px;margin-right:4px;font-size:12px;font-weight:900}
+.wt-root em.is-w{background:#d23b3b}.wt-root em.is-l{background:#2856c7}.wt-root em.is-s{background:#23a04f}
+.wt-root .wt-hr-mark{color:#b07800}.wt-root .wt-hr-mark::after{content:"★";font-size:11px;margin-left:1px}
+.wt-root .wt-hl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.wt-root .wt-hl li{display:flex;gap:6px;align-items:center;background:var(--wt-white);color:var(--wt-ink);border-radius:10px;padding:5px 6px;font-size:13px;font-weight:700}
+.wt-root .wt-hl em{flex:none;background:linear-gradient(#ffe28a,#d4a12a);border-radius:6px;padding:1px 6px;font-weight:900;font-size:12px}
+
+/* シーズンの画面の入口 */
+.wt-entry.wt-entry{color:#ffd970!important;font-family:inherit!important;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:48px;margin-top:8px;border-radius:999px;border:2px solid #e0b23c;background:linear-gradient(90deg,#0b1d47,#1b3f8f 50%,#0b1d47);font-weight:900!important;font-size:15px!important;cursor:pointer;box-shadow:0 0 10px rgba(255,217,112,.35)}
+.wt-entry.wt-entry small{color:#d6e0ff;font-size:12px;font-weight:700}
+.wt-watch-btn.wt-watch-btn{color:#ffd970!important;font-weight:900!important;font-size:13px!important;flex:none;align-self:center;height:auto;min-height:40px;min-width:56px;margin-left:6px;border-radius:999px;border:2px solid #e0b23c;background:linear-gradient(#18397f,#0b1d47);color:#ffd970;font-weight:900;font-size:13px;cursor:pointer;padding:0 10px}

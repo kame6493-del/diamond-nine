@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {players,playerMap} from '../src/pro/data';
-import {initialState,initialSandboxState,emptySeason,simulateDays,validState,migrateState,nextSeason,type GameState,type Season} from '../src/pro/engine';
+import {initialState,initialSandboxState,emptySeason,simulateDays,validState,migrateState,nextSeason,type GameState,type Season,dropWatchReplays} from '../src/pro/engine';
 import {buildByStrategy} from '../src/pro/franchise';
 import {finishPostseason,simulatePostseason,newPostseason,type Postseason} from '../src/pro/postseason';
 import {leagueProgress,settleLeagueProgress,seasonGames,mlbSchedule,leagueTeams,playoffSeeds,wonNpbLeague} from '../src/pro/leagues';
@@ -61,7 +61,7 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   const done=simulatePostseason(regular,60);
   assert.deepEqual(done.leagueProgress,regular.leagueProgress);assert.ok(validState(done));assert.equal(done.season.circuit,undefined);
   const promoted=nextSeason(done);assert.equal(promoted.season.circuit,'MLB');assert.equal(promoted.season.day,0);assert.equal(promoted.season.number,6);assert.equal(seasonGames(promoted.season),162);
-  assert.deepEqual(promoted.owned,done.owned);assert.deepEqual(promoted.training,done.training);assert.ok(promoted.gems>=done.gems);assert.deepEqual(promoted.history[0],done.season);assert.ok(validState(promoted));assert.deepEqual(migrateState(promoted),promoted);
+  assert.deepEqual(promoted.owned,done.owned);assert.deepEqual(promoted.training,done.training);assert.ok(promoted.gems>=done.gems);assert.deepEqual(promoted.history[0],dropWatchReplays(done.season));assert.ok(validState(promoted));assert.deepEqual(migrateState(promoted),promoted);
   const archived=structuredClone(done);delete archived.leagueProgress;archived.history=[4,3,2,1].map(number=>({...structuredClone(done.season),number}));assert.equal(nextSeason(archived).season.circuit,'MLB');
  });
  test('MLB plays 162 games with conserved batting/pitching totals, actual steals and one-time rewards',()=>{
@@ -87,7 +87,7 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   assert.deepEqual(end.season.pitching,regular.season.pitching);
   assert.equal(regular.franchise.tickets,start.franchise.tickets);assert.equal(end.franchise.tickets,start.franchise.tickets);
   assert.equal(JSON.stringify(regular.season),frozen);assert.deepEqual(end.season.batting,regular.season.batting);assert.deepEqual(simulatePostseason(end,60),end);
-  const next=nextSeason(end);assert.equal(next.season.circuit,'MLB');assert.equal(next.season.number,7);assert.deepEqual(next.history[0],end.season);
+  const next=nextSeason(end);assert.equal(next.season.circuit,'MLB');assert.equal(next.season.number,7);assert.deepEqual(next.history[0],dropWatchReplays(end.season));
   const corrupt=structuredClone(end);corrupt.season.postseason!.series[0].higher=corrupt.season.postseason!.series[0].lower;assert.equal(migrateState(corrupt),null);
   const early=structuredClone(oneDay);early.season.postseason!.rewardClaimed=true;assert.equal(migrateState(early),null);
   const locked={...start,leagueProgress:{...start.leagueProgress,mlbUnlocked:false}};assert.equal(validState(locked),false);

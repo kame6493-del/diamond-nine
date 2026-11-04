@@ -2,7 +2,7 @@ import {circuitOf,settleLeagueProgress,type Circuit} from './leagues';
 import {recordAchievements} from './achievements';
 import {newMLBPostseason,simulateMLBPostseason} from './mlb-postseason';
 import { postseasonReward } from './progression';
-import { emptySeason,playGame,rankings,rng,winPct,type BatStats,type GameResult,type GameState,type PitStats,type Season,type Standing } from './engine';
+import { emptySeason,makeReplay,playGame,rankings,rng,winPct,type BatStats,type GameResult,type GameState,type PitStats,type Season,type Standing } from './engine';
 
 export type PostStage='first'|'final'|'japan'|'wildcard'|'division'|'championship'|'world'|'complete';
 export interface PostSeries { id:string;stage:Exclude<PostStage,'complete'>;league:'CENTRAL'|'PACIFIC'|'JAPAN'|'AMERICAN'|'NATIONAL'|'WORLD';higher:string;lower:string;wins:[number,number];advantage:number;target:number;maxGames:number|null;results:GameResult[];winner:string|null }
@@ -46,7 +46,9 @@ export function simulatePostseason(input:GameState,days=1):GameState {
    const homeHigher=series.stage!=='japan'||[0,1,5,6].includes(gameIndex)||(gameIndex>=7&&gameIndex%2===0);
    const home=homeHigher?series.higher:series.lower,away=homeHigher?series.lower:series.higher;
    const scratch:GameState={...state,season:{...emptySeason(state.season.number),day:post.day,batting:post.batting,pitching:post.pitching,standings:post.standings}};
-   const game=playGame(scratch,home,away,random);
+   // 観戦モード: 自分のチームが出たプレーオフと、国内王座決定戦の全試合は、直前の乱数の位置と編成を残す(計算は変えない)。
+   const before=random.state,game=playGame(scratch,home,away,random);
+   if(series.stage==='japan'||home===state.club||away===state.club)game.replay=makeReplay(state,'post',before,post.day);
    series.results.push(game);
    if(game.homeRuns!==game.awayRuns){const winner=game.homeRuns>game.awayRuns?home:away;series.wins[winner===series.higher?0:1]++;}
    series.winner=seriesWinner(series);

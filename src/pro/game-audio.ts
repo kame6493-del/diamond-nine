@@ -7,10 +7,13 @@ const files={
  join:'selab/join.mp3',win:'selab/win.mp3',awaken:'selab/awaken.mp3',
  // 以前の見た目・お祝い演出が使う名前。新しい音へ置き換えた。
  draw:'selab/deal.mp3',impact:'selab/cymbal.mp3',voice:'selab/cymbal.mp3',
+ // 観戦モード(2026-11-04)。同じ効果音ラボ。出典は /audio/selab/LICENSE.txt。観戦の画面を開いた時だけ読む(prepareWatchAudio)。
+ hit:'selab/watch/hit.mp3',catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',homerun:'selab/watch/homerun.mp3',gameset:'selab/watch/gameset.mp3',
 } as const;
+const watchSounds=['hit','catch','strikeout','cheer','homerun','gameset'] as const;
 export type Sound=keyof typeof files;
 // 音量のつり合い(耳に刺さらない程度にそろえる)。
-const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,win:.38,awaken:.5,draw:.55,impact:.3,voice:.25};
+const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,win:.38,awaken:.5,draw:.55,impact:.3,voice:.25,hit:.45,catch:.4,strikeout:.4,cheer:.3,homerun:.4,gameset:.35};
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
 const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound}>();
 let context:AudioContext|null=null,epoch=0;
@@ -23,7 +26,11 @@ async function load(file:string){
  await loading.get(file);
 }
 export async function prepareGameAudio(){
- try{context??=new AudioContext();void context.resume().catch(()=>{});await Promise.all(Object.values(files).map(load));}catch{/* Unsupported audio is silent. */}
+ try{context??=new AudioContext();void context.resume().catch(()=>{});await Promise.all(Object.entries(files).filter(([k])=>!(watchSounds as readonly string[]).includes(k)).map(([,f])=>load(f)));}catch{/* Unsupported audio is silent. */}
+}
+/** 観戦モードの音を先に読む(音を ON にしている時だけ呼ぶ)。 */
+export async function prepareWatchAudio(){
+ try{context??=new AudioContext();void context.resume().catch(()=>{});await Promise.all(watchSounds.map(k=>load(files[k])));}catch{/* Unsupported audio is silent. */}
 }
 // Cancel active sounds and pending/scheduled cues when muting or skipping.
 export function stopGameAudio(){

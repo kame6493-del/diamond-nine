@@ -20,6 +20,7 @@ import {registerPitcherAptitudeTests} from './test-pitcher-aptitude';
 import {registerSpaceLeagueTests} from './test-space-league';
 import {registerSpaceAlienTests} from './test-space-aliens';
 import {registerStealBalanceTests} from './test-steal-balance';
+import {registerWatchTests} from './test-watch';
 import {gameReward,seasonReward,postseasonReward} from '../src/pro/progression';
 import {awakeningCosts} from '../src/pro/development';
 import {registerBalanceTests} from './test-balance';
@@ -43,7 +44,7 @@ import { CardAbilities } from '../src/pro/CardAbilities';
 import { assessHandling,assessUZR,formatFieldInnings } from '../src/pro/defense';
 import assert from 'node:assert/strict';
 import { players,npbPlayers,teams,playerMap,findPlayer,contexts,sourceInfo,deltaInfo,uzrInfo,uzrCoverage,rosterInfo,rosterCoverage,canBat,autoLineup,autoPitchers,activeUzrCount } from '../src/pro/data';
-import { redeemURTicket,drawPlayers,initialSandboxState as initialState,nextSeason,simulateDays,schedule,validState,migrateState,rankings,rng,scoutWeight,effectiveOverall,defenseAdjustment } from '../src/pro/engine';
+import { redeemURTicket,drawPlayers,initialSandboxState as initialState,nextSeason,simulateDays,schedule,validState,migrateState,rankings,rng,scoutWeight,effectiveOverall,defenseAdjustment,dropWatchReplays} from '../src/pro/engine';
 import { battingMetrics,fip,leagueContext } from '../src/pro/sabermetrics';
 import { establishClub,trainPlayer,claimAllMilestones,claimMilestone,upgradeStadium,buildByStrategy,captainPool } from '../src/pro/franchise';
 
@@ -95,7 +96,7 @@ test('single-day and batch simulations give identical results, no repeated finis
  assert.equal(initial.season.day,0);assert.equal(initial.gems,15600);
 });
 test('next season preserves collection and keeps exact historical record',()=>{
- assert.equal(nextSeason(season),season);const finished=simulatePostseason(season,60);const next=nextSeason(finished);assert.equal(next.season.number,2);assert.equal(next.season.day,0);assert.deepEqual(next.history[0],finished.season);assert.deepEqual(next.owned,season.owned);assert.equal(next.gems,finished.gems);assert.ok(validState(next));assert.deepEqual(nextSeason(initial),initial);
+ assert.equal(nextSeason(season),season);const finished=simulatePostseason(season,60);const next=nextSeason(finished);assert.equal(next.season.number,2);assert.equal(next.season.day,0);assert.deepEqual(next.history[0],dropWatchReplays(finished.season));assert.deepEqual(next.owned,season.owned);assert.equal(next.gems,finished.gems);assert.ok(validState(next));assert.deepEqual(nextSeason(initial),initial);
 });
 test('batting-order moves preserve defensive assignments and relief usage is distributed',()=>{
  const reordered={...initial,lineup:[...initial.lineup]};[reordered.lineup[0],reordered.lineup[1]]=[reordered.lineup[1],reordered.lineup[0]];
@@ -335,6 +336,7 @@ registerSpaceAlienTests(test);
 registerStealBalanceTests(test);
 registerRunEnvironmentTests(test);
 registerBullpenTests(test);
+registerWatchTests(test);
 let failures=0;
 for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);

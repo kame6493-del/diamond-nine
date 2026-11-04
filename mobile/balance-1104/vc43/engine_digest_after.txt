@@ -1,0 +1,6 @@
+NPB 11 fcc86b873054050b 2253ms results=143 replays=1+7
+NPB 2026 79cbd7b6c239b015 2291ms results=143 replays=1+4
+MLB 11 447fcb497f2716e6 5606ms results=162 replays=1+7
+MLB 2026 4b7e560a53524979 6016ms results=162 replays=1+7
+SPACE 11 6c1399c1c3f22248 6491ms results=162 replays=1+4
+SPACE 2026 780769d8f4d3cbbc 6507ms results=162 replays=1+4

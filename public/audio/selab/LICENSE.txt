@@ -12,3 +12,10 @@
  awaken.mp3  ← anime/mp3/levelup1.mp3「レベルアップ」
  join.mp3    ← button/mp3/decision7.mp3「決定ボタンを押す7」(2026-10-11)
  win.mp3     ← various/mp3/metal-bat1.mp3「カキーンと打つ」(2026-10-11)
+2026-11-04 観戦モード(1試合を観る画面)の音を足した。watch/ の中。冒頭の無音を切り(silenceremove)、音量を揃えた(loudnorm I=-18)だけ。
+ watch/hit.mp3       ← various/mp3/metal-bat1.mp3「金属バットで打つ1」(安打・長打)
+ watch/catch.mp3     ← various/mp3/ball-mitt-catch1.mp3「ボールをミットでキャッチ1」(凡打・アウト)
+ watch/strikeout.mp3 ← various/mp3/ball-mitt-catch2.mp3「ボールをミットでキャッチ2」(三振)
+ watch/cheer.mp3     ← voice/mp3/people/people-stadium-cheer2.mp3「スタジアムの歓声2」(得点)
+ watch/homerun.mp3   ← various/mp3/metal-bat-cheers1.mp3「金属バットと歓声1」(ホームラン)
+ watch/gameset.mp3   ← voice/mp3/people/people-stadium-applause1.mp3「スタジアムの拍手」(試合終了)

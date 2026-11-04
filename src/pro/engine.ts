@@ -23,7 +23,7 @@ export interface PitStats { playerId:string;team:string;games:number;starts:numb
 export interface Standing { team:string;w:number;l:number;d:number;rf:number;ra:number;form:string[] }
 export interface PlayHighlight { inning:number;team:string;batter:string;pitcher:string;play:string;runs:number;awayScore:number;homeScore:number;turningPoint:boolean }
 export interface GameBox { batting:BatStats[];pitching:PitStats[];highlights:PlayHighlight[] }
-export interface GameResult { day:number;home:string;away:string;homeRuns:number;awayRuns:number;innings:number;line:number[][];stars:string[];errors?:[number,number];box?:GameBox }
+export interface GameResult { day:number;home:string;away:string;homeRuns:number;awayRuns:number;innings:number;line:number[][];stars:string[];errors?:[number,number];box?:GameBox;replay?:WatchReplay }
 export interface Season { fielding?:FieldingSeason;shareTeam?:SeasonTeamSnapshot;circuit?:Circuit;club?:string;number:number;day:number;standings:Standing[];batting:Record<string,BatStats>;pitching:Record<string,PitStats>;results:GameResult[];trend:number[];completed:boolean;rewardClaimed:boolean;model?:'2026-dips'|'2025-basic';postseason?:Postseason }
 export interface GameState { starterScout?:StarterScoutState;achievements?:Achievements;additionalParkedSeasons?:Season[];parkedSeason?:Season;leagueChoice?:Circuit;leagueProgress?:LeagueProgress;version:1;mode?:Profile;name:string;club:string;gems:number;owned:Record<string,number>;lineup:string[];defense:Record<string,string>;pitchers:string[];season:Season;history:Season[];pulls:number;pity:number;seed:number;lastPulls:Pull[];franchise:Franchise;training:Record<string,number>;careerGrowth?:CareerGrowthMap;grownSeason?:number }
 export interface Pull { playerId:string;isNew:boolean;copies:number;guaranteed:boolean;trainingReward?:number;contract?:boolean }
@@ -155,16 +155,33 @@ export function nextMatchPreview(state:GameState){
  return {home,away,opponent,mine:state.pitchers[state.season.day%6],theirs:defaultTeams[opponent].pitchers[state.season.day%6]};
 }
 
-export function playGame(state:GameState,home:string,away:string,random:ReturnType<typeof rng>):GameResult{
- const season=state.season;
- const beforeBat=new Map(Object.entries(season.batting).filter(([,v])=>v.team===home||v.team===away).map(([key,value])=>[key,{...value}]));
- const beforePit=new Map(Object.entries(season.pitching).filter(([,v])=>v.team===home||v.team===away).map(([key,value])=>[key,{...value}]));
+// ---- 1試合の計算(2026-11-04 vc43: 観戦モードと1本にした) ----
+// gameSteps は1打席ずつ進む試合の計算。「1年進める」の playGame はこれを指示なしで最後まで回すだけ
+// (interactive=false の時は途中で止まらず、乱数の使い方も前の playGame と同じ)。
+// 観戦モード(WatchScreen)は interactive=true で打席の前ごとに止め、監督の指示(WatchOrder)を受け取る。
+// 指示が無ければ記録と同じ試合になる。指示を出すと、そこから先は「もしも」の試合(シーズンの成績には入れない)。
+export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string};
+export type LiveKind='BB'|'HBP'|'K'|'OUT'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER';
+export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string}
+export interface LiveSituation {inning:number;side:number;outs:number;bases:(string|null)[];batter:string;slot:number;pitcher:string;score:[number,number];line:number[][];hits:[number,number];errors:[number,number];lineups:string[][];defense:Record<string,string>[];pitchers:string[][];usedPitchers:string[][];removed:string[][];ibbLeft:number;batToday:Record<string,BatStats>;pitToday:Record<string,PitStats>}
+export type LiveStep={type:'decide';s:LiveSituation}|{type:'event';e:LiveEvent};
+export interface GameOptions {interactive?:boolean;control?:number;tables?:{batting:Record<string,BatStats>;pitching:Record<string,PitStats>;fielding:FieldingSeason};tiebreak?:boolean}
+export const IBB_PER_INNING=2;
+/** 交代で出せるか。出せない時は理由(画面でボタンを押せなくして一言出す)。 */
+export function substituteBlock(lineup:string[],removed:string[],id:string):string|null{
+ return !playerMap[id]?'この選手はいない':lineup.includes(id)?'この選手はもう試合に出ている':removed.includes(id)?'この選手はもう出場した':!canBat(playerMap[id])?'この選手は打てない':null;
+}
+export function* gameSteps(state:GameState,home:string,away:string,random:ReturnType<typeof rng>,options:GameOptions={}):Generator<LiveStep,GameResult,WatchOrder|null|undefined>{
+ const season=state.season,interactive=!!options.interactive,control=interactive?options.control??-1:-1;
+ const tables=options.tables??{batting:season.batting,pitching:season.pitching,fielding:season.fielding??=emptyFielding()};
+ const beforeBat=new Map(Object.entries(tables.batting).filter(([,v])=>v.team===home||v.team===away).map(([key,value])=>[key,{...value}]));
+ const beforePit=new Map(Object.entries(tables.pitching).filter(([,v])=>v.team===home||v.team===away).map(([key,value])=>[key,{...value}]));
  const highlights:PlayHighlight[]=[];
  const forms=new Map(seasonConditions(state).map(c=>[c.playerId,c.boost]));
  const ids=[away,home];
- const rosters=ids.map(id=>id===state.club?{lineup:state.lineup,pitchers:state.pitchers,defense:state.defense}:defaultTeams[id]);
+ const rosters=ids.map(id=>{const r=id===state.club?{lineup:state.lineup,pitchers:state.pitchers,defense:state.defense}:defaultTeams[id];return {lineup:[...r.lineup],pitchers:r.pitchers,defense:{...r.defense}};});
  const opponentTraining=circuitOf(season)==='SPACE'?Object.fromEntries(rosters.flatMap(r=>r.lineup).map(id=>[id,4])):{};
- const line:number[][]=[[],[]];const scores=[0,0];const errors:[number,number]=[0,0];const battingOrder=[0,0];
+ const line:number[][]=[[],[]];const scores=[0,0];const errors:[number,number]=[0,0];const hits:[number,number]=[0,0];const battingOrder=[0,0];
  const usedPitchers=[new Set<string>(),new Set<string>()];const outsByPitcher=new Map<string,number>();
  const start=rosters.map(r=>r.pitchers[season.day%6]);
  // Fixed CPU adjustments keep NPB approachable and soften the jump to MLB.
@@ -176,36 +193,47 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  const opponentAdjustment=circuitOf(season)==='SPACE'?4:circuitOf(season)==='NPB'?-4:-2;
  const bonusFor=(side:number,id:string)=>ids[side]===state.club?Math.min(5,Math.max(0,(state.owned[id]??1)-1))+growthBonus(state.careerGrowth,id)+(forms.get(id)??0):opponentAdjustment;
  const stageFor=(side:number,id:string)=>ids[side]===state.club?(state.training[id]??0):circuitOf(season)==='SPACE'?4:0;
- const fielding=season.fielding??=emptyFielding();
- const defenses=rosters.map((r,side)=>{
-  const mine=ids[side]===state.club;
+ const fielding=tables.fielding;
+ const buildDefense=(side:number,entering:string[])=>{
+  const r=rosters[side],mine=ids[side]===state.club;
   const f=defenseAdjustment(r.lineup,r.defense,mine?state.owned:{},mine?state.training:opponentTraining,mine?0:opponentAdjustment,mine?state.careerGrowth:undefined);
-  fielding.games[ids[side]]=(fielding.games[ids[side]]??0)+1;
   const fielders=r.lineup.filter(id=>r.defense[id]!=='DH').map(id=>{
    const player=playerMap[id],ratings=ownedRatings(player,mine?state.owned:{},mine?state.training:opponentTraining,mine?state.careerGrowth:undefined),adjustment=mine?0:opponentAdjustment;
    const skill=defenseAtPosition(player,r.defense[id],{...ratings,field:ratings.field+adjustment,catching:ratings.catching+adjustment}).skill;
    const arm=defenseAtPosition(player,r.defense[id],gameRatings(player,bonusFor(side,id),stageFor(side,id))).arm;
-   const row=fielding.players[batKey(ids[side],id)]??={playerId:id,team:ids[side],games:0,ballsInPlay:0,rangeRuns:0,errorRuns:0,armRuns:0};row.games++;
+   const row=fielding.players[batKey(ids[side],id)]??={playerId:id,team:ids[side],games:0,ballsInPlay:0,rangeRuns:0,errorRuns:0,armRuns:0};if(entering.includes(id))row.games++;
    return {id,position:r.defense[id],skill,arm,row};
   });
   const outfield=fielders.filter(p=>p.position==='外');
   const catcherId=r.lineup.find(id=>r.defense[id]==='捕')!,catcher=defenseAtPosition(playerMap[catcherId],'捕',gameRatings(playerMap[catcherId],bonusFor(side,catcherId),stageFor(side,catcherId)));
   return {field:f,fielders,outfield,catcherRow:fielders.find(p=>p.id===catcherId)!.row,arm:outfield.reduce((n,p)=>n+p.arm,0)/Math.max(1,outfield.length),catcherArm:catcher.arm,catcherField:catcher.field};
- });
+ };
+ const defenses=rosters.map((r,side)=>{fielding.games[ids[side]]=(fielding.games[ids[side]]??0)+1;return buildDefense(side,r.lineup);});
  const matchupCache=new Map<string,ReturnType<typeof matchupProbabilities>&{rangeSlope:number;errorSlope:number}>();
  let winningPitcher=start[0],losingPitcher=start[1],winningSide=0;
  const starterLimit=start.map((id,side)=>Math.floor(clamp(4.5+pitchingRatingsForRole(playerMap[id],gameRatings(playerMap[id],bonusFor(side,id),stageFor(side,id)),'先').stamina/55+random.next()*1.6,5,8)));
  const latestPitcher=[start[0],start[1]];const enteringLead=new Map<string,number>();
  const getB=(side:number,id:string)=>{
   const key=batKey(ids[side],id);
-  return season.batting[key]??=( {playerId:id,team:ids[side],games:0,pa:0,ab:0,hits:0,doubles:0,triples:0,hr:0,rbi:0,runs:0,bb:0,so:0,sb:0,hbp:0,sf:0} );
+  return tables.batting[key]??=( {playerId:id,team:ids[side],games:0,pa:0,ab:0,hits:0,doubles:0,triples:0,hr:0,rbi:0,runs:0,bb:0,so:0,sb:0,hbp:0,sf:0} );
  };
  const getP=(side:number,id:string)=>{
   const key=batKey(ids[side],id);
-  return season.pitching[key]??=({playerId:id,team:ids[side],games:0,starts:0,wins:0,losses:0,saves:0,outs:0,hits:0,er:0,bb:0,so:0,hr:0,hbp:0,bf:0});
+  return tables.pitching[key]??=({playerId:id,team:ids[side],games:0,starts:0,wins:0,losses:0,saves:0,outs:0,hits:0,er:0,bb:0,so:0,hr:0,hbp:0,bf:0});
  };
  rosters.forEach((r,side)=>r.lineup.forEach(id=>getB(side,id).games++));
+ // 監督の交代(観戦モードだけ)。appeared=成績表の並び(退いた選手の後に入った選手)、removed=退いた選手(戻れない)。
+ const appeared=rosters.map(r=>[...r.lineup]),removed=[[] as string[],[] as string[]],forced:(string|null)[]=[null,null];
+ const substitute=(side:number,slot:number,id:string,position?:string)=>{
+  const r=rosters[side],old=r.lineup[slot],oldPosition=r.defense[old];
+  r.lineup[slot]=id;delete r.defense[old];r.defense[id]=oldPosition;removed[side].push(old);
+  appeared[side].splice(appeared[side].indexOf(old)+1,0,id);getB(side,id).games++;
+  // 守備位置の付け替え: 指定した位置にいた選手が、退いた選手の位置へ回る。
+  if(position&&position!==oldPosition){const other=r.lineup.find(x=>x!==id&&r.defense[x]===position);if(other){r.defense[other]=oldPosition;r.defense[id]=position;}}
+  defenses[side]=buildDefense(side,[id]);matchupCache.clear();
+ };
  type Runner={id:string;pitcher:string;unearned?:boolean;stealConsidered?:boolean};
+ const tiebreak=options.tiebreak??(circuitOf(season)!=='NPB'&&!season.postseason);
  for(let inning=0;inning<(circuitOf(season)!=='NPB'?100:12);inning++){
   for(let side=0;side<2;side++){
    if(side===1&&inning>=8&&scores[1]>scores[0]){line[1].push(-1);break;}
@@ -217,23 +245,79 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
    const preferred=rosters[defense].pitchers[6+reliefOffset];
    const alreadyOut=usedPitchers[defense].has(preferred)&&latestPitcher[defense]!==preferred;
    const relief=alreadyOut?(rosters[defense].pitchers.slice(6).find(id=>!usedPitchers[defense].has(id))??latestPitcher[defense]):preferred;
-   const pitcherId=!starterDone?start[defense]:relief;
-   const pitcherRole=pitcherSlotRole(rosters[defense].pitchers.indexOf(pitcherId));
-   const pitcher=playerMap[pitcherId];const ps=getP(defense,pitcherId);
-   if(!usedPitchers[defense].has(pitcherId)){ps.games++;if(inning===0)ps.starts++;usedPitchers[defense].add(pitcherId);enteringLead.set(`${defense}|${pitcherId}`,scores[defense]-scores[side]);}
-   latestPitcher[defense]=pitcherId;
-   const pitchBonus=bonusFor(defense,pitcherId);
-   let out=0,errorOuts=0;let bases:(Runner|null)[]=[null,null,null];let runs=0;
-   if(circuitOf(season)!=='NPB'&&!season.postseason&&inning>=9)bases[1]={id:rosters[side].lineup[(battingOrder[side]+8)%9],pitcher:pitcherId,unearned:true};
+   let pitcherId=forced[defense]??(!starterDone?start[defense]:relief);
+   let pitcherRole=pitcherSlotRole(rosters[defense].pitchers.indexOf(pitcherId));
+   let pitcher=playerMap[pitcherId];let ps=getP(defense,pitcherId);
+   const enter=()=>{
+    if(!usedPitchers[defense].has(pitcherId)){ps.games++;if(inning===0&&pitcherId===start[defense])ps.starts++;usedPitchers[defense].add(pitcherId);enteringLead.set(`${defense}|${pitcherId}`,scores[defense]-scores[side]);}
+    latestPitcher[defense]=pitcherId;
+   };
+   enter();
+   let pitchBonus=bonusFor(defense,pitcherId);
+   let out=0,errorOuts=0;let bases:(Runner|null)[]=[null,null,null];let runs=0;let walksOrdered=0;
+   if(tiebreak&&inning>=9)bases[1]={id:rosters[side].lineup[(battingOrder[side]+8)%9],pitcher:pitcherId,unearned:true};
    const run=(runner:Runner,batter:BatStats,homeRun=false,creditRbi=true)=>{
     if(side===1&&inning>=8&&scores[1]>scores[0]&&!homeRun)return;
     getB(side,runner.id).runs++;if(!runner.unearned&&out+errorOuts<3)getP(defense,runner.pitcher).er++;if(creditRbi)batter.rbi++;scores[side]++;runs++;
     if(scores[side]===scores[defense]+1){winningSide=side;winningPitcher=latestPitcher[side];losingPitcher=runner.pitcher;}
    };
+   const outFor=()=>{out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);};
+   const lineNow=()=>[[...line[0],...(side===0?[runs]:[])],[...line[1],...(side===1?[runs]:[])]];
+   const ev=(kind:LiveKind,batter:string,slot:number,runsIn=0,order?:WatchOrder,replaced?:string):LiveStep=>({type:'event',e:{kind,inning:inning+1,side,batter,slot,pitcher:pitcherId,runs:runsIn,outs:out,bases:bases.map(b=>b?.id??null),score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],order,replaced}});
    while(out<3){
-    const beforeRuns=scores[side],beforeLead=scores[side]-scores[defense];let play='';
-    const id=rosters[side].lineup[battingOrder[side]%9];battingOrder[side]++;
+    // ---- 監督の指示(観戦モードの打席の前)。指示が無い時・interactive でない時は何も変わらない。
+    let order:WatchOrder|null|undefined=null;
+    if(interactive)for(let guard=0;guard<40;guard++){
+     const slot=battingOrder[side]%9;
+     order=yield {type:'decide',s:{inning:inning+1,side,outs:out,bases:bases.map(b=>b?.id??null),batter:rosters[side].lineup[slot],slot,pitcher:pitcherId,score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],lineups:rosters.map(r=>[...r.lineup]),defense:rosters.map(r=>({...r.defense})),pitchers:rosters.map(r=>[...r.pitchers]),usedPitchers:usedPitchers.map(s=>[...s]),removed:removed.map(x=>[...x]),ibbLeft:IBB_PER_INNING-walksOrdered,batToday:tables.batting,pitToday:tables.pitching}};
+     if(!order)break;
+     if(order.kind==='pinch'){
+      if(side!==control||order.slot!==slot||substituteBlock(rosters[side].lineup,removed[side],order.id)){order=null;continue;}
+      const old=rosters[side].lineup[slot];substitute(side,slot,order.id);yield ev('PINCH',order.id,slot,0,order,old);order=null;continue;
+     }
+     if(order.kind==='runner'){
+      // 代走: 塁の走者を替える(打順の枠も入れ替わる)。得点・自責は元の投手のまま。
+      const r=bases[order.base];if(side!==control||!r||substituteBlock(rosters[side].lineup,removed[side],order.id)){order=null;continue;}
+      const at=rosters[side].lineup.indexOf(r.id);if(at<0){order=null;continue;}
+      substitute(side,at,order.id);bases[order.base]={...r,id:order.id};yield ev('RUNNER',order.id,at,0,order,r.id);order=null;continue;
+     }
+     if(order.kind==='field'){
+      // 守備固め: 守っている側の野手を替える(位置の付け替えもできる)。
+      const old=rosters[defense].lineup[order.slot];
+      if(defense!==control||!old||substituteBlock(rosters[defense].lineup,removed[defense],order.id)){order=null;continue;}
+      substitute(defense,order.slot,order.id,order.position);yield ev('FIELD',order.id,order.slot,0,order,old);order=null;continue;
+     }
+     if(order.kind==='pitcher'){
+      if(defense!==control||usedPitchers[defense].has(order.id)||!rosters[defense].pitchers.includes(order.id)){order=null;continue;}
+      const old=pitcherId;forced[defense]=order.id;pitcherId=order.id;pitcher=playerMap[pitcherId];ps=getP(defense,pitcherId);pitcherRole=pitcherSlotRole(rosters[defense].pitchers.indexOf(pitcherId));pitchBonus=bonusFor(defense,pitcherId);enter();
+      yield ev('PITCHER',rosters[side].lineup[slot],slot,0,order,old);order=null;continue;
+     }
+     break;
+    }
+    if(order&&order.kind==='steal'&&side===control&&bases[0]&&!bases[1]){
+     // 指示の盗塁: 企図の抽選を飛ばし、成功の抽選だけ(確率は自動の盗塁と同じ stealProbabilities)。打席の前に走る。
+     const runner=playerMap[bases[0].id],who=bases[0].id;bases[0].stealConsidered=true;
+     const {success}=stealProbabilities(runner,bonusFor(side,who),defenses[defense].catcherArm,defenses[defense].catcherField,stageFor(side,who));
+     const slot=rosters[side].lineup.indexOf(who);
+     if(random.next()<success){getB(side,who).sb++;bases[1]=bases[0];bases[0]=null;yield ev('SB',who,slot,0,order);}else{bases[0]=null;outFor();yield ev('CS',who,slot,0,order);if(out>=3)break;}
+     order=null;
+    }
+    const beforeRuns=scores[side],beforeLead=scores[side]-scores[defense];let play='';let kind:LiveKind='OUT';
+    const slot=battingOrder[side]%9;
+    const id=rosters[side].lineup[slot];battingOrder[side]++;
     const pl=playerMap[id],bs=getB(side,id);bs.pa++;ps.bf++;
+    if(order&&order.kind==='ibb'&&defense===control&&walksOrdered<IBB_PER_INNING&&!(bases[0]&&bases[1]&&bases[2])){
+     // 敬遠: 乱数を使わず一塁へ(満塁ではできないので押し出しは起きない)。
+     walksOrdered++;bs.bb++;ps.bb++;kind='IBB';
+     if(bases[0]){if(bases[1]){if(bases[2])run(bases[2],bs);bases[2]=bases[1];}bases[1]=bases[0];}bases[0]={id,pitcher:pitcherId};
+    }else if(order&&order.kind==='bunt'&&side===control&&out<2&&(bases[0]||bases[1])){
+     // 送りバント: ミートで成功率 50〜90%(ミート55で70%)。成功=打者アウト・走者が1つずつ進む。失敗=打者アウト・走者そのまま。打数に数えない。
+     const c=gameRatings(pl,bonusFor(side,id),stageFor(side,id)).contact;
+     const ok=random.next()<clamp(.70+(c-55)*.005,.50,.90);
+     outFor();
+     if(ok){kind='BUNT';const moved:(Runner|null)[]=[null,null,null];for(let b=2;b>=0;b--){const r=bases[b];if(!r)continue;if(b===2)run(r,bs,false,false);else moved[b+1]=r;}bases=moved;}
+     else kind='BUNT_FAIL';
+    }else{
     const scoringPosition=!!(bases[1]||bases[2]);
     const cacheKey=side+'|'+id+'|'+pitcherId+'|'+Number(scoringPosition);
     let rates=matchupCache.get(cacheKey);if(!rates){
@@ -244,21 +328,22 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
      const errorSlope=Math.abs(field)>1e-10?(fieldingErrorRate(0)-fieldingErrorRate(field))/field:.2;
      rates={...current,rangeSlope,errorSlope};matchupCache.set(cacheKey,rates);
     }
-    const {walk:walkRate,hbp:hbpRate,strikeout:kRate,homeRun:hrRate,hit:hitRate}=rates;
-    const recordContact=()=>{for(const f of defenses[defense].fielders){const share=(f.skill-60)*.0012/defenses[defense].fielders.length;creditFieldingContact(f.row,share*rates.rangeSlope,share*rates.errorSlope/(1-kRate-hrRate));}};
+    const r=rates;
+    const {walk:walkRate,hbp:hbpRate,strikeout:kRate,homeRun:hrRate,hit:hitRate}=r;
+    const recordContact=()=>{for(const f of defenses[defense].fielders){const share=(f.skill-60)*.0012/defenses[defense].fielders.length;creditFieldingContact(f.row,share*r.rangeSlope,share*r.errorSlope/(1-kRate-hrRate));}};
     const roll=random.next();
     if(roll<walkRate+hbpRate){
-     if(roll<walkRate){bs.bb++;ps.bb++;play='押し出し四球';}else{bs.hbp++;ps.hbp++;play='押し出し死球';}
+     if(roll<walkRate){bs.bb++;ps.bb++;play='押し出し四球';kind='BB';}else{bs.hbp++;ps.hbp++;play='押し出し死球';kind='HBP';}
      if(bases[0]){if(bases[1]){if(bases[2])run(bases[2],bs);bases[2]=bases[1];}bases[1]=bases[0];}bases[0]={id,pitcher:pitcherId};
     }else{
      bs.ab++;const outcome=(roll-walkRate-hbpRate)/(1-walkRate-hbpRate);
      if(outcome<hitRate){
-      bs.hits++;ps.hits++;
+      bs.hits++;ps.hits++;hits[side]++;
       const hitRoll=random.next();let amount=1;
       if(hitRoll<hrRate/hitRate)amount=4;
-      else if(hitRoll<hrRate/hitRate+rates.triple/hitRate)amount=3;
-      else if(hitRoll<hrRate/hitRate+(rates.triple+rates.double)/hitRate)amount=2;
-      play=['','タイムリーヒット','タイムリー二塁打','タイムリー三塁打','本塁打'][amount];
+      else if(hitRoll<hrRate/hitRate+r.triple/hitRate)amount=3;
+      else if(hitRoll<hrRate/hitRate+(r.triple+r.double)/hitRate)amount=2;
+      play=['','タイムリーヒット','タイムリー二塁打','タイムリー三塁打','本塁打'][amount];kind=(['OUT','1B','2B','3B','HR'] as LiveKind[])[amount];
       if(amount===4){bs.hr++;ps.hr++;for(const runner of bases)if(runner)run(runner,bs,true);run({id,pitcher:pitcherId},bs,true);bases=[null,null,null];}
       else{
        recordContact();
@@ -283,35 +368,39 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
      }else if(outcome>=Math.max(hitRate+kRate,1-fieldingErrorRate(defenses[defense].field))){
       // A misplayed ball advances each runner one base. It is an AB, not a hit;
       // runs directly caused by the error get neither an RBI nor an earned run.
-      errors[defense]++;errorOuts++;play='失策で得点';
+      errors[defense]++;errorOuts++;play='失策で得点';kind='E';
       recordContact();
       if(bases[2])run({...bases[2],unearned:true},bs,false,false);
       bases=[{id,pitcher:pitcherId,unearned:true},bases[0],bases[1]];
      }else{
-      out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);
-      if(outcome<hitRate+kRate){bs.so++;ps.so++;}
+      outFor();
+      if(outcome<hitRate+kRate){bs.so++;ps.so++;kind='K';}
       else {
        recordContact();
        // A fraction of balls put out in play are deep enough for a sacrifice
        // fly. The out counts, the plate appearance counts, but the AB does not.
        // Two-out advancement is already handled on hits, not on this third out.
        if(out<3&&bases[2]&&random.next()<clamp(.30+(gameRatings(playerMap[bases[2].id],bonusFor(side,bases[2].id),stageFor(side,bases[2].id)).speed-55)*.002-(defenses[defense].arm-61)*.0015,.15,.45)){
-        bs.ab--;bs.sf++;play='犠牲フライ';run(bases[2],bs);bases[2]=null;
+        bs.ab--;bs.sf++;play='犠牲フライ';kind='SF';run(bases[2],bs);bases[2]=null;
        }
       }
      }
     }
-    if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play,runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
+    }
+    if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play:play||(kind==='BUNT'?'スクイズ':kind==='IBB'?'押し出し四球':''),runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
+    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined);
     if(side===1&&inning>=8&&scores[1]>scores[0])break;
     if(bases[0]&&!bases[1]&&out<3&&!bases[0].stealConsidered){
      bases[0].stealConsidered=true;
-     const runner=playerMap[bases[0].id];
+     const runner=playerMap[bases[0].id],who=bases[0].id;
      const {attempt:stealChance,success:successRate}=stealProbabilities(runner,bonusFor(side,runner.id),defenses[defense].catcherArm,defenses[defense].catcherField,stageFor(side,runner.id));
      const margin=Math.abs(scores[side]-scores[defense]);
      const situationRate=inning>=6&&margin>=5?.15:inning>=6&&margin>=3?.55:1;
      if(random.next()<stealChance*situationRate){
       const neutral=stealProbabilities(runner,bonusFor(side,runner.id),66,60,stageFor(side,runner.id));defenses[defense].catcherRow.armRuns+=(neutral.success-successRate)*.65;
-      if(random.next()<successRate){getB(side,runner.id).sb++;bases[1]=bases[0];}else{out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);}bases[0]=null;
+      const stole=random.next()<successRate;
+      if(stole){getB(side,runner.id).sb++;bases[1]=bases[0];}else{outFor();}bases[0]=null;
+      if(interactive)yield ev(stole?'SB':'CS',who,rosters[side].lineup.indexOf(who));
      }
     }
    }
@@ -326,25 +415,80 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
   const finisher=latestPitcher[winningSide];const lead=enteringLead.get(`${winningSide}|${finisher}`)??0;
   if(finisher!==winningPitcher&&lead>0&&lead<=3&&(outsByPitcher.get(`${winningSide}|${finisher}`)??0)>=3)getP(winningSide,finisher).saves++;
  }
- for(let side=0;side<2;side++){
-  const row=season.standings.find(t=>t.team===ids[side])!;row.rf+=scores[side];row.ra+=scores[1-side];
-  const result=tied?'D':scores[side]>scores[1-side]?'W':'L';if(result==='W')row.w++;else if(result==='L')row.l++;else row.d++;row.form=[...row.form,result].slice(-5);
- }
  const delta=<T extends BatStats|PitStats>(now:T,previous:T|undefined):T=>Object.fromEntries(Object.entries(now).map(([key,value])=>[key,typeof value==='number'?value-((previous?.[key as keyof T] as number)??0):value])) as unknown as T;
- const batting=rosters.flatMap((r,side)=>r.lineup.map(id=>delta(getB(side,id),beforeBat.get(batKey(ids[side],id)))));
+ const batting=appeared.flatMap((list,side)=>list.map(id=>delta(getB(side,id),beforeBat.get(batKey(ids[side],id)))));
  const pitching=rosters.flatMap((_,side)=>[...usedPitchers[side]].map(id=>delta(getP(side,id),beforePit.get(batKey(ids[side],id)))));
  const winner=tied?null:ids[winningSide];
  const stars=[...batting].filter(b=>!winner||b.team===winner).sort((a,b)=>(b.hits+b.hr*2+b.rbi+b.bb*.25)-(a.hits+a.hr*2+a.rbi+a.bb*.25)).slice(0,1).map(b=>b.playerId);
  return {day:season.day+1,home,away,homeRuns:scores[1],awayRuns:scores[0],innings:line[0].length,line,stars,errors,box:{batting,pitching,highlights}};
+}
+export function playGame(state:GameState,home:string,away:string,random:ReturnType<typeof rng>):GameResult{
+ // 指示なし・止まらずに最後まで(interactive でないので gameSteps は一度も yield しない)。
+ const steps=gameSteps(state,home,away,random);let step=steps.next();
+ while(!step.done)step=steps.next();
+ const result=step.value,scores=[result.awayRuns,result.homeRuns],ids=[away,home],tied=scores[0]===scores[1];
+ for(let side=0;side<2;side++){
+  const row=state.season.standings.find(t=>t.team===ids[side])!;row.rf+=scores[side];row.ra+=scores[1-side];
+  const outcome=tied?'D':scores[side]>scores[1-side]?'W':'L';if(outcome==='W')row.w++;else if(outcome==='L')row.l++;else row.d++;row.form=[...row.form,outcome].slice(-5);
+ }
+ return result;
+}
+// ---- 観戦モードで観られる試合の控え(2026-11-04 vc43) ----
+// 観られる試合(開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防・プレーオフ・王座決定戦)だけ、試合の直前の乱数の位置と
+// 自分の編成(打順・守備・投手と、その選手の覚醒・育成・成長)を残す。次のシーズンへ進むと消す(nextSeason)。
+export type WatchKind='opening'|'clinch'|'showdown'|'post';
+export interface WatchReplay {v:1;kind:WatchKind;rng:number;day:number;post:boolean;lineup:string[];defense:Record<string,string>;pitchers:string[];owned:Record<string,number>;training:Record<string,number>;growth:Record<string,number>}
+export function makeReplay(state:GameState,kind:WatchKind,rngState:number,day:number,post=false):WatchReplay{
+ const ids=[...state.lineup,...state.pitchers];
+ const pick=(value:(id:string)=>number)=>Object.fromEntries(ids.map(id=>[id,value(id)] as const).filter(([,v])=>v>0));
+ return {v:1,kind,rng:rngState>>>0,day,post,lineup:[...state.lineup],defense:Object.fromEntries(state.lineup.map(id=>[id,state.defense[id]])),pitchers:[...state.pitchers],
+  owned:pick(id=>Math.min(6,state.owned[id]??1)>1?Math.min(6,state.owned[id]??1):0),training:pick(id=>state.training[id]??0),growth:pick(id=>growthBonus(state.careerGrowth,id))};
+}
+/** 控えから、その試合の時の自分のチームを作り直す。ベンチ(代打・代走・守備固めの候補)は今の持ち選手。 */
+export function replayState(state:GameState,replay:WatchReplay):GameState{
+ const roster=new Set([...replay.lineup,...replay.pitchers]);
+ const bench=Object.keys(state.owned).filter(id=>!roster.has(id)&&playerMap[id]&&canBat(playerMap[id]));
+ const owned:Record<string,number>={},training:Record<string,number>={},careerGrowth:CareerGrowthMap={};
+ for(const id of bench){owned[id]=state.owned[id];if(state.training[id])training[id]=state.training[id];const b=growthBonus(state.careerGrowth,id);if(b)careerGrowth[id]={y:0,b};}
+ for(const id of roster){owned[id]=replay.owned[id]??1;if(replay.training[id])training[id]=replay.training[id];if(replay.growth[id])careerGrowth[id]={y:0,b:replay.growth[id]};}
+ return {...state,lineup:[...replay.lineup],defense:{...replay.defense},pitchers:[...replay.pitchers],owned,training,careerGrowth,season:{...emptySeason(state.season.number,circuitOf(state.season),state.club),day:replay.day}};
+}
+/** 観戦用の試合を作る(指示を受けられる)。記録どおりかは sameGame で確かめる。 */
+export function watchGame(state:GameState,game:GameResult,control:number){
+ const replay=game.replay!,base=replayState(state,replay),tables={batting:{},pitching:{},fielding:emptyFielding()};
+ return gameSteps(base,game.home,game.away,rng(replay.rng),{interactive:true,control,tables,tiebreak:circuitOf(state.season)!=='NPB'&&!replay.post});
+}
+/** 指示なしで最後まで回した結果(開いた時の照らし合わせ用)。 */
+export function replayResult(state:GameState,game:GameResult):GameResult{
+ const replay=game.replay!,base=replayState(state,replay),tables={batting:{},pitching:{},fielding:emptyFielding()};
+ const steps=gameSteps(base,game.home,game.away,rng(replay.rng),{tables,tiebreak:circuitOf(state.season)!=='NPB'&&!replay.post});
+ let step=steps.next();while(!step.done)step=steps.next();return step.value;
+}
+export const sameGame=(a:GameResult,b:GameResult)=>JSON.stringify([a.home,a.away,a.homeRuns,a.awayRuns,a.innings,a.line,a.errors,a.stars,a.box])===JSON.stringify([b.home,b.away,b.homeRuns,b.awayRuns,b.innings,b.line,b.errors,b.stars,b.box]);
+/** リーグ1位が決まっているか(残りを全部負けても、どの相手が全部勝っても上回る)。 */
+export function clinchedLeague(season:Season,club:string):boolean{
+ const total=seasonGames(season),league=leagueFor(season,club),members=new Set(leagueTeams(season).filter(t=>t.league===league).map(t=>t.id));
+ const rows=season.standings.filter(t=>members.has(t.team)),me=rows.find(t=>t.team===club);if(!me)return false;
+ const left=(t:Standing)=>Math.max(0,total-(t.w+t.l+t.d)),low=me.w/Math.max(1,me.w+me.l+left(me));
+ return rows.every(t=>t===me||(t.w+left(t))/Math.max(1,t.w+t.l+left(t))<low);
 }
 export function simulateDays(input:GameState,days:number):GameState{
  const state=structuredClone(input);if(state.season.completed)return state;
  const random=rng(state.seed);const end=Math.min(seasonGames(state.season),state.season.day+Math.max(0,Math.floor(days)));
  const fixtures=scheduleFor(state);
  while(state.season.day<end){
-  for(const [home,away] of fixtures[state.season.day]){
-   const result=playGame(state,home,away,random);
-   if(home===state.club||away===state.club)state.season.results.push(result);
+  // 観戦モード: 開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防だけ、試合の直前の乱数の位置と編成を残す(計算は変えない)。
+  const day=state.season.day,lastDay=day===seasonGames(state.season)-1,clinchedBefore=clinchedLeague(state.season,state.club);
+  const topTwo=lastDay?rankings(state.season,leagueFor(state.season,state.club)).slice(0,2).map(t=>t.team):[];
+  let own:{result:GameResult;rng:number}|null=null;
+  for(const [home,away] of fixtures[day]){
+   const before=random.state,result=playGame(state,home,away,random);
+   if(home===state.club||away===state.club){state.season.results.push(result);own={result,rng:before};}
+  }
+  if(own){
+   const other=own.result.home===state.club?own.result.away:own.result.home;
+   const kind:WatchKind|null=day===0?'opening':!clinchedBefore&&clinchedLeague(state.season,state.club)?'clinch':lastDay&&topTwo.includes(state.club)&&topTwo.includes(other)?'showdown':null;
+   if(kind)own.result.replay=makeReplay(state,kind,own.rng,day);
   }
   state.season.day++;
   const rank=rankings(state.season,leagueFor(state.season,state.club)).findIndex(t=>t.team===state.club)+1;
@@ -359,9 +503,17 @@ export const advanceCareerYear=(state:GameState):GameState=>isCareer(state)&&sta
 export function nextSeason(input:GameState):GameState{
  if(!input.season.completed||input.season.postseason?.stage!=='complete')return input;
  const settled=advanceCareerYear(settleLeagueProgress(claimSeasonGoals(input)));
- const compact=(season:Season):Season=>({...season,results:season.results.map(({box,...g})=>g),postseason:season.postseason?{...season.postseason,series:season.postseason.series.map(s=>({...s,results:s.results.map(({box,...g})=>g)}))}:undefined});
+ const compact=(season:Season):Season=>({...season,results:season.results.map(({box,replay,...g})=>g),postseason:season.postseason?{...season.postseason,series:season.postseason.series.map(s=>({...s,results:s.results.map(({box,replay,...g})=>g)}))}:undefined});
+
  const number=nextSeasonNumber(settled),circuit=settled.leagueChoice??(circuitOf(settled.season)==='SPACE'?'SPACE':leagueProgress(settled).mlbUnlocked?'MLB':'NPB');
- return recordAchievements({...settled,season:emptySeason(number,circuit,input.club),history:[input.season,...input.history.filter(s=>s.number!==input.season.number).map(compact)].sort((a,b)=>b.number-a.number).slice(0,8)});
+ return recordAchievements({...settled,season:emptySeason(number,circuit,input.club),history:[dropWatchReplays(input.season),...input.history.filter(s=>s.number!==input.season.number).map(compact)].sort((a,b)=>b.number-a.number).slice(0,8)});
+}
+/** 観戦の控え(replay)を消したシーズン。次のシーズンへ進むと、終わったシーズンから消す(成績表 box は今まで通り前のシーズンの分だけ残す)。 */
+export function dropWatchReplays(season:Season):Season{
+ const has=(results?:GameResult[])=>Array.isArray(results)&&results.some(g=>g&&g.replay!==undefined);
+ const clean=(results:GameResult[])=>results.map(g=>{if(!g||g.replay===undefined)return g;const {replay,...rest}=g;void replay;return rest;});
+ if(!has(season.results)&&!season.postseason?.series?.some(s=>has(s.results)))return season;
+ return {...season,results:clean(season.results),...(season.postseason?{postseason:{...season.postseason,series:season.postseason.series.map(s=>has(s.results)?{...s,results:clean(s.results)}:s)}}:{})};
 }
 const nextSeasonNumber=(state:GameState)=>Math.max(state.season.number,state.parkedSeason?.number??0,...(state.additionalParkedSeasons??[]).map(s=>s.number),...state.history.map(s=>s.number))+1;
 export function switchLeague(input:GameState,target:Circuit):GameState{

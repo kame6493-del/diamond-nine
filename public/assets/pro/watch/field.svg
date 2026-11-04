@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+<defs><pattern id="g" width="12" height="100" patternUnits="userSpaceOnUse"><rect width="6" height="100" fill="#2f8a3a"/><rect x="6" width="6" height="100" fill="#37973f"/></pattern></defs>
+<rect width="100" height="100" fill="url(#g)"/>
+<path d="M50 104 L-2 40 A70 70 0 0 1 102 40 Z" fill="none" stroke="#e8f3e8" stroke-width=".6" opacity=".7"/>
+<path d="M50 99 L80 66 L50 36 L20 66 Z" fill="#b77a45"/>
+<path d="M50 92 L72 66 L50 44 L28 66 Z" fill="#3f9a45"/>
+<ellipse cx="50" cy="61" rx="5" ry="3.6" fill="#b77a45"/>
+<path d="M50 96 L4 46 M50 96 L96 46" stroke="#fff" stroke-width=".7" opacity=".85"/>
+</svg>
