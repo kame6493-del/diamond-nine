@@ -11,6 +11,8 @@ Terms: https://soundeffect-lab.info/agreement/ (free for commercial use; credit 
 Files and their original names: /audio/selab/LICENSE.txt
 Game-watch sounds (from 2026-11-04, the one-game watch screen): the same 効果音ラボ terms. audio/selab/watch/ — hit (metal-bat1「金属バットで打つ1」), catch (ball-mitt-catch1「ボールをミットでキャッチ1」), strikeout (ball-mitt-catch2「ボールをミットでキャッチ2」), cheer (people-stadium-cheer2「スタジアムの歓声2」), homerun (metal-bat-cheers1「金属バットと歓声1」), gameset (people-stadium-applause1「スタジアムの拍手」). Leading silence trimmed and loudness matched only.
 
+Scout 10-draw reveal (from 2026-11-04): no new files. It reuses the same 効果音ラボ card-draw sounds above (deal「カードを場に出す」, roll「ドラムロール」, flip「カードをめくる」, cymbal「ロールの閉め」, reveal「キラッ1」, gold「シャキーン3」, rainbow「きらきら輝く4」) and, only for a rainbow card, audio/selab/watch/cheer.mp3 (people-stadium-cheer2「スタジアムの歓声2」). Images: the card-draw images above.
+
 Game-watch figures (from 2026-11-04): made with ChatGPT image generation for this game (generic players without numbers, names, real teams or logos)
  - assets/pro/watch/*.webp (batter, pitcher, fielder, runner in blue/red, ball, bases)
 

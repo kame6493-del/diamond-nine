@@ -1,26 +1,28 @@
-// 観戦モード(2026-11-04 vc43): 1試合を1打席ずつ観て、ある程度の監督ができる画面。
+// 観戦モード(2026-11-04 vc43): 1試合を1打席ずつ観て、監督ができる画面。
 // 見た目の手本は ChatGPT に作らせたデザイン案(Downloads/ios_release/d9_watch_1103/ui)。画像は人形・ボール・ベースだけ使い、残りは CSS。
-// 何もしなければ記録どおりの再生(1年進めるで出た結果と1打席も違わない)。監督が指示を出すと「もしもの試合」になり、
-// シーズンの成績・報酬・ランキングは変えない(この画面は保存データに何も書かない)。
-import {useEffect,useMemo,useReducer,useRef,useState,type CSSProperties,type ReactNode} from 'react';
-import {replayResult,replayState,sameGame,substituteBlock,watchGame,IBB_PER_INNING,type BatStats,type GameResult,type GameState,type LiveEvent,type LiveSituation,type LiveStep,type PitStats,type WatchOrder} from './engine';
+// 同じ日の作り直し(持ち主「自分で監督操作が出来るみたいな感じにして」): 振り返り(今年の名場面)はやめ、「1年進める」の途中で止まった
+// 大事な試合(開幕戦・プレーオフ・王座決定戦)をここで戦う。監督の指示は試合の結果に効き、結果はそのままシーズンに入る(managed.ts)。
+// 何も指示しなければ、おまかせと同じ結果。画面で渡した値の並び(inputs)を覚えておき、途中で閉じても続きから再開できる。
+import {useEffect,useReducer,useRef,useState,type CSSProperties,type ReactNode} from 'react';
+import {substituteBlock,IBB_PER_INNING,type BatStats,type GameResult,type GameState,type LiveEvent,type LiveSituation,type LiveStep,type PitStats,type WatchOrder} from './engine';
+import {liveGame,type ManagedGame} from './managed';
 import {formatAvg,formatIP,playerMap,teamById,type Ratings} from './data';
 import {circuitOf} from './leagues';
 import {isSpaceAlien} from './mlb-opponents';
 import {alienVelocity} from './space-aliens';
 import {gameSound,prepareWatchAudio,stopGameAudio} from './game-audio';
-import {benchOf,callText,controlSide,countOf,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,paMillis,pitchesFor,readSpeed,saveSpeed,speeds,watchList,type Speed,type Watchable} from './watch';
+import {benchOf,callText,countOf,gradeClass,gradeOf,homeRunMillis,isPlateAppearance,liveRatings,paMillis,pitchesFor,readSpeed,saveSpeed,speeds,type Speed} from './watch';
 import {createPortal} from 'react-dom';
 import './watch.css';
 
 type Gen=Generator<LiveStep,GameResult,WatchOrder|null|undefined>;
 interface Live {
- w:Watchable;gen:Gen;base:GameState;control:number;ok:boolean;
+ g:ManagedGame;gen:Gen;base:GameState;control:number;inputs:(WatchOrder|null)[];started:boolean;
  sit:LiveSituation|null;queue:LiveEvent[];nextSit:LiveSituation|null;result:GameResult|null;finished:GameResult|null;
  phase:'decide'|'pitch';pitches:string[];pitchShown:number;last:LiveEvent|null;
  log:{text:string;gold?:boolean}[];highlights:{inning:number;side:number;text:string}[];
  pitchCount:Record<string,number>;slotOf:Record<string,number>;posOf:Record<string,string>;
- changed:boolean;pending:WatchOrder|null;paNo:number;fx:{kind:'hr';title:string;sub:string}|null;flash:string|null;
+ pending:WatchOrder|null;paNo:number;fx:{kind:'hr';title:string;sub:string}|null;flash:string|null;
 }
 const POS:Record<string,string>={捕:'捕',一:'一',二:'二',三:'三',遊:'遊',外:'外',DH:'指'};
 const posLabel=(p?:string)=>p?POS[p]??p:'';
@@ -52,41 +54,43 @@ function Sheet({title,onClose,children,className=''}:{title:string;onClose:()=>v
 }
 
 /** 観戦の画面はアプリの見た目(.nv-app のボタンの決まり)の外、body の直下に出す。 */
-export function WatchScreen(props:{state:GameState;initial:string;sound:boolean;onClose:()=>void}){
+export interface WatchProps {state:GameState;game:ManagedGame;saved?:(WatchOrder|null)[]|null;sound:boolean;onSave?:(inputs:(WatchOrder|null)[])=>void;onPause:(inputs:(WatchOrder|null)[])=>void;onFinish:(inputs:(WatchOrder|null)[],result:GameResult)=>void}
+export function WatchScreen(props:WatchProps){
  const view=<WatchView {...props}/>;
  return typeof document==='undefined'?view:createPortal(view,document.body);
 }
-function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string;sound:boolean;onClose:()=>void}){
- const list=useMemo(()=>watchList(state),[state]);
- const [key,setKey]=useState(()=>list.some(w=>w.key===initial)?initial:list[0]?.key??'');
+function WatchView({state,game,saved,sound,onSave,onPause,onFinish}:WatchProps){
+ const key=game.key;
  const [speed,setSpeedState]=useState<Speed>(()=>readSpeed());
  const [sheet,setSheet]=useState<null|'duel'|'sub'|'opp'|'box'|{runner:number}>(null);
  const [hint,setHint]=useState('');
  const [,render]=useReducer((x:number)=>x+1,0);
  const L=useRef<Live|null>(null),timer=useRef<number|undefined>(undefined),speedRef=useRef(speed),soundRef=useRef(sound),sheetRef=useRef(sheet);
  speedRef.current=speed;soundRef.current=sound;sheetRef.current=sheet;
- const club=state.club,season=state.season,space=circuitOf(season)==='SPACE';
+ const club=state.club,season=game.base.season,space=circuitOf(state.season)==='SPACE';
  const teamName=(id:string)=>id===club?state.name:teamById(id,season).short;
  const teamShort=(id:string)=>{const n=teamName(id);return n.length>5?n.slice(0,4):n;};
  const play=(k:Parameters<typeof gameSound>[0])=>{if(soundRef.current)gameSound(k);};
  const clear=()=>{if(timer.current!==undefined){clearTimeout(timer.current);timer.current=undefined;}};
  const later=(ms:number,fn:()=>void)=>{clear();timer.current=window.setTimeout(()=>{timer.current=undefined;fn();},Math.max(0,ms));};
 
- // ---- 試合を開く(記録と照らし合わせる) ----
- const open=(k:string)=>{
+ // ---- 試合を開く(途中で閉じていた時は、覚えた指示の並びで続きまで進める) ----
+ const open=()=>{
   clear();stopGameAudio();
-  const w=list.find(x=>x.key===k);if(!w){L.current=null;return;}
-  const control=controlSide(state,w.game);
-  let ok=false;try{ok=!!w.game.box&&sameGame(w.game,replayResult(state,w.game));}catch{ok=false;}
-  const l:Live={w,gen:watchGame(state,w.game,control),base:replayState(state,w.game.replay!),control,ok,sit:null,queue:[],nextSit:null,result:null,finished:null,phase:'decide',pitches:[],pitchShown:0,last:null,log:[],highlights:[],pitchCount:{},slotOf:{},posOf:{},changed:false,pending:null,paNo:0,fx:null,flash:null};
+  const l:Live={g:game,gen:liveGame(game),base:game.base,control:game.control,inputs:[],started:false,sit:null,queue:[],nextSit:null,result:null,finished:null,phase:'decide',pitches:[],pitchShown:0,last:null,log:[],highlights:[],pitchCount:{},slotOf:{},posOf:{},pending:null,paNo:0,fx:null,flash:null};
   L.current=l;
-  if(ok){pump(l,null);reveal(l,true);}
+  pump(l,null,true);reveal(l,true);
+  const back=saved??[];let guard=0;
+  while(l.inputs.length<back.length&&!l.finished&&guard++<20000){pump(l,back[l.inputs.length],true);reveal(l,true);}
+  l.fx=null;l.flash=null;
  };
- /** 次の「打席の前」まで計算を進め、途中の出来事を並べる(まだ見せない)。 */
- const pump=(l:Live,order:WatchOrder|null)=>{
-  let step=l.gen.next(order);
-  while(!step.done){if(step.value.type==='decide'){l.nextSit=step.value.s;return;}l.queue.push(step.value.e);step=l.gen.next(undefined);}
-  l.result=step.value;l.nextSit=null;
+ /** 次の「打席の前」まで計算を進め、途中の出来事を並べる(まだ見せない)。渡した値は全部覚える(続きから・シーズンに入れる時に使う)。 */
+ const pump=(l:Live,order:WatchOrder|null,quiet=false)=>{
+  const next=(v:WatchOrder|null|undefined)=>{if(l.started)l.inputs.push(v??null);l.started=true;return l.gen.next(v);};
+  let step=next(order);
+  while(!step.done){if(step.value.type==='decide'){l.nextSit=step.value.s;break;}l.queue.push(step.value.e);step=next(undefined);}
+  if(step.done){l.result=step.value;l.nextSit=null;}
+  if(!quiet)onSave?.(l.inputs);
  };
  const remember=(l:Live,s:LiveSituation|null)=>{if(!s)return;s.lineups.forEach((ids,side)=>ids.forEach((id,i)=>{l.slotOf[`${side}|${id}`]=i;l.posOf[`${side}|${id}`]=s.defense[side][id];}));};
  /** 並んだ出来事を見せる。quiet=飛ばし(演出なし)。 */
@@ -126,17 +130,14 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
  };
  /** 自分のチームの打者の今季何号か(レギュラーシーズンの試合だけ。記録の成績表から数える)。 */
  const homeRunNumber=(l:Live,e:LiveEvent)=>{
-  const team=e.side===0?l.w.game.away:l.w.game.home;if(team!==club||l.w.game.replay?.kind==='post')return 0;
-  const at=season.results.indexOf(l.w.game);if(at<0)return 0;
-  const before=season.results.slice(0,at).reduce((n,g)=>n+(g.box?.batting.find(b=>b.team===club&&b.playerId===e.batter)?.hr??0),0);
-  return before+(l.sit?.batToday[`${team}|${e.batter}`]?.hr??0);
+  const team=e.side===0?l.g.away:l.g.home;if(team!==club||l.g.kind==='post')return 0;
+  return (season.batting[`${team}|${e.batter}`]?.hr??0)+(l.sit?.batToday[`${team}|${e.batter}`]?.hr??0);
  };
  /** 1打席: 球を投げる演出 → 結果を見せる → 次の打者を待つ。 */
  const startPlate=()=>{
-  const l=L.current;if(!l||!l.ok||l.finished||sheetRef.current)return;
+  const l=L.current;if(!l||l.finished||sheetRef.current)return;
   let order=l.pending;l.pending=null;
   if(order&&orderBlock(order.kind as OrderKind,l.sit,l.control))order=null;// 状況が変わって出せなくなった指示は捨てる
-  if(order)l.changed=true;
   pump(l,order);
   const at=l.queue.findIndex(e=>isPlateAppearance(e.kind));
   if(at<0){reveal(l,false);render();wait();return;}
@@ -155,26 +156,29 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
  /** 投げている途中なら、その打席の結果まで一気に見せる(交代・指示はそこで止まって受ける)。 */
  const settle=()=>{const l=L.current;if(!l)return;clear();if(l.phase==='pitch'){l.pitchShown=l.pitches.length;reveal(l,true);}};
 
- useEffect(()=>{open(key);render();if(L.current?.ok&&!sheetRef.current)wait();return clear;// eslint-disable-next-line react-hooks/exhaustive-deps
+ useEffect(()=>{open();render();if(L.current&&!L.current.finished&&!sheetRef.current)wait();return clear;// eslint-disable-next-line react-hooks/exhaustive-deps
  },[key]);
  useEffect(()=>{if(sound)void prepareWatchAudio();},[sound]);
  useEffect(()=>{const o=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=o;clear();stopGameAudio();};},[]);
  // シートを開くと止まり、閉じると前の速さで続く。
- useEffect(()=>{if(sheet){settle();render();}else if(L.current&&!L.current.finished&&L.current.ok){clear();wait();}// eslint-disable-next-line react-hooks/exhaustive-deps
+ useEffect(()=>{if(sheet){settle();render();}else if(L.current&&!L.current.finished){clear();wait();}// eslint-disable-next-line react-hooks/exhaustive-deps
  },[sheet]);
 
  const l=L.current;
- if(!l)return <div className="wt-root" role="dialog" aria-modal="true" aria-label="試合観戦"><div className="wt-wrap"><header className="wt-head"><button className="wt-back" aria-label="観戦を閉じる" onClick={onClose}>戻る</button><b>試合観戦</b></header><p className="wt-empty">観られる試合がありません。シーズンを最後まで進めると、開幕戦や王座決定戦を観られます。</p></div></div>;
- const g=l.w.game,ids=[g.away,g.home],sit=l.sit,fin=l.finished,control=l.control;
+ if(!l)return null;
+ const g=l.g,ids=[g.away,g.home],sit=l.sit,fin=l.finished,control=l.control;
+ const finish=()=>{const c=L.current;if(!c?.finished)return;clear();stopGameAudio();onFinish(c.inputs,c.finished);};
+ const back=()=>{const c=L.current;if(!c)return;if(c.finished){finish();return;}settle();clear();stopGameAudio();onPause(c.inputs);};
  const shownSit=sit;// 投げている途中も、いま打席に立っている打者を見せる
  const setSpeed=(n:Speed)=>{setSpeedState(n);speedRef.current=n;saveSpeed(n);setHint('');if(l.phase==='decide'&&!fin&&!sheet){clear();wait();}};
- const takeOrder=()=>{let order=l.pending;l.pending=null;if(order&&orderBlock(order.kind as OrderKind,l.sit,control))order=null;if(order)l.changed=true;return order;};
- const skipPlate=()=>{if(fin||!l.ok)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;reveal(l,true);}else{pump(l,takeOrder());reveal(l,true);}render();wait();};
- const skipGame=()=>{if(fin||!l.ok)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;reveal(l,true);}let guard=0;while(!l.finished&&guard++<5000){pump(l,takeOrder());reveal(l,true);}render();};
+ const takeOrder=()=>{let order=l.pending;l.pending=null;if(order&&orderBlock(order.kind as OrderKind,l.sit,control))order=null;return order;};
+ const skipPlate=()=>{if(fin)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;reveal(l,true);}else{pump(l,takeOrder());reveal(l,true);}render();wait();};
+ const skipGame=()=>{if(fin)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;reveal(l,true);}let guard=0;while(!l.finished&&guard++<5000){pump(l,takeOrder(),true);reveal(l,true);}onSave?.(l.inputs);render();};
  /** シートを開く前に、投げている途中の打席を終わらせて止める(交代はそこで受ける)。 */
  const openSheet=(s:NonNullable<typeof sheet>)=>{settle();setHint('');setSheet(s);};
  const ratingsFor=(side:number,id:string)=>liveRatings(l.base,ids[side],id,shownSit?.pitchers[side]);
  const box=fin?{bat:Object.fromEntries(fin.box!.batting.map(b=>[`${b.team}|${b.playerId}`,b])),pit:Object.fromEntries(fin.box!.pitching.map(p=>[`${p.team}|${p.playerId}`,p]))}:{bat:sit?.batToday??{},pit:sit?.pitToday??{}};
+ // 今季の成績: 試合の直前のシーズンの表(短期決戦の時は短期決戦の表)。
  const seasonBat=(team:string,id:string)=>season.batting[`${team}|${id}`],seasonPit=(team:string,id:string)=>season.pitching[`${team}|${id}`];
 
  // ---- 監督の操作 ----
@@ -193,7 +197,7 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
  };
  const applySub=(o:WatchOrder)=>{
   const cur=L.current!;settle();if(!cur.sit)return;
-  pump(cur,o);if(cur.queue.length)cur.changed=true;// 交代が通った時だけ「もしも」(通らない交代は押せないようにしてある)
+  pump(cur,o);// 交代は試合の計算に入る(通らない交代は押せないようにしてある)
   reveal(cur,true);setSheet(null);render();
  };
 
@@ -247,10 +251,11 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
   return <section className="wt-manager" aria-label="監督の操作"><h3>監督の操作</h3><div className="wt-mgs">{btn('bunt','送りバント')}{btn('steal','盗塁')}{btn('ibb','敬遠')}<button className={'wt-mg'+(why.sub?' is-off':'')} aria-disabled={!!why.sub} onClick={()=>{if(why.sub){setHint(why.sub);return;}openSheet('sub');}}>選手交代</button></div>{hint&&<p className="wt-hint" role="status">{hint}</p>}</section>;
  };
  const speedBar=()=><div className="wt-speed" role="group" aria-label="速さ">{speeds.map(n=><button key={n} className={speed===n?'is-on':''} aria-pressed={speed===n} onClick={()=>setSpeed(n)}>{n}倍</button>)}<i/><button onClick={skipPlate} disabled={!!fin}>次の打席へ</button><button onClick={skipGame} disabled={!!fin}>試合終了まで</button></div>;
- const recorded=g;
- const finalPanel=()=>fin&&<section className="wt-final"><h3><span>試合終了</span>{teamName(g.away)} {fin.awayRuns} - {fin.homeRuns} {teamName(g.home)}</h3>
-  {l.changed?<p className="wt-whatif-note">もしもの試合の結果です。記録の結果は {recorded.awayRuns} - {recorded.homeRuns}。シーズンの成績・報酬・ランキングは記録のままです。</p>:<p>記録と同じ結果です。</p>}
-  <div className="wt-final-btns"><button className="wt-gold" onClick={()=>openSheet('box')}>成績表を見る</button><button className="wt-navy" onClick={()=>{const at=list.findIndex(x=>x.key===key);const next=list[at+1];if(next)setKey(next.key);else onClose();}}>{list[list.findIndex(x=>x.key===key)+1]?'次の試合を観る':'観戦を終える'}</button></div></section>;
+ const mine=control===0?[fin?.awayRuns??0,fin?.homeRuns??0]:[fin?.homeRuns??0,fin?.awayRuns??0];
+ const verdict=!fin?'':mine[0]>mine[1]?'勝ち':mine[0]<mine[1]?'負け':'引き分け';
+ const finalPanel=()=>fin&&<section className="wt-final"><h3><span>試合終了・{verdict}</span>{teamName(g.away)} {fin.awayRuns} - {fin.homeRuns} {teamName(g.home)}</h3>
+  <p>この結果がシーズンの成績・順位{g.kind==='post'?'・勝ち上がり':''}に入ります。</p>
+  <div className="wt-final-btns"><button className="wt-gold" onClick={()=>openSheet('box')}>成績表を見る</button><button className="wt-navy" onClick={finish}>結果を残して次へ</button></div></section>;
 
  // ---- シート ----
  const duelSheet=()=>{
@@ -276,18 +281,18 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
  };
  return <div className="wt-root" role="dialog" aria-modal="true" aria-label="試合観戦">
   <div className="wt-wrap">
-   <header className="wt-head"><button className="wt-back" aria-label="観戦を閉じる" onClick={onClose}>戻る</button><p className="wt-logo"><b>DIAMOND NINE</b><span>試合観戦</span></p><div><button onClick={()=>openSheet('opp')}>相手チーム</button><button onClick={()=>openSheet('box')}>成績表</button></div></header>
-   <label className="wt-title"><span className="wt-sr">観る試合</span><select value={key} onChange={e=>{setSheet(null);setHint('');setKey(e.target.value);}}>{list.map(w=><option key={w.key} value={w.key}>{w.label} {teamShort(w.game.away)}-{teamShort(w.game.home)}</option>)}</select></label>
+   <header className="wt-head"><button className="wt-back" aria-label={fin?'結果を残して次へ':'試合を中断して戻る'} onClick={back}>{fin?'次へ':'中断'}</button><p className="wt-logo"><b>DIAMOND NINE</b><span>監督して戦う</span></p><div><button onClick={()=>openSheet('opp')}>相手チーム</button><button onClick={()=>openSheet('box')}>成績表</button></div></header>
+   <p className="wt-title wt-title-live"><b>{g.label}</b><span>{teamShort(g.away)} - {teamShort(g.home)}</span></p>
    {scoreboard()}
-   {!l.ok?<section className="wt-final"><h3>この試合は記録の再生ができません</h3><p>ゲームの更新で計算の元が変わったため、記録と同じ試合になりませんでした。成績表だけ見られます。</p><div className="wt-final-btns"><button className="wt-gold" onClick={()=>openSheet('box')}>成績表を見る</button></div></section>:<>
-   <p className={l.changed?'wt-status is-whatif':'wt-status'}>{l.changed?'采配で展開が変わりました(もしもの試合・シーズンの成績・報酬・ランキングは変わりません)':control<0?'記録どおりの試合を再生中(観るだけ)':'記録どおりの試合を再生中'}</p>
+   <>
+   <p className="wt-status">監督して戦っています。この試合の結果は、そのままシーズンに入ります。</p>
    {field()}
    {countPanel()}
    {duelCards()}
    <div className={'wt-call'+(l.log[0]?.gold?' is-gold':'')} aria-live="polite"><em aria-hidden="true">実況</em><span>{l.log[0]?.text??'プレイボール!'}</span></div>
    {finalPanel()}
    <div className="wt-dock">{!fin&&managerPanel()}{speedBar()}</div>
-   </>}
+   </>
   </div>
   {l.fx&&<div className="wt-hr" style={{'--d':`${homeRunMillis(speed)}ms`} as CSSProperties} onClick={()=>{l.fx=null;render();}} aria-live="assertive"><div className="wt-hr-ball"/><p className="wt-hr-word">HOME RUN!</p><p className="wt-hr-sub">{l.fx.sub}</p>{Array.from({length:28},(_,i)=><i key={i} className="wt-cf" style={{left:`${(i*37)%100}%`,animationDelay:`${(i%7)*.08}s`,background:['#f5c542','#ffffff','#4f8cff','#ffde7a'][i%4]}}/>)}</div>}
   {l.flash&&<div className="wt-flash" aria-live="assertive">{l.flash}</div>}
@@ -295,7 +300,7 @@ function WatchView({state,initial,sound,onClose}:{state:GameState;initial:string
   {sheet&&typeof sheet==='object'&&runnerSheet(sheet.runner)}
   {sheet==='sub'&&sit&&control>=0&&<SubSheet l={l} sit={sit} ids={ids} club={club} state={state} ratingsFor={ratingsFor} box={box} onApply={applySub} onClose={()=>setSheet(null)}/>}
   {sheet==='opp'&&<TeamSheet team={control===0?g.home:control===1?g.away:g.home} other={control<0?g.away:null} l={l} ids={ids} teamName={teamName} ratingsFor={ratingsFor} seasonBat={seasonBat} seasonPit={seasonPit} onClose={()=>setSheet(null)}/>}
-  {sheet==='box'&&<BoxSheet l={l} ids={ids} club={club} teamName={teamName} recorded={g} onClose={()=>setSheet(null)}/>}
+  {sheet==='box'&&<BoxSheet l={l} ids={ids} club={club} teamName={teamName} onClose={()=>setSheet(null)}/>}
  </div>;
 }
 
@@ -374,20 +379,20 @@ function TeamSheet({team,other,l,ids,teamName,ratingsFor,seasonBat,seasonPit,onC
 }
 
 // ---- 成績表 ----
-function BoxSheet({l,ids,club,teamName,recorded,onClose}:{l:Live;ids:string[];club:string;teamName:(id:string)=>string;recorded:GameResult;onClose:()=>void}){
+function BoxSheet({l,ids,club,teamName,onClose}:{l:Live;ids:string[];club:string;teamName:(id:string)=>string;onClose:()=>void}){
  const [side,setSide]=useState(Math.max(0,ids.indexOf(club)));
- const fin=l.finished??(!l.ok?recorded:null);
+ const fin=l.finished;
  const batting=fin?fin.box!.batting:Object.values(l.sit?.batToday??{});
  const pitching=fin?fin.box!.pitching:Object.values(l.sit?.pitToday??{});
  const team=ids[side];
- const rows=batting.filter(b=>b.team===team).map(b=>({b,slot:l.slotOf[`${side}|${b.playerId}`]??(l.ok?99:batting.filter(x=>x.team===team).indexOf(b))})).sort((a,b)=>a.slot-b.slot);
+ const rows=batting.filter(b=>b.team===team).map(b=>({b,slot:l.slotOf[`${side}|${b.playerId}`]??99})).sort((a,b)=>a.slot-b.slot);
  const pits=pitching.filter(p=>p.team===team);
- const highlights=fin&&!l.changed?fin.box!.highlights.map(h=>({inning:h.inning,side:h.team===ids[0]?0:1,text:`${nameOf(h.batter)}、${h.play||'得点'}で${h.runs}点(${h.awayScore}-${h.homeScore})`})):l.highlights;
+ const highlights=fin?fin.box!.highlights.map(h=>({inning:h.inning,side:h.team===ids[0]?0:1,text:`${nameOf(h.batter)}、${h.play||'得点'}で${h.runs}点(${h.awayScore}-${h.homeScore})`})):l.highlights;
  const decision=(k:'wins'|'losses'|'saves')=>pitching.find(p=>p[k]>0);
  return <Sheet title="成績表" onClose={onClose} className="wt-box">
   <div className="wt-box-head"><span>{fin?'試合終了':'途中経過'}</span><b>{teamName(ids[0])} {fin?fin.awayRuns:l.sit?.score[0]??0} - {fin?fin.homeRuns:l.sit?.score[1]??0} {teamName(ids[1])}</b>
    {fin&&<p>{decision('wins')&&<span><em className="is-w">勝ち</em>{nameOf(decision('wins')!.playerId)}</span>}{decision('losses')&&<span><em className="is-l">負け</em>{nameOf(decision('losses')!.playerId)}</span>}{decision('saves')&&<span><em className="is-s">セーブ</em>{nameOf(decision('saves')!.playerId)}</span>}</p>}
-   {l.changed&&<p className="wt-whatif-note">もしもの試合の成績です。シーズンの成績には入りません(記録 {recorded.awayRuns} - {recorded.homeRuns})。</p>}</div>
+</div>
   <div className="wt-tabs" role="tablist">{ids.map((id,i)=><button key={id} role="tab" aria-selected={side===i} className={side===i?'is-on':''} onClick={()=>setSide(i)}>{teamName(id)}</button>)}</div>
   <h4 className="wt-band">打撃成績</h4>
   <div className="wt-scroll"><table className="wt-bx"><thead><tr><th>打順</th><th>名前</th><th>守</th><th>打数</th><th>安打</th><th>打点</th><th>本</th><th>四死</th><th>三振</th><th>打率</th></tr></thead>

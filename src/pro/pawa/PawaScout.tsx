@@ -3,7 +3,8 @@ import {X} from 'lucide-react';
 import {playerMap,players,type Player,type Ratings} from '../data';
 import {effectiveOverall,type GameState} from '../engine';
 import {bestUpgrade} from '../career-roster';
-import {MLB_SCOUT_CHANCE,SIMPLE_SCOUT_COST,scoutOdds} from '../simple-game';
+import {MLB_SCOUT_CHANCE,MULTI_SCOUT_COST,MULTI_SCOUT_COUNT,SIMPLE_SCOUT_COST,scoutOdds} from '../simple-game';
+import {PawaMultiResult,PawaMultiReveal} from './PawaMultiScout';
 import {scoutDuration,scoutPresentation,type ScoutTier} from '../scout-presentation';
 import {mlbPlayers} from '../mlb-players';
 import {ScoutShare} from '../ScoutShare';
@@ -52,11 +53,13 @@ export function AbilityRow({player,ratings,old,mode}:{player:Player;ratings:Rati
  return <div className="pw-sc-abil">{rows.map(([label,key])=>{const v=ratings[key] as number,d=old?v-(old[key] as number):0;return <span key={key} className="pw-sc-cell"><small>{label}</small>{key==='velocity'?<b className="pw-sc-velo">{player.ratings.velocity}<em>km/h</em></b>:<Rank value={v} label={label} showValue/>}{old&&<i className={d>0?'up':d<0?'down':''}>{d>0?`+${d}`:d===0?'±0':d}</i>}</span>;})}</div>;
 }
 
-export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlayer,onSkip,adSlot}:{state:GameState;onDraw:()=>void;onEquip:(id:string)=>void;drawing:boolean;hasDrawn:boolean;onSeason:()=>void;onPlayer?:(p:Player)=>void;onSkip?:()=>void;adSlot?:ReactNode}){
+export function PawaScout({state,onDraw,onDrawMulti,onEquip,drawing,hasDrawn,onSeason,onPlayer,onSkip,adSlot,sound=false}:{state:GameState;onDraw:()=>void;onDrawMulti?:()=>void;onEquip:(id:string)=>void;drawing:boolean;hasDrawn:boolean;onSeason:()=>void;onPlayer?:(p:Player)=>void;onSkip?:()=>void;adSlot?:ReactNode;sound?:boolean}){
  const [kept,setKept]=useState(-1),[odds,setOdds]=useState(false),[shop,setShop]=useState(false);
  // 2026-10-30 持ち主「課金圧が強すぎる」: 待ち受けの大きなパックの帯とプレミアムパスの案内をやめた。購入は下の「ポイント購入」とメニューから。
  const money=useMonetize();
- const pull=hasDrawn?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
+ // 2026-11-04 vc43: 10回まとめて引いた後は lastPulls が10枚。その時は1枚の結果ではなく、まとめて引く用の演出と一覧を出す。
+ const multi=hasDrawn&&state.lastPulls.length>1,canMulti=state.gems>=MULTI_SCOUT_COST;
+ const pull=hasDrawn&&!multi?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
  const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
  const {tier,overall}=scoutPresentation(player,state.owned,state.training);
  // 提供割合は抽選と同じ計算(scoutOdds)から
@@ -76,7 +79,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   const label=pit?(pick.i<6?`先発${pick.i+1}`:pick.i===13?'抑え':`中継ぎ${pick.i-5}`):`${pick.i+1}番(${state.defense[pick.id]})`;
   return {p:playerMap[pick.id],label,overall:ov(pick.id),ratings:ownedRatings(playerMap[pick.id],state.owned,state.training,state.careerGrowth)};})();
  const cmp=old&&upgrade&&oldRatings?{p:old,label:upgrade.pitching?(upgrade.index<6?`先発${upgrade.index+1}`:upgrade.index===13?'抑え':`中継ぎ${upgrade.index-5}`):`${upgrade.index+1}番(${upgrade.position})`,overall:oldOverall,ratings:oldRatings}:rival;
- return <div className="pw-scout pw-fit">
+ return <div className={'pw-scout pw-fit'+(drawing&&multi?' is-mx-run':'')}>
   <section className="pw-sc-strip" aria-label="チームとカードの集まり具合">
    <div><small>カード収集</small><b>{progress.collected}<em>/{progress.total}</em></b></div>
    <div><small>打線の総合</small><b>{avg(state.lineup)}</b></div>
@@ -84,7 +87,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   </section>
 
   <div className="pw-sc-stage">
-  {drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult&&ratings?<section className={'pw-sc-result pw-tier-'+tier+(cmp?' has-cmp':'')} aria-live="polite">
+  {drawing&&multi?<PawaMultiReveal key={'mx-'+state.pulls} state={state} sound={sound} onDone={()=>onSkip?.()}/>:multi?<PawaMultiResult state={state} onPlayer={onPlayer}/>:drawing?<PawaScoutCharge tier={tier} onSkip={onSkip} player={player} state={state}/>:showResult&&ratings?<section className={'pw-sc-result pw-tier-'+tier+(cmp?' has-cmp':'')} aria-live="polite">
    <div className="pw-sc-head">
     <button className="pw-sc-card" onClick={()=>onPlayer?.(player!)} aria-label={`${player!.name}の詳細`}><PawaCard player={player!} state={state} size="m"/></button>
     <div className="pw-sc-id">
@@ -122,7 +125,11 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   <section className={'pw-sc-dock'+(showResult&&old?' is-swap':'')}>
    {/* 2026-11-01 入れ替えのボタンは下の欄に固定(上の場をスクロールしなくても押せる) */}
    {showResult&&old&&<div className="pw-cmp-acts pw-sc-swapbar" role="group" aria-label={`${player!.name}と今の${cmp?.label??'選手'}の入れ替え`}><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>}
-   <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
+   <div className="pw-sc-draws">
+    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
+    {onDrawMulti&&<button className="pw-btn pw-draw-btn pw-multi-btn" disabled={!canMulti||drawing} onClick={onDrawMulti} aria-label={`10回まとめて引く ${count(MULTI_SCOUT_COST)} pt`}><span><b><span className="pw-multi-n">10回</span>まとめて引く</b><em><i className="pw-p">P</i>{count(MULTI_SCOUT_COST)} pt</em></span></button>}
+   </div>
+   {onDrawMulti&&!canMulti&&!drawing&&<p className="pw-multi-short" role="note">10回まとめて引くには あと{count(MULTI_SCOUT_COST-state.gems)}pt</p>}
    {money?adSlot&&<div className="pw-sc-adbtn">{adSlot}</div>:<div className="pw-sc-adbtn"><div className="reward-ad"><button type="button" className="s-button reward-ad-button" disabled>広告を見て1回引く<small>アプリ版で使えます</small></button></div></div>}
    <div className="pw-sc-dockinfo"><p className={'pw-balance '+(canDraw?'ok':'short')}>所持 <b>{count(state.gems)}</b> pt<br/><span>{canDraw?`あと${count(Math.floor(state.gems/SIMPLE_SCOUT_COST))}回`:`あと${count(SIMPLE_SCOUT_COST-state.gems)}pt`}</span></p><div className="pw-sc-dockacts"><button className="pw-btn pw-white pw-mini pw-buy-mini" onClick={()=>setShop(true)}>ポイント購入</button>{canDraw?<button className="pw-btn pw-white pw-mini" onClick={()=>setOdds(true)}>提供割合</button>:<button className="pw-btn pw-white pw-mini" onClick={onSeason}>試合へ</button>}</div></div>
    {!canDraw&&!drawing&&!!money&&money.reward.left>0&&<p className="reward-ad-short" role="note">ポイントが足りない時は「広告を見て1回引く」で、動画を最後まで見ると1回引けます（今日あと {money.reward.left} 回）</p>}
@@ -136,7 +143,7 @@ export function PawaScout({state,onDraw,onEquip,drawing,hasDrawn,onSeason,onPlay
   {odds&&<div className="pw-modal pw-sheet-modal" onClick={()=>setOdds(false)}><div className="pw-sheet" role="dialog" aria-modal="true" aria-label="提供割合" onClick={e=>e.stopPropagation()}>
    <header className="pw-sheet-head"><h2>提供割合</h2><button className="pw-close" onClick={()=>setOdds(false)} aria-label="閉じる"><X size={22}/></button></header>
    <section className="pw-panel pw-odds"><ul>{rates.bands.map(b=><li key={b.id} className={b.id.startsWith('mlb')?'is-world':b.id==='domStandard'?'':'is-hot'}><span><b>{b.label}</b><small>{b.detail} · {b.count}人 · 1人 {pct4(b.each)}</small></span><em>{pct(b.rate)}</em></li>)}</ul>
-   <p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。1人 {count(SIMPLE_SCOUT_COST)} pt。カードの段（総合は覚醒前の値）ごとに上の確率で決め、同じ段の中では全員が同じ確率です。野手・投手やチームの強さ、ポイントの購入・プレミアムパスで確率は変わりません。何回引いても確定する枠（天井）はありません。同じ選手を獲得すると、その選手の能力が ＋1 上がります（最大 ＋5）。7枚目からは {count(300)} pt に替わります。</p></section>
+   <p>国内リーグ {players.length-mlbPlayers.length}人／海外リーグ {mlbPlayers.length}人。1人 {count(SIMPLE_SCOUT_COST)} pt。カードの段（総合は覚醒前の値）ごとに上の確率で決め、同じ段の中では全員が同じ確率です。野手・投手やチームの強さ、ポイントの購入・プレミアムパスで確率は変わりません。何回引いても確定する枠（天井）はありません。まとめて引く時も、1回ずつと同じ確率で10回引きます（{count(MULTI_SCOUT_COUNT)}回まとめて {count(MULTI_SCOUT_COST)} pt。確定枠・おまけはありません）。同じ選手を獲得すると、その選手の能力が ＋1 上がります（最大 ＋5）。7枚目からは {count(300)} pt に替わります。</p></section>
   </div></div>}
  </div>;
 }

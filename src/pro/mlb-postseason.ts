@@ -1,4 +1,4 @@
-import {emptySeason,makeReplay,playGame,rng,type GameState,type Season} from './engine';
+import {emptySeason,playGame,rng,type GameState,type OwnRunner,type Season} from './engine';
 import type {Postseason,PostSeries} from './postseason';
 import {circuitOf,playoffSeeds,standingOrder,settleLeagueProgress} from './leagues';
 import {postseasonReward} from './progression';
@@ -23,15 +23,15 @@ export function advanceMLBBracket(post:Postseason,season:Season){
   post.series.push(mlbSeries('world','WORLD',0,finalists[0].team,finalists[1].team));post.stage='world';
  }else{post.stage='complete';post.champion=winner('WORLD-world-0');}
 }
-export function simulateMLBPostseason(input:GameState,days:number):GameState{
+export function simulateMLBPostseason(input:GameState,days:number,ownGame?:OwnRunner):GameState{
  let state=structuredClone(input);const post=state.season.postseason??=newMLBPostseason(state.season),random=rng(state.seed);
  for(let day=0;day<Math.min(60,Math.max(0,Math.floor(days)))&&post.stage!=='complete';day++){
   for(const series of post.series.filter(s=>s.stage===post.stage&&!s.winner)){
    const index=series.results.length,high=series.stage==='wildcard'||(series.stage==='division'?[0,1,4]:[0,1,5,6]).includes(index);
    const scratch:GameState={...state,season:{...emptySeason(state.season.number,circuitOf(state.season),state.club),day:post.day,postseason:post,batting:post.batting,pitching:post.pitching,standings:post.standings}};
-   // 観戦モード: 世界(宇宙)王座決定戦の全試合は、直前の乱数の位置と編成を残す(計算は変えない)。
-   const before=random.state,game=playGame(scratch,high?series.higher:series.lower,high?series.lower:series.higher,random);
-   if(series.stage==='world')game.replay=makeReplay(state,'post',before,post.day,true);
+   // 2026-11-04 vc43: 自分の試合は ownGame(監督した試合)で回せる。振り返りの控えは作らない。
+   const home=high?series.higher:series.lower,away=high?series.lower:series.higher,mine=home===state.club||away===state.club;
+   const game=(mine&&ownGame?ownGame:playGame)(scratch,home,away,random);
    if(game.homeRuns===game.awayRuns)throw new Error('MLB playoff game must have a winner');
    series.results.push(game);const win=game.homeRuns>game.awayRuns?game.home:game.away;series.wins[win===series.higher?0:1]++;
    if(series.wins[0]===series.target)series.winner=series.higher;else if(series.wins[1]===series.target)series.winner=series.lower;

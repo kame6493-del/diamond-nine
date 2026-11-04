@@ -19,3 +19,4 @@
  watch/cheer.mp3     ← voice/mp3/people/people-stadium-cheer2.mp3「スタジアムの歓声2」(得点)
  watch/homerun.mp3   ← various/mp3/metal-bat-cheers1.mp3「金属バットと歓声1」(ホームラン)
  watch/gameset.mp3   ← voice/mp3/people/people-stadium-applause1.mp3「スタジアムの拍手」(試合終了)
+2026-11-04 スカウトの「10回まとめて引く」の演出は新しい音を足していない。上のカードの音(deal・roll・flip・cymbal・reveal・gold・rainbow)をそのまま使い、虹カードの時だけ watch/cheer.mp3(「スタジアムの歓声2」)を重ねる。

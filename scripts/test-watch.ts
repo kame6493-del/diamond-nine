@@ -1,96 +1,132 @@
-// 観戦モード(2026-11-04 vc43)の試験。
-// 1) 一致: 指示なしの観戦は「1年進める」と同じ試合(国内・海外・宇宙の1年ずつ、自分の試合を全部)。
-// 2) 観られる試合の控えが残り、シーズン後に編成を変えても記録どおりに再生でき、次のシーズンで消える。
-// 3) 倍速の記憶。4) 交代・指示の決まり。5) もしもの試合で保存データ(成績・報酬・順位)が変わらない。
+// 監督して戦う試合(2026-11-04 vc43 作り直し)の試験。
+// 持ち主「今年の名場面を見るとかじゃなくて、CS、開幕戦、日本シリーズが出た場合、自分で監督操作が出来るみたいな感じにして」。
+// 1) 「1年進める」は開幕戦・プレーオフ・王座決定戦の前で止まる。全部おまかせなら、止まらない1年と1つも違わない。
+// 2) 監督して何も指示しなければ、おまかせと同じ結果。 3) 指示は結果に効き、その結果が勝敗・順位・成績・勝ち上がりに入る。
+// 4) 途中で閉じても、覚えた指示の並びで続きから同じ試合になる。セーブは変わらない。 5) 速さの記憶・指示の決まり。 6) 画面。
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {initialState,initialSandboxState,emptySeason,playGame,rng,scheduleFor,simulateDays,nextSeason,validState,makeReplay,replayResult,sameGame,watchGame,clinchedLeague,substituteBlock,IBB_PER_INNING,type GameResult,type GameState,type LiveSituation,type LiveEvent,type WatchOrder} from '../src/pro/engine';
-import {finishPostseason} from '../src/pro/postseason';
-import {seasonGames,type Circuit} from '../src/pro/leagues';
-import {validGameBox} from '../src/pro/game-log';
+import {initialState,initialSandboxState,emptySeason,simulateDays,substituteBlock,IBB_PER_INNING,type GameResult,type GameState,type LiveSituation,type LiveEvent,type WatchOrder} from '../src/pro/engine';
+import {finishPostseason,simulatePostseason} from '../src/pro/postseason';
+import {type Circuit} from '../src/pro/leagues';
 import {playerMap,canBat} from '../src/pro/data';
-import {watchList,controlSide,readSpeed,saveSpeed,paMillis,homeRunMillis,SPEED_KEY,pitchesFor,countOf,gradeOf} from '../src/pro/watch';
+import {readSpeed,saveSpeed,paMillis,homeRunMillis,SPEED_KEY,pitchesFor,countOf,gradeOf} from '../src/pro/watch';
+import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,readManage,saveManage,clearManage,manageKey,type ManagedGame} from '../src/pro/managed';
 import {PawaSeason} from '../src/pro/pawa/PawaSeason';
+import {KeyGameStop} from '../src/pro/SimpleApp';
 
 type Orders=(s:LiveSituation,events:LiveEvent[])=>WatchOrder|null;
-/** 観戦の計算を最後まで回す(orders が指示を出す)。 */
-function runWatch(state:GameState,game:GameResult,orders:Orders=()=>null){
- const control=controlSide(state,game),gen=watchGame(state,game,control),events:LiveEvent[]=[];
+/** 画面と同じやり方で試合を回す(渡した値を全部覚える)。 */
+function drive(g:ManagedGame,orders:Orders=()=>null,stopAfter=Infinity,start:(WatchOrder|null)[]=[]){
+ const gen=liveGame(g),inputs:(WatchOrder|null)[]=[],events:LiveEvent[]=[];
  let step=gen.next(),guard=0;
- while(!step.done&&guard++<20000){const v=step.value;if(v.type==='event'){events.push(v.e);step=gen.next(undefined);}else step=gen.next(orders(v.s,events));}
+ while(!step.done&&guard++<20000){
+  const v=step.value;let x:WatchOrder|null=null;
+  if(v.type==='event')events.push(v.e);
+  if(inputs.length<start.length)x=start[inputs.length];
+  else if(v.type==='decide'){if(inputs.length>=stopAfter)return {result:null,inputs,events};x=orders(v.s,events);}
+  inputs.push(x);step=gen.next(x);
+ }
  assert.ok(step.done,'試合が終わらない');
- return {result:step.value as GameResult,events};
+ return {result:step.value as GameResult,inputs,events};
 }
-function playSeason(state:GameState){let s=state;while(!s.season.completed)s=simulateDays(s,7);return finishPostseason(s);}
+type Choose=(g:ManagedGame,s:GameState)=>Orders|null;// null=おまかせ
+/** アプリの「1年進める」と同じ進め方(大事な試合の前で止まり、選んだ方で進める)。 */
+function runYear(state:GameState,choose:Choose=()=>null){
+ let s=state;const stops:{g:ManagedGame;result?:GameResult;inputs?:(WatchOrder|null)[]}[]=[];let guard=0;
+ while(guard++<3000){
+  if(keyGameAhead(s)){const g=managedGame(s);if(g){const o=choose(g,s);
+   if(!o){stops.push({g});s=advanceKeyDay(s);}else{const d=drive(g,o);stops.push({g,result:d.result!,inputs:d.inputs});s=commitManaged(s,g.control,d.inputs);}
+   continue;}}
+  if(!s.season.completed){s=simulateDays(s,7);continue;}
+  if(s.season.postseason?.stage!=='complete'){s=simulatePostseason(s,1);continue;}
+  break;
+ }
+ return {s,stops};
+}
+function plainYear(state:GameState){let s=state;while(!s.season.completed)s=simulateDays(s,7);return finishPostseason(s);}
 const majorState=(seed:number,circuit:Circuit)=>{const s=initialState(seed);s.season=emptySeason(1,circuit,s.club);if(circuit!=='NPB')s.leagueProgress={basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:0};return s;};
+const sandbox=(circuit:Circuit)=>{const s=initialSandboxState();if(circuit!=='NPB'){s.season=emptySeason(1,circuit,s.club);s.leagueProgress={basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:0};}return s;};
 const bench=(s:GameState)=>Object.keys(s.owned).filter(id=>!s.lineup.includes(id)&&!s.pitchers.includes(id)&&canBat(playerMap[id]));
+const sameBox=(a:GameResult,b:GameResult)=>JSON.stringify([a.home,a.away,a.homeRuns,a.awayRuns,a.line,a.errors,a.box])===JSON.stringify([b.home,b.away,b.homeRuns,b.awayRuns,b.line,b.errors,b.box]);
+/** 試合で使う「勝ちに行く」指示: 攻撃は盗塁・送りバント、守りは敬遠。 */
+const aggressive=(side:number):Orders=>s=>s.side===side?(s.bases[0]&&!s.bases[1]?{kind:'steal'}:s.outs<2&&(s.bases[0]||s.bases[1])?{kind:'bunt'}:null):(s.bases[1]&&!s.bases[0]?{kind:'ibb'}:null);
 
 export function registerWatchTests(test:(name:string,run:()=>void)=>void){
- test('watch replay matches "1年進める" for every own game of a domestic, overseas and space season',()=>{
-  let total=0,same=0;
-  for(const circuit of ['NPB','MLB','SPACE'] as Circuit[]){
-   const state=majorState(12345+circuit.length,circuit),random=rng(state.seed),fixtures=scheduleFor(state);
-   for(let d=0;d<seasonGames(state.season);d++){
-    for(const [home,away] of fixtures[state.season.day]){
-     const mine=home===state.club||away===state.club,before=random.state;
-     const replay=mine?makeReplay(state,'opening',before,state.season.day):null;
-     const result=playGame(state,home,away,random);
-     if(replay){total++;const live={...result,replay};if(sameGame(result,replayResult(state,live))&&sameGame(result,runWatch(state,live).result))same++;}
-    }
-    state.season.day++;
-   }
+ test('managed games: "1年進める" stops before opening day and every own postseason game; choosing おまかせ every time equals the unpaused year',()=>{
+  for(const [circuit,state] of [['NPB',sandbox('NPB')],['MLB',sandbox('MLB')],['SPACE',sandbox('SPACE')],['NPB',majorState(77,'NPB')]] as [Circuit,GameState][]){
+   const plain=plainYear(state),{s,stops}=runYear(state);
+   assert.equal(JSON.stringify(s),JSON.stringify(plain),`おまかせの1年が違う ${circuit}`);
+   assert.equal(stops[0].g.label,'開幕戦');assert.equal(stops[0].g.kind,'opening');
+   // 止まった試合 = 開幕戦 + 自分のチームが出た短期決戦の全試合
+   const own=(plain.season.postseason?.series??[]).flatMap(x=>x.results).filter(g=>g.home===plain.club||g.away===plain.club).length;
+   assert.equal(stops.length,1+own,`止まった数 ${circuit}`);
+   assert.ok(stops.slice(1).every(x=>x.g.kind==='post'&&/第\d+戦$/.test(x.g.label)));
+   const top=circuit==='NPB'?'国内王座決定戦':circuit==='SPACE'?'宇宙王座決定戦':'世界王座決定戦';
+   if((plain.season.postseason?.series??[]).some(x=>(x.stage==='japan'||x.stage==='world')&&[x.higher,x.lower].includes(plain.club)))assert.ok(stops.some(x=>x.g.label.startsWith(top)),top);
   }
-  assert.equal(total,143+162+162);
-  assert.equal(same,total,`一致 ${same}/${total}`);
+  // 弱いチームでも開幕戦は止まる。まだ止まっていない日・終わったシーズンでは止まらない。
+  const weak=majorState(5,'NPB');assert.equal(keyGameAhead(weak)?.label,'開幕戦');
+  assert.equal(keyGameAhead(simulateDays(weak,1)),null);
+  assert.equal(keyGameAhead(plainYear(weak)),null);
  });
- test('watchable games keep their replay after the season, survive roster changes and disappear next season',()=>{
-  for(const circuit of ['NPB','MLB','SPACE'] as Circuit[]){
-   const done=playSeason(majorState(2026,circuit)),list=watchList(done);
-   assert.ok(list.length>=2,'観られる試合が少ない '+circuit);
-   assert.equal(list[0].label,'開幕戦');assert.equal(list[0].game,done.season.results[0]);
-   const post=done.season.postseason!;
-   // 王座決定戦(国内=japan、海外・宇宙=world)は全試合が観られる。自分が出ていない試合は観るだけ。
-   const top=post.series.find(s=>s.stage===(circuit==='NPB'?'japan':'world'))!;
-   assert.ok(top.results.length>0&&top.results.every(g=>g.replay?.kind==='post'));
-   if(circuit==='SPACE')assert.ok(list.some(w=>w.label.startsWith('宇宙王座決定戦 第1戦')));
-   if(circuit==='MLB')assert.ok(list.some(w=>w.label.startsWith('世界王座決定戦 第1戦')));
-   if(circuit==='NPB'){
-    assert.ok(list.some(w=>w.label.startsWith('国内王座決定戦 第1戦')));
-    // プレーオフ(CS)は自分のチームが出た試合だけ。
-    for(const s of post.series.filter(s=>s.stage!=='japan'))for(const g of s.results)assert.equal(!!g.replay,[g.home,g.away].includes(done.club));
-   }else for(const s of post.series.filter(s=>s.stage!=='world'))assert.ok(s.results.every(g=>!g.replay));
-   // シーズンの後に打順・覚醒・育成を変えても、控えから記録どおりに再生できる。
-   const changed:GameState={...done,lineup:[...done.lineup].reverse(),owned:Object.fromEntries(Object.entries(done.owned).map(([id,n])=>[id,n+3])),training:Object.fromEntries(Object.keys(done.owned).map(id=>[id,5]))};
-   for(const w of list)assert.ok(sameGame(w.game,replayResult(changed,w.game)),`再生が記録と違う ${circuit} ${w.label}`);
-   // 控えを持ったセーブも、控えを持たないセーブと同じように読み込める(海外・宇宙はこの試験用の作りなので比べるだけ)。
-   const stripped=JSON.parse(JSON.stringify(done,(k,v)=>k==='replay'?undefined:v));
-   assert.equal(validState(done),validState(stripped));if(circuit==='NPB')assert.ok(validState(done));
-   assert.ok(done.season.results.filter(g=>g.replay).every(g=>validGameBox(g)));
-   assert.equal(validGameBox({...done.season.results[0],replay:{...done.season.results[0].replay!,lineup:['x']}}),false);
-   assert.equal(validGameBox({...done.season.results[0],replay:{...done.season.results[0].replay!,rng:-1}}),false);
-   const next=nextSeason(done);
-   assert.equal(watchList(next).length,0);
-   assert.ok(next.history.every(h=>h.results.every(g=>!g.replay)&&(h.postseason?.series??[]).every(s=>s.results.every(g=>!g.replay))));
-   assert.ok(next.history[0].results.some(g=>g.box),'前のシーズンの成績表は今まで通り残す');
-  }
+ test('managed games: managing without orders gives exactly the おまかせ result, and the save is untouched until the result is committed',()=>{
+  const state=sandbox('NPB'),before=JSON.stringify(state);
+  const {s:managed,stops}=runYear(state,()=>()=>null),plain=plainYear(state);
+  assert.equal(JSON.stringify(managed),JSON.stringify(plain),'指示なしの監督 = おまかせ');
+  assert.ok(stops.length>=2&&stops.every(x=>x.result));
+  const g=managedGame(state)!;drive(g);finishLive(g,[]);
+  assert.equal(JSON.stringify(state),before,'止まって試合を回しても保存データは変わらない');
+  // 画面で回した試合と、シーズンに入れた試合は同じ(その日の自分の試合)
+  const first=commitManaged(state,stops[0].g.control,stops[0].inputs!);
+  assert.ok(sameBox(first.season.results[0],stops[0].result!));
  });
- test('league-clinching game and final-day top-two showdown are watchable and computed without changing results',()=>{
-  // 強いチーム(サンドボックス)なら優勝が決まる試合がある。
-  const done=playSeason(initialSandboxState()),clinch=done.season.results.filter(g=>g.replay?.kind==='clinch');
-  assert.equal(clinch.length,1,'優勝が決まった試合が1つ');
-  const day=clinch[0].day-1;
-  // その日の後に初めて決まっている(前の日はまだ)。
-  assert.ok(day>0&&day<seasonGames(done.season));
-  assert.ok(watchList(done).some(w=>w.label==='リーグ優勝が決まった試合'));
-  // 決まり方の判定: 残りを全部負けても、2位が全部勝っても上回る時だけ。
-  const s=emptySeason(1);const [a,b]=s.standings;s.standings.forEach(t=>{t.w=60;t.l=60;});
-  a.w=100;a.l=20;b.w=80;b.l=40;
-  assert.equal(clinchedLeague(s,a.team),false,'残り23試合で20差はまだ');
-  a.w=100;a.l=30;b.w=70;b.l=60;s.standings.forEach(t=>{if(t!==a&&t!==b){t.w=65;t.l=65;}});
-  assert.equal(clinchedLeague(s,a.team),true);
-  // 最終戦の首位攻防: その日の前に自分と相手が1位・2位なら控えを残す。無い年もある。
-  for(const g of done.season.results.filter(g=>g.replay?.kind==='showdown'))assert.equal(g.day,seasonGames(done.season));
+ test('managed games: orders really change the game, and the managed result goes into wins/losses, standings, player stats, series and rewards',()=>{
+  const state=sandbox('NPB'),g=managedGame(state)!,auto=finishLive(g,[]);
+  const side=g.control,d=drive(g,aggressive(side));
+  assert.ok(d.events.some(e=>e.order),'指示が通った');
+  assert.ok(!sameBox(d.result!,auto),'指示で試合が変わる');
+  const after=commitManaged(state,side,d.inputs),r=after.season.results[0];
+  assert.ok(sameBox(r,d.result!),'観た試合がそのまま入る');
+  const me=after.season.standings.find(t=>t.team===state.club)!,mine=side===0?[r.awayRuns,r.homeRuns]:[r.homeRuns,r.awayRuns];
+  assert.equal(me.w+me.l+me.d,1);assert.equal(me.w,mine[0]>mine[1]?1:0);assert.equal(me.l,mine[0]<mine[1]?1:0);assert.equal(me.rf,mine[0]);assert.equal(me.ra,mine[1]);
+  // 個人成績: 監督した試合の成績表の数がシーズンの成績に入る(バントは打数に数えない)
+  for(const b of r.box!.batting.filter(b=>b.team===state.club))assert.equal(after.season.batting[`${state.club}|${b.playerId}`].pa,b.pa);
+  const bunts=d.events.filter(e=>e.kind==='BUNT'||e.kind==='BUNT_FAIL').length,stole=d.events.filter(e=>e.kind==='SB'&&e.order).length;
+  assert.ok(bunts+stole>0);
+  if(stole)assert.ok(r.box!.batting.reduce((n,b)=>n+(b.team===state.club?b.sb:0),0)>=stole);
+  // 1試合ぶんの報酬も入る(おまかせの時と同じ決まり)
+  const autoDay=advanceKeyDay(state);assert.ok(after.gems>state.gems&&autoDay.gems>state.gems);
+  // 短期決戦: 監督した試合が勝ち上がりに入る
+  const {s:year,stops}=runYear(state,(x)=>x.kind==='post'?aggressive(x.control):null);
+  const managedPost=stops.filter(x=>x.result);assert.ok(managedPost.length>0,'短期決戦で止まった');
+  const series=year.season.postseason!.series;
+  for(const x of managedPost){const found=series.flatMap(s=>s.results).some(r=>sameBox(r,x.result!));assert.ok(found,'監督した短期決戦の試合が記録にある '+x.g.label);}
+  for(const s of series)assert.equal(s.wins[0]+s.wins[1]-s.advantage,s.results.filter(r=>r.homeRuns!==r.awayRuns).length,'勝ち数と試合が合う');
+  assert.equal(year.season.postseason!.stage,'complete');assert.ok(year.season.postseason!.rewardClaimed);
+ });
+ test('managed games: closing the app mid-game keeps the orders on the device; resuming gives the same game and the save stays valid',()=>{
+  const store=new Map<string,string>(),storage={getItem:(k:string)=>store.get(k)??null,setItem:(k:string,v:string)=>{store.set(k,v);},removeItem:(k:string)=>{store.delete(k);}};
+  const state=sandbox('NPB'),before=JSON.stringify(state),g=managedGame(state)!,orders=aggressive(g.control);
+  const whole=drive(g,orders);
+  const half=drive(g,orders,Math.floor(whole.inputs.length/2));assert.equal(half.result,null);
+  saveManage('career',{v:1,key:g.key,control:g.control,inputs:half.inputs},storage);
+  assert.ok(store.has(manageKey('career')));
+  assert.equal(JSON.stringify(state),before,'途中で閉じてもセーブは変わらない');
+  // 開き直す: 同じ所で止まり、覚えた並びで続きから
+  const again=managedGame(JSON.parse(before))!;assert.equal(again.key,g.key);
+  const saved=readManage('career',again.key,storage)!;assert.deepEqual(saved.inputs,half.inputs);
+  const resumed=drive(again,orders,Infinity,saved.inputs);
+  assert.ok(sameBox(resumed.result!,whole.result!),'続きから = 通しで');
+  assert.deepEqual(resumed.inputs,whole.inputs);
+  // 別の試合・壊れた記録・別のセーブ枠は読まない
+  assert.equal(readManage('career','other-key',storage),null);
+  assert.equal(readManage('free',g.key,storage),null);
+  store.set(manageKey('career'),'{"v":1,"key":"'+g.key+'","control":0,"inputs":[{"kind":"hack"}]}');assert.equal(readManage('career',g.key,storage),null);
+  store.set(manageKey('career'),'not json');assert.equal(readManage('career',g.key,storage),null);
+  clearManage('career',storage);assert.ok(!store.has(manageKey('career')));
+  // やり直し(覚えた並びを捨てる)とおまかせも、同じ所から
+  assert.ok(sameBox(finishLive(again,[]),finishLive(g,[])));
  });
  test('watch speed is remembered (1x/2x/4x) and one plate appearance takes 2.4s / 1.2s / 0.6s',()=>{
   const store=new Map<string,string>(),storage={getItem:(k:string)=>store.get(k)??null,setItem:(k:string,v:string)=>{store.set(k,v);}};
@@ -101,22 +137,18 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
   assert.equal(readSpeed({getItem:()=>{throw new Error('blocked');}}),1);
   assert.deepEqual([paMillis(1),paMillis(2),paMillis(4)],[2400,1200,600]);
   assert.deepEqual([homeRunMillis(1),homeRunMillis(2),homeRunMillis(4)],[2600,1300,650]);
-  // カウントの演出は結果に合う(四球は4球目がボール、三振は3つ目がストライク)。
   for(let i=1;i<200;i++){const bb=pitchesFor('BB',i),k=pitchesFor('K',i);assert.equal(bb.at(-1),'B');assert.equal(bb.filter(x=>x==='B').length,4);assert.equal(k.at(-1),'S');assert.ok(countOf(pitchesFor('1B',i)).b<=3);}
   assert.equal(gradeOf(100),'S+');assert.equal(gradeOf(95),'S');assert.equal(gradeOf(10),'G');
  });
- test('manager orders follow the rules: substitutions, bunt, steal, two intentional walks per inning, nothing for watch-only games',()=>{
-  const done=playSeason(initialSandboxState()),list=watchList(done),opening=list[0].game,side=controlSide(done,opening);
-  assert.ok(side>=0);
-  const subs=bench(done);assert.ok(subs.length>=3,'ベンチに選手がいる');
-  // 出られない理由
-  assert.equal(substituteBlock(done.lineup,[],done.lineup[0]),'この選手はもう試合に出ている');
-  assert.equal(substituteBlock(done.lineup,[subs[0]],subs[0]),'この選手はもう出場した');
-  assert.equal(substituteBlock(done.lineup,[],subs[0]),null);
-  assert.equal(substituteBlock(done.lineup,[],done.pitchers[0]),'この選手は打てない');
-  // 代打 → 退いた選手は戻れない。同じ打者に二度目の代打は通らない(その場で止まる)。
-  let pinched='';let tried=false;let back=false;
-  const r1=runWatch(done,opening,(s)=>{
+ test('manager orders follow the rules: substitutions, bunt, steal, two intentional walks per inning, wrong-side orders do nothing',()=>{
+  const state=sandbox('NPB'),g=managedGame(state)!,side=g.control,auto=finishLive(g,[]);
+  const subs=bench(state);assert.ok(subs.length>=3,'ベンチに選手がいる');
+  assert.equal(substituteBlock(state.lineup,[],state.lineup[0]),'この選手はもう試合に出ている');
+  assert.equal(substituteBlock(state.lineup,[subs[0]],subs[0]),'この選手はもう出場した');
+  assert.equal(substituteBlock(state.lineup,[],subs[0]),null);
+  assert.equal(substituteBlock(state.lineup,[],state.pitchers[0]),'この選手は打てない');
+  let pinched='',tried=false,back=false;
+  const r1=drive(g,(s)=>{
    if(s.side!==side)return null;
    if(!pinched&&s.inning>=3){pinched=s.batter;return {kind:'pinch',slot:s.slot,id:subs[0]};}
    if(pinched&&!tried){tried=true;return {kind:'pinch',slot:s.slot,id:subs[0]};}
@@ -124,65 +156,49 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
    return null;
   });
   assert.equal(r1.events.filter(e=>e.kind==='PINCH').length,1,'代打は1回だけ通る');
-  assert.ok(r1.result.box!.batting.some(b=>b.playerId===subs[0]&&b.pa>0),'代打の選手が打席に立つ');
-  assert.ok(back,'退いた選手が分かる');
-  // 投手交代: もう投げた投手(先発も)は戻れない。
-  const startId=done.pitchers[opening.replay!.day%6];let step2=0;
-  const r2=runWatch(done,opening,(s)=>{
+  assert.ok(r1.result!.box!.batting.some(b=>b.playerId===subs[0]&&b.pa>0),'代打の選手が打席に立ち、成績に入る');
+  assert.ok(back);
+  let step2=0;
+  const r2=drive(g,(s)=>{
    if(s.side===side)return null;const staff=s.pitchers[1-s.side];
    if(step2===0&&s.inning>=2){step2=1;return {kind:'pitcher',id:staff[10]};}
    if(step2===1&&s.inning>=4){step2=2;return {kind:'pitcher',id:staff[11]};}
    if(step2===2&&s.inning>=6){step2=3;return {kind:'pitcher',id:staff[10]};}
-   if(step2===3&&s.inning>=7){step2=4;return {kind:'pitcher',id:startId};}
    return null;
   });
-  assert.deepEqual(r2.events.filter(e=>e.kind==='PITCHER').map(e=>e.pitcher),[done.pitchers[10],done.pitchers[11]]);
-  assert.ok(r2.result.box!.pitching.some(p=>p.playerId===done.pitchers[10]&&p.outs>0));
-  // 代走・守備固め
-  let ran=false,fielded=false;
-  const r4=runWatch(done,opening,(s)=>{
-   if(!ran&&s.side===side&&s.bases[0]){ran=true;return {kind:'runner',base:0,id:subs[1]};}
-   if(!fielded&&s.side!==side&&s.inning>=6){fielded=true;const slot=s.lineups[side].findIndex(id=>!['DH','捕'].includes(s.defense[side][id]));return {kind:'field',slot,id:subs[2],position:'DH'};}
-   return null;
-  });
-  if(ran)assert.ok(r4.events.some(e=>e.kind==='RUNNER'&&e.batter===subs[1]));
+  assert.deepEqual(r2.events.filter(e=>e.kind==='PITCHER').map(e=>e.pitcher),[state.pitchers[10],state.pitchers[11]]);
+  assert.ok(r2.result!.box!.pitching.some(p=>p.playerId===state.pitchers[10]&&p.outs>0),'替えた投手が投げ、成績に入る');
+  let fielded=false;
+  const r4=drive(g,(s)=>{if(!fielded&&s.side!==side&&s.inning>=6){fielded=true;const slot=s.lineups[side].findIndex(id=>!['DH','捕'].includes(s.defense[side][id]));return {kind:'field',slot,id:subs[2],position:'DH'};}return null;});
   assert.ok(r4.events.some(e=>e.kind==='FIELD'&&e.batter===subs[2]));
-  // 敬遠は1イニング2回まで、満塁ではできない。
-  const r5=runWatch(done,opening,(s)=>s.side!==side?{kind:'ibb'}:null);
+  const r5=drive(g,(s)=>s.side!==side?{kind:'ibb'}:null);
   const ibb=r5.events.filter(e=>e.kind==='IBB'),per=new Map<number,number>();
   for(const e of ibb)per.set(e.inning,(per.get(e.inning)??0)+1);
   assert.ok(ibb.length>0&&[...per.values()].every(n=>n<=IBB_PER_INNING));
   assert.ok(ibb.every(e=>e.runs===0),'満塁で敬遠しないので押し出しは無い');
-  // 送りバント: 2死や走者なしでは出せず、出せる時は打者がアウトで打数に数えない。
-  const r6=runWatch(done,opening,(s)=>s.side===side?{kind:'bunt'}:null);
+  const r6=drive(g,(s)=>s.side===side?{kind:'bunt'}:null);
   const bunts=r6.events.filter(e=>e.kind==='BUNT'||e.kind==='BUNT_FAIL');
   assert.ok(bunts.length>0&&bunts.every(e=>e.outs>=1));
-  // 盗塁の指示は一塁に走者・二塁が空いている時だけ。
-  const r7=runWatch(done,opening,(s)=>s.side===side?{kind:'steal'}:null);
+  const r7=drive(g,(s)=>s.side===side?{kind:'steal'}:null);
   assert.ok(r7.events.filter(e=>(e.kind==='SB'||e.kind==='CS')&&e.order).length>0);
-  // 守備側から攻撃の指示・攻撃側から守りの指示は効かない(記録どおりのまま)。
-  const r8=runWatch(done,opening,(s)=>s.side===side?{kind:'ibb'}:{kind:'bunt'});
-  assert.ok(sameGame(r8.result,opening));
-  // 自分のチームが出ていない王座決定戦は観るだけ(指示はすべて効かない)。
-  const other=list.find(w=>!w.mine);
-  if(other){assert.equal(controlSide(done,other.game),-1);const r9=runWatch(done,other.game,(s)=>({kind:'pinch',slot:s.slot,id:subs[0]}));assert.ok(sameGame(r9.result,other.game));}
+  // 攻撃側から敬遠・守備側からバントの指示は効かない(おまかせのまま)
+  const r8=drive(g,(s)=>s.side===side?{kind:'ibb'}:{kind:'bunt'});
+  assert.ok(sameBox(r8.result!,auto));
  });
- test('a what-if game never changes the season record, rewards, standings or the save',()=>{
-  const done=playSeason(initialSandboxState()),before=JSON.stringify(done),list=watchList(done);
-  for(const w of list.slice(0,4)){
-   const side=controlSide(done,w.game);
-   const r=runWatch(done,w.game,(s)=>side<0?null:s.side===side?{kind:s.bases[0]&&!s.bases[1]?'steal':'bunt'}:{kind:'ibb'});
-   assert.ok(r.result.box);
-  }
-  assert.equal(JSON.stringify(done),before,'保存データが変わった');
-  // 指示なしなら記録と同じ。
-  for(const w of list)assert.ok(sameGame(runWatch(done,w.game).result,w.game));
- });
- test('season screen shows the watch entry after the season and a watch button on postseason rows',()=>{
-  const done=playSeason(initialSandboxState()),list=watchList(done);
-  const html=renderToStaticMarkup(createElement(PawaSeason,{state:done,busy:false,progress:0,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:'',watch:list,onWatch:()=>{}}));
-  assert.ok(html.includes('今年の名場面を観る'));
-  const none=renderToStaticMarkup(createElement(PawaSeason,{state:initialSandboxState(),busy:false,progress:0,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:'',watch:[],onWatch:()=>{}}));
-  assert.ok(!none.includes('今年の名場面を観る'),'シーズンの途中には出さない(1年進めるは止めない)');
+ test('screens: no more "今年の名場面を観る"; the stop screen offers 監督して戦う / おまかせで進める (and 続きから after closing mid-game)',()=>{
+  const done=plainYear(sandbox('NPB'));
+  const html=renderToStaticMarkup(createElement(PawaSeason,{state:done,busy:false,progress:0,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:''}));
+  assert.ok(!html.includes('今年の名場面を観る'));assert.ok(!html.includes('wt-watch-btn'));
+  const state=sandbox('NPB'),g=managedGame(state)!;
+  const stop=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:state,game:g,saved:null},name:state.name,club:state.club,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
+  for(const x of ['開幕戦','監督して戦う','おまかせで進める','結果はそのままシーズンに入ります'])assert.ok(stop.includes(x),x);
+  assert.ok(!stop.includes('続きから'));
+  const resume=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:state,game:g,saved:[null,null]},name:state.name,club:state.club,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
+  assert.ok(resume.includes('続きから監督する'));assert.ok(resume.includes('この試合を最初からやり直す'));
+  // 短期決戦で止まった時は、ここまでの勝ち数を出す
+  const {stops}=runYear(state,()=>null);const post=stops.find(x=>x.g.kind==='post');
+  if(post){let s=state;while(!s.season.completed)s=simulateDays(s,7);while(keyGameAhead(s)?.key!==post.g.key)s=simulatePostseason(s,1);
+   const ph=renderToStaticMarkup(createElement(KeyGameStop,{stop:{at:s,game:managedGame(s)!,saved:null},name:s.name,club:s.club,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
+   assert.ok(ph.includes('勝ち抜け'));assert.ok(ph.includes(post.g.label));}
  });
 }

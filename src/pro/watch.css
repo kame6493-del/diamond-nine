@@ -239,3 +239,22 @@
 .wt-entry.wt-entry{color:#ffd970!important;font-family:inherit!important;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:48px;margin-top:8px;border-radius:999px;border:2px solid #e0b23c;background:linear-gradient(90deg,#0b1d47,#1b3f8f 50%,#0b1d47);font-weight:900!important;font-size:15px!important;cursor:pointer;box-shadow:0 0 10px rgba(255,217,112,.35)}
 .wt-entry.wt-entry small{color:#d6e0ff;font-size:12px;font-weight:700}
 .wt-watch-btn.wt-watch-btn{color:#ffd970!important;font-weight:900!important;font-size:13px!important;flex:none;align-self:center;height:auto;min-height:40px;min-width:56px;margin-left:6px;border-radius:999px;border:2px solid #e0b23c;background:linear-gradient(#18397f,#0b1d47);color:#ffd970;font-weight:900;font-size:13px;cursor:pointer;padding:0 10px}
+
+/* 大事な試合の前で止まった時の選ぶ画面と、監督して戦う画面の見出し(2026-11-04 vc43 作り直し) */
+.wt-root .wt-title-live{margin:0;display:flex;align-items:center;justify-content:center;gap:8px;min-height:40px;border-radius:999px;border:2px solid var(--wt-gold);background:linear-gradient(90deg,#0b1d47,#1b3f8f 50%,#0b1d47);font-size:14px;font-weight:700;color:#d6e0ff}
+.wt-root .wt-title-live b{font-size:17px;font-weight:900;color:var(--wt-gold2)}
+.wt-root .wt-title-live::after{display:none}
+.wt-stop-back.wt-root{display:flex;align-items:center;justify-content:center;padding:calc(16px + var(--safe-area-inset-top,0px)) 16px calc(16px + var(--safe-area-inset-bottom,0px));z-index:1300}
+.wt-root .wt-stop{width:100%;max-width:440px;text-align:center;background:linear-gradient(#18397f,#0b1d47);border:2.5px solid var(--wt-gold);border-radius:20px;padding:18px 14px 14px;box-shadow:0 0 0 4px rgba(224,178,60,.25),0 16px 40px rgba(0,0,0,.5)}
+.wt-root .wt-stop-eye{display:inline-block;margin:0 0 6px;padding:2px 12px;border-radius:999px;background:var(--wt-gold);color:var(--wt-ink);font-weight:900;font-size:12px;letter-spacing:.08em}
+.wt-root .wt-stop h2{margin:0 0 10px;font-size:24px;font-weight:900;color:var(--wt-gold2);text-shadow:0 2px 0 #061127}
+.wt-root .wt-stop-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:0 0 8px}
+.wt-root .wt-stop-vs span{min-height:44px;display:flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:12px;background:#fff;color:var(--wt-ink);border:2px solid var(--wt-red);font-weight:900;font-size:15px;line-height:1.2;overflow-wrap:anywhere}
+.wt-root .wt-stop-vs span.is-mine{border-color:var(--wt-blue);box-shadow:0 0 0 2px var(--wt-gold)}
+.wt-root .wt-stop-vs em{font:italic 900 20px/1 "Arial Black",Impact,sans-serif;color:var(--wt-gold2)}
+.wt-root .wt-stop-series{margin:0 0 8px;font-weight:800;font-size:14px;color:#fff}
+.wt-root .wt-stop-text{margin:0 0 12px;font-size:14px;line-height:1.6;color:#d6e0ff}
+.wt-root .wt-stop-btns{display:grid;gap:8px}
+.wt-root .wt-stop-btns button{min-height:52px;border-radius:999px;font-weight:900;font-size:17px}
+.wt-root .wt-stop-btns .wt-navy{font-size:15px;min-height:48px}
+.wt-root .wt-stop-note{margin:10px 0 0;font-size:12px;color:#b9c8e6}

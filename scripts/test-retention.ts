@@ -108,7 +108,9 @@ export function registerRetentionTests(test:(name:string,run:()=>void)=>void){
  });
  test('the rating prompt is wired only to happy moments: a won title, first gold/rainbow card; the shop marks the quiet time',()=>{
   const app=readFileSync('src/pro/SimpleApp.tsx','utf8'),calls=app.match(/maybeAskReview\([^)]*\)/g)??[];
-  assert.deepEqual([...calls].sort(),["maybeAskReview('title')","maybeAskReview(tier)"]);
+  // 2026-11-04 vc43: 10回まとめて引いた時も、金・虹が出た時だけ(best は10枚の中の一番上の段)。
+  assert.deepEqual([...calls].sort(),["maybeAskReview('title')","maybeAskReview(best)","maybeAskReview(tier)"]);
+  assert.ok(app.includes("const best=tiers.includes('rainbow')?'rainbow':tiers.includes('gold')?'gold':null;"));
   assert.ok(app.includes("if(tier==='rainbow'||tier==='gold')setTimeout(()=>maybeAskReview(tier),1800);"));
   assert.ok(/next\.season\.postseason\.champion===next\.club\)setTimeout\(\(\)=>maybeAskReview\('title'\)/.test(app),'title: right after the season is won');
   assert.ok(!/onNext=\{[^}]*maybeAskReview/.test(app),'not on the next-season button (the interstitial ad shows there)');

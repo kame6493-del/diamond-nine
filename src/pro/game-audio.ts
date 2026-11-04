@@ -8,12 +8,14 @@ const files={
  // 以前の見た目・お祝い演出が使う名前。新しい音へ置き換えた。
  draw:'selab/deal.mp3',impact:'selab/cymbal.mp3',voice:'selab/cymbal.mp3',
  // 観戦モード(2026-11-04)。同じ効果音ラボ。出典は /audio/selab/LICENSE.txt。観戦の画面を開いた時だけ読む(prepareWatchAudio)。
+ // 10回まとめて引く(2026-11-04)の虹カード: いつもの虹の音に、観戦モードと同じ「スタジアムの歓声2」を重ねる(新しい素材は足していない)。
+ rainbowCheer:'selab/watch/cheer.mp3',
  hit:'selab/watch/hit.mp3',catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',homerun:'selab/watch/homerun.mp3',gameset:'selab/watch/gameset.mp3',
 } as const;
 const watchSounds=['hit','catch','strikeout','cheer','homerun','gameset'] as const;
 export type Sound=keyof typeof files;
 // 音量のつり合い(耳に刺さらない程度にそろえる)。
-const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,win:.38,awaken:.5,draw:.55,impact:.3,voice:.25,hit:.45,catch:.4,strikeout:.4,cheer:.3,homerun:.4,gameset:.35};
+const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,win:.38,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hit:.45,catch:.4,strikeout:.4,cheer:.3,homerun:.4,gameset:.35};
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
 const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound}>();
 let context:AudioContext|null=null,epoch=0;
@@ -64,4 +66,20 @@ export function revealSounds(tier:'standard'|'gold'|'rainbow'){
  fadeSound('roll');gameSound('flip');
  if(tier==='standard')gameSound('reveal',.08);
  else{gameSound('cymbal',.05);gameSound(tier==='rainbow'?'rainbow':'gold',.1);}
+}
+
+// ---- 10回まとめて引く(2026-11-04 vc43)。音は上と同じ効果音ラボの物だけ。 ----
+/** 10枚を場に並べる: カードを置く音を少しずつずらして5回。 */
+export function multiDealSounds(){for(let i=0;i<5;i++)gameSound('deal',i*.14);}
+/** 金・虹のカードがめくる前に光る間: ドラムロール(虹はキラッも先に)。 */
+export function multiChargeSounds(tier:'standard'|'gold'|'rainbow'){
+ if(tier==='standard')return;
+ gameSound('roll');if(tier==='rainbow')gameSound('reveal',.05);
+}
+/** 1枚めくる: ふつうはめくる音だけ(10回続くので軽く)。金はシンバル+シャキーン、虹はさらに歓声を重ねる。 */
+export function multiFlipSounds(tier:'standard'|'gold'|'rainbow'){
+ fadeSound('roll');gameSound('flip');
+ if(tier==='standard')return;
+ gameSound('cymbal',.05);gameSound(tier==='rainbow'?'rainbow':'gold',.1);
+ if(tier==='rainbow')gameSound('rainbowCheer',.18);
 }

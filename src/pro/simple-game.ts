@@ -62,6 +62,18 @@ export function drawSimplePlayer(input:GameState,_now:Date|null=null):GameState 
  return collectSimpleRewards(state);
 }
 
+// 2026-11-04 vc43 持ち主「まとめて引くんなら引くやつ付けて良いけど、ちゃんと演出付けてください」。
+// 10回まとめて引く = 1回(drawSimplePlayer)を10回そのまま続けるだけ。値段は10倍(割引・おまけなし)、確率・重複の能力アップ・7枚目からの換金も1回ずつと同じ。
+// 確定枠・天井・10回目だけ確率が上がる枠は無い。ポイントが10回分ないときは何もしない(途中までは引かない)。
+export const MULTI_SCOUT_COUNT=10;
+export const MULTI_SCOUT_COST=SIMPLE_SCOUT_COST*MULTI_SCOUT_COUNT;
+export function drawSimplePlayers(input:GameState,now:Date|null=null,count=MULTI_SCOUT_COUNT):GameState {
+ if(!Number.isInteger(count)||count<1||count>MULTI_SCOUT_COUNT||input.gems<SIMPLE_SCOUT_COST*count)return input;
+ let state=input;const pulls:GameState['lastPulls']=[];
+ for(let i=0;i<count;i++){state=drawSimplePlayer(state,now);pulls.push(state.lastPulls[0]);}
+ return {...state,lastPulls:pulls};
+}
+
 export function replacementPool(state:GameState,kind:'bat'|'pit',slot:number):Player[]{
  const ids=kind==='bat'?state.lineup:state.pitchers,current=ids[slot];
  if(!current)return [];

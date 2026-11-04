@@ -422,10 +422,15 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
  const stars=[...batting].filter(b=>!winner||b.team===winner).sort((a,b)=>(b.hits+b.hr*2+b.rbi+b.bb*.25)-(a.hits+a.hr*2+a.rbi+a.bb*.25)).slice(0,1).map(b=>b.playerId);
  return {day:season.day+1,home,away,homeRuns:scores[1],awayRuns:scores[0],innings:line[0].length,line,stars,errors,box:{batting,pitching,highlights}};
 }
-export function playGame(state:GameState,home:string,away:string,random:ReturnType<typeof rng>):GameResult{
+/** 監督した試合の指示の記録(2026-11-04 vc43 作り直し)。inputs は gameSteps を進めた時に渡した値の並び(最初の next の後から)。 */
+export interface ManageFeed {control:number;inputs:(WatchOrder|null)[]}
+/** 自分の試合だけ差し替える(監督した試合をシーズンに入れる時・監督する試合の直前の状態を取る時)。 */
+export type OwnRunner=(state:GameState,home:string,away:string,random:ReturnType<typeof rng>)=>GameResult;
+export function playGame(state:GameState,home:string,away:string,random:ReturnType<typeof rng>,manage?:ManageFeed):GameResult{
  // 指示なし・止まらずに最後まで(interactive でないので gameSteps は一度も yield しない)。
- const steps=gameSteps(state,home,away,random);let step=steps.next();
- while(!step.done)step=steps.next();
+ // manage がある時は監督した試合: 同じ乱数の位置から、記録した指示を同じ順に渡して回す(画面で観た試合と同じ結果になる)。
+ const steps=manage?gameSteps(state,home,away,random,{interactive:true,control:manage.control}):gameSteps(state,home,away,random);let step=steps.next(),at=0;
+ while(!step.done)step=steps.next(manage?manage.inputs[at++]??null:undefined);
  const result=step.value,scores=[result.awayRuns,result.homeRuns],ids=[away,home],tied=scores[0]===scores[1];
  for(let side=0;side<2;side++){
   const row=state.season.standings.find(t=>t.team===ids[side])!;row.rf+=scores[side];row.ra+=scores[1-side];
@@ -472,23 +477,17 @@ export function clinchedLeague(season:Season,club:string):boolean{
  const left=(t:Standing)=>Math.max(0,total-(t.w+t.l+t.d)),low=me.w/Math.max(1,me.w+me.l+left(me));
  return rows.every(t=>t===me||(t.w+left(t))/Math.max(1,t.w+t.l+left(t))<low);
 }
-export function simulateDays(input:GameState,days:number):GameState{
+export function simulateDays(input:GameState,days:number,ownGame?:OwnRunner):GameState{
  const state=structuredClone(input);if(state.season.completed)return state;
  const random=rng(state.seed);const end=Math.min(seasonGames(state.season),state.season.day+Math.max(0,Math.floor(days)));
  const fixtures=scheduleFor(state);
  while(state.season.day<end){
-  // 観戦モード: 開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防だけ、試合の直前の乱数の位置と編成を残す(計算は変えない)。
-  const day=state.season.day,lastDay=day===seasonGames(state.season)-1,clinchedBefore=clinchedLeague(state.season,state.club);
-  const topTwo=lastDay?rankings(state.season,leagueFor(state.season,state.club)).slice(0,2).map(t=>t.team):[];
-  let own:{result:GameResult;rng:number}|null=null;
+  // 2026-11-04 vc43 作り直し: 振り返りの控え(replay)はもう作らない。大事な試合は「1年進める」の途中で止めて監督する(managed.ts)。
+  // ownGame がある時は自分の試合だけそれで回す(監督した試合・直前の状態を取る時)。乱数は同じ列を順に使う。
+  const day=state.season.day;
   for(const [home,away] of fixtures[day]){
-   const before=random.state,result=playGame(state,home,away,random);
-   if(home===state.club||away===state.club){state.season.results.push(result);own={result,rng:before};}
-  }
-  if(own){
-   const other=own.result.home===state.club?own.result.away:own.result.home;
-   const kind:WatchKind|null=day===0?'opening':!clinchedBefore&&clinchedLeague(state.season,state.club)?'clinch':lastDay&&topTwo.includes(state.club)&&topTwo.includes(other)?'showdown':null;
-   if(kind)own.result.replay=makeReplay(state,kind,own.rng,day);
+   const mine=home===state.club||away===state.club,result=(mine&&ownGame?ownGame:playGame)(state,home,away,random);
+   if(mine)state.season.results.push(result);
   }
   state.season.day++;
   const rank=rankings(state.season,leagueFor(state.season,state.club)).findIndex(t=>t.team===state.club)+1;
