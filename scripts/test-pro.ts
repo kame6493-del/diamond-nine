@@ -23,6 +23,7 @@ import {registerStealBalanceTests} from './test-steal-balance';
 import {registerWatchTests} from './test-watch';
 import {registerMultiScoutTests} from './test-multi-scout';
 import {registerTacticTests} from './test-tactics';
+import {registerLiveStatsTests} from './test-live-stats';
 import {gameReward,seasonReward,postseasonReward} from '../src/pro/progression';
 import {awakeningCosts} from '../src/pro/development';
 import {registerBalanceTests} from './test-balance';
@@ -341,6 +342,7 @@ registerBullpenTests(test);
 registerWatchTests(test);
 registerMultiScoutTests(test);
 registerTacticTests(test);
+registerLiveStatsTests(test);
 let failures=0;
 for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);

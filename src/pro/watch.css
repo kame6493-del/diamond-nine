@@ -297,3 +297,47 @@
 .simple-dialog .keygame-switch.keygame-switch.keygame-switch>span{flex:1.1}
 .simple-dialog .keygame-switch.keygame-switch.keygame-switch button{white-space:nowrap;font-size:14px;padding:0 6px}
 .simple-dialog .keygame-note.keygame-note{margin:-6px 0 18px}
+
+/* 上の帯: チーム名を切らずに、幅に合わせて字を縮める(FitTitle)。11px より小さくなる時は2行に折り返す。 */
+.wt-root .wt-title-live{padding:2px 14px;overflow:hidden}
+.wt-root .wt-title-live .wt-fit{display:inline-flex;align-items:baseline;justify-content:center;gap:.55em;white-space:nowrap;max-width:100%}
+.wt-root .wt-title-live .wt-fit b{font-size:1.2em}
+.wt-root .wt-title-live.is-wrap .wt-fit{white-space:normal;flex-wrap:wrap;text-align:center;row-gap:0;line-height:1.25}
+
+/* 試合中の今季の成績(2026-11-04 持ち主「1打席の結果が出た際に、打率とか防御率とか動くように」)。
+   今季 = 試合前の表+この試合のここまで。変わった数字は少し光る: 良くなった=緑、悪くなった=赤。 */
+.wt-root .wt-sl{margin:-1px 0 4px;font-variant-numeric:tabular-nums;line-height:1.3}
+.wt-root .wt-sl p{margin:0;display:flex;align-items:baseline;flex-wrap:wrap;column-gap:4px;font-size:12px;font-weight:800;color:var(--wt-ink)}
+.wt-root .wt-sl small{font-size:11px;font-weight:700;color:var(--wt-muted)}
+.wt-root .wt-sl p+p small:not(:first-child){margin-left:3px}
+.wt-root .wt-sl b{font-weight:900}
+.wt-root .wt-sl p:first-child b{font-size:14px}
+.wt-root .wt-mv{border-radius:5px;padding:0 3px;margin:0 -3px;animation:wt-glow-up 1.6s ease-out both}
+.wt-root .wt-mv s{text-decoration:none;font-weight:700;opacity:.62;font-size:.86em}
+.wt-root .wt-mv i{font-style:normal;margin:0 1px;font-weight:700;font-size:.86em}
+.wt-root .wt-mv.is-up{color:#11803c}
+.wt-root .wt-mv.is-down{color:#c22a35;animation-name:wt-glow-down}
+.wt-root .wt-today.is-moved{animation:wt-glow-today 1.4s ease-out both;border-radius:5px}
+@keyframes wt-glow-up{0%{background:rgba(47,207,92,.55)}100%{background:rgba(47,207,92,0)}}
+@keyframes wt-glow-down{0%{background:rgba(239,59,59,.42)}100%{background:rgba(239,59,59,0)}}
+@keyframes wt-glow-today{0%{background:rgba(255,217,112,.7)}100%{background:rgba(255,217,112,0)}}
+/* グラウンドの上の端に小さく(札が下で隠れる小さい画面でも分かるように) */
+.wt-root .wt-pop{position:absolute;top:5px;z-index:4;max-width:45%;display:flex;align-items:baseline;gap:3px;white-space:nowrap;background:rgba(10,26,63,.86);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:2px 8px;font-variant-numeric:tabular-nums;animation:wt-pop-in .25s ease-out both}
+.wt-root .wt-pop.is-bat{left:5px}.wt-root .wt-pop.is-pit{right:5px}
+.wt-root .wt-pop small{font-size:11px;color:#d6e0ff;font-weight:700;overflow:hidden;text-overflow:ellipsis;min-width:2em;flex:0 1 auto}
+.wt-root .wt-pop i{font-style:normal;opacity:.8}
+.wt-root .wt-pop b{font-size:13px;font-weight:900}
+.wt-root .wt-pop.is-up{border-color:#4ade80}.wt-root .wt-pop.is-up b{color:#6ef0a0}
+.wt-root .wt-pop.is-down{border-color:#ff7a84}.wt-root .wt-pop.is-down b{color:#ff9aa2}
+@keyframes wt-pop-in{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.wt-root .wt-mv,.wt-root .wt-today.is-moved,.wt-root .wt-pop{animation:none}}
+
+/* 捕手の位置(2026-11-04 持ち主「試合中の捕手の位置、ちょっとおかしいので良い感じにしてください」)。
+   前は本塁の右下(57%,101%)で、グラウンドの下の端で切れていた。内野・外野の絵(.wt-dia-layer)の下に芝の帯を 24px 足し、
+   捕手は本塁の真下(投手と本塁を結ぶ線の上)、板のすぐ下に置く(watch-play.ts の SPOTS.捕、下へ 34px)。
+   本塁のまわりは土の円(実際の球場と同じ)。帯と内野の絵のつなぎ目が見えないように、土の円を上に重ねる。 */
+.wt-root .wt-field{height:calc(clamp(190px,30vh,300px) + 24px);background:radial-gradient(ellipse 46px 32px at 50% calc((100% - 24px) * .91 + 16px),#b77a45 97%,transparent 100%),url(/assets/pro/watch/field.svg) top/100% calc(100% - 24px) no-repeat,repeating-linear-gradient(90deg,#2f8a3a 0 6%,#37973f 6% 12%)}
+.wt-root .wt-dia-layer{position:absolute;left:0;right:0;top:0;height:calc(100% - 24px)}
+/* 球は本塁を通って捕手のミットまで */
+@keyframes wt-pitch{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:50%;top:calc(91% + 18px);transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes wt-pitch-ball{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:55%;top:calc(91% + 18px);transform:translate(-50%,-50%) scale(1.2)}}

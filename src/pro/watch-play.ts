@@ -5,11 +5,14 @@
 import type {LiveEvent,LiveKind} from './engine';
 import {playWord} from './watch';
 
-export type Pt=[number,number];
+/** [x%, y%, 下へのずれ(px)]。ずれは捕手だけ: 本塁の板と人形は px の大きさなので、本塁の真後ろ(下)に px で置く(2026-11-04 持ち主「捕手の位置、ちょっとおかしい」)。 */
+export type Pt=[number,number,number?];
 export const HOME:Pt=[50,91],MOUND:Pt=[50,63];
 export const BASES:Pt[]=[[78,68],[50,40],[22,68]];
 /** 守備の立つ所。外野は打順に出てくる順に 外0(左)・外1(中)・外2(右)。 */
-export const SPOTS:Record<string,Pt>={捕:[57,101],一:[73,60],二:[63,45],三:[27,60],遊:[37,45],外0:[20,33],外1:[50,24],外2:[80,33],投:[50,63]};
+/** 捕手: 本塁(50,91)の真下。板の下の端(+8px)のすぐ下に頭が来る所(足元 +34px)。グラウンドの下に捕手の分の帯(24px)を足してある(watch.css .wt-dia)。 */
+export const CATCHER_DROP=34;
+export const SPOTS:Record<string,Pt>={捕:[50,91,CATCHER_DROP],一:[73,60],二:[63,45],三:[27,60],遊:[37,45],外0:[20,33],外1:[50,24],外2:[80,33],投:[50,63]};
 const INFIELD=['一','二','三','遊','投'],OUTFIELD=['外0','外1','外2'];
 /** 外野の打球の落ちる所(浅い・深い・スタンド)。 */
 const OF:Record<string,{shallow:Pt;deep:Pt;stand:Pt}>={
@@ -36,7 +39,7 @@ export interface FieldPlay {kind:LiveKind;type:BallType;word:string;land:Pt|null
 
 const dist=(a:Pt,b:Pt)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 const nearest=(p:Pt,keys:string[])=>keys.reduce((best,k)=>dist(SPOTS[k],p)<dist(SPOTS[best],p)?k:best,keys[0]);
-const toward=(a:Pt,b:Pt,f:number):Pt=>[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
+const toward=(a:Pt,b:Pt,f:number):Pt=>{const d=(a[2]??0)+((b[2]??0)-(a[2]??0))*f;return d?[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,d]:[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];};
 /** 塁の間の道(from=-1 は本塁から、to=3 は本塁まで)。 */
 export function basePath(from:number,to:number):Pt[]{
  const at=(i:number)=>i<0||i>=3?HOME:BASES[i];
@@ -127,9 +130,9 @@ export function along(pts:Pt[],f:number):Pt{
  return pts[pts.length-1];
 }
 /** その時刻(0〜1)の、動く物の位置・高さ・見え方。 */
-export function trackAt(t:Track,p:number):{x:number;y:number;h:number;o:number;moving:boolean}{
+export function trackAt(t:Track,p:number):{x:number;y:number;dy:number;h:number;o:number;moving:boolean}{
  const f=t.t1>t.t0?(p-t.t0)/(t.t1-t.t0):p>=t.t0?1:0,c=Math.max(0,Math.min(1,f));
- const [x,y]=along(t.pts,c),h=(t.arc??0)*4*c*(1-c);
+ const [x,y,dy=0]=along(t.pts,c),h=(t.arc??0)*4*c*(1-c);
  let o=1;if(t.fade){const [a,b]=t.fade;o=p<=a?1:p>=b?0:1-(p-a)/Math.max(1e-6,b-a);}
- return {x,y,h,o,moving:f>0&&f<1};
+ return {x,y,dy,h,o,moving:f>0&&f<1};
 }
