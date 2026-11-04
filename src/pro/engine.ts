@@ -11,6 +11,7 @@ import { gameReward,isCareer,seasonReward,type Profile } from './progression';
 import { pitchingRoleLabel } from './wiki-players';
 import {defenseAtPosition} from './position-defense';
 import { validGameBox } from './game-log';
+import {tacticRates,batTacticFor,emptyTactics,isBatTactic,isPitchTactic,type Tactics,type BatTactic,type PitchTactic} from './tactics';
 import {claimSeasonGoals} from './ambitions';
 import {ownedRatings,ratingOverall,growthBonus,growOneYear,validCareerGrowth,type CareerGrowthMap} from './development';
 import {recordAchievements,achievementNames,type Achievements} from './achievements';
@@ -160,10 +161,10 @@ export function nextMatchPreview(state:GameState){
 // (interactive=false の時は途中で止まらず、乱数の使い方も前の playGame と同じ)。
 // 観戦モード(WatchScreen)は interactive=true で打席の前ごとに止め、監督の指示(WatchOrder)を受け取る。
 // 指示が無ければ記録と同じ試合になる。指示を出すと、そこから先は「もしも」の試合(シーズンの成績には入れない)。
-export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string};
+export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string}|{kind:'tactic';scope:'team'|'batter'|'pitch';id?:string;tactic:string|null};
 export type LiveKind='BB'|'HBP'|'K'|'OUT'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER';
-export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string}
-export interface LiveSituation {inning:number;side:number;outs:number;bases:(string|null)[];batter:string;slot:number;pitcher:string;score:[number,number];line:number[][];hits:[number,number];errors:[number,number];lineups:string[][];defense:Record<string,string>[];pitchers:string[][];usedPitchers:string[][];removed:string[][];ibbLeft:number;batToday:Record<string,BatStats>;pitToday:Record<string,PitStats>}
+export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string;tactic?:[BatTactic|null,PitchTactic|null]}
+export interface LiveSituation {inning:number;side:number;outs:number;bases:(string|null)[];batter:string;slot:number;pitcher:string;score:[number,number];line:number[][];hits:[number,number];errors:[number,number];lineups:string[][];defense:Record<string,string>[];pitchers:string[][];usedPitchers:string[][];removed:string[][];ibbLeft:number;batToday:Record<string,BatStats>;pitToday:Record<string,PitStats>;tactics:Tactics}
 export type LiveStep={type:'decide';s:LiveSituation}|{type:'event';e:LiveEvent};
 export interface GameOptions {interactive?:boolean;control?:number;tables?:{batting:Record<string,BatStats>;pitching:Record<string,PitStats>;fielding:FieldingSeason};tiebreak?:boolean}
 export const IBB_PER_INNING=2;
@@ -232,6 +233,8 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
   if(position&&position!==oldPosition){const other=r.lineup.find(x=>x!==id&&r.defense[x]===position);if(other){r.defense[other]=oldPosition;r.defense[id]=position;}}
   defenses[side]=buildDefense(side,[id]);matchupCache.clear();
  };
+ // 監督の作戦(打撃・投手への指示)。乱数は使わず、打席の確率に倍率を掛けるだけ(tactics.ts)。監督する側だけ。
+ const tactics=emptyTactics();
  type Runner={id:string;pitcher:string;unearned?:boolean;stealConsidered?:boolean};
  const tiebreak=options.tiebreak??(circuitOf(season)!=='NPB'&&!season.postseason);
  for(let inning=0;inning<(circuitOf(season)!=='NPB'?100:12);inning++){
@@ -263,14 +266,22 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
    };
    const outFor=()=>{out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);};
    const lineNow=()=>[[...line[0],...(side===0?[runs]:[])],[...line[1],...(side===1?[runs]:[])]];
-   const ev=(kind:LiveKind,batter:string,slot:number,runsIn=0,order?:WatchOrder,replaced?:string):LiveStep=>({type:'event',e:{kind,inning:inning+1,side,batter,slot,pitcher:pitcherId,runs:runsIn,outs:out,bases:bases.map(b=>b?.id??null),score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],order,replaced}});
+   const ev=(kind:LiveKind,batter:string,slot:number,runsIn=0,order?:WatchOrder,replaced?:string,tactic?:[BatTactic|null,PitchTactic|null]):LiveStep=>({type:'event',e:{kind,inning:inning+1,side,batter,slot,pitcher:pitcherId,runs:runsIn,outs:out,bases:bases.map(b=>b?.id??null),score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],order,replaced,tactic}});
    while(out<3){
     // ---- 監督の指示(観戦モードの打席の前)。指示が無い時・interactive でない時は何も変わらない。
     let order:WatchOrder|null|undefined=null;
     if(interactive)for(let guard=0;guard<40;guard++){
      const slot=battingOrder[side]%9;
-     order=yield {type:'decide',s:{inning:inning+1,side,outs:out,bases:bases.map(b=>b?.id??null),batter:rosters[side].lineup[slot],slot,pitcher:pitcherId,score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],lineups:rosters.map(r=>[...r.lineup]),defense:rosters.map(r=>({...r.defense})),pitchers:rosters.map(r=>[...r.pitchers]),usedPitchers:usedPitchers.map(s=>[...s]),removed:removed.map(x=>[...x]),ibbLeft:IBB_PER_INNING-walksOrdered,batToday:tables.batting,pitToday:tables.pitching}};
+     order=yield {type:'decide',s:{inning:inning+1,side,outs:out,bases:bases.map(b=>b?.id??null),batter:rosters[side].lineup[slot],slot,pitcher:pitcherId,score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],lineups:rosters.map(r=>[...r.lineup]),defense:rosters.map(r=>({...r.defense})),pitchers:rosters.map(r=>[...r.pitchers]),usedPitchers:usedPitchers.map(s=>[...s]),removed:removed.map(x=>[...x]),ibbLeft:IBB_PER_INNING-walksOrdered,batToday:tables.batting,pitToday:tables.pitching,tactics:{team:tactics.team,batter:{...tactics.batter},pitch:tactics.pitch}}};
      if(!order)break;
+     if(order.kind==='tactic'){
+      // 作戦: いつでも出せる(打撃の作戦は自分の攻撃の時、投手の作戦は自分の守りの時に効く)。試合は進まない。
+      if(control>=0){const t=order.tactic;
+       if(order.scope==='pitch'){if(t===null||isPitchTactic(t))tactics.pitch=t;}
+       else if(order.scope==='team'){if(t===null||isBatTactic(t))tactics.team=t;}
+       else if(order.scope==='batter'&&typeof order.id==='string'&&playerMap[order.id]){if(t===null)delete tactics.batter[order.id];else if(isBatTactic(t))tactics.batter[order.id]=t;}}
+      order=null;continue;
+     }
      if(order.kind==='pinch'){
       if(side!==control||order.slot!==slot||substituteBlock(rosters[side].lineup,removed[side],order.id)){order=null;continue;}
       const old=rosters[side].lineup[slot];substitute(side,slot,order.id);yield ev('PINCH',order.id,slot,0,order,old);order=null;continue;
@@ -328,7 +339,8 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
      const errorSlope=Math.abs(field)>1e-10?(fieldingErrorRate(0)-fieldingErrorRate(field))/field:.2;
      rates={...current,rangeSlope,errorSlope};matchupCache.set(cacheKey,rates);
     }
-    const r=rates;
+    const batT=side===control?batTacticFor(tactics,id):null,pitT=defense===control?tactics.pitch:null;
+    const r=batT||pitT?tacticRates(rates,batT,pitT,pitT==='fastball'||pitT==='breaking'?pitchingRatingsForRole(pitcher,gameRatings(pitcher,pitchBonus,stageFor(defense,pitcherId)),pitcherRole):undefined):rates;
     const {walk:walkRate,hbp:hbpRate,strikeout:kRate,homeRun:hrRate,hit:hitRate}=r;
     const recordContact=()=>{for(const f of defenses[defense].fielders){const share=(f.skill-60)*.0012/defenses[defense].fielders.length;creditFieldingContact(f.row,share*r.rangeSlope,share*r.errorSlope/(1-kRate-hrRate));}};
     const roll=random.next();
@@ -388,7 +400,7 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
     }
     }
     if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play:play||(kind==='BUNT'?'スクイズ':kind==='IBB'?'押し出し四球':''),runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
-    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined);
+    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined,undefined,control>=0?[side===control?batTacticFor(tactics,id):null,defense===control?tactics.pitch:null]:undefined);
     if(side===1&&inning>=8&&scores[1]>scores[0])break;
     if(bases[0]&&!bases[1]&&out<3&&!bases[0].stealConsidered){
      bases[0].stealConsidered=true;

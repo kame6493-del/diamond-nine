@@ -11,7 +11,7 @@ import {seriesName} from './watch';
 import {emptyFielding} from './fielding-stats';
 
 export type KeyKind='opening'|'post';
-export interface KeyGame {kind:KeyKind;label:string;key:string}
+export interface KeyGame {kind:KeyKind;label:string;key:string;series?:string}
 /** 次に進める日に、自分のチームの大事な試合があるか。あれば、その試合の名前と、止まった場所の印(key)。 */
 export function keyGameAhead(state:GameState):KeyGame|null{
  const season=state.season,club=state.club;
@@ -23,8 +23,22 @@ export function keyGameAhead(state:GameState):KeyGame|null{
  const post=season.postseason??newPostseason(season),space=circuitOf(season)==='SPACE';
  const s=post.series.find(x=>x.stage===post.stage&&!x.winner&&(x.higher===club||x.lower===club));
  if(!s)return null;
- return {kind:'post',label:`${seriesName(s,space)} 第${s.results.length+1}戦`,key:`${club}|${season.number}|p${post.day}|${s.id}|${s.results.length}`};
+ return {kind:'post',label:`${seriesName(s,space)} 第${s.results.length+1}戦`,key:`${club}|${season.number}|p${post.day}|${s.id}|${s.results.length}`,series:seriesKey(state,s.id)};
 }
+/** 短期決戦の印(シーズンとシリーズ)。「このシリーズの残りを一気に進める」に使う。 */
+export const seriesKey=(state:GameState,id:string)=>`${state.club}|${state.season.number}|${id}`;
+// ---- 止まるかどうか(2026-11-04 持ち主「CS とか日本シリーズとかも一気に進めれるように。というか、選べるようにして」) ----
+// noStop=設定の「大事な試合でも止まらない」(端末に覚える。最初は止まる)。skipSeries=このシリーズの残りを一気に進めると選んだシリーズ。
+export interface StopRules {noStop:boolean;skipSeries:string|null}
+export function stopAt(state:GameState,rules:StopRules):KeyGame|null{
+ if(rules.noStop)return null;
+ const k=keyGameAhead(state);
+ if(!k||(k.series&&k.series===rules.skipSeries))return null;
+ return k;
+}
+export const NO_STOP_KEY='diamond-nine-keygame-nostop';
+export function readNoStop(storage?:Pick<Storage,'getItem'>):boolean{try{return (storage??localStorage).getItem(NO_STOP_KEY)==='1';}catch{return false;}}
+export function saveNoStop(on:boolean,storage?:Pick<Storage,'setItem'|'removeItem'>){try{const s=storage??localStorage;if(on)s.setItem(NO_STOP_KEY,'1');else s.removeItem(NO_STOP_KEY);}catch{/* 覚えられなくても止まるだけ */}}
 /** その日を1日進める(自分の試合だけ ownGame で回せる)。 */
 export function advanceKeyDay(state:GameState,ownGame?:OwnRunner):GameState{
  return state.season.completed?simulatePostseason(state,1,ownGame):simulateDays(state,1,ownGame);
@@ -57,12 +71,13 @@ export function finishLive(g:ManagedGame,inputs:(WatchOrder|null)[]):GameResult{
 }
 
 // ---- 途中で閉じた時の続き(端末に覚える。セーブデータとは別なので、セーブは壊れない) ----
-export interface SavedManage {v:1;key:string;control:number;inputs:(WatchOrder|null)[]}
+export interface SavedManage {v:1;key:string;control:number;inputs:(WatchOrder|null)[];mode?:'manage'|'watch'}
 export const manageKey=(profile:string)=>`diamond-nine-managed-${profile}`;
-const validOrder=(o:unknown):boolean=>o===null||(!!o&&typeof o==='object'&&typeof (o as {kind?:unknown}).kind==='string'&&['bunt','steal','ibb','pinch','runner','field','pitcher'].includes((o as {kind:string}).kind));
+const validOrder=(o:unknown):boolean=>o===null||(!!o&&typeof o==='object'&&typeof (o as {kind?:unknown}).kind==='string'&&['bunt','steal','ibb','pinch','runner','field','pitcher','tactic'].includes((o as {kind:string}).kind));
 export function readManage(profile:string,key:string,storage?:Pick<Storage,'getItem'>):SavedManage|null{
  try{const v=JSON.parse((storage??localStorage).getItem(manageKey(profile))??'null');
   if(!v||v.v!==1||v.key!==key||!Number.isInteger(v.control)||!Array.isArray(v.inputs)||v.inputs.length>20000||!v.inputs.every(validOrder))return null;
+  if(v.mode!==undefined&&v.mode!=='manage'&&v.mode!=='watch')return null;
   return v as SavedManage;}catch{return null;}
 }
 export function saveManage(profile:string,data:SavedManage,storage?:Pick<Storage,'setItem'>){try{(storage??localStorage).setItem(manageKey(profile),JSON.stringify(data));}catch{/* 覚えられなくても試合はできる(閉じたら最初から) */}}

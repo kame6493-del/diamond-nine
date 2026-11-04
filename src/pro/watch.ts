@@ -46,35 +46,46 @@ export function benchOf(team:string,lineup:string[],pitchers:string[]){return te
 
 // ---- 1球ずつの見せ方(演出だけ。結果は打席の計算で決まっている) ----
 // 打席の結果に合うカウントの流れを作る。試合の乱数とは別の数を使うので、試合の結果は変わらない。
-export function pitchesFor(kind:LiveKind,seed:number):string[]{
+export function pitchesFor(kind:LiveKind,seed:number,lengthen=0):string[]{
  let s=seed>>>0;const r=()=>{s=(Math.imul(s,1103515245)+12345)>>>0;return s/4294967296;};
  if(kind==='IBB')return ['B','B','B','B'];
  if(kind==='BUNT'||kind==='BUNT_FAIL')return r()<.5?['X']:['F','X'];
  if(kind==='HBP')return [...Array.from({length:Math.floor(r()*3)},()=>r()<.5?'B':'S'),'X'];
  const seq:string[]=[];let b=0,k=0;const endBall=kind==='BB',endK=kind==='K';
- const n=Math.floor(r()*5);
- for(let i=0;i<n;i++){const ball=r()<.45;if(ball&&b<3){b++;seq.push('B');}else if(!ball&&k<2){k++;seq.push(r()<.4?'F':'S');}}
+ // lengthen: 慎重に=粘ってファウル・見送りが増える(+2)、積極的に=早いカウントで打つ(-1)。演出だけ。
+ const n=Math.max(0,Math.floor(r()*5)+lengthen);
+ for(let i=0;i<n;i++){const ball=r()<.45;if(ball&&b<3){b++;seq.push('B');}else if(!ball&&k<2){k++;seq.push(r()<.4?'F':'S');}else if(!ball&&lengthen>0)seq.push('F');}
  if(endBall){while(b<4){b++;seq.push('B');}}else if(endK){while(k<3){k++;seq.push('S');}}else seq.push('X');
  return seq;
 }
 export const countOf=(seq:string[])=>({b:Math.min(3,seq.filter(x=>x==='B').length),s:Math.min(2,seq.filter(x=>x==='S'||x==='F').length)});
 
-// ---- 実況の文 ----
-const dirs=['レフト','センター','ライト','右中間','左中間','三遊間','一二塁間'];
-const outs=['ショートゴロ','セカンドゴロ','センターフライ','レフトフライ','サードゴロ','ライトフライ','ファーストゴロ','ピッチャーゴロ'];
+// ---- 実況の文と、グラウンドの打球の向き(同じ表から選ぶので、実況と打球の向きは食い違わない) ----
+export const dirs=['レフト','センター','ライト','右中間','左中間','三遊間','一二塁間'];
+export const outs=['ショートゴロ','セカンドゴロ','センターフライ','レフトフライ','サードゴロ','ライトフライ','ファーストゴロ','ピッチャーゴロ'];
+export const hrDirs=['レフト','センター','ライト','右中間','左中間'];
+export const sfDirs=['レフト','センター','ライト'];
+export const errDirs=['ショート','セカンド','サード'];
+/** 実況と打球の向きで使う、表の中の1つ(打席ごとに決まる。試合の乱数は使わない)。 */
+export const pickOf=<T,>(a:T[],inning:number,slot:number)=>a[(inning*7+slot*3)%a.length];
+/** その打席の打球の向きの言葉(実況に出す物)。打球が無い時は ''。 */
+export function playWord(kind:LiveKind,inning:number,slot:number):string{
+ const p=<T,>(a:T[])=>pickOf(a,inning,slot);
+ switch(kind){case 'HR':return p(hrDirs);case '3B':case '2B':case '1B':return p(dirs);case 'SF':return p(sfDirs);case 'E':return p(errDirs);case 'OUT':return p(outs);default:return '';}
+}
 export function callText(kind:LiveKind,name:string,slot:number,runs:number,inning:number,extra?:{replaced?:string;pitcher?:string}):string{
- const who=`${slot+1}番 ${name}`,pick=(a:string[])=>a[(inning*7+slot*3)%a.length],rbi=runs>0?`、${runs}点が入る!`:'';
+ const who=`${slot+1}番 ${name}`,w=playWord(kind,inning,slot),rbi=runs>0?`、${runs}点が入る!`:'';
  switch(kind){
-  case 'HR':return `${who}、${pick(['レフト','センター','ライト','右中間','左中間'])}スタンドへ ホームラン!${runs>1?` ${runs}点!`:''}`;
-  case '3B':return `${who}、${pick(dirs)}を破る三塁打${rbi||'!'}`;
-  case '2B':return `${who}、${pick(dirs)}を破る二塁打${rbi||'!'}`;
-  case '1B':return `${who}、${pick(dirs)}へヒット${rbi||'。'}`;
+  case 'HR':return `${who}、${w}スタンドへ ホームラン!${runs>1?` ${runs}点!`:''}`;
+  case '3B':return `${who}、${w}を破る三塁打${rbi||'!'}`;
+  case '2B':return `${who}、${w}を破る二塁打${rbi||'!'}`;
+  case '1B':return `${who}、${w}へヒット${rbi||'。'}`;
   case 'BB':return `${who}、フォアボール${rbi||'。'}`;
   case 'IBB':return `${who}を敬遠。一塁へ歩かせる${rbi||'。'}`;
   case 'HBP':return `${who}、デッドボール${rbi||'。'}`;
   case 'K':return `${who}、空振り三振!`;
-  case 'SF':return `${who}、${pick(['レフト','センター','ライト'])}へ犠牲フライ${rbi}`;
-  case 'E':return `${who}の打球を守備がはじいた! エラーで出塁${rbi||'。'}`;
+  case 'SF':return `${who}、${w}へ犠牲フライ${rbi}`;
+  case 'E':return `${who}の打球を${w}がはじいた! エラーで出塁${rbi||'。'}`;
   case 'BUNT':return runs>0?`${who}、スクイズ成功${rbi}`:`${who}、送りバント成功。走者が進む。`;
   case 'BUNT_FAIL':return `${who}、バント失敗…小フライでアウト。`;
   case 'SB':return `${name}、盗塁成功!`;
@@ -83,7 +94,7 @@ export function callText(kind:LiveKind,name:string,slot:number,runs:number,innin
   case 'RUNNER':return `選手交代: 代走 ${name}${extra?.replaced?`(${extra.replaced} に代わって)`:''}`;
   case 'FIELD':return `選手交代: 守備に ${name}${extra?.replaced?`(${extra.replaced} に代わって)`:''}`;
   case 'PITCHER':return `投手交代: ${extra?.pitcher??name} がマウンドへ`;
-  default:return `${who}、${pick(outs)}。`;
+  default:return `${who}、${w}。`;
  }
 }
 export const isPlateAppearance=(kind:LiveKind)=>!['SB','CS','PINCH','RUNNER','FIELD','PITCHER'].includes(kind);
@@ -92,9 +103,15 @@ export const isPlateAppearance=(kind:LiveKind)=>!['SB','CS','PINCH','RUNNER','FI
 export const SPEED_KEY='diamond-nine-watch-speed';
 export const speeds=[1,2,4] as const;
 export type Speed=typeof speeds[number];
-export function readSpeed(storage?:Pick<Storage,'getItem'>):Speed{try{const n=Number((storage??localStorage).getItem(SPEED_KEY));return (speeds as readonly number[]).includes(n)?n as Speed:1;}catch{return 1;}}
-export function saveSpeed(n:Speed,storage?:Pick<Storage,'setItem'>){try{(storage??localStorage).setItem(SPEED_KEY,String(n));}catch{/* 覚えられなくても観られる */}}
+/** おまかせで観る時の速さ(監督の時とは別に覚える。最初は2倍)。 */
+export const AUTO_SPEED_KEY='diamond-nine-watch-speed-auto';
+export function readSpeed(storage?:Pick<Storage,'getItem'>,key=SPEED_KEY,fallback:Speed=1):Speed{try{const n=Number((storage??localStorage).getItem(key));return (speeds as readonly number[]).includes(n)?n as Speed:fallback;}catch{return fallback;}}
+export function saveSpeed(n:Speed,storage?:Pick<Storage,'setItem'>,key=SPEED_KEY){try{(storage??localStorage).setItem(key,String(n));}catch{/* 覚えられなくても観られる */}}
 /** 1打席の長さ(ミリ秒)。1倍 2.4秒・2倍 1.2秒・4倍 0.6秒。 */
 export const paMillis=(speed:Speed)=>2400/speed;
 /** ホームランの演出の長さ。1倍 2.6秒。飛ばしの時は出さない。 */
 export const homeRunMillis=(speed:Speed)=>2600/speed;
+/** 打球が飛んで走者が走る時間(1倍 2.0秒・2倍 1.0秒・4倍 0.5秒)。 */
+export const playMillis=(speed:Speed)=>2000/speed;
+/** 1球の時間(投げる演出)。 */
+export const pitchMillis=(speed:Speed)=>paMillis(speed)*.16;
