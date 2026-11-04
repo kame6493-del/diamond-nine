@@ -1,0 +1,32 @@
+// 試合の人形の動きのコマ(1枚の絵にまとめた物)の場所。scripts/build-motion-atlas.py が作る。
+// [x, y, 幅, 高さ, 大きさの倍率(立ち姿=1)]。コマの無い形は、今の4枚の絵を回す・ずらす(FieldCanvas の drawFor)。
+export type FrameName='pitch_set'|'pitch_windup'|'pitch_kick'|'pitch_release'|'pitch_follow'|'bat_stance'|'bat_stride'|'bat_contact'|'bat_follow'|'bat_miss'|'bat_bunt'|'field_ready'|'field_run1'|'field_run2'|'field_grounder'|'field_fly'|'field_throw1'|'field_throw2'|'field_dive'|'run_lead'|'run_run1'|'run_run2'|'run_slide'|'run_cheer'|'run_sad'|'catch_crouch'|'catch_throw';
+export const ATLAS:{frames:Partial<Record<FrameName,[number,number,number,number,number?]>>}={frames:{
+ bat_bunt:[0,0,101,128],
+ bat_contact:[103,0,119,128],
+ bat_follow:[224,0,127,128],
+ bat_miss:[353,0,137,128],
+ bat_stance:[492,0,95,128],
+ bat_stride:[589,0,88,128],
+ catch_crouch:[679,0,144,128],
+ catch_throw:[825,0,116,128],
+ field_dive:[0,130,133,80,0.625],
+ field_fly:[135,130,102,128],
+ field_grounder:[239,130,115,128],
+ field_ready:[356,130,115,128],
+ field_run1:[473,130,105,128],
+ field_run2:[580,130,105,128],
+ field_throw1:[687,130,104,128],
+ field_throw2:[793,130,121,128],
+ pitch_follow:[0,260,121,128],
+ pitch_kick:[123,260,66,128],
+ pitch_release:[191,260,130,128],
+ pitch_set:[323,260,73,128],
+ pitch_windup:[398,260,72,128],
+ run_cheer:[472,260,99,128],
+ run_lead:[573,260,103,128],
+ run_run1:[678,260,103,128],
+ run_run2:[783,260,102,128],
+ run_sad:[887,260,87,128],
+ run_slide:[0,390,103,70,0.547],
+}};

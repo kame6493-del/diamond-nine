@@ -92,7 +92,6 @@ export function PawaMultiReveal({state,sound,onDone}:{state:GameState;sound:bool
    <p className="pw-mx-spotchips"><span className="pw-tierchip">{label(spot.tier,!!spot.player.mlb)}</span><span className={'pw-mx-tag is-'+multiTag(spot.pull).kind}>{multiTag(spot.pull).label}</span></p>
   </div>}
   <span className="pw-mx-flash" key={'f'+open} aria-hidden="true" data-tier={open>0?items[open-1].tier:'none'}/>
-  <p className="pw-mx-hint" aria-hidden="true">タップで次へ</p>
   {step.kind!=='end'&&<button className="pw-skip pw-mx-skip" onClick={e=>{e.stopPropagation();skipAll();}}>全部めくる ▶▶</button>}
  </div>;
 }

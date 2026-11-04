@@ -194,14 +194,15 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
   const state=sandbox('NPB'),g=managedGame(state)!;
   const card=(at:GameState,game:ManagedGame,saved:boolean)=>renderToStaticMarkup(createElement(KeyGameCard,{game,at,name:at.name,club:at.club,saved,onManage:()=>{},onRestart:()=>{},onAuto:()=>{}}));
   const stop=card(state,g,false);
-  for(const x of ['開幕戦','監督して戦う','一気に進める','次の大事な試合'])assert.ok(stop.includes(x),x);
+  for(const x of ['開幕戦','監督して戦う','一気に進める'])assert.ok(stop.includes(x),x);
+  assert.ok(!stop.includes('次の大事な試合'),'11/5 見出しは消した');
   assert.ok(!stop.includes('おまかせで観る'));assert.ok(!stop.includes('続きから'));
   const resume=card(state,g,true);
   assert.ok(resume.includes('続きから監督する'));assert.ok(resume.includes('この試合を最初からやり直す'));
-  // 短期決戦で止まった時は、ここまでの勝ち数を出す
+  // 短期決戦で止まった時は、試合の名前と相手だけ(11/5 説明の文は消した)
   const {stops}=runYear(state,()=>null);const post=stops.find(x=>x.g.kind==='post');
   if(post){let s=state;while(!s.season.completed)s=simulateDays(s,7);while(keyGameAhead(s)?.key!==post.g.key)s=simulatePostseason(s,1);
    const ph=card(s,managedGame(s)!,false);
-   assert.ok(ph.includes('勝ち抜け'));assert.ok(ph.includes(post.g.label));}
+   assert.ok(ph.includes(post.g.label));assert.ok(!ph.includes('止まっている間'));}
  });
 }

@@ -9,6 +9,7 @@ import {newPostseason,simulatePostseason,type PostSeries} from './postseason';
 import {circuitOf} from './leagues';
 import {seriesName} from './watch';
 import {emptyFielding} from './fielding-stats';
+import {orderBlock,withStartOrder,type StartOrder} from './lineup';
 
 export type KeyKind='opening'|'post';
 export interface KeyGame {kind:KeyKind;label:string;key:string;series?:string;reason?:string}
@@ -75,10 +76,18 @@ export function managedGame(state:GameState):ManagedGame|null{
 export function liveGame(g:ManagedGame):Generator<LiveStep,GameResult,WatchOrder|null|undefined>{
  return gameSteps(g.base,g.home,g.away,rng(g.rng),{interactive:true,control:g.control,tables:{batting:{},pitching:{},fielding:emptyFielding()}});
 }
-/** 監督した試合をシーズンに入れて、その日を進める。inputs は画面で渡した値の並び。 */
-export function commitManaged(state:GameState,control:number,inputs:(WatchOrder|null)[]):GameState{
- return advanceKeyDay(state,(st,home,away,random)=>playGame(st,home,away,random,{control,inputs}));
+/** 監督した試合をシーズンに入れて、その日を進める。inputs は画面で渡した値の並び。
+ *  order=その試合だけのスタメン(2026-11-05。スタメンを決める画面)。その試合の間だけ自分のチームの打順・守備・投手の並びを替え、終わったら戻す。 */
+export function commitManaged(state:GameState,control:number,inputs:(WatchOrder|null)[],order?:StartOrder|null):GameState{
+ return advanceKeyDay(state,(st,home,away,random)=>{
+  if(!order)return playGame(st,home,away,random,{control,inputs});
+  const keep={lineup:st.lineup,defense:st.defense,pitchers:st.pitchers},use=withStartOrder(st,order);
+  st.lineup=use.lineup;st.defense=use.defense;st.pitchers=use.pitchers;
+  try{return playGame(st,home,away,random,{control,inputs});}finally{st.lineup=keep.lineup;st.defense=keep.defense;st.pitchers=keep.pitchers;}
+ });
 }
+/** その試合だけのスタメンで回す試合(試合の直前の状態の打順・守備・投手の並びを替える)。 */
+export function withOrder(g:ManagedGame,order:StartOrder|null|undefined):ManagedGame{return order?{...g,base:withStartOrder(g.base,order)}:g;}
 /** 試合を最後まで回した結果(指示の並びを渡して)。テストと、画面の結果の確かめに使う。 */
 export function finishLive(g:ManagedGame,inputs:(WatchOrder|null)[]):GameResult{
  const gen=liveGame(g);let step=gen.next(),at=0;
@@ -87,14 +96,18 @@ export function finishLive(g:ManagedGame,inputs:(WatchOrder|null)[]):GameResult{
 }
 
 // ---- 途中で閉じた時の続き(端末に覚える。セーブデータとは別なので、セーブは壊れない) ----
-export interface SavedManage {v:1;key:string;control:number;inputs:(WatchOrder|null)[];mode?:'manage'|'watch'}
+export interface SavedManage {v:1;key:string;control:number;inputs:(WatchOrder|null)[];mode?:'manage'|'watch';order?:StartOrder|null}
 export const manageKey=(profile:string)=>`diamond-nine-managed-${profile}`;
 const validOrder=(o:unknown):boolean=>o===null||(!!o&&typeof o==='object'&&typeof (o as {kind?:unknown}).kind==='string'&&['bunt','steal','ibb','pinch','runner','field','pitcher','move','tactic'].includes((o as {kind:string}).kind));
+const validStart=(o:unknown):boolean=>o===undefined||o===null||(!!o&&typeof o==='object'&&Array.isArray((o as StartOrder).lineup)&&Array.isArray((o as StartOrder).pitchers)&&!!(o as StartOrder).defense&&typeof (o as StartOrder).defense==='object');
 export function readManage(profile:string,key:string,storage?:Pick<Storage,'getItem'>):SavedManage|null{
  try{const v=JSON.parse((storage??localStorage).getItem(manageKey(profile))??'null');
   if(!v||v.v!==1||v.key!==key||!Number.isInteger(v.control)||!Array.isArray(v.inputs)||v.inputs.length>20000||!v.inputs.every(validOrder))return null;
   if(v.mode!==undefined&&v.mode!=='manage'&&v.mode!=='watch')return null;
+  if(!validStart(v.order))return null;
   return v as SavedManage;}catch{return null;}
 }
 export function saveManage(profile:string,data:SavedManage,storage?:Pick<Storage,'setItem'>){try{(storage??localStorage).setItem(manageKey(profile),JSON.stringify(data));}catch{/* 覚えられなくても試合はできる(閉じたら最初から) */}}
 export function clearManage(profile:string,storage?:Pick<Storage,'removeItem'>){try{(storage??localStorage).removeItem(manageKey(profile));}catch{/* なし */}}
+/** 続きから開く時のスタメン: 覚えたスタメンが、いまのチームでも通る時だけ使う(通らなければ最初からやり直す)。 */
+export function savedOrderOk(state:GameState,o:StartOrder|null|undefined){return !o||!orderBlock(state,o);}

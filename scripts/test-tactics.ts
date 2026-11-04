@@ -14,7 +14,7 @@ import {type Circuit} from '../src/pro/leagues';
 import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,stopAt,keyReason,readNoStop,saveNoStop,NO_STOP_KEY,readManage,saveManage,type ManagedGame,type StopRules} from '../src/pro/managed';
 import {KeyGameCard} from '../src/pro/SimpleApp';
 import {tacticRates,pitchFit,batTacticFor,emptyTactics,BAT_TACTICS,PITCH_TACTICS,type BatTactic,type PitchTactic} from '../src/pro/tactics';
-import {fieldPlay,trackAt,BASES,HOME} from '../src/pro/watch-play';
+import {choreograph,endOf,ballAt,BAGS,PLATE,type V} from '../src/pro/field-sim';
 import {callText,playWord,readSpeed,SPEED_KEY,pitchesFor} from '../src/pro/watch';
 import {playerMap} from '../src/pro/data';
 
@@ -68,7 +68,9 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
  test('key game card (11/4 夜): no forced choice window; the home card offers 監督して戦う / 一気に進める (no おまかせで観る); short series also "このシリーズの残りを一気に進める"; 続きから after closing',()=>{
   const state=sandbox('NPB'),g=managedGame(state)!;
   const open=cardHtml(state,g);
-  for(const x of ['開幕戦','監督して戦う','一気に進める','大事な試合でも止まらない','順位表'])assert.ok(open.includes(x),x);
+  for(const x of ['開幕戦','監督して戦う','一気に進める','「1年進める」と同じ結果'])assert.ok(open.includes(x),x);
+  // 11/5 持ち主「『監督して戦う』だけでいいです。作戦うんちゃらかんちゃらはいらない」「止まっている間は…こういう文言はいらない」
+  for(const x of ['大事な試合でも止まらない','止まっている間','作戦・バント','次の大事な試合'])assert.ok(!open.includes(x),x);
   assert.ok(!open.includes('おまかせで観る'),'おまかせで観るは無い');
   assert.ok(!open.includes('このシリーズの残りを一気に進める'),'開幕戦にシリーズの選択は無い');
   assert.ok(!open.includes('続きから'));
@@ -79,7 +81,8 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<200)s=simulatePostseason(s,1);
   const pg=managedGame(s);assert.ok(pg&&pg.kind==='post'&&pg.series,'短期決戦で止まる');
   const post=cardHtml(s,pg!);
-  for(const x of ['監督して戦う','一気に進める','このシリーズの残りを一気に進める','勝ち抜け','プレーオフ進出!'])assert.ok(post.includes(x),x);
+  for(const x of ['監督して戦う','一気に進める','このシリーズの残りを一気に進める','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
+  assert.ok(!post.includes('止まっている間'));
   assert.ok(!post.includes('おまかせで観る'));
  });
  test('key games in short series (11/4 夜): only game 1 of each series and games where either side is one win away (advantage wins count) stop; the middle games run on; results equal the plain "1年進める" year',()=>{
@@ -207,29 +210,34 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
    for(const e of d.events){
     if(e.inning!==inning||e.side!==side){bases=[null,null,null];inning=e.inning;side=e.side;if(e.inning>=10&&e.kind!=='PINCH'){/* タイブレークは無い(国内) */}}
     const before=bases;bases=e.bases;
-    if(['PINCH','RUNNER','FIELD','PITCHER'].includes(e.kind))continue;
-    const p=fieldPlay(e,before);kinds.add(e.kind);checked++;
+    if(['PINCH','RUNNER','FIELD','PITCHER','MOVE'].includes(e.kind))continue;
+    const ctx={fielders:{P:e.pitcher,C:'c','1B':'a','2B':'b','3B':'d',SS:'e',LF:'f',CF:'g',RF:'h'},rate:()=>({speed:60,field:60,arm:60})};
+    const p=choreograph(e,before,ctx);kinds.add(e.kind);checked++;
     // 実況の向きと打球の向きは同じ言葉
     const word=playWord(e.kind,e.inning,e.slot);assert.equal(p.word,word);
     if(word)assert.ok(callText(e.kind,'x',e.slot,e.runs,e.inning).includes(word),`実況に ${word}`);
-    const ball=p.tracks.filter(t=>t.who==='ball'),first=ball[0];
-    if(e.kind==='HR'){assert.equal(p.type,'hr');assert.ok(first.pts.at(-1)![1]<0,'ホームランはスタンドへ');assert.ok(trackAt(first,1).o===0,'スタンドに消える');}
-    if(e.kind==='OUT'){assert.ok(p.caught);if(word.endsWith('ゴロ')){assert.equal(p.type,'ground');assert.ok(p.land![1]>44,'ゴロは内野');}else{assert.equal(p.type,'fly');assert.ok(p.land![1]<40,'フライは外野');}}
-    if(['1B','2B','3B'].includes(e.kind)){assert.ok(!p.caught,'安打は捕られない');assert.ok(p.land![1]<44,'安打は外野へ抜ける');}
-    if(['レフト','三遊間','左中間'].includes(word))assert.ok(p.land![0]<50,`${word} は左`);
-    if(['ライト','一二塁間','右中間'].includes(word))assert.ok(p.land![0]>50,`${word} は右`);
-    if(e.kind==='K')assert.equal(p.tracks.length,0);
-    // 走者: 終わった時の位置 = 結果の塁(得点・アウトは消える)
-    for(const t of p.tracks.filter(t=>t.who.startsWith('r:'))){
-     const id=t.who.slice(2),end=trackAt(t,1),at=e.bases.indexOf(id);
-     if(at>=0){assert.deepEqual([end.x,end.y],BASES[at],`${e.kind} 走者の塁`);assert.equal(end.o,1);}
-     else{assert.equal(end.o,0,`${e.kind} 塁にいない走者は消える`);if(e.kind!=='CS'&&before.includes(id))assert.deepEqual([end.x,end.y],HOME,'得点は本塁へ');}
+    const hit=p.ball.find(b=>b.kind!=='throw'&&b.kind!=='pitch')??null,land=hit?.b??null;
+    const near=(a:V,b:V,m=1.2)=>Math.hypot(a[0]-b[0],a[1]-b[1])<=m;
+    if(e.kind==='HR'){assert.equal(p.motion,'home-run');assert.ok(land![1]>100,'ホームランは塀の向こうへ');assert.equal(ballAt(p,hit!.t1)?.o??0,0,'スタンドに消える');}
+    if(e.kind==='OUT'){if(word.endsWith('ゴロ')){assert.equal(p.motion,'ground-out');assert.equal(hit!.kind,'ground');assert.ok(land![1]<40,'ゴロは内野');}else{assert.equal(p.motion,'fly-out');assert.equal(hit!.kind,'air');assert.ok(land![1]>55,'フライは外野');}}
+    if(['1B','2B','3B'].includes(e.kind)){assert.ok(['single','extra-base'].includes(p.motion));assert.ok(p.ball.some(b=>b.b[1]>50),'安打は外野へ抜ける');}
+    if(['レフト','三遊間','左中間'].includes(word)&&land)assert.ok(land[0]<0,`${word} は左`);
+    if(['ライト','一二塁間','右中間'].includes(word)&&land)assert.ok(land[0]>0,`${word} は右`);
+    if(e.kind==='K')assert.equal(p.motion,'strikeout');
+    // 走者と打者: 終わった時の位置 = 結果の塁(得点は本塁、アウトは消える)
+    for(const a of p.actors.filter(x=>x.role!=='f')){
+     const id=a.id.slice(2),end=endOf(p,a.id)!,at=e.bases.indexOf(id);
+     if(a.role==='b'&&['SB','CS'].includes(e.kind))continue;
+     if(a.role==='b'&&e.kind==='HR'){assert.ok(Math.hypot(end.p[0]-PLATE[0],end.p[1]-PLATE[1])<7,'本塁打の打者は一周して本塁へ');continue;}
+     if(at>=0){assert.ok(near(end.p,BAGS[at]),`${e.kind} 走者の塁 ${JSON.stringify(end.p)}`);assert.equal(end.o,1);}
+     else if(a.role==='r'&&e.kind!=='CS'&&before.includes(id))assert.ok(Math.hypot(end.p[0]-PLATE[0],end.p[1]-PLATE[1])<7,'得点は本塁へ');
+     else assert.equal(end.o,0,`${e.kind} 塁にいない打者・走者は消える`);
     }
-    for(const id of e.bases)if(id)assert.ok(p.tracks.some(t=>t.who==='r:'+id)||['K'].includes(e.kind)&&before.includes(id),`${e.kind} 塁の走者が描かれる`);
+    for(const id of e.bases)if(id)assert.ok(p.actors.some(a=>a.id==='r:'+id||a.id==='b:'+id),`${e.kind} 塁の走者が描かれる`);
    }
   }
   assert.ok(checked>1500);
   for(const k of ['1B','2B','HR','OUT','K','BB','SB'])assert.ok(kinds.has(k),k);
-  void playerMap;
+  void playerMap;void BAGS;
  });
 }

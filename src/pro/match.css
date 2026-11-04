@@ -1,0 +1,60 @@
+/* 試合の画面(2026-11-05 作り直し)。持ち主「1から別に試合画面作り直していいです」「UI 全部やって」。
+   プロ野球の中継のような1画面: 上にスコアの帯、真ん中にグラウンド(キャンバス。field-sim.ts と FieldCanvas.tsx)、
+   その下に実況の一文・打者と投手の札・作戦・指示・速さ。グラウンドが残りの高さを全部使う。
+   文字は 11px 以上、押す所は高さ 44px 以上(360x640 と 412x915 で確かめる)。前の画面の部品(watch.css)の上に重ねる。 */
+.wt-root{background:linear-gradient(180deg,#0b1a3c 0%,#071230 45%,#040b1f 100%) fixed,#071230}
+.wt-root .wt-wrap.wt-one{gap:5px;padding:6px 8px 6px}
+
+/* 上の帯: 中断・試合名・相手・成績表 */
+.wt-root .wt-one .wt-head .wt-title-live{background:linear-gradient(90deg,#0f2a66,#173a86 50%,#0f2a66);border:1.5px solid rgba(255,214,102,.75);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.wt-root .wt-one .wt-head .wt-back,.wt-root .wt-one .wt-head>div button{border-width:1.5px;border-color:rgba(255,214,102,.7);background:linear-gradient(#1d3f8d,#0c1f4f)}
+
+/* スコア(1回〜9回・R H E)。中継のスコアの帯の色 */
+.wt-root .wt-one .wt-score{background:rgba(6,16,42,.92);color:#eef3ff;border:1.5px solid rgba(255,214,102,.7);border-radius:10px;font-variant-numeric:tabular-nums}
+.wt-root .wt-one .wt-score th{background:#10275e;color:#b9c9ee}
+.wt-root .wt-one .wt-score td{border-left:1px solid rgba(255,255,255,.08);font-weight:800}
+.wt-root .wt-one .wt-score tbody tr+tr td{border-top:1px solid rgba(255,255,255,.08)}
+.wt-root .wt-one .wt-score td.wt-tm.is-mine{color:#7fb0ff}.wt-root .wt-one .wt-score td.wt-tm.is-rival{color:#ff8a92}
+.wt-root .wt-one .wt-score .r{background:rgba(255,214,102,.18);color:#ffd970}.wt-root .wt-one .wt-score th.r{background:#d9a52e;color:#0b1a3c}
+
+/* グラウンド(キャンバス)。残りの高さを全部使う */
+.wt-root .wt-field.mt-field,.wt-root .fc-wrap.wt-field{position:relative;flex:1 1 0;min-height:140px;border-radius:14px;overflow:hidden;border:1.5px solid rgba(120,160,255,.45);box-shadow:0 6px 18px rgba(0,0,0,.35);background:#236d35}
+.wt-root .fc-canvas{position:absolute;left:0;top:0;display:block}
+.wt-root .wt-field.mt-field.is-loaded{border-color:#ffd970;box-shadow:0 0 16px rgba(255,217,112,.55)}
+.wt-root .mt-tag{position:absolute;transform:translate(-50%,-100%);z-index:3;min-height:30px;display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.95);color:#0d1b3a;border:1.5px solid #e0b23c;border-radius:999px;padding:0 8px;font-size:12px;font-weight:800;white-space:nowrap}
+.wt-root .mt-tag b{font-size:14px}
+.wt-root .wt-play-word{position:absolute;right:6px;bottom:6px;z-index:4;background:rgba(6,16,42,.86);border:1.5px solid #e0b23c;color:#ffd970;font-weight:900;font-size:12px;border-radius:999px;padding:2px 9px}
+/* 好守・エラー・ホームランの一言(1秒ほどで自然に消える。押さなくてよい) */
+.wt-root .mt-banner{position:absolute;left:50%;top:38%;z-index:4;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;opacity:0;font:italic 900 22px/1 "Arial Black",Impact,"Hiragino Sans",sans-serif;color:#fff6c9;text-shadow:0 2px 0 #9a6a00,0 0 12px rgba(255,200,60,.9);animation:mt-banner 1.3s ease-out forwards}
+@keyframes mt-banner{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%)}}
+@media (prefers-reduced-motion:reduce){.wt-root .mt-banner{animation:mt-banner 1.3s steps(1) forwards}}
+
+/* カウント・アウト・回(グラウンドの左下、中継の小さな札) */
+.wt-root .wt-count.is-overlay{background:rgba(6,16,42,.86);color:#fff;border:1.5px solid rgba(255,214,102,.7)}
+.wt-root .wt-count.is-overlay .wt-inn span{color:#c9d6f5}
+.wt-root .wt-count.is-overlay .wt-lamps i{background:#3a4868;box-shadow:none}
+.wt-root .wt-count.is-overlay .wt-lamps i.is-b{background:#35d763}.wt-root .wt-count.is-overlay .wt-lamps i.is-s{background:#ffcc2e}.wt-root .wt-count.is-overlay .wt-lamps i.is-o{background:#ff4646}
+
+/* 実況の一文 */
+.wt-root .wt-one .wt-call{transform:none;border-radius:10px;border-width:1.5px;background:linear-gradient(90deg,#0c2259,#14316f)}
+.wt-root .wt-one .wt-call>*{transform:none}
+
+/* 打者と投手の札: 自分のチームは青、相手は赤の線 */
+.wt-root .wt-duel.is-strip .wt-card{border-color:#d5dcec;border-top:3px solid #2f63d6}
+.wt-root .wt-duel.is-strip .wt-card.is-rival{border-top-color:#d23542}
+
+/* 演出は押さなくても消える。下のボタンは押せるまま */
+.wt-root .wt-hr,.wt-root .wt-flash{pointer-events:none;cursor:default}
+
+/* 背の低い画面(360x640 など): 回ごとのスコアの表をたたみ、点はグラウンドの左下の札に出す(グラウンドを大きく) */
+.wt-root .mt-mini-score{display:none}
+@media (max-height:720px){
+ .wt-root .wt-one .wt-score{display:none}
+ .wt-root .mt-mini-score{display:grid;gap:1px;padding-right:6px;margin-right:2px;border-right:1px solid rgba(255,255,255,.25)}
+ .wt-root .mt-mini-score p{margin:0;display:flex;justify-content:space-between;gap:6px;font-size:12px;font-weight:800;line-height:14px}
+ .wt-root .mt-mini-score p span{max-width:5em;overflow:hidden;white-space:nowrap}
+ .wt-root .mt-mini-score p.is-mine span{color:#8fb8ff}.wt-root .mt-mini-score p.is-rival span{color:#ff9aa2}
+ .wt-root .mt-mini-score b{font-size:13px;color:#ffd970;font-variant-numeric:tabular-nums}
+ .wt-root .wt-one .wt-call{min-height:38px;padding:3px 8px}
+ .wt-root .wt-one .wt-call span{font-size:14px}
+}

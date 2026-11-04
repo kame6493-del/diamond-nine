@@ -9,7 +9,7 @@ import {type Circuit} from '../src/pro/leagues';
 import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,type ManagedGame} from '../src/pro/managed';
 import {batLine,pitLine,batMove,pitMove,avgText,eraText,snapshot} from '../src/pro/live-stats';
 import {isPlateAppearance} from '../src/pro/watch';
-import {SPOTS,HOME,MOUND,CATCHER_DROP,fieldPlay,trackAt} from '../src/pro/watch-play';
+import {READY,PLATE,RUBBER,SECOND,choreograph,actorAt,ballAt} from '../src/pro/field-sim';
 
 const sandbox=(circuit:Circuit)=>{const s=initialSandboxState();if(circuit!=='NPB'){s.season=emptySeason(1,circuit,s.club);s.leagueProgress={basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:0};}return s;};
 /** 開幕戦の前に、今季の成績が既にある形にする(試合前の表+この試合、を確かめるため)。 */
@@ -134,23 +134,15 @@ export function registerLiveStatsTests(test:(name:string,run:()=>void)=>void){
   const p=(outs:number,er:number)=>({outs,er,so:0,wins:0,saves:0});
   assert.equal(pitMove(p(81,9),p(82,9))!.era,'up');assert.equal(pitMove(p(81,9),p(81,10))!.era,'down');assert.equal(pitMove(p(81,9),p(82,9))!.ip,'up');
  });
- test('watch field: the catcher stands right behind home plate on the pitcher-home line, inside the field, and moves from there',()=>{
-  // 2026-11-04 持ち主「試合中の捕手の位置、ちょっとおかしいので良い感じにしてください」(前は 57%,101% で枠の下で切れていた)。
-  const [x,y,dy=0]=SPOTS.捕;
-  assert.equal(x,HOME[0]);assert.equal(x,MOUND[0],'投手と本塁を結ぶ線の上');assert.equal(y,HOME[1]);assert.equal(dy,CATCHER_DROP);
-  // 大きさは watch.css と同じ: 人形 28px 幅(115x128 → 高さ 31px、足元から上に 80%)、本塁の板 20px 幅(77x64 → 高さ 16.6px)、捕手の帯 24px。
-  const figH=28*128/115,plateHalf=20*64/77/2,band=24;
-  for(const H of [190,220,274,300]){
-   const feet=H*y/100+dy,top=feet-figH*.8,bottom=feet+figH*.2,plateBottom=H*HOME[1]/100+plateHalf;
-   assert.ok(top>=plateBottom,`板と重ならない H=${H}`);assert.ok(bottom<=H+band,`枠の中に収まる H=${H}`);
-   // 打者(41%・足元 93%・34px 幅)とは横で重ならない(枠の幅 336px〜392px)。
-   for(const W of [336,392])assert.ok(W*.5-14>=W*.41+17-2,`打者と横に重ならない W=${W}`);
-  }
+ test('watch field: the catcher stands right behind home plate on the pitcher-home line, and moves from there (11/5 field-sim)',()=>{
+  // 2026-11-04 持ち主「試合中の捕手の位置、ちょっとおかしいので良い感じにしてください」。11/5 に本物の縮尺のグラウンドへ作り直した。
+  assert.equal(READY.C[0],PLATE[0]);assert.equal(READY.C[0],RUBBER[0],'投手と本塁を結ぶ線の上');assert.ok(READY.C[1]<0&&READY.C[1]>-5,'本塁の真後ろ(2〜5m)');
+  const ctx={fielders:{P:'p',C:'c','1B':'a','2B':'b','3B':'d',SS:'e',LF:'f',CF:'g',RF:'h'},rate:()=>({speed:60,field:60,arm:60})};
   const ev=(kind:LiveEvent['kind'],bases:(string|null)[]):LiveEvent=>({kind,inning:3,side:0,batter:'b',slot:2,pitcher:'p',runs:0,outs:0,bases,score:[0,0],line:[[],[]],hits:[0,0],errors:[0,0]});
-  // 盗塁の送球は捕手の所から、バント失敗の小フライは捕手が本塁の前まで出て捕る。
-  const steal=fieldPlay(ev('SB',[null,'r',null]),['r',null,null]),ball=steal.tracks.find(t=>t.who==='ball')!;
-  const a=trackAt(ball,ball.t0);assert.deepEqual([a.x,a.y,a.dy],[50,91,CATCHER_DROP]);assert.equal(trackAt(ball,1).dy,0,'二塁に着く時はずれ無し');
-  const bunt=fieldPlay(ev('BUNT_FAIL',['r',null,null]),['r',null,null]),c=bunt.tracks.find(t=>t.who==='f:捕')!;
-  assert.ok(c,'捕手が捕る');const c0=trackAt(c,0),c1=trackAt(c,1);assert.equal(c0.dy,CATCHER_DROP);assert.equal(c1.dy,0);assert.ok(c1.y<HOME[1],'本塁の前まで出る');
+  // 盗塁の送球は捕手の所から二塁へ。バント失敗の小フライは、捕手が本塁の前まで出て捕る。
+  const steal=choreograph(ev('SB',[null,'r',null]),['r',null,null],ctx),thr=steal.ball.find(b=>b.kind==='throw')!;
+  assert.ok(Math.hypot(thr.a[0]-PLATE[0],thr.a[1]-PLATE[1])<1.5,'捕手の所から');assert.deepEqual(thr.b,SECOND,'二塁へ');
+  const bunt=choreograph(ev('BUNT_FAIL',['r',null,null]),['r',null,null],ctx),c=bunt.actors.find(a=>a.pos==='C')!;
+  const c1=actorAt(c,bunt.len);assert.ok(c1.p[1]>PLATE[1],'本塁の前まで出る');void ballAt;
  });
 }

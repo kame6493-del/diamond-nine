@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import {initialSandboxState,type GameResult,type LiveEvent,type LiveSituation,type WatchOrder} from '../src/pro/engine';
 import {managedGame,liveGame,finishLive,commitManaged,type ManagedGame} from '../src/pro/managed';
 import {playerMap,players} from '../src/pro/data';
-import {batSide,throwHand,BOX,SPOTS,fieldPlay,HOME,BASES} from '../src/pro/watch-play';
+import {batSide,throwHand,BOX_M,READY,choreograph,endOf,PLATE,FIRST} from '../src/pro/field-sim';
+const simCtx={fielders:{P:'p',C:'c','1B':'a','2B':'b','3B':'d',SS:'e',LF:'f',CF:'g',RF:'h'},rate:()=>({speed:60,field:60,arm:60})};
 import {tacticNote,pitchTacticFor,emptyTactics} from '../src/pro/tactics';
 import {orderBlock,positionNames} from '../src/pro/WatchScreen';
 
@@ -33,13 +34,13 @@ export function register1104eTests(test:(name:string,run:()=>void)=>void){
   // データに無い選手は id から決まった形(何度呼んでも同じ)
   assert.equal(batSide('nobody-x',RP.id),batSide('nobody-x',RP.id));assert.ok(['R','L'].includes(throwHand('nobody-y')));
   // 打席の位置: 右打は本塁の左(三塁側)、左打は右(一塁側)、高さは同じ。捕手は本塁の真後ろのまま。
-  assert.ok(BOX.R[0]<HOME[0]&&BOX.L[0]>HOME[0]&&BOX.R[1]===BOX.L[1]);assert.equal(BOX.R[0]+BOX.L[0],100,'左右対称');
-  assert.equal(SPOTS.捕[0],HOME[0]);
-  // 打者が走り出すのは、立っていた打席から。終わりは結果の塁(一塁)。
+  assert.ok(BOX_M.R[0]<PLATE[0]&&BOX_M.L[0]>PLATE[0]&&BOX_M.R[1]===BOX_M.L[1]);assert.equal(BOX_M.R[0]+BOX_M.L[0],0,'左右対称');
+  assert.equal(READY.C[0],PLATE[0]);assert.ok(READY.C[1]<PLATE[1],'捕手は本塁の真後ろ');
+  // 打者が走り出すのは、立っていた打席から。終わりは結果の塁(一塁)。(11/5 グラウンドを作り直した field-sim.ts)
   const e=(batter:string):LiveEvent=>({kind:'1B',inning:1,side:0,batter,slot:0,pitcher:RP.id,runs:0,outs:0,bases:[batter,null,null],score:[0,0],line:[[0],[]],hits:[1,0],errors:[0,0]});
   for(const [id,side] of [[R.id,'R'],[Lb.id,'L']] as const){
-   const t=fieldPlay(e(id),[null,null,null]).tracks.find(x=>x.who==='r:'+id)!;
-   assert.deepEqual(t.pts[0],BOX[side],'打席から走り出す');assert.deepEqual(t.pts.at(-1),BASES[0],'一塁で止まる');
+   const c=choreograph(e(id),[null,null,null],simCtx),a=c.actors.find(x=>x.id==='b:'+id)!;
+   assert.deepEqual(a.keys[0].p,BOX_M[side],'打席から走り出す');assert.deepEqual(endOf(c,'b:'+id)!.p,FIRST,'一塁で止まる');
   }
   // 試合の中の打者・投手は、どれも左右が決まる(1試合ぶん)
   const g=managedGame(initialSandboxState())!;const d=drive(g);

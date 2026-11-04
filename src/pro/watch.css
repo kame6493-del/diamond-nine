@@ -35,14 +35,6 @@
 .wt-root .wt-status.is-whatif{background:#5a1f2a;color:#ffe1e5;border:1.5px solid #ff8f9c;border-radius:8px;padding:5px 8px;font-weight:700}
 
 /* グラウンド */
-.wt-root .wt-field{position:relative;height:190px;border-radius:14px;overflow:hidden;border:2px solid #2a4c9a;box-shadow:inset 0 10px 18px rgba(0,0,0,.35);background:#2f8a3a center/100% 100% no-repeat}
-.wt-root .wt-field::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:linear-gradient(#0b1d47,transparent);pointer-events:none}
-.wt-root .wt-field.is-empty{height:60px}
-.wt-root .wt-fig{position:absolute;width:28px;height:auto;transform:translate(-50%,-80%);filter:drop-shadow(0 2px 1px rgba(0,0,0,.45));pointer-events:none}
-.wt-root .wt-fig.is-batter{width:34px}.wt-root .wt-fig.is-pitcher{width:30px}.wt-root .wt-fig.is-runner{width:28px}
-.wt-root .wt-base.is-home{width:20px;opacity:1}.wt-root .wt-base{position:absolute;width:16px;transform:translate(-50%,-50%);pointer-events:none;opacity:.9}
-.wt-root .wt-base.is-on{filter:drop-shadow(0 0 6px #ffd970) sepia(1) saturate(4) hue-rotate(5deg)}
-.wt-root .wt-field.is-loaded{box-shadow:inset 0 0 22px rgba(255,217,112,.65)}
 .wt-root .wt-tag{position:absolute;transform:translate(-50%,-100%);z-index:2;min-height:32px;display:flex;align-items:center;gap:3px;background:#fff;color:var(--wt-ink);border:2px solid var(--wt-gold);border-radius:999px;font-size:12px;padding:0 9px;font-weight:800;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,.35)}
 .wt-root .wt-tag b{font-size:15px}
 
@@ -262,19 +254,6 @@
 /* 11/4 追加: 選ぶ画面の3つ+シリーズ、グラウンドの動き、作戦、おまかせで観る */
 .wt-root .wt-stop-btns button small{display:block;font-size:12px;font-weight:700;opacity:.85;margin-top:1px}
 .wt-root .wt-stop-btns .wt-navy.is-series{font-size:14px;min-height:44px;background:linear-gradient(#1b3f8f,#0b1d47);border-style:dashed}
-.wt-root .wt-field{height:clamp(190px,30vh,300px)}
-.wt-root .wt-fig.is-batter{transition:transform .08s}
-.wt-root .wt-fig.is-batter.is-swing{transform:translate(-50%,-80%) rotate(-14deg)}
-.wt-root .wt-fig.is-chase,.wt-root .wt-play .wt-fig.is-runner{transition:none;will-change:left,top}
-.wt-root .wt-fig.is-run{animation:wt-bob .22s ease-in-out infinite alternate}
-@keyframes wt-bob{from{margin-top:0}to{margin-top:-3px}}
-.wt-root .wt-play{position:absolute;inset:0;pointer-events:none}
-.wt-root .wt-ball{position:absolute;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #c9c9c9,0 0 8px rgba(255,255,255,.95);transform:translate(-50%,-50%);z-index:3;will-change:left,top,transform}
-.wt-root .wt-ball-shadow{position:absolute;width:9px;height:4px;border-radius:50%;background:rgba(0,0,0,.45);transform:translate(-50%,-50%);z-index:2}
-.wt-root .wt-pitchball{position:absolute;left:50%;top:61%;width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff;transform:translate(-50%,-50%);z-index:3;animation:wt-pitch var(--d) linear forwards}
-.wt-root .wt-pitchball.is-ball{animation-name:wt-pitch-ball}
-@keyframes wt-pitch{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:49%;top:89%;transform:translate(-50%,-50%) scale(1.2)}}
-@keyframes wt-pitch-ball{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:57%;top:90%;transform:translate(-50%,-50%) scale(1.2)}}
 .wt-root .wt-play-word{position:absolute;right:6px;bottom:6px;z-index:4;background:rgba(10,26,63,.85);border:1.5px solid var(--wt-gold);color:var(--wt-gold2);font-weight:900;font-size:12px;border-radius:999px;padding:2px 9px}
 .wt-root .wt-tactic-now{margin:0;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px 8px;font-size:12px;color:#d6e0ff;font-weight:700}
 .wt-root .wt-tactic-now em{background:var(--wt-gold);color:var(--wt-ink);border-radius:5px;padding:0 6px;font-weight:900}
@@ -291,7 +270,6 @@
 .wt-root .wt-tc.is-on{background:linear-gradient(#fff3b8,#f4c542);border-color:#b8860b;box-shadow:0 0 10px rgba(255,217,112,.7)}
 .wt-root .wt-batters button{min-height:40px;font-size:12px;padding:0 7px}
 .wt-root .wt-batters button small{margin-left:4px;font-size:11px;background:var(--wt-gold);color:var(--wt-ink);border-radius:5px;padding:0 4px}
-@media (prefers-reduced-motion:reduce){.wt-root .wt-fig.is-run{animation:none}}
 .keygame-switch>span small{display:block;font-size:11px;font-weight:700;opacity:.75}
 .keygame-note{margin:-8px 0 16px;font-size:12px;opacity:.8}
 .simple-dialog .keygame-switch.keygame-switch.keygame-switch>span{flex:1.1}
@@ -333,14 +311,9 @@
 @media (prefers-reduced-motion:reduce){.wt-root .wt-mv,.wt-root .wt-today.is-moved,.wt-root .wt-pop{animation:none}}
 
 /* 捕手の位置(2026-11-04 持ち主「試合中の捕手の位置、ちょっとおかしいので良い感じにしてください」)。
-   前は本塁の右下(57%,101%)で、グラウンドの下の端で切れていた。内野・外野の絵(.wt-dia-layer)の下に芝の帯を 24px 足し、
    捕手は本塁の真下(投手と本塁を結ぶ線の上)、板のすぐ下に置く(watch-play.ts の SPOTS.捕、下へ 34px)。
    本塁のまわりは土の円(実際の球場と同じ)。帯と内野の絵のつなぎ目が見えないように、土の円を上に重ねる。 */
-.wt-root .wt-field{height:calc(clamp(190px,30vh,300px) + 24px);background:radial-gradient(ellipse 46px 32px at 50% calc((100% - 24px) * .91 + 16px),#b77a45 97%,transparent 100%),url(/assets/pro/watch/field.svg) top/100% calc(100% - 24px) no-repeat,repeating-linear-gradient(90deg,#2f8a3a 0 6%,#37973f 6% 12%)}
-.wt-root .wt-dia-layer{position:absolute;left:0;right:0;top:0;height:calc(100% - 24px)}
 /* 球は本塁を通って捕手のミットまで */
-@keyframes wt-pitch{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:50%;top:calc(91% + 18px);transform:translate(-50%,-50%) scale(1.2)}}
-@keyframes wt-pitch-ball{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:55%;top:calc(91% + 18px);transform:translate(-50%,-50%) scale(1.2)}}
 
 /* ---- 1画面の試合(2026-11-04 夜 持ち主「スクロールせずに結果見れるようにして」) ----
    360x640(端の余白 上40・下24 込み)と 412x915 で、スコアボード・グラウンド・結果の一文・カウント・打者と投手の要点・操作がスクロールなしで全部見える。
@@ -352,7 +325,6 @@
 .wt-root .wt-one .wt-score{font-size:13px;flex:none}
 .wt-root .wt-one .wt-score th{padding:1px 0;font-size:11px}
 .wt-root .wt-one .wt-score td{padding:2px 0}
-.wt-root .wt-one .wt-field{flex:1 1 0;height:auto;min-height:150px;max-height:min(520px,135vw)}
 .wt-root .wt-one .wt-call{min-height:46px;padding:5px 10px;flex:none}
 .wt-root .wt-one .wt-call span{font-size:16px;line-height:1.3;font-weight:900}
 .wt-root .wt-note-tag{display:inline-block;margin-right:6px;padding:0 6px;border-radius:6px;font-size:14px;font-weight:900;font-style:normal}
@@ -394,11 +366,6 @@
 .wt-root .wt-one .wt-hint{margin:0;font-size:12px;color:var(--wt-gold2);text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wt-root .wt-one .wt-speed button{min-height:44px;font-size:13px}
 /* 打席に立つ向き: 左打者は一塁側に立ち、絵を左右反対に。左投手も反対の腕で投げる。 */
-.wt-root .wt-fig.is-batter.is-lefty{transform:translate(-50%,-80%) scaleX(-1)}
-.wt-root .wt-fig.is-batter.is-lefty.is-swing{transform:translate(-50%,-80%) scaleX(-1) rotate(-14deg)}
-.wt-root .wt-fig.is-pitcher.is-lefty{transform:translate(-50%,-80%) scaleX(-1)}
-.wt-root .wt-pitchball.is-ball.is-lb{animation-name:wt-pitch-ball-l}
-@keyframes wt-pitch-ball-l{from{left:50%;top:61%;transform:translate(-50%,-50%) scale(.75)}to{left:45%;top:calc(91% + 18px);transform:translate(-50%,-50%) scale(1.2)}}
 /* 試合終了(1画面) */
 .wt-root .wt-final.is-compact{flex:0 1 auto;min-height:0;overflow:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
 .wt-root .wt-final.is-compact h3{margin:0;display:flex;align-items:center;justify-content:center;gap:8px;font-size:19px}
@@ -417,9 +384,10 @@
 .wt-root .wt-final.is-compact .wt-final-btns{margin-top:4px}
 
 /* ---- ホームの「次の大事な試合」の札と、短い知らせ(2026-11-04 夜 持ち主「強制的に画面を選ばされるのが気に入らない」) ---- */
-html .simple-app .kg-card{margin:8px 0 12px;padding:12px 12px 10px;border-radius:16px;text-align:center;color:#f7f9ff;background:linear-gradient(#18397f,#0b1d47);border:2.5px solid #e0b23c;box-shadow:0 0 0 3px rgba(224,178,60,.22),0 8px 20px rgba(0,0,0,.25)}
-html .simple-app .kg-card .kg-eye{display:inline-block;margin:0 0 4px;padding:1px 10px;border-radius:999px;background:#e0b23c;color:#0d1b3a;font-weight:900;font-size:12px;letter-spacing:.06em}
-html .simple-app .kg-card .kg-head{margin:0 0 4px;font-size:21px;font-weight:900;color:#ffd970;line-height:1.3}
+html .simple-app .kg-card{margin:10px 0 16px;padding:14px 12px 12px;border-radius:16px;text-align:center;color:#f7f9ff;background:linear-gradient(#18397f,#0b1d47);border:2.5px solid #e0b23c;box-shadow:0 0 0 3px rgba(224,178,60,.22),0 8px 20px rgba(0,0,0,.25)}
+html .simple-app .kg-card .kg-head{margin:2px 0 8px;display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:2px 8px;font-size:20px;font-weight:900;color:#fff;line-height:1.3}
+html .simple-app .kg-card .kg-head em{font-style:normal;color:#ffd970}
+html .simple-app .kg-card .kg-head b{color:#ffd970}
 html .simple-app .kg-card .kg-vs{margin:0 0 4px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 8px;font-size:14px;font-weight:700;color:#d6e0ff}
 html .simple-app .kg-card .kg-vs b{color:#fff;font-size:16px}
 html .simple-app .kg-card .kg-series{margin:0 0 6px;font-size:13px;font-weight:800}
@@ -430,9 +398,7 @@ html .simple-app .kg-card .kg-manage{background:linear-gradient(#fff2a6,#f4c542 
 html .simple-app .kg-card .kg-auto{background:linear-gradient(#ffffff,#dfe6f5);color:#0d1b3a;border:2px solid #e0b23c}
 html .simple-app .kg-card .kg-series-btn,html .simple-app .kg-card .kg-restart{grid-column:1/-1;min-height:44px!important;font-size:14px!important;background:transparent;color:#ffd970;border:2px dashed #e0b23c}
 html .simple-app .kg-card .kg-btns button:disabled{opacity:.5}
-html .simple-app .kg-card .kg-note{margin:8px 0 0;font-size:12px;color:#b9c8e6;line-height:1.5}
-html .simple-app .kg-toast{position:fixed;left:50%;top:calc(70px + var(--safe-area-inset-top,0px));transform:translateX(-50%);z-index:1400;max-width:min(92vw,420px);padding:12px 22px;border-radius:16px;border:2.5px solid #e0b23c;background:linear-gradient(90deg,#0a1a3fee,#1b3f8fee,#0a1a3fee);color:#ffd970;font-weight:900;font-size:20px;line-height:1.3;text-align:center;box-shadow:0 0 18px rgba(255,217,112,.6);cursor:pointer;animation:kg-toast 3.2s ease both;pointer-events:auto}
-html .simple-app .kg-toast small{display:block;font-size:11px;color:#d6e0ff;font-weight:700;margin-top:2px}
+html .simple-app .kg-toast{position:fixed;left:50%;top:calc(70px + var(--safe-area-inset-top,0px));transform:translateX(-50%);z-index:1400;max-width:min(92vw,420px);padding:12px 22px;border-radius:16px;border:2.5px solid #e0b23c;background:linear-gradient(90deg,#0a1a3fee,#1b3f8fee,#0a1a3fee);color:#ffd970;font-weight:900;font-size:20px;line-height:1.3;text-align:center;box-shadow:0 0 18px rgba(255,217,112,.6);cursor:default;animation:kg-toast 1.8s ease both;pointer-events:none}
 @keyframes kg-toast{0%{opacity:0;transform:translate(-50%,-8px)}8%{opacity:1;transform:translate(-50%,0)}85%{opacity:1}100%{opacity:0;visibility:hidden}}
 
 /* 守備交代(11/4 夜 持ち主「守備交代するときにポジションが出てないから、何が何かわからない」) */
@@ -460,7 +426,6 @@ html .simple-app .kg-toast small{display:block;font-size:11px;color:#d6e0ff;font
 /* ---- 帯に能力を常に出す(2026-11-04 夜おそく 持ち主「ミート・パワー・走力が、投手のコントロール・スタミナ・球速が、能力として見れるようにして」) ----
    打者=ミート・パワー・走力、投手=球速・制球・スタミナを3列で。上に名前(11px)、下に段(色と記号はシートと同じ g-*)と短い棒。
    スタミナの棒は今日の残り(1球ごとに減る)、3割を切ると赤。入りきらない分はグラウンドが縮む(最小 150px → 120px)。 */
-.wt-root .wt-one .wt-field{min-height:120px}
 .wt-root .wt-duel.is-strip.is-abil .wt-card{display:flex;flex-direction:column;gap:1px;min-width:0}
 .wt-root .wt-minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin:1px 0}
 .wt-root .wt-mini{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;column-gap:3px;background:#eef2fa;border-radius:5px;padding:0 3px 2px;min-width:0}
