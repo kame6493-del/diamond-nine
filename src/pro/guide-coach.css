@@ -1,0 +1,11 @@
+/* 指さしの案内(2026-11-05)。画面の操作は止めない(層は押せない。押せるのは「飛ばす」だけ)。 */
+.gc-layer{position:fixed;inset:0;z-index:2100;pointer-events:none}
+.gc-ring{position:fixed;border-radius:14px;border:3px solid #ffd970;box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 18px 6px rgba(255,217,112,.85),0 0 0 9999px rgba(6,14,36,.28);animation:gc-pulse 1.1s ease-in-out infinite;transition:left .15s,top .15s,width .15s,height .15s}
+.gc-finger{position:fixed;width:64px;height:64px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));animation:gc-tap 1.1s ease-in-out infinite;transform-origin:37% 38%}
+.gc-bubble{position:fixed;left:12px;right:12px;margin:0 auto;max-width:420px;padding:10px 14px 12px;border-radius:16px;border:3px solid #1f4bb0;background:#fff;color:#0d1b3a;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.gc-bubble .gc-step{display:inline-block;padding:2px 12px;border-radius:999px;background:linear-gradient(#2a5bd0,#163a8f);color:#fff;font-size:12px;font-weight:900;letter-spacing:.04em}
+.gc-bubble p{margin:6px 0 0;font-size:17px;line-height:1.35;font-weight:900}
+.gc-skip{pointer-events:auto;position:fixed;top:calc(8px + var(--safe-area-inset-top,0px));right:8px;min-height:34px;padding:4px 12px;border-radius:999px;border:2px solid #1f4bb0;background:#fff;color:#1f4bb0;font-size:13px;font-weight:900;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+@keyframes gc-pulse{0%,100%{box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 12px 4px rgba(255,217,112,.7),0 0 0 9999px rgba(6,14,36,.28)}50%{box-shadow:0 0 0 3px rgba(255,255,255,.85),0 0 24px 10px rgba(255,217,112,1),0 0 0 9999px rgba(6,14,36,.28)}}
+@keyframes gc-tap{0%,100%{transform:translate(0,0) scale(1)}45%{transform:translate(-5px,-6px) scale(.94)}}
+@media (prefers-reduced-motion:reduce){.gc-ring,.gc-finger{animation:none}}

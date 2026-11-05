@@ -1,7 +1,7 @@
 // 2026-11-03 宇宙リーグの初優勝までの年数(vc41 の宇宙人の相手の作り直しの前後を比べる)。
 // 使い方: D9_ENTRY=scripts/sim-space.ts node scripts/sim-balance.mjs [ソースのルート=.] [シード数=20] [年数=40]
 // bot は sim-balance.ts の V39 と同じ(1日3年・ログイン・今日の目標・動画スカウト・引けるだけ引く・安い順に覚醒・balanced)。
-// 国内 → 海外(3連覇で自動) → 世界王座を取ったら次の年から宇宙リーグへ。宇宙で初めて宇宙王座決定戦を勝った年(シーズン番号)を出す。
+// 国内 → 海外(3連覇で自動) → 世界一を取ったら次の年から宇宙リーグへ。宇宙で初めて宇宙一決定戦を勝った年(シーズン番号)を出す。
 // 宇宙リーグでのこちらのチーム打率・1試合の得点・三振の割合(三振/打席)も、宇宙の全シーズンの合計で出す。
 import {initialState,simulateDays,nextSeason,switchLeague} from '@d9/engine';
 import {seasonGames,circuitOf,spaceUnlocked} from '@d9/leagues';
@@ -27,7 +27,7 @@ const plans=[
 const only=process.env.PLANS?.split(',').map(Number);
 const med=(xs:number[])=>{const v=[...xs].sort((a,b)=>a-b);return v[Math.floor(v.length/2)];};
 const yr=(n:number)=>n>=99?`${years}年で届かず`:`${n}年目`;
-console.log(`シード${seeds}・${years}年・1日${perDay}年 / 宇宙リーグの初優勝(宇宙王座決定戦)`);
+console.log(`シード${seeds}・${years}年・1日${perDay}年 / 宇宙リーグの初優勝(宇宙一決定戦)`);
 for(const plan of plans.filter((_,i)=>!only||only.includes(i))){
  setPremiumMatchBonus(plan.pass);
  const firstSpace:number[]=[],enterSpace:number[]=[],spaceYears:number[]=[];

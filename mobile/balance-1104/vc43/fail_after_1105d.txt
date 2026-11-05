@@ -1,0 +1,17 @@
+MLB cards show both Ohtani ability sets and accessible player details without rarity labels
+achievement celebrations show the attained year and league controls remain compact and disabled during simulation
+career starts with 24 real players, valid positions, modest strength and zero currency
+compact deck preserves 21 roster slots and abilities, with bench selection available on demand
+complete reset removes acquired cards, duplicates, development, seasons and every reset snapshot of this club
+new clubs offer three distinct strong NPB cards without changing the weak initial roster
+pitch repertoire, secondary positions and contextual traits have bounded gameplay effects
+random starting rosters vary across every slot while remaining weak, complete and duplicate-free
+reset creates a fresh welcome event and restore keeps its already-claimed reward
+season end freezes real team abilities and archived victory images survive later training, reorder, rename and save reload
+shared player abilities include the whole saved order even without batting stats and do not expose mutable save objects
+starter completion equips the earned player, persists and never returns after opening day
+starter picks grant exactly one card once without spending points or advancing paid guarantees
+team UZR ranks sum actual fielders, allow ties and never rank missing or mismatched recording periods
+team reset starts over and provides a complete restorable copy without deleting any save
+valid starter roster and saved-state guards
+wins, draws and losses credit only the shared wallet; daily and batch rewards agree

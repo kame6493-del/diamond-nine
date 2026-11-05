@@ -1,0 +1,13 @@
+DIAMOND NINE - 試合の動きの効果音(2026-11-05 から)。すべて Freesound の CC0 1.0 Universal(パブリックドメイン)の録音。
+https://creativecommons.org/publicdomain/zero/1.0/
+加工は、冒頭の無音を切る・短く切り出す・終わりをフェード・最大音量を -3dB にそろえる・モノラル 44.1kHz の MP3 にする、だけ。
+ glove.mp3   <- "Glove Catch 1 FF014.aif" by martinimeniscus (Florentine Films SFX), sound 164499  https://freesound.org/people/martinimeniscus/sounds/164499/  (外野でグラブに収まる音)
+ infield.mp3 <- "catching a baseball glove" by Luisa_Sanchez, sound 816984  https://freesound.org/people/Luisa_Sanchez/sounds/816984/  (内野で捕る・送球を受ける音)
+ throw.mp3   <- "JH FX Short Whoosh 1" by Johnnie_Holiday, sound 696649  https://freesound.org/people/Johnnie_Holiday/sounds/696649/  (送球の風切り、小さく)
+ step.mp3    <- "Footsteps_Dirt_Single_01.wav" by BenDrain, sound 487866  https://freesound.org/people/BenDrain/sounds/487866/  (走者が塁を踏む音)
+ slide.mp3   <- "Boots Gravel Feet Slide 1_5" by Joao_Janz, sound 504383  https://freesound.org/people/Joao_Janz/sounds/504383/  (滑り込み)
+ bounce.mp3  <- "Tennis Bounce Ball on Grass" by jamesdrake89, sound 662258  https://freesound.org/people/jamesdrake89/sounds/662258/  (外野で球が弾む、1回分)
+ sigh.mp3    <- "CRWDReac_Crowd Sigh In Disappointment" by ShangusBurger (Shane Vincent, GSC24), sound 763997  https://freesound.org/people/ShangusBurger/sounds/763997/  (相手の点のため息)
+ ooh.mp3     <- "Group Ooh Aah" by CHallSmith, sound 870652  https://freesound.org/people/CHallSmith/sounds/870652/  (大きな外野フライの「おお」)
+捕手のミット(パシッ)は効果音ラボの「ボールをミットでキャッチ1」(/audio/selab/watch/catch.mp3、/audio/selab/LICENSE.txt)。
+審判の声(ストライク・アウト・セーフ)は、自然な日本語の物が見つからなかったので入れていない。

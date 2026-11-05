@@ -77,7 +77,7 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   const mySteals=bats.filter(b=>b.team===base.club).reduce((n,b)=>n+b.sb,0);assert.ok(mySteals>0);assert.equal(mySteals,end.season.results.flatMap(g=>g.box!.batting).filter(b=>b.team===base.club).reduce((n,b)=>n+b.sb,0));
   assert.deepEqual(migrateState(end),end);
  });
- test('MLB playoffs use division winners and wild cards, then a valid 11-series bracket through the World Series',()=>{
+ test('MLB playoffs use division winners and wild cards, then a valid 11-series bracket through the world title series',()=>{
   const base=initialState(),start={...base,seed:98763,season:emptySeason(6,'MLB',base.club),leagueProgress:{basis:'league' as const,npbStreak:3,mlbUnlocked:true,lastSettledSeason:5}};
   const regular=simulateDays(start,162),frozen=JSON.stringify(regular.season),seeds=playoffSeeds(regular.season,'AMERICAN');assert.equal(seeds.length,6);assert.equal(new Set(seeds.slice(0,3).map(s=>leagueTeams(regular.season).find(t=>t.id===s.team)!.division)).size,3);
   const bracket=newPostseason(regular.season);assert.equal(bracket.series.length,4);assert.equal(bracket.series[0].higher,seeds[2].team);assert.equal(bracket.series[0].lower,seeds[5].team);
@@ -103,7 +103,7 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   // A developed roster must improve wins and contend, not qualify in every seed.
   assert.ok(weakMlb<weakNpb);assert.ok((strongMlb-weakMlb)/seeds.length>.4);assert.ok(strongMlb/seeds.length>.52);assert.ok(qualified>=seeds.length/2);
  });
- test('season and player details show stolen bases, league promotion and World Series copy without new menus',()=>{
+ test('season and player details show stolen bases, league promotion and world title series copy without new menus',()=>{
   const base=initialState(),state=simulateDays({...base,seed:91002},30),id=state.lineup[0];state.season.batting[state.club+'|'+id].sb=37;
   const html=renderToStaticMarkup(createElement(SimpleStats,{season:state.season,club:state.club,onPlayer:()=>{},lineup:state.lineup,pitchers:state.pitchers}));assert.ok(html.includes('<th>盗塁</th>'));assert.ok(html.includes('<td>37</td>'));
   const details=renderToStaticMarkup(createElement(PlayerDetails,{player:playerMap[id],state,onChange:()=>{},onAwaken:()=>{}}));assert.ok(details.includes('盗塁'));assert.ok(details.includes('<b>37</b>'));
@@ -115,7 +115,7 @@ export function registerLeagueTests(test:(name:string,run:()=>void)=>void){
   const retained={...base,season:emptySeason(12),achievements:{npbLeague:1},leagueProgress:{basis:'league' as const,npbStreak:0,mlbUnlocked:false,lastSettledSeason:11}};
   assert.ok(render(retained).includes('リーグ優勝3連覇への道'));assert.ok(render(migrateState(retained)!).includes('リーグ優勝3連覇への道'));
   const legacy={...base,season:emptySeason(3),history:[leagueFinish(2,'g'),leagueFinish(1)]};assert.ok(render(legacy).includes('リーグ優勝3連覇への道'));
-  assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('世界王座決定戦'));assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('162'));
+  assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('世界一決定戦'));assert.ok(render({...base,season:emptySeason(6,'MLB',base.club)}).includes('162'));
   const result=drawSimplePlayer({...base,gems:3000}),opening=renderToStaticMarkup(createElement(SimpleScout,{state:result,drawing:true,hasDrawn:true,onDraw:()=>{},onEquip:()=>{},onSeason:()=>{}}));assert.ok(opening.includes('neon-pack'));assert.ok(opening.includes('スカウト演出中'));for(const text of ['次の主役','新たな物語','次の仲間を、一人ずつ'])assert.ok(!opening.includes(text));
  });
 }

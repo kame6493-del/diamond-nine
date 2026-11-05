@@ -36,7 +36,7 @@ export function StaminaPlay(props:{state:GameState;busy:boolean;pawa:boolean;act
  if(STAMINA_ENABLED)return <StaminaPlayLive {...props}/>;
  const {state,busy,pawa,actions}=props,left=gamesLeft(state);
  return <div className={'st-play is-plain'+(pawa?' is-pawa':'')}><div className="st-buttons">
-  <button type="button" className={(pawa?'pw-btn pw-yellow':'s-primary')+' st-go'} disabled={busy} onClick={()=>actions.onPlay()}>
+  <button type="button" className={(pawa?'pw-btn pw-yellow':'s-primary')+' st-go'} data-guide="year" disabled={busy} onClick={()=>actions.onPlay()}>
    <span><Play size={16} fill="currentColor" aria-hidden="true"/>1年進める</span>
    <small>{season(left)}</small>
   </button>
@@ -70,7 +70,7 @@ function StaminaPlayLive({state,busy,pawa,actions,view}:{state:GameState;busy:bo
   :<p className="st-rule">1年進める ＝ 行動力 <b>{yearCost}</b>{stage==='warmup'?'（スカウト10回までは半分）':stage==='late'?'（上のリーグ）':''}</p>}
   {busy?null:<>{empty&&<div className="st-empty" role="status"><img src={ART+'stamina-tired.webp'} alt="" aria-hidden="true" width={300} height={251}/><p><b>行動力が足りません。</b>あと {formatWait(needMs)} で1年ぶん（{restCost}）がたまります。下の回復から選べます。{ptShort&&canShop&&<>ポイントが足りない時は <button type="button" className="st-shop-link" onClick={()=>setShopReq(n=>n+1)}>ポイント購入</button> もできます。</>}</p></div>}
   <div className="st-buttons">
-   <button type="button" className={primary+' st-go'} disabled={busy||!enough} onClick={()=>actions.onPlay()}>
+   <button type="button" className={primary+' st-go'} data-guide="year" disabled={busy||!enough} onClick={()=>actions.onPlay()}>
     <span><Play size={16} fill="currentColor" aria-hidden="true"/>1年進める</span>
     <small>{restCost?`行動力 −${restCost}`:'行動力を使わない'} · {season(left)}</small>
    </button>

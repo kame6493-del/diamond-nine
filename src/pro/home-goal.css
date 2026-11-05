@@ -1,0 +1,37 @@
+/* ホームの一番上の大きな目標(2026-11-05)。段階ごとの色: 国内=赤と金、海外=紺と金、宇宙=紫。 */
+/* ChatGPT の案(gpt_ui_1105/d9gpt1105_goal_1.png): 紺の地に金の縁、左にトロフィー、棒と「あと○年」。段階ごとに地の色を替える。 */
+.hg-card{margin:6px 0 10px;border-radius:16px;border:3px solid #f0c040;background:linear-gradient(135deg,#1f4bb0,#0c2156 75%);color:#fff;box-shadow:0 0 0 2px #fff6cf inset,0 4px 0 #061133,0 6px 14px rgba(0,0,0,.18);overflow:hidden}
+.hg-card.hg-mlb{background:linear-gradient(135deg,#0f7a8a,#063a52 75%)}
+.hg-card.hg-space{background:linear-gradient(135deg,#5b2bb5,#1d0d4a 75%)}
+.hg-card.hg-done{background:linear-gradient(135deg,#b8860b,#5f4300 75%)}
+.hg-main{width:100%;display:grid;grid-template-columns:44px 1fr;grid-template-areas:"cup kick" "cup title" "meter meter" "sub sub" "more more";column-gap:8px;row-gap:4px;padding:10px 12px 8px;background:none;border:0;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.hg-cup{grid-area:cup;align-self:center;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(#fff6cf,#f4c542 60%,#b8860b);color:#7a4f00;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.hg-kicker{grid-area:kick;display:inline-flex;align-items:center;gap:4px;justify-self:start;padding:1px 10px;border-radius:999px;background:#ffd970;color:#0c2156;font-size:12px;font-weight:900;letter-spacing:.08em}
+.hg-title{grid-area:title;font-size:clamp(19px,5.6vw,25px);line-height:1.18;font-weight:900;color:#ffe48a;text-shadow:0 2px 0 rgba(0,0,0,.45);overflow-wrap:anywhere}
+.hg-meter{grid-area:meter;display:flex;align-items:center;gap:8px;min-width:0;padding:5px 8px;border-radius:999px;background:#fff;color:#0c2156}
+.hg-meter b{flex:none;font-size:14px;font-weight:900;white-space:nowrap}
+.hg-bar{flex:1;min-width:40px;height:12px;border-radius:999px;background:#c9d3e8;overflow:hidden}
+.hg-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(#7be38f,#22a447);transition:width .6s ease}
+.hg-meter em{flex:none;font-style:normal;font-size:13px;font-weight:900;padding:1px 10px;border-radius:999px;background:linear-gradient(#ffe48a,#f4c542);color:#0c2156;white-space:nowrap}
+.hg-sub{grid-area:sub;font-size:12px;font-weight:700;color:#dfe6ff;line-height:1.4}
+.hg-more{grid-area:more;justify-self:end;display:inline-flex;align-items:center;gap:2px;font-size:12px;font-weight:800;color:#ffd970}
+.hg-main[aria-expanded="true"] .hg-more svg{transform:rotate(180deg)}
+.hg-ladder{list-style:none;margin:0;padding:6px 10px 10px;background:rgba(0,0,0,.22);display:grid;gap:5px}
+.hg-ladder li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.08)}
+.hg-ladder li i{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:900;background:#4a5677;color:#fff}
+.hg-ladder li.is-done i{background:#2fae5a}
+.hg-ladder li.is-now{background:rgba(255,217,112,.2);outline:2px solid #ffd970}
+.hg-ladder li.is-now i{background:#ffd970;color:#0d1b3a}
+.hg-ladder li.is-next{opacity:.75}
+.hg-ladder li b{display:block;font-size:14px;font-weight:900}
+.hg-ladder li small{display:block;font-size:11px;font-weight:700;opacity:.9}
+/* 達成の帯: 押さなくても約2.4秒で消える。画面の操作は止めない。 */
+.hg-flash{position:fixed;left:0;right:0;top:32%;z-index:1600;display:flex;justify-content:center;pointer-events:none}
+.hg-flash-band{display:flex;align-items:center;gap:12px;max-width:min(94vw,480px);padding:14px 22px;border-radius:18px;border:3px solid #ffd970;background:linear-gradient(90deg,#3a1780,#6b2fd0 30%,#e0b23c 50%,#6b2fd0 70%,#3a1780);background-size:220% 100%;color:#fff;box-shadow:0 0 0 4px rgba(255,217,112,.3),0 10px 30px rgba(0,0,0,.45);animation:hg-in 2.4s ease forwards,hg-shine 1.2s linear 2}
+.hg-flash-band svg{color:#ffd970;filter:drop-shadow(0 2px 0 rgba(0,0,0,.4))}
+.hg-flash-band em{display:block;font-style:normal;font-size:24px;font-weight:900;color:#ffd970;text-shadow:0 2px 0 #1d0d4a;letter-spacing:.06em}
+.hg-flash-band b{display:block;font-size:15px;font-weight:900}
+.hg-flash-band small{display:block;font-size:12px;font-weight:800;color:#fff3c4;margin-top:2px}
+@keyframes hg-in{0%{opacity:0;transform:scale(.6) rotate(-3deg)}12%{opacity:1;transform:scale(1.08) rotate(0)}20%{transform:scale(1)}82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.96) translateY(-12px);visibility:hidden}}
+@keyframes hg-shine{from{background-position:0 0}to{background-position:220% 0}}
+@media (prefers-reduced-motion:reduce){.hg-flash-band{animation:hg-fade 2.4s ease forwards}@keyframes hg-fade{0%,85%{opacity:1}100%{opacity:0;visibility:hidden}}}

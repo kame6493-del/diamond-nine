@@ -10,7 +10,7 @@ export const NPB_TITLES_TO_MLB=3;
 export interface LeagueProgress {basis?:'league';npbStreak:number;mlbUnlocked:boolean;lastSettledSeason:number}
 export const circuitOf=(s:Season):Circuit=>s.circuit??'NPB';
 export const seasonGames=(s:Season)=>circuitOf(s)!=='NPB'?162:143;
-export const titleFor=(s:Season)=>circuitOf(s)==='SPACE'?'宇宙王座決定戦優勝':circuitOf(s)==='MLB'?'世界王座決定戦優勝':'日本一';
+export const titleFor=(s:Season)=>circuitOf(s)==='SPACE'?'宇宙一決定戦優勝':circuitOf(s)==='MLB'?'世界一決定戦優勝':'日本一';
 // The custom club occupies the Athletics' AL West slot. The other 29 clubs
 // retain their real divisions. This is a game schedule, not the official slate.
 export const leagueTeams=(s:Season)=>circuitOf(s)!=='NPB'?mlbLeagueTeams.map(t=>t.id==='mlb-133'?{...t,id:s.club??'t'}:circuitOf(s)==='SPACE'?{...t,...spaceTeams[t.id]}:t):teams.map(t=>({...t,division:t.league==='CENTRAL'?1:2}));

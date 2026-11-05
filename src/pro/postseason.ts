@@ -7,7 +7,7 @@ import { emptySeason,playGame,rankings,rng,winPct,type BatStats,type GameResult,
 export type PostStage='first'|'final'|'japan'|'wildcard'|'division'|'championship'|'world'|'complete';
 export interface PostSeries { id:string;stage:Exclude<PostStage,'complete'>;league:'CENTRAL'|'PACIFIC'|'JAPAN'|'AMERICAN'|'NATIONAL'|'WORLD';higher:string;lower:string;wins:[number,number];advantage:number;target:number;maxGames:number|null;results:GameResult[];winner:string|null }
 export interface Postseason { circuit?:Circuit;version:1;stage:PostStage;day:number;series:PostSeries[];batting:Record<string,BatStats>;pitching:Record<string,PitStats>;standings:Standing[];champion:string|null;rewardClaimed:boolean }
-export const stageLabel=(stage:PostStage)=>({first:'プレーオフ 1回戦',final:'プレーオフ 最終戦',japan:'国内王座決定戦',wildcard:'ワイルドカード',division:'地区シリーズ',championship:'リーグ優勝決定戦',world:'世界王座決定戦',complete:'シーズン完結'}[stage]);
+export const stageLabel=(stage:PostStage)=>({first:'ポストシーズン 1st',final:'ポストシーズン ファイナル',japan:'日本一決定戦',wildcard:'ポストシーズン 1st',division:'ポストシーズン 2nd',championship:'ポストシーズン ファイナル',world:'世界一決定戦',complete:'シーズン完結'}[stage]);
 export function finalFormat(higher:Standing,lower:Standing) {
  const gap=(higher.w-lower.w+lower.l-higher.l)/2;
  const advantage=gap>=10||winPct(lower)<.5?2:1;
@@ -42,7 +42,7 @@ export function simulatePostseason(input:GameState,days=1,ownGame?:OwnRunner):Ga
   const active=post.series.filter(s=>s.stage===post.stage&&!s.winner);
   for(const series of active){
    const gameIndex=series.results.length;
-   // Japan Series: 2-3-2, alternating home after game 7 if draws require more games.
+   // Japan title series: 2-3-2, alternating home after game 7 if draws require more games.
    const homeHigher=series.stage!=='japan'||[0,1,5,6].includes(gameIndex)||(gameIndex>=7&&gameIndex%2===0);
    const home=homeHigher?series.higher:series.lower,away=homeHigher?series.lower:series.higher;
    const scratch:GameState={...state,season:{...emptySeason(state.season.number),day:post.day,batting:post.batting,pitching:post.pitching,standings:post.standings}};

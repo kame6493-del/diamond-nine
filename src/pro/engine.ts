@@ -521,7 +521,7 @@ export function playGame(state:GameState,home:string,away:string,random:ReturnTy
  return result;
 }
 // ---- 観戦モードで観られる試合の控え(2026-11-04 vc43) ----
-// 観られる試合(開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防・プレーオフ・王座決定戦)だけ、試合の直前の乱数の位置と
+// 観られる試合(開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防・ポストシーズン・決定戦)だけ、試合の直前の乱数の位置と
 // 自分の編成(打順・守備・投手と、その選手の覚醒・育成・成長)を残す。次のシーズンへ進むと消す(nextSeason)。
 export type WatchKind='opening'|'clinch'|'showdown'|'post';
 export interface WatchReplay {v:1;kind:WatchKind;rng:number;day:number;post:boolean;lineup:string[];defense:Record<string,string>;pitchers:string[];owned:Record<string,number>;training:Record<string,number>;growth:Record<string,number>}

@@ -21,7 +21,7 @@ export function registerSpaceLeagueTests(test:(name:string,run:()=>void)=>void){
   assert.ok(spaceUnlocked(legacy));assert.equal(recordAchievements(legacy).achievements?.worldChampion,6);
   assert.ok(render(unlocked()).includes('宇宙リーグに挑戦する'));
   const space=switchLeague(unlocked(),'SPACE');assert.ok(validState(space));assert.equal(seasonGames(space.season),162);assert.equal(leagueTeams(space.season).length,30);
-  assert.ok(render(space).includes('宇宙王座決定戦優勝'));assert.ok(render(space).includes('海外リーグに戻る'));
+  assert.ok(render(space).includes('宇宙一決定戦優勝'));assert.ok(render(space).includes('海外リーグに戻る'));
  });
  test('all three ongoing leagues survive switching, reload and resume without duplicating rewards',()=>{
   const domestic=simulateDays(unlocked(),2);

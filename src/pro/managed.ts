@@ -1,6 +1,6 @@
 // 監督して戦う試合(2026-11-04 vc43 作り直し)。
 // 持ち主「今年の名場面を見るとかじゃなくて、CS、開幕戦、日本シリーズが出た場合、自分で監督操作が出来るみたいな感じにして」。
-// 「1年進める」の途中、自分のチームの大事な試合(開幕戦・プレーオフ(CS)・国内の王座決定戦・世界/宇宙の王座決定戦)の前で止め、
+// 「1年進める」の途中、自分のチームの大事な試合(開幕戦・ポストシーズン・日本一決定戦・世界一/宇宙一決定戦)の前で止め、
 // 「監督して戦う」か「おまかせで進める」を選ぶ。監督した試合の結果は、そのままシーズン(勝敗・順位・成績・勝ち上がり・報酬)に入る。
 // 乱数: その日の試合は今までどおり1本の乱数の列を順に使う。自分の試合は、その位置から監督の指示を受けながら回す。
 // 何も指示しなければ、おまかせ(1年進める)とまったく同じ結果。指示を出すと、その試合と、その後の結果が変わる。
@@ -11,49 +11,80 @@ import {seriesName} from './watch';
 import {emptyFielding} from './fielding-stats';
 import {orderBlock,withStartOrder,type StartOrder} from './lineup';
 
-export type KeyKind='opening'|'post';
+export type KeyKind='opening'|'game'|'post';
 export interface KeyGame {kind:KeyKind;label:string;key:string;series?:string;reason?:string}
 /** 次に進める日に、自分のチームの大事な試合があるか。あれば、その試合の名前と、止まった場所の印(key)。
  * 11/4 夜(持ち主「CS シリーズは全部じゃなくて、大事な試合だけ監督として出来るようにして」): 短期決戦は、各シリーズの第1戦と、
  * どちらかがあと1勝で勝ち抜け・優勝になる試合(王手。アドバンテージの勝ちも数える。最終戦もここに入る)だけ。途中の試合は null(止まらない)。
  * reason=なぜ大事かの一言(ホームの札の見出し)。 */
-export function keyGameAhead(state:GameState):KeyGame|null{
+export function keyGameAhead(state:GameState,any=false):KeyGame|null{
  const season=state.season,club=state.club;
  if(!season.completed){
-  if(season.day!==0||season.results.length>0)return null;
-  return {kind:'opening',label:'開幕戦',key:`${club}|${season.number}|r0`,reason:'開幕戦'};
+  // any=日程表で選んだ試合(11/5): 大事な試合でなくても、自分のチームの次の試合を返す。
+  if(season.day===0&&season.results.length===0)return {kind:'opening',label:'開幕戦',key:`${club}|${season.number}|r0`,reason:'開幕戦'};
+  if(!any)return null;
+  return {kind:'game',label:`第${season.day+1}戦`,key:`${club}|${season.number}|r${season.day}`,reason:''};
  }
  if(season.postseason?.stage==='complete')return null;
  const post=season.postseason??newPostseason(season),circuit=circuitOf(season),space=circuit==='SPACE';
  const s=post.series.find(x=>x.stage===post.stage&&!x.winner&&(x.higher===club||x.lower===club));
  if(!s)return null;
  const reason=keyReason(s,club,circuit,post.series.filter(x=>x!==s&&x.results.length>0&&(x.higher===club||x.lower===club)).length===0);
- if(!reason)return null;
+ if(!reason&&!any)return null;
  return {kind:'post',label:`${seriesName(s,space)} 第${s.results.length+1}戦`,key:`${club}|${season.number}|p${post.day}|${s.id}|${s.results.length}`,series:seriesKey(state,s.id),reason};
 }
-/** 短期決戦の試合が大事か(第1戦・王手)。大事でなければ ''。first=自分のチームの最初のシリーズ(「CS 進出!」)。 */
+/** 短期決戦の試合が大事か(第1戦・王手)。大事でなければ ''。first=自分のチームの最初のシリーズ(「ポストシーズン進出!」)。 */
 export function keyReason(s:Pick<PostSeries,'stage'|'wins'|'target'|'results'|'higher'>,club:string,circuit:string,first:boolean):string{
  const name=seriesName(s,circuit==='SPACE'),mine=s.higher===club?0:1;
- const prize=s.stage==='japan'?'国内王座':s.stage==='world'?(circuit==='SPACE'?'宇宙王座':'世界王座'):'勝ち抜け';
+ const prize=s.stage==='japan'?'日本一':s.stage==='world'?(circuit==='SPACE'?'宇宙一':'世界一'):'勝ち抜け';
  const reachMine=s.wins[mine]>=s.target-1,reachThem=s.wins[1-mine]>=s.target-1;
  if(reachMine&&reachThem)return `最終決戦! 勝てば${prize}`;
  if(reachMine)return `王手! 勝てば${prize}`;
  if(reachThem)return '負ければ終わり';
- if(s.results.length===0)return first?'プレーオフ進出!':`${name} 第1戦`;
+ if(s.results.length===0)return first?'ポストシーズン進出!':`${name} 第1戦`;
  return '';
 }
 /** 短期決戦の印(シーズンとシリーズ)。「このシリーズの残りを一気に進める」に使う。 */
 export const seriesKey=(state:GameState,id:string)=>`${state.club}|${state.season.number}|${id}`;
 // ---- 止まるかどうか(2026-11-04 持ち主「CS とか日本シリーズとかも一気に進めれるように。というか、選べるようにして」) ----
 // noStop=設定の「大事な試合でも止まらない」(端末に覚える。最初は止まる)。skipSeries=このシリーズの残りを一気に進めると選んだシリーズ。
-export interface StopRules {noStop:boolean;skipSeries:string|null}
+export interface StopRules {noStop:boolean;skipSeries:string|null;untilReach?:string|null;pin?:string|null}
+// ---- 王手まで・日程表の「ここまで進める」(2026-11-05 持ち主「4勝で勝ち抜けのシリーズだと思いますが、直前まで、どっちかの王手までスキップ出来るようにして」
+//      「日程表を選択肢として入れて、ここまでスキップみたいなのを指定できるようにして」) ----
+/** 自分のチームが今のステージで戦っている(まだ決着していない)シリーズ。 */
+export function ownSeries(state:GameState):PostSeries|null{
+ const season=state.season,club=state.club;
+ if(!season.completed||season.postseason?.stage==='complete')return null;
+ const post=season.postseason??newPostseason(season);
+ return post.series.find(x=>x.stage===post.stage&&!x.winner&&(x.higher===club||x.lower===club))??null;
+}
+/** どちらかがあと1勝で勝ち抜け(王手)。 */
+export const seriesAtReach=(s:Pick<PostSeries,'wins'|'target'>)=>s.wins[0]>=s.target-1||s.wins[1]>=s.target-1;
+/** 日程表の位置: レギュラーシーズン=r<何試合目(0から)>、短期決戦=<シリーズの id>#<第何戦-1>。自分のチームの次の試合がまだ決まっていない時は null。 */
+export function ownPosition(state:GameState):string|null{
+ if(!state.season.completed)return `r${state.season.day}`;
+ const s=ownSeries(state);return s?`${s.id}#${s.results.length}`:null;
+}
+/** 選んだ試合(pin)にまだ届くか。シリーズが先に決着した・自分のチームが出ない時は false。 */
+export function pinReachable(state:GameState,pin:string):boolean{
+ if(pin.startsWith('r')){const day=Number(pin.slice(1));return !state.season.completed&&Number.isInteger(day)&&day>=state.season.day;}
+ const [id,n]=pin.split('#'),x=state.season.completed?state.season.postseason?.series.find(y=>y.id===id):undefined;
+ return !!x&&!x.winner&&x.results.length<=Number(n);
+}
 /** skipSeries にこの値を渡すと、ポストシーズンの残りを全部一気に進める(持ち主「いちいち押すのめんどくさい」)。 */
 export const SKIP_ALL_POST='*all-post';
 export function stopAt(state:GameState,rules:StopRules):KeyGame|null{
+ // 日程表で選んだ試合(pin): そこまでは大事な試合でも止まらず、その試合の前でだけ止まる。
+ if(rules.pin)return ownPosition(state)===rules.pin?keyGameAhead(state,true):null;
+ // 王手まで進める(untilReach=シリーズの印): そのシリーズは、どちらかが王手の試合の前でだけ止まる。
+ if(rules.untilReach){
+  const s=ownSeries(state);
+  if(s&&seriesKey(state,s.id)===rules.untilReach)return seriesAtReach(s)?keyGameAhead(state,true):null;
+ }
  if(rules.noStop)return null;
  const k=keyGameAhead(state);
  if(!k||(k.series&&k.series===rules.skipSeries))return null;
- // 11/5: 「シーズンの終わりまで一気に」= ポストシーズンの残り(CS・日本シリーズ・王座決定戦まで)はどこにも止まらない。
+ // 11/5: 「シーズンの終わりまで一気に」= ポストシーズンの残り(決定戦まで)はどこにも止まらない。
  if(rules.skipSeries===SKIP_ALL_POST&&state.season.completed)return null;
  return k;
 }
@@ -66,8 +97,8 @@ export function advanceKeyDay(state:GameState,ownGame?:OwnRunner):GameState{
 }
 export interface ManagedGame extends KeyGame {base:GameState;home:string;away:string;rng:number;control:number}
 /** 監督する試合の、試合の直前の状態(同じ日の先の試合を済ませた後)と乱数の位置。保存データは変えない。 */
-export function managedGame(state:GameState):ManagedGame|null{
- const k=keyGameAhead(state);if(!k)return null;
+export function managedGame(state:GameState,any=false):ManagedGame|null{
+ const k=keyGameAhead(state,any);if(!k)return null;
  let found:ManagedGame|null=null;
  const capture:OwnRunner=(st,home,away,random)=>{
   if(!found)found={...k,base:structuredClone(st),home,away,rng:random.state>>>0,control:away===state.club?0:1};

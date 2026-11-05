@@ -15,15 +15,20 @@ const files={
  // 芯で捉えた強い当たり(安打・長打・本塁打)/詰まった当たり(凡打・バント)/ファウル の3つ。本塁打は強い当たり+歓声(cheer)。出典は /audio/freesound/bat-LICENSE.txt。
  hitStrong:'freesound/bat/hit-strong.mp3',hitJammed:'freesound/bat/hit-jammed.mp3',foul:'freesound/bat/foul.mp3',
  catch:'selab/watch/catch.mp3',strikeout:'selab/watch/strikeout.mp3',cheer:'selab/watch/cheer.mp3',gameset:'selab/watch/gameset.mp3',
+ // 11/5 持ち主「ボールを捕った音とか、良い感じに入れるようにして。ちょっと不自然なところあるから、見直して」: 捕る・投げる・走る・滑る・弾む・観客の音。
+ // 捕手のミット(パシッ)は効果音ラボ「ボールをミットでキャッチ1」(catch と同じ)。ほかは Freesound の CC0 の録音。出典は /audio/freesound/field-LICENSE.txt。
+ // 鳴らす時刻は動き(field-sim.ts)の、球が手に届いた瞬間・投げた瞬間・塁に着いた瞬間に合わせる(play-sounds.ts)。
+ mitt:'selab/watch/catch.mp3',glove:'freesound/field/glove.mp3',infield:'freesound/field/infield.mp3',throw:'freesound/field/throw.mp3',
+ step:'freesound/field/step.mp3',slide:'freesound/field/slide.mp3',bounce:'freesound/field/bounce.mp3',sigh:'freesound/field/sigh.mp3',ooh:'freesound/field/ooh.mp3',
 } as const;
-const watchSounds=['hitStrong','hitJammed','foul','catch','strikeout','cheer','gameset'] as const;
+const watchSounds=['hitStrong','hitJammed','foul','catch','strikeout','cheer','gameset','mitt','glove','infield','throw','step','slide','bounce','sigh','ooh'] as const;
 /** 鳴らす音の名前とファイル(試験で、打球音が新しい木製バットの録音を指しているかを確かめる)。 */
 export const soundFiles:Readonly<Record<string,string>>=files;
 export type Sound=keyof typeof files;
 // 音量のつり合い(耳に刺さらない程度にそろえる)。
-const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hitStrong:.55,hitJammed:.5,foul:.35,catch:.4,strikeout:.4,cheer:.3,gameset:.35};
+const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hitStrong:.55,hitJammed:.5,foul:.35,catch:.4,strikeout:.4,cheer:.3,gameset:.35,mitt:.42,glove:.4,infield:.36,throw:.16,step:.2,slide:.3,bounce:.26,sigh:.32,ooh:.26};
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
-const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound}>();
+const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound;at:number}>();
 let context:AudioContext|null=null,epoch=0;
 async function load(file:string){
  if(buffers.has(file))return;
@@ -46,6 +51,11 @@ export function stopGameAudio(){
  for(const a of active){try{a.source.stop();}catch{}a.source.disconnect();}
  active.clear();
 }
+/** まだ鳴っていない予約の音だけ止める(試合の「次の打席へ」などで動きを飛ばした時。鳴っている歓声などは残す)。 */
+export function stopScheduledSounds(){
+ if(!context)return;const now=context.currentTime;
+ for(const a of [...active])if(a.at>now+.01){try{a.source.stop();}catch{}a.source.disconnect();active.delete(a);}
+}
 /** Fade one kind of sound out (the drum roll stops the moment the card turns). */
 export function fadeSound(kind:Sound,seconds=.12){
  if(!context)return;
@@ -58,8 +68,8 @@ export function gameSound(kind:Sound,delay=0){
   const buffer=buffers.get(files[kind]);if(!context||!buffer||requested!==epoch)return;
   const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;
   gain.gain.value=volumes[kind]??.45;
-  source.connect(gain);gain.connect(context.destination);const entry={source,gain,kind};active.add(entry);
-  source.onended=()=>{active.delete(entry);source.disconnect();gain.disconnect();};source.start(context.currentTime+delay);
+  const at=context.currentTime+delay;source.connect(gain);gain.connect(context.destination);const entry={source,gain,kind,at};active.add(entry);
+  source.onended=()=>{active.delete(entry);source.disconnect();gain.disconnect();};source.start(at);
  }catch{/* Audio failure never changes cards, points or saves. */}})();
 }
 /** Plays the card-draw sounds for one reveal; returns the time (ms) the card turns over. */

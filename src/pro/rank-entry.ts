@@ -10,8 +10,8 @@ export type RankLeague='npb'|'mlb'|'space';
 export interface RankLeagueInfo {id:RankLeague;circuit:Circuit;label:string;title:string;achievement:AchievementId;minYear:number;games:number}
 // 画面の並び: 持ち主の言う「海外リーグ最短優勝・宇宙リーグ最短優勝」を先に、国内(日本一)を最後に。
 export const RANK_LEAGUES:RankLeagueInfo[]=[
- {id:'mlb',circuit:'MLB',label:'海外リーグ',title:'世界王座決定戦優勝',achievement:'worldChampion',minYear:4,games:162},
- {id:'space',circuit:'SPACE',label:'宇宙リーグ',title:'宇宙王座決定戦優勝',achievement:'spaceChampion',minYear:5,games:162},
+ {id:'mlb',circuit:'MLB',label:'海外リーグ',title:'世界一決定戦優勝',achievement:'worldChampion',minYear:4,games:162},
+ {id:'space',circuit:'SPACE',label:'宇宙リーグ',title:'宇宙一決定戦優勝',achievement:'spaceChampion',minYear:5,games:162},
  {id:'npb',circuit:'NPB',label:'国内リーグ',title:'日本一',achievement:'npbChampion',minYear:1,games:143},
 ];
 export const rankLeague=(id:RankLeague)=>RANK_LEAGUES.find(l=>l.id===id)!;

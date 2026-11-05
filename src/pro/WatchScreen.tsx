@@ -1,7 +1,7 @@
 // 観戦モード(2026-11-04 vc43): 1試合を1打席ずつ観て、監督ができる画面。
 // 見た目の手本は ChatGPT に作らせたデザイン案(Downloads/ios_release/d9_watch_1103/ui)。画像は人形・ボール・ベースだけ使い、残りは CSS。
 // 同じ日の作り直し(持ち主「自分で監督操作が出来るみたいな感じにして」): 振り返り(今年の名場面)はやめ、「1年進める」の途中で止まった
-// 大事な試合(開幕戦・プレーオフ・王座決定戦)をここで戦う。監督の指示は試合の結果に効き、結果はそのままシーズンに入る(managed.ts)。
+// 大事な試合(開幕戦・ポストシーズン・決定戦)をここで戦う。監督の指示は試合の結果に効き、結果はそのままシーズンに入る(managed.ts)。
 // 何も指示しなければ、おまかせと同じ結果。画面で渡した値の並び(inputs)を覚えておき、途中で閉じても続きから再開できる。
 // 11/4 追加(持ち主): 「おまかせで観る」(監督の操作なし・最初は2倍・途中で「ここから監督する」)、グラウンドでボール・打球・走者・守備が動く
 // (watch-play.ts)、監督の「作戦」(長打狙い・ミート打ち・積極的に・慎重に/直球中心・変化球中心・ボール球中心・ストライク中心。tactics.ts)。
@@ -32,7 +32,10 @@ import {GRADE_GUIDE} from './AbilityTag';
 import {circuitOf} from './leagues';
 import {isSpaceAlien} from './mlb-opponents';
 import {alienVelocity} from './space-aliens';
-import {gameSound,prepareWatchAudio,stopGameAudio} from './game-audio';
+import {gameSound,prepareWatchAudio,stopGameAudio,stopScheduledSounds} from './game-audio';
+import {soundCues,thinCues} from './play-sounds';
+import {MatchGuide} from './GuideCoach';
+import {MATCH_GUIDE} from './guide';
 import {benchOf,callText,countOf,holdsAfter,tacticWho,gradeClass,gradeOf,isPlateAppearance,liveRatings,longArm,newTally,paMillis,pitchMillis,pitchPlan,playMillis,readSpeed,saveSpeed,speeds,SPEED_KEY,staminaLeft,tallyBegin,tallyEnd,tallyPitch,type PitchTally,type Speed} from './watch';
 import {choreograph,pitchClip,stillScene,fieldMap,batSide,throwHand,type Choreo,type SimCtx} from './field-sim';
 import {FieldCanvas,toScreen,type FieldScene,type Projection} from './FieldCanvas';
@@ -139,9 +142,10 @@ function Sheet({title,onClose,children,className=''}:{title:string;onClose:()=>v
 }
 
 /** 観戦の画面はアプリの見た目(.nv-app のボタンの決まり)の外、body の直下に出す。 */
-export interface WatchProps {state:GameState;game:ManagedGame;saved?:(WatchOrder|null)[]|null;sound:boolean;mode?:WatchMode;onSave?:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onPause:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onFinish:(inputs:(WatchOrder|null)[],result:GameResult)=>void}
+export interface WatchProps {state:GameState;game:ManagedGame;saved?:(WatchOrder|null)[]|null;sound:boolean;mode?:WatchMode;guide?:boolean;onGuideDone?:()=>void;onSave?:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onPause:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onFinish:(inputs:(WatchOrder|null)[],result:GameResult)=>void}
 export function WatchScreen(props:WatchProps){
- const view=<WatchView {...props}/>;
+ // 監督の試合をはじめてする時だけ、作戦・速さ・交代・飛ばすボタンを指さしで案内する(11/5)。
+ const view=<><WatchView {...props}/>{props.guide&&<MatchGuide steps={MATCH_GUIDE} onDone={()=>props.onGuideDone?.()}/>}</>;
  return typeof document==='undefined'?view:createPortal(view,document.body);
 }
 function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPause,onFinish}:WatchProps){
@@ -168,6 +172,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   if(sp>=8&&k!=='gameset'&&k!=='cheer')return;
   if(sp>=4){const now=performance.now();if(now-lastSound.current<250&&k!=='gameset')return;lastSound.current=now;}
   gameSound(k,delay);};
+ /** 動きに合わせた音(捕る・投げる・塁を踏む・滑る・弾む)を、その瞬間に鳴るよう予約する。倍速は間引く。 */
+ const cue=(c:Parameters<typeof soundCues>[0],opts:Parameters<typeof soundCues>[1]={})=>{if(!soundRef.current)return;const sp=speedRef.current;for(const x of thinCues(soundCues(c,opts),sp))gameSound(x.kind,x.t/sp);};
  /** 動きの計算に渡す: 守っている9人と、選手の足・守備・肩(試合の計算と同じ能力)。 */
  const simCtx=(l:Live,side:number):SimCtx=>{
   const s=l.sit,def=1-side,tm=[l.g.away,l.g.home];if(!s)return {fielders:{},rate:()=>({speed:50,field:50,arm:50})};
@@ -219,9 +225,10 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
     tallyEnd(l.tally,`${1-e.side}|${e.pitcher}`,thrown);
     if(!quiet){
      // 本塁打は芯で捉えた木製バットの音(打球が飛ぶ所で鳴らしてある)と歓声。
-     if(e.kind==='HR'){if(!l.animated)play('hitStrong');play('cheer',.12);homeRun=e;}
-     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play(e.kind==='E'?'hitJammed':'hitStrong');if(e.runs)play('cheer');}
-     else if(e.kind==='K')play('strikeout');else{play('catch');if(e.runs)play('cheer');}
+     if(e.kind==='HR'){if(!l.animated)play('hitStrong');play(crowd(e),.12);homeRun=e;}
+     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play(e.kind==='E'?'hitJammed':'hitStrong');if(e.runs)play(crowd(e));}
+     // 捕った音・三振のミットの音は、動きの中で捕った瞬間に鳴らしてある(cue)。動きが無かった時だけここで鳴らす。
+     else if(e.kind==='K'){if(!l.animated)play('strikeout');}else{if(!l.animated)play('catch');if(e.runs)play(crowd(e));}
     }
    }
    l.last=e;
@@ -255,6 +262,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    if(l.fx){const n=l.fxN,ms=l.fx.ms;window.setTimeout(()=>{if(L.current===l&&l.fxN===n){l.fx=null;render();}},ms);}
   }
  };
+ /** 点が入った時の観客: 自分のチームの点は歓声、相手の点はため息(観るだけの試合は歓声)。 */
+ const crowd=(e:LiveEvent)=>{const c=L.current?.control??-1;return c>=0&&e.side!==c?'sigh' as const:'cheer' as const;};
  /** 自分のチームの打者の今季何号か(レギュラーシーズンの試合だけ。記録の成績表から数える)。 */
  const homeRunNumber=(l:Live,e:LiveEvent)=>{
   const team=e.side===0?l.g.away:l.g.home;if(team!==club||l.g.kind==='post')return 0;
@@ -288,8 +297,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    // 1球ごと: 投手が投げる動き → 球が届く → カウントと投手の球数(とスタミナの棒)が1つ進む。ファウルは木製バットの軽い音。
    const one=()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;const i=c.pitchShown,pitch=c.pitches[i];
     const clip=pitchClip(ctx,st.e,st.before,pitch,{last:i===c.pitches.length-1,bunt:bunt&&i===c.pitches.length-1});
-    const sp=speedRef.current;c.clip={c:clip,start:performance.now(),speed:sp};render();
-    later(clip.len*1000/sp,()=>{const d=L.current;if(d!==l||d.phase!=='pitch')return;d.pitchShown++;tallyPitch(d.tally);if(pitch==='F')play('foul');
+    const sp=speedRef.current;c.clip={c:clip,start:performance.now(),speed:sp};cue(clip,{lastK:st.e.kind==='K'&&i===c.pitches.length-1});render();
+    later(clip.len*1000/sp,()=>{const d=L.current;if(d!==l||d.phase!=='pitch')return;d.pitchShown++;tallyPitch(d.tally);// ファウルの音は打った瞬間に鳴らす(cue)。前は球の動きが終わってから鳴っていた
      if(d.pitchShown<d.pitches.length){render();later(pitch==='X'?0:120/speedRef.current,one);}
      else{if(!d.steps.length||d.steps[0].type!=='play')d.shownBases=st.e.bases;render();runStep(d);}});};
    one();return;
@@ -299,7 +308,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   // 打球音: 安打・長打・本塁打・犠牲フライ=芯で捉えた強い当たり、凡打・バント・エラー=詰まった当たり。
   if(!['strikeout','walk','steal','caught-stealing','none'].includes(d.motion))play(['1B','2B','3B','HR','SF'].includes(st.e.kind)?'hitStrong':'hitJammed');
   const ms=d.len*1000/sp;
-  l.clip={c:d,start:performance.now(),speed:sp};l.play={d,start:performance.now(),ms,e:st.e};render();
+  l.clip={c:d,start:performance.now(),speed:sp};l.play={d,start:performance.now(),ms,e:st.e};cue(d);render();
   later(ms+80,()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;c.play=null;c.clip=null;c.shownBases=st.e.bases;render();runStep(c);});
  };
  const wait=()=>{
@@ -310,7 +319,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   later(paMillis(s)*.55+extra,startPlate);
  };
  /** 投げている途中なら、その打席の結果まで一気に見せる(交代・指示はそこで止まって受ける)。 */
- const settle=()=>{const l=L.current;if(!l)return;clear();if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true,true);}};
+ const settle=()=>{const l=L.current;if(!l)return;clear();stopScheduledSounds();if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true,true);}};
 
  useEffect(()=>{open();render();if(L.current&&!L.current.finished&&!sheetRef.current)wait();return clear;// eslint-disable-next-line react-hooks/exhaustive-deps
  },[key]);
@@ -328,8 +337,15 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
  const shownSit=sit;// 投げている途中も、いま打席に立っている打者を見せる
  const setSpeed=(n:Speed)=>{setSpeedState(n);speedRef.current=n;saveSpeed(n,undefined,speedKey(mode));setHint('');if(l.phase==='decide'&&!fin&&!sheet){clear();wait();}};
  const takeOrder=()=>{let order=l.pending;l.pending=null;if(order&&orderBlock(order.kind as OrderKind,l.sit,control))order=null;return order;};
- const skipPlate=()=>{if(fin)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true,true);}else{l.hold=null;l.moves=null;pump(l,takeOrder());reveal(l,true,true);}render();wait();};
- const skipGame=()=>{if(fin)return;clear();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true);}let guard=0;while(!l.finished&&guard++<5000){pump(l,takeOrder(),true);reveal(l,true);}onSave?.(l.inputs,modeRef.current);render();};
+ const skipPlate=()=>{if(fin)return;clear();stopScheduledSounds();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true,true);}else{l.hold=null;l.moves=null;pump(l,takeOrder());reveal(l,true,true);}render();wait();};
+ /** 次のイニングへ(11/5 持ち主「イニングスキップも出来るようにして」): 今の回の残り(表・裏とも)を止まらずに進め、次の回の最初の打席の前で止まる。
+  *  指示の渡し方は「次の打席へ」を続けて押したのと同じ(出していた指示は次の打席に1回だけ)なので、結果も同じ。 */
+ const skipInning=()=>{if(fin)return;clear();stopScheduledSounds();setHint('');
+  if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true);}
+  const inning=l.sit?.inning??0;let guard=0;l.hold=null;l.moves=null;
+  while(!l.finished&&l.sit&&l.sit.inning===inning&&guard++<400){pump(l,takeOrder(),true);reveal(l,true);}
+  onSave?.(l.inputs,modeRef.current);render();if(!l.finished)wait();};
+ const skipGame=()=>{if(fin)return;clear();stopScheduledSounds();setHint('');if(l.phase==='pitch'){l.pitchShown=l.pitches.length;l.steps=[];l.play=null;l.clip=null;reveal(l,true);}let guard=0;while(!l.finished&&guard++<5000){pump(l,takeOrder(),true);reveal(l,true);}onSave?.(l.inputs,modeRef.current);render();};
  /** シートを開く前に、投げている途中の打席を終わらせて止める(交代はそこで受ける)。 */
  const openSheet=(s:NonNullable<typeof sheet>)=>{settle();setHint('');setSheet(s);};
  const ratingsFor=(side:number,id:string,pitchers=shownSit?.pitchers)=>liveRatings(l.base,ids[side],id,pitchers?.[side]);
@@ -464,11 +480,11 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const btn=(k:'bunt'|'steal'|'ibb',label:string)=><button className={'wt-mg'+(why[k]?' is-off':'')+(l.pending?.kind===k?' is-pending':'')} aria-disabled={!!why[k]} onClick={()=>order(k)}>{label}{l.pending?.kind===k&&<small className="is-on">指示中</small>}</button>;
   const tacticOn=!!sit&&(!!sit.tactics.team||!!sit.tactics.pitch||Object.keys(sit.tactics.batter).length>0||Object.keys(sit.tactics.pitcher??{}).length>0);
   // その場面で使える指示だけを出す(攻撃の時は送りバント・盗塁、守りの時は敬遠)。走者の位置などで出せない時は灰色。
-  return <section className="wt-manager is-compact" aria-label="監督の操作">{quickRow()}<div className="wt-mgs is-row">{mineBat?<>{btn('bunt','送りバント')}{btn('steal','盗塁')}</>:btn('ibb','敬遠')}<button className={'wt-mg'+(why.sub?' is-off':'')} aria-disabled={!!why.sub} onClick={()=>{if(why.sub){setHint(why.sub);return;}openSheet('sub');}}>{mineBat?'代打・代走':'守備・投手交代'}</button><button className={'wt-mg is-tactic'+(why.sub?' is-off':'')+(tacticOn?' is-pending':'')} aria-disabled={!!why.sub} onClick={()=>{if(why.sub){setHint(why.sub);return;}openSheet('tactic');}}>作戦一覧</button></div>{hint&&<p className="wt-hint" role="status">{hint}</p>}</section>;
+  return <section className="wt-manager is-compact" aria-label="監督の操作">{quickRow()}<div className="wt-mgs is-row">{mineBat?<>{btn('bunt','送りバント')}{btn('steal','盗塁')}</>:btn('ibb','敬遠')}<button className={'wt-mg'+(why.sub?' is-off':'')} data-guide="sub" aria-disabled={!!why.sub} onClick={()=>{if(why.sub){setHint(why.sub);return;}openSheet('sub');}}>{mineBat?'代打・代走':'守備・投手交代'}</button><button className={'wt-mg is-tactic'+(why.sub?' is-off':'')+(tacticOn?' is-pending':'')} aria-disabled={!!why.sub} onClick={()=>{if(why.sub){setHint(why.sub);return;}openSheet('tactic');}}>作戦一覧</button></div>{hint&&<p className="wt-hint" role="status">{hint}</p>}</section>;
  };
  // 11/5: 速さは1つのボタンで 1→2→4→8→16→1(持ち主「4倍・8倍・16倍速も入れて」)。今の速さを大きく出す。選んだ速さは次の試合にも残る。
  const nextSpeed=speeds[(speeds.indexOf(speed)+1)%speeds.length] as Speed;
- const speedBar=()=><div className="wt-speed" role="group" aria-label="速さ"><button className="wt-speed-cycle is-on" data-speed={speed} aria-label={`速さ ${speed}倍(押すと${nextSpeed}倍)`} onClick={()=>setSpeed(nextSpeed)}><b>{speed}倍</b><small>▶ {nextSpeed}倍</small></button><i/><button onClick={skipPlate} disabled={!!fin}>次の打席へ</button><button onClick={skipGame} disabled={!!fin}>試合終了まで</button></div>;
+ const speedBar=()=><div className="wt-speed" role="group" aria-label="速さ"><button className="wt-speed-cycle is-on" data-speed={speed} aria-label={`速さ ${speed}倍(押すと${nextSpeed}倍)`} onClick={()=>setSpeed(nextSpeed)}><b>{speed}倍</b><small>▶ {nextSpeed}倍</small></button><i/><button className="wt-skip" onClick={skipPlate} disabled={!!fin}>次の<br/>打席へ</button><button className="wt-skip" data-guide="inning" onClick={skipInning} disabled={!!fin}>次の<br/>イニングへ</button><button className="wt-skip" onClick={skipGame} disabled={!!fin}>試合<br/>終了まで</button></div>;
  const mine=control===0?[fin?.awayRuns??0,fin?.homeRuns??0]:[fin?.homeRuns??0,fin?.awayRuns??0];
  const verdict=!fin?'':control<0?'':mine[0]>mine[1]?'勝ち':mine[0]<mine[1]?'負け':'引き分け';
  /** 試合終了: 勝敗・スコア・勝ち負けの投手・その試合の主な成績(自分のチームの打者の上位と投手、相手の本塁打)を1画面に。 */

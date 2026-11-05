@@ -179,7 +179,7 @@ export function register1105cTests(test:(name:string,run:()=>void)=>void){
   assert.ok(fxFor(ev('HR',1),{...o,speed:4})!.ms<fxFor(ev('HR',1),o)!.ms,'倍速は短い');
   assert.equal(fxFor(ev('K'),{...o,level:'normal'}),null);assert.equal(fxFor(ev('DP',0,dp),{...o,level:'calm'}),null);
   assert.match(callText('DP','x',2,0,5,{call:'ショートゴロ、6-4-3 のダブルプレー!'}),/6-4-3 のダブルプレー/);
- }); test('season end in one go (11/5): one press runs the whole rest of the postseason (CS, Japan Series / title series) without stopping, gives the same result as "advance one year", and the next stop is the opening game of next year',()=>{
+ }); test('season end in one go (11/5): one press runs the whole rest of the postseason (postseason, title series) without stopping, gives the same result as "advance one year", and the next stop is the opening game of next year',()=>{
   const state=initialSandboxState();let s=state;while(!s.season.completed)s=simulateDays(s,7);
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<300)s=simulatePostseason(s,1);
   assert.ok(keyGameAhead(s)?.kind==='post','ポストシーズンの札で止まっている');

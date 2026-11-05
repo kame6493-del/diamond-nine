@@ -64,7 +64,8 @@ export function register1104fTests(test:(name:string,run:()=>void)=>void){
   assert.ok(/CC0|Creative Commons 0/.test(lic));
   const src=readFileSync('src/pro/WatchScreen.tsx','utf8');
   assert.ok(!/play\('hit'\)|play\('homerun'\)/.test(src),'試合の画面は古い名前を鳴らさない');
-  assert.ok(src.includes("play('foul')")&&src.includes("'hitStrong'")&&src.includes("'hitJammed'"));
+  // 11/5: ファウルの音は打った瞬間に鳴らす(play-sounds.ts の cue 'foul')。前は球の動きが終わってから play('foul') で鳴っていた。
+  assert.ok(readFileSync('src/pro/play-sounds.ts','utf8').includes("kind:'foul'")&&src.includes("'hitStrong'")&&src.includes("'hitJammed'"));
  });
  test('pitch count (11/4 夜おそく): +1 on every pitch shown, the same per-at-bat total when skipped, pitch sequences agree with the result, and the end-of-game counts are the box score table',()=>{
   const g=managedGame(initialSandboxState())!;

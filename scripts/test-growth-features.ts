@@ -38,7 +38,7 @@ export function registerGrowthFeatureTests(test:(name:string,run:()=>void)=>void
   }
   const s={...initialState(),name:'あ'.repeat(20)},season=finished(s.club);
   const data=victoryShareData({...s,season},season)!;
-  for(const d of [data,{...data,champion:true,title:'宇宙王座決定戦優勝'}]){const text=victoryPostText(d,url,inEvent);assert.ok(xWeightedLength(text)<=280,`${xWeightedLength(text)}`);assert.ok(text.includes('#プロ野球'));}
+  for(const d of [data,{...data,champion:true,title:'宇宙一決定戦優勝'}]){const text=victoryPostText(d,url,inEvent);assert.ok(xWeightedLength(text)<=280,`${xWeightedLength(text)}`);assert.ok(text.includes('#プロ野球'));}
  });
  test('every finished season is shareable with its final rank; unfinished seasons and open postseasons are not',()=>{
   const s=initialState();

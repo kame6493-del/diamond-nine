@@ -17,6 +17,17 @@ Bat sounds (from 2026-11-04 late night, replacing the metal-bat hit and home-run
  - audio/freesound/bat/hit-jammed.mp3 <- sound 162873 https://freesound.org/people/martinimeniscus/sounds/162873/ (jammed contact, bunts)
  - audio/freesound/bat/foul.mp3 <- sound 162866 https://freesound.org/people/martinimeniscus/sounds/162866/ (foul balls)
  Leading silence trimmed, shortened with a fade-out and peak level set only. Details: /audio/freesound/bat-LICENSE.txt
+Field sounds (from 2026-11-05, timed to the catch, throw, base step, slide and bounce in the match animation): Freesound recordings, all CC0 1.0 Universal
+ - audio/freesound/field/glove.mp3 <- "Glove Catch 1 FF014.aif" by martinimeniscus (Florentine Films SFX), sound 164499 https://freesound.org/people/martinimeniscus/sounds/164499/
+ - audio/freesound/field/infield.mp3 <- "catching a baseball glove" by Luisa_Sanchez, sound 816984 https://freesound.org/people/Luisa_Sanchez/sounds/816984/
+ - audio/freesound/field/throw.mp3 <- "JH FX Short Whoosh 1" by Johnnie_Holiday, sound 696649 https://freesound.org/people/Johnnie_Holiday/sounds/696649/
+ - audio/freesound/field/step.mp3 <- "Footsteps_Dirt_Single_01.wav" by BenDrain, sound 487866 https://freesound.org/people/BenDrain/sounds/487866/
+ - audio/freesound/field/slide.mp3 <- "Boots Gravel Feet Slide 1_5" by Joao_Janz, sound 504383 https://freesound.org/people/Joao_Janz/sounds/504383/
+ - audio/freesound/field/bounce.mp3 <- "Tennis Bounce Ball on Grass" by jamesdrake89, sound 662258 https://freesound.org/people/jamesdrake89/sounds/662258/
+ - audio/freesound/field/sigh.mp3 <- "CRWDReac_Crowd Sigh In Disappointment" by ShangusBurger (Shane Vincent, GSC24), sound 763997 https://freesound.org/people/ShangusBurger/sounds/763997/
+ - audio/freesound/field/ooh.mp3 <- "Group Ooh Aah" by CHallSmith, sound 870652 https://freesound.org/people/CHallSmith/sounds/870652/
+ The catcher's mitt pop reuses 効果音ラボ「ボールをミットでキャッチ1」(audio/selab/watch/catch.mp3). Trimmed, faded and peak-levelled only. Details: /audio/freesound/field-LICENSE.txt
+Pointer guide finger (from 2026-11-05): made with ChatGPT image generation for this game (assets/pro/guide/finger.webp)
 
 Scout 10-draw reveal (from 2026-11-04): no new files. It reuses the same 効果音ラボ card-draw sounds above (deal「カードを場に出す」, roll「ドラムロール」, flip「カードをめくる」, cymbal「ロールの閉め」, reveal「キラッ1」, gold「シャキーン3」, rainbow「きらきら輝く4」) and, only for a rainbow card, audio/selab/watch/cheer.mp3 (people-stadium-cheer2「スタジアムの歓声2」). Images: the card-draw images above.
 
@@ -67,7 +78,7 @@ flipInY, tada, rubberBand, bounceIn, backInDown, zoomInDown, zoomOut,
 rotateIn, fadeIn, fadeInDown and fadeInUp presets. No custom animation keyframes.
 License: /audio/kenney/Animate-LICENSE.txt
 
-First-title celebrations (NPB league three-peat / World Series):
+First-title celebrations (NPB league three-peat / world title series):
 Reuse the credited Kenney impact, sax jingle and congratulations voice,
 Leszek Szary success recording, and Animate.css entrance presets above.
 No confetti. Sound can be muted and the ceremony can be closed immediately.

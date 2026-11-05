@@ -149,7 +149,7 @@ export function registerSimpleTests(test:(name:string,run:()=>void)=>void){
   assert.deepEqual(collectSimpleRewards(finishPostseason(simulatePostseason(state,1))),done);
   assert.deepEqual(collectSimpleRewards(finishPostseason(done)),done);
   const html=renderToStaticMarkup(createElement(SimpleSeason,{state:done,busy:false,progress:100,onPlay:()=>{},onPost:()=>{},onNext:()=>{},onPlayer:()=>{},message:''}));
-  assert.ok(html.includes('次のシーズンへ'));assert.ok(html.includes('短期決戦の結果を見る'));assert.ok(!html.includes('CS・日本シリーズ終了まで'));assert.ok(!html.includes('<canvas'));
+  assert.ok(html.includes('次のシーズンへ'));assert.ok(html.includes('短期決戦の結果を見る'));assert.ok(!html.includes('ポストシーズン・日本一決定戦終了まで'));assert.ok(!html.includes('<canvas'));
   assert.equal(next.season.number,2);assert.equal(next.season.day,0);assert.equal(next.history[0].day,143);
   assert.deepEqual(next.history[0].batting,state.season.batting);assert.deepEqual(next.history[0].pitching,state.season.pitching);
   assert.deepEqual(next.owned,state.owned);assert.ok(validState(next));

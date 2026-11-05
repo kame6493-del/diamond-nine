@@ -14,7 +14,7 @@ const twoTitles=():GameState=>({...initialState(),name:'はじめてのクラブ
 const major=():GameState=>({...twoTitles(),season:emptySeason(8,'MLB'),leagueProgress:{basis:'league',npbStreak:3,mlbUnlocked:true,lastSettledSeason:7}});
 
 export function registerTitleCelebrationTests(test:(name:string,run:()=>void)=>void){
- test('third consecutive NPB league title unlocks a first ceremony even after losing the Japan Series',()=>{
+ test('third consecutive NPB league title unlocks a first ceremony even after losing the Japan title series',()=>{
   const before=twoTitles(),after=recordAchievements(settleLeagueProgress({...before,season:finished(leagueWinner(3),'h')}));
   const frozen=JSON.stringify([before,after]);
   assert.deepEqual(firstTitleCelebration(before,after),{kind:'mlb-unlocked',year:3,clubName:before.name});
@@ -22,7 +22,7 @@ export function registerTitleCelebrationTests(test:(name:string,run:()=>void)=>v
   assert.equal(firstTitleCelebration(after,after),null,'reloading the same result is silent');
   assert.equal(firstTitleCelebration({...after,season:emptySeason(4)}, {...after,season:leagueWinner(4)}),null,'subsequent league titles are silent');
  });
- test('one or two titles, interrupted streaks and a Japan Series win alone cannot unlock a ceremony',()=>{
+ test('one or two titles, interrupted streaks and a Japan title series win alone cannot unlock a ceremony',()=>{
   const base=initialState();
   for(const n of [1,2]){
    const before={...base,season:emptySeason(n),history:n===2?[leagueWinner(1)]:[]};
@@ -33,7 +33,7 @@ export function registerTitleCelebrationTests(test:(name:string,run:()=>void)=>v
   const last=twoTitles(),loss=leagueWinner(3);loss.standings=loss.standings.map(t=>({...t,w:t.team==='g'?100:60,l:t.team==='g'?43:83}));
   assert.equal(firstTitleCelebration(last,{...last,season:finished(loss)}),null);
  });
- test('first World Series title celebrates the correct year and repeated or previously archived titles stay silent',()=>{
+ test('first world title series title celebrates the correct year and repeated or previously archived titles stay silent',()=>{
   const before=major(),after=recordAchievements({...before,season:finished({...before.season,day:162})});
   assert.deepEqual(firstTitleCelebration(before,after),{kind:'world-champion',year:8,clubName:before.name});
   assert.equal(firstTitleCelebration(after,after),null);
@@ -43,7 +43,7 @@ export function registerTitleCelebrationTests(test:(name:string,run:()=>void)=>v
   assert.equal(firstTitleCelebration(legacy,after),null,'legacy archive proves an earlier title');
   assert.equal(firstTitleCelebration({...before,parkedSeason:legacy.history[0]},after),null,'parked season proves an earlier title');
  });
- test('World Series loss, regular season success and an unfinished series do not celebrate',()=>{
+ test('world title series loss, regular season success and an unfinished series do not celebrate',()=>{
   const before=major();
   const after={...before,season:finished({...before.season,day:162})};
   assert.equal(firstTitleCelebration(before,{...after,season:finished(after.season,'mlb-119')}),null);

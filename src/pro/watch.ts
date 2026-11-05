@@ -1,5 +1,5 @@
 // 観戦モード(2026-11-04 vc43)の画面の外の決まり。計算そのものは engine.ts の gameSteps。
-// 観られる試合: 開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防・自分のチームが出たプレーオフ・国内/世界/宇宙の王座決定戦。
+// 観られる試合: 開幕戦・リーグ優勝が決まった試合・最終戦の首位攻防・自分のチームが出たポストシーズン・日本一/世界一/宇宙一決定戦。
 // 「1年進める」は途中で止めない。1年が終わった後に、シーズンの画面から開いて振り返って観る。
 import {circuitOf} from './leagues';
 import {stageLabel,type PostSeries} from './postseason';
@@ -14,7 +14,7 @@ import {pitchLength,type BatTactic} from './tactics';
 
 export interface Watchable {key:string;label:string;short:string;game:GameResult;mine:boolean;series?:string}
 const kindLabel:Record<Exclude<WatchKind,'post'>,string>={opening:'開幕戦',clinch:'リーグ優勝が決まった試合',showdown:'最終戦 首位攻防'};
-export const seriesName=(s:Pick<PostSeries,'stage'>,space:boolean)=>space&&s.stage==='world'?'宇宙王座決定戦':stageLabel(s.stage);
+export const seriesName=(s:Pick<PostSeries,'stage'>,space:boolean)=>space&&s.stage==='world'?'宇宙一決定戦':stageLabel(s.stage);
 /** 今のシーズンで観られる試合(控えのある試合だけ)。次のシーズンへ進むと控えは消える。 */
 export function watchList(state:GameState):Watchable[]{
  const season=state.season,space=circuitOf(season)==='SPACE',list:Watchable[]=[];

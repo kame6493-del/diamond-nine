@@ -6,7 +6,7 @@ import {collectSimpleRewards} from '../src/pro/simple-game';
 import {mlbDifficultySquads,mlbDifficultyStart,runMlbDifficultySeason} from './mlb-difficulty-fixtures';
 
 export function registerMlbDifficultyTests(test:(name:string,run:()=>void)=>void){
- test('MLB remains tougher than NPB, while recruitment and deep development make the World Series attainable',()=>{
+ test('MLB remains tougher than NPB, while recruitment and deep development make the world title series attainable',()=>{
   const squads=mlbDifficultySquads(),snapshots=squads.map(([,s])=>JSON.stringify(s));
   const summaries=[0,2,4].map(index=>{
    const squad=squads[index][1],results=Array.from({length:8},(_,i)=>{

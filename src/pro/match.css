@@ -59,7 +59,9 @@
  .wt-root .wt-one .wt-call span{font-size:14px}
 }
 /* 11/5: 速さは1つのボタン(1→2→4→8→16→1)。今の速さを大きく、次の速さを小さく。 */
-.wt-root .wt-speed{grid-template-columns:1.05fr 6px 1.2fr 1.3fr}
+.wt-root .wt-speed{grid-template-columns:1.1fr 4px 1fr 1fr 1fr;gap:4px}
+/* 11/5 次のイニングへ: 飛ばす3つは2行の小さめの字で、1行に収める */
+.wt-root .wt-speed .wt-skip{font-size:12.5px;line-height:1.12;white-space:normal;padding:2px 3px;border-radius:14px}
 .wt-root .wt-speed .wt-speed-cycle{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;gap:1px}
 .wt-root .wt-speed .wt-speed-cycle b{font-size:17px;font-weight:900}
 .wt-root .wt-speed .wt-speed-cycle small{font-size:11px;font-weight:800;opacity:.75}

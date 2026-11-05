@@ -1,6 +1,6 @@
 // 監督して戦う試合(2026-11-04 vc43 作り直し)の試験。
 // 持ち主「今年の名場面を見るとかじゃなくて、CS、開幕戦、日本シリーズが出た場合、自分で監督操作が出来るみたいな感じにして」。
-// 1) 「1年進める」は開幕戦・プレーオフ・王座決定戦の前で止まる。全部おまかせなら、止まらない1年と1つも違わない。
+// 1) 「1年進める」は開幕戦・ポストシーズン・決定戦の前で止まる。全部おまかせなら、止まらない1年と1つも違わない。
 // 2) 監督して何も指示しなければ、おまかせと同じ結果。 3) 指示は結果に効き、その結果が勝敗・順位・成績・勝ち上がりに入る。
 // 4) 途中で閉じても、覚えた指示の並びで続きから同じ試合になる。セーブは変わらない。 5) 速さの記憶・指示の決まり。 6) 画面。
 import assert from 'node:assert/strict';
@@ -64,7 +64,7 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
    assert.ok(stops.length-1>=mineSeries.length&&stops.length-1<=own,`止まった数 ${circuit} ${stops.length-1} / シリーズ ${mineSeries.length} / 試合 ${own}`);
    assert.ok(stops.slice(1).every(x=>!!x.g.reason),'なぜ大事かの一言');
    assert.ok(stops.slice(1).every(x=>x.g.kind==='post'&&/第\d+戦$/.test(x.g.label)));
-   const top=circuit==='NPB'?'国内王座決定戦':circuit==='SPACE'?'宇宙王座決定戦':'世界王座決定戦';
+   const top=circuit==='NPB'?'日本一決定戦':circuit==='SPACE'?'宇宙一決定戦':'世界一決定戦';
    if((plain.season.postseason?.series??[]).some(x=>(x.stage==='japan'||x.stage==='world')&&[x.higher,x.lower].includes(plain.club)))assert.ok(stops.some(x=>x.g.label.startsWith(top)),top);
   }
   // 弱いチームでも開幕戦は止まる。まだ止まっていない日・終わったシーズンでは止まらない。

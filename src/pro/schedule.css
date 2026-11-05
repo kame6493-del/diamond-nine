@@ -1,0 +1,35 @@
+/* 日程表(2026-11-05)。パワプロ風の紺と黄色。1画面に収まる高さで、一覧だけスクロール。 */
+.sc-modal{position:fixed;inset:0;z-index:1500;display:flex;align-items:flex-end;justify-content:center;background:rgba(6,14,36,.62);padding:calc(8px + var(--safe-area-inset-top,0px)) 0 0}
+.sc-sheet{width:min(100%,520px);height:min(100%,860px);display:flex;flex-direction:column;background:linear-gradient(#173a85,#0c2156 60%,#0a1a44);color:#fff;border-radius:18px 18px 0 0;border:2.5px solid #e0b23c;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.35);overflow:hidden}
+.sc-top{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 6px 16px}
+.sc-top h2{margin:0;font-size:22px;font-weight:900;letter-spacing:.04em;color:#ffd970;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sc-top h2 small{font-size:13px;color:#d6e0ff;font-weight:800;letter-spacing:0}
+.sc-x{width:40px;height:40px;border-radius:50%;border:2px solid #e0b23c;background:#0a1a44;color:#ffd970;display:grid;place-items:center;cursor:pointer}
+.sc-modal .sc-help{margin:0 14px 6px!important;padding:0!important;text-align:left;font-size:12px;font-weight:700;color:#c8d4f5;line-height:1.45}
+.sc-list{list-style:none;margin:0;padding:0 10px 10px;flex:1;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.sc-sec{position:sticky;top:0;z-index:2;margin:6px 0 4px;padding:5px 10px;border-radius:8px;font-size:13px;font-weight:900;color:#0d1b3a;background:linear-gradient(#fff2a6,#f4c542)}
+.sc-row{width:100%;display:grid;grid-template-columns:minmax(64px,auto) 1fr auto;align-items:center;gap:8px;min-height:44px;margin:0 0 4px;padding:6px 10px;border-radius:10px;border:1.5px solid #2f55a8;background:#11306f;color:#fff;text-align:left;font:inherit;cursor:pointer}
+.sc-row.is-done{background:#0b2257;border-color:#22407f;color:#b9c6e6}
+.sc-row.is-locked{cursor:default}
+.sc-row.is-now{border:2.5px solid #ffd970;background:linear-gradient(90deg,#1f4bb0,#173a85);box-shadow:0 0 0 2px rgba(255,217,112,.25),0 0 14px rgba(255,217,112,.55)}
+.sc-row.is-pick{background:linear-gradient(#fff3b8,#f4c542);border-color:#b8860b;color:#0d1b3a!important}
+.sc-row.is-pick .sc-no,.sc-row.is-pick .sc-vs b,.sc-row.is-pick .sc-res{color:#0d1b3a!important}
+.sc-row.is-pick .sc-vs i{background:#0d1b3a;color:#ffd970}
+.sc-no{font-size:13px;font-weight:900;white-space:nowrap}
+.sc-vs{display:flex;align-items:center;gap:6px;min-width:0}
+.sc-vs b{font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-vs i{flex:none;font-style:normal;font-size:11px;font-weight:900;padding:1px 5px;border-radius:6px;background:#2f55a8;color:#fff}
+.sc-vs i.is-home{background:#c8323c}
+.sc-res{font-size:14px;font-weight:900;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.sc-res em{font-style:normal;font-size:12px;padding:1px 6px;border-radius:6px}
+.sc-res .sc-W{background:#d23a3a;color:#fff}.sc-res .sc-L{background:#2d64d8;color:#fff}.sc-res .sc-D{background:#7b869e;color:#fff}
+.sc-res .sc-next{background:#ffd970;color:#0d1b3a}
+.sc-foot{padding:10px 12px calc(12px + var(--safe-area-inset-bottom,0px));border-top:2px solid #e0b23c;background:#0a1a44}
+.sc-go{width:100%;min-height:58px;border-radius:14px;border:2px solid #ffd970;background:linear-gradient(#fff2a6,#f4c542 55%,#d39a10);color:#0d1b3a!important;font-size:18px;font-weight:900;cursor:pointer;line-height:1.15;text-shadow:none}
+.sc-go small{color:#0d1b3a!important;display:block;font-size:12px;font-weight:800;margin-top:2px}
+.sc-go:disabled{opacity:.5}
+.sc-hint{margin:0;min-height:58px;display:grid;place-items:center;font-size:14px;font-weight:800;color:#c8d4f5}
+/* ホームの「日程表」ボタン */
+.home-tools{display:flex;gap:6px;justify-content:flex-end;margin:0 0 8px}
+html .simple-app .home-tools .sc-open{min-height:40px;padding:4px 14px;border-radius:12px;border:2px solid #e0b23c;background:linear-gradient(#1f4bb0,#0c2156)!important;color:#ffd970!important;font-weight:900;font-size:14px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+html .simple-app .home-tools .sc-open:disabled{opacity:.5}

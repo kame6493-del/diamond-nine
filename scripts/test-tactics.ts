@@ -81,7 +81,7 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<200)s=simulatePostseason(s,1);
   const pg=managedGame(s);assert.ok(pg&&pg.kind==='post'&&pg.series,'短期決戦で止まる');
   const post=cardHtml(s,pg!);
-  for(const x of ['監督して戦う','一気に進める','シーズンの終わりまで一気に','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
+  for(const x of ['監督して戦う','一気に進める','シーズンの終わりまで一気に','ポストシーズン進出!',pg!.label])assert.ok(post.includes(x),x);
   assert.ok(!post.includes('止まっている間'));
   assert.ok(!post.includes('おまかせで観る'));
  });
@@ -121,10 +121,10 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   assert.equal(keyReason({...base,wins:[3,3]},'A','NPB',false),'最終決戦! 勝てば勝ち抜け');
   assert.equal(keyReason({...base,wins:[1,3]},'A','NPB',false),'負ければ終わり');
   assert.equal(keyReason({...base,wins:[2,1]},'A','NPB',false),'');
-  assert.equal(keyReason({...base,stage:'japan',wins:[3,1]},'A','NPB',false),'王手! 勝てば国内王座');
-  assert.equal(keyReason({...base,stage:'world',wins:[1,3]},'B','SPACE',false),'王手! 勝てば宇宙王座');
+  assert.equal(keyReason({...base,stage:'japan',wins:[3,1]},'A','NPB',false),'王手! 勝てば日本一');
+  assert.equal(keyReason({...base,stage:'world',wins:[1,3]},'B','SPACE',false),'王手! 勝てば宇宙一');
   assert.equal(keyReason({stage:'final',target:4,higher:'A',results:[],wins:[3,0]},'A','NPB',false),'王手! 勝てば勝ち抜け','アドバンテージ3勝(仮)の第1戦は王手');
-  assert.equal(keyReason({stage:'first',target:2,higher:'A',results:[],wins:[0,0]},'B','NPB',true),'プレーオフ進出!');
+  assert.equal(keyReason({stage:'first',target:2,higher:'A',results:[],wins:[0,0]},'B','NPB',true),'ポストシーズン進出!');
   void reach;
  });
  test('settings: 大事な試合でも止まらない is off (stops) by default, is remembered on the device, and only skips the stop',()=>{
