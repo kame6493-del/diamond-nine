@@ -135,7 +135,9 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
   assert.equal(readSpeed(storage),1);
   saveSpeed(4,storage);assert.equal(store.get(SPEED_KEY),'4');assert.equal(readSpeed(storage),4);
   saveSpeed(2,storage);assert.equal(readSpeed(storage),2);
-  store.set(SPEED_KEY,'8');assert.equal(readSpeed(storage),1);
+  // 11/5: 8倍・16倍を足した(持ち主「4倍・8倍・16倍速も入れて」)。それ以外の数は1倍に戻す。
+  saveSpeed(16,storage);assert.equal(readSpeed(storage),16);saveSpeed(8,storage);assert.equal(readSpeed(storage),8);
+  store.set(SPEED_KEY,'3');assert.equal(readSpeed(storage),1);
   assert.equal(readSpeed({getItem:()=>{throw new Error('blocked');}}),1);
   assert.deepEqual([paMillis(1),paMillis(2),paMillis(4)],[2400,1200,600]);
   assert.deepEqual([homeRunMillis(1),homeRunMillis(2),homeRunMillis(4)],[2600,1300,650]);
@@ -173,11 +175,15 @@ export function registerWatchTests(test:(name:string,run:()=>void)=>void){
   let fielded=false;
   const r4=drive(g,(s)=>{if(!fielded&&s.side!==side&&s.inning>=6){fielded=true;const slot=s.lineups[side].findIndex(id=>!['DH','捕'].includes(s.defense[side][id]));return {kind:'field',slot,id:subs[2],position:'DH'};}return null;});
   assert.ok(r4.events.some(e=>e.kind==='FIELD'&&e.batter===subs[2]));
-  const r5=drive(g,(s)=>s.side!==side?{kind:'ibb'}:null);
-  const ibb=r5.events.filter(e=>e.kind==='IBB'),per=new Map<number,number>();
-  for(const e of ibb)per.set(e.inning,(per.get(e.inning)??0)+1);
-  assert.ok(ibb.length>0&&[...per.values()].every(n=>n<=IBB_PER_INNING));
-  assert.ok(ibb.every(e=>e.runs===0),'満塁で敬遠しないので押し出しは無い');
+  // 11/5: 敬遠の回数の制限は無い(持ち主「回数制限あるの意味不明」)。1つの回に3回以上出せて、満塁で出すと押し出しで1点(打点も付く)。
+  void IBB_PER_INNING;
+  const asked=new Map<string,number>();
+  const r5=drive(g,(s)=>{if(s.side===side)return null;const k=`${s.inning}|${s.side}`,n=asked.get(k)??0;if(s.inning>3||n>=4)return null;asked.set(k,n+1);return {kind:'ibb'};});
+  const ibb=r5.events.filter(e=>e.kind==='IBB'),per=new Map<string,number>();
+  for(const e of ibb)per.set(`${e.inning}|${e.side}`,(per.get(`${e.inning}|${e.side}`)??0)+1);
+  assert.ok(ibb.length>0&&[...per.values()].some(n=>n>=3),'1つの回に3回以上の敬遠');
+  assert.ok(ibb.some(e=>e.runs===1),'満塁の敬遠は押し出しで1点');
+  const rbiFromIbb=ibb.filter(e=>e.runs===1).length,box=r5.result!.box!.batting.filter(b=>b.team!==(side===0?g.away:g.home));void rbiFromIbb;void box;
   const r6=drive(g,(s)=>s.side===side?{kind:'bunt'}:null);
   const bunts=r6.events.filter(e=>e.kind==='BUNT'||e.kind==='BUNT_FAIL');
   assert.ok(bunts.length>0&&bunts.every(e=>e.outs>=1));

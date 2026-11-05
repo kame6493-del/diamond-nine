@@ -32,7 +32,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  // 宇宙リーグの相手(宇宙人)は、名前・所属・数字を宇宙の見た目で出す。試合の計算は元の能力のまま。
  const alien=isSpaceAlien(player),num=(v:number)=>alien?alienStat(v):Math.min(99,v);
  const pitcher=player.role==='pitcher',team=teamById(player.team,alien?{circuit:'SPACE'}:undefined);
- const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['安打',b?.hits??0],['盗塁',b?.sb??0],['二塁打',b?.doubles??0],['三塁打',b?.triples??0],['四球',b?.bb??0],['三振',b?.so??0],['試合',b?.games??0],['打席',b?.pa??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
+ const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['安打',b?.hits??0],['盗塁',b?.sb??0],['二塁打',b?.doubles??0],['三塁打',b?.triples??0],['四球',b?.bb??0],['三振',b?.so??0],['併殺打',b?.gdp??0],['試合',b?.games??0],['打席',b?.pa??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
  const pitStats=[['防御率',p?.outs?era(p).toFixed(2):'—'],['勝-敗',`${p?.wins??0}-${p?.losses??0}`],['セーブ',p?.saves??0],['奪三振',p?.so??0],['WHIP',p?.outs?((p.hits+p.bb)*3/p.outs).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['登板',p?.games??0],['先発',p?.starts??0],['四球',p?.bb??0],['被安打',p?.hits??0],['被本塁打',p?.hr??0]];
  const awaken=()=>{
   const updated=trainPlayer(state,player.id);if(updated===state)return;

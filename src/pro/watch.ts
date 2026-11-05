@@ -49,7 +49,8 @@ export function benchOf(team:string,lineup:string[],pitchers:string[]){return te
 // 打席の結果に合うカウントの流れを作る。試合の乱数とは別の数を使うので、試合の結果は変わらない。
 export function pitchesFor(kind:LiveKind,seed:number,lengthen=0):string[]{
  let s=seed>>>0;const r=()=>{s=(Math.imul(s,1103515245)+12345)>>>0;return s/4294967296;};
- if(kind==='IBB')return ['B','B','B','B'];
+ // 申告敬遠(11/5): 球を投げない(今のプロ野球と同じ)。球数も増えない。
+ if(kind==='IBB')return [];
  if(kind==='BUNT'||kind==='BUNT_FAIL')return r()<.5?['X']:['F','X'];
  if(kind==='HBP')return [...Array.from({length:Math.floor(r()*3)},()=>r()<.5?'B':'S'),'X'];
  const seq:string[]=[];let b=0,k=0;const endBall=kind==='BB',endK=kind==='K';
@@ -96,8 +97,10 @@ export function playWord(kind:LiveKind,inning:number,slot:number):string{
  const p=<T,>(a:T[])=>pickOf(a,inning,slot);
  switch(kind){case 'HR':return p(hrDirs);case '3B':case '2B':case '1B':return p(dirs);case 'SF':return p(sfDirs);case 'E':return p(errDirs);case 'OUT':return p(outs);default:return '';}
 }
-export function callText(kind:LiveKind,name:string,slot:number,runs:number,inning:number,extra?:{replaced?:string;pitcher?:string}):string{
- const who=`${slot+1}番 ${name}`,w=playWord(kind,inning,slot),rbi=runs>0?`、${runs}点が入る!`:'';
+export function callText(kind:LiveKind,name:string,slot:number,runs:number,inning:number,extra?:{replaced?:string;pitcher?:string;word?:string;call?:string}):string{
+ const who=`${slot+1}番 ${name}`,w=extra?.word??playWord(kind,inning,slot),rbi=runs>0?`、${runs}点が入る!`:'';
+ // 11/5: 併殺・野選・ファインプレー・好返球は、プレーの一文(plays.ts の playCall)を使う。
+ if(extra?.call)return `${who}、${extra.call}${runs>0?` ${runs}点が入る!`:''}`;
  switch(kind){
   case 'HR':return `${who}、${w}スタンドへ ホームラン!${runs>1?` ${runs}点!`:''}`;
   case '3B':return `${who}、${w}を破る三塁打${rbi||'!'}`;
@@ -107,6 +110,9 @@ export function callText(kind:LiveKind,name:string,slot:number,runs:number,innin
   case 'IBB':return `${who}を敬遠。一塁へ歩かせる${rbi||'。'}`;
   case 'HBP':return `${who}、デッドボール${rbi||'。'}`;
   case 'K':return `${who}、空振り三振!`;
+  case 'DP':return `${who}、${w}、ダブルプレー!`;
+  case 'TP':return `${who}、${w}、トリプルプレー!`;
+  case 'FC':return `${who}、${w}。野選で一塁へ${rbi||'。'}`;
   case 'SF':return `${who}、${w}へ犠牲フライ${rbi}`;
   case 'E':return `${who}の打球を${w}がはじいた! エラーで出塁${rbi||'。'}`;
   case 'BUNT':return runs>0?`${who}、スクイズ成功${rbi}`:`${who}、送りバント成功。走者が進む。`;
@@ -125,7 +131,8 @@ export const isPlateAppearance=(kind:LiveKind)=>!['SB','CS','PINCH','RUNNER','FI
 
 // ---- 速さ(端末に覚える) ----
 export const SPEED_KEY='diamond-nine-watch-speed';
-export const speeds=[1,2,4] as const;
+/** 速さ(11/5: 8倍・16倍を足した。持ち主「4倍・8倍・16倍速も入れて」)。 */
+export const speeds=[1,2,4,8,16] as const;
 export type Speed=typeof speeds[number];
 /** おまかせで観る時の速さ(監督の時とは別に覚える。最初は2倍)。 */
 export const AUTO_SPEED_KEY='diamond-nine-watch-speed-auto';

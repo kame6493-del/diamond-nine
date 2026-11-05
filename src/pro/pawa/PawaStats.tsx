@@ -5,7 +5,7 @@ import {formatUZR,playerSeasonUZR} from '../fielding-stats';
 import {fitName} from './PawaCard';
 
 type Col<T>={key:string;label:string;value:(r:T)=>number|null;show:(r:T)=>string;low?:boolean};
-type Bat={id:string;p:Player;pa:number;ab:number;h:number;d2:number;d3:number;hr:number;rbi:number;sb:number;bb:number;so:number;avg:number|null;ops:number|null;uzr:number|null;games:number};
+type Bat={id:string;p:Player;pa:number;ab:number;h:number;d2:number;d3:number;hr:number;rbi:number;sb:number;bb:number;so:number;gdp:number;avg:number|null;ops:number|null;uzr:number|null;games:number};
 type Pit={id:string;p:Player;g:number;gs:number;w:number;l:number;sv:number;outs:number;so:number;bb:number;ha:number;hra:number;era:number|null;whip:number|null};
 
 /** 個人成績(打者か投手の片方)。1画面に収まるよう行を詰め、上に1位の数字、表は見出しで並べ替え(左右だけ動く)。
@@ -15,7 +15,7 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
  const bats=useMemo(()=>{
   const lines=new Map(Object.values(season.batting).filter(b=>b.team===club).map(b=>[b.playerId,b]));
   const ids=[...new Set([...lineup,...lines.keys()])].filter(id=>playerMap[id]);
-  return ids.map((id):Bat=>{const b=lines.get(id);return {id,p:playerMap[id],pa:b?.pa??0,ab:b?.ab??0,h:b?.hits??0,d2:b?.doubles??0,d3:b?.triples??0,hr:b?.hr??0,rbi:b?.rbi??0,sb:b?.sb??0,bb:b?.bb??0,so:b?.so??0,games:b?.games??0,avg:b?.ab?battingAverage(b):null,ops:b?.pa?ops(b):null,uzr:playerSeasonUZR(season,club,id)};});
+  return ids.map((id):Bat=>{const b=lines.get(id);return {id,p:playerMap[id],pa:b?.pa??0,ab:b?.ab??0,h:b?.hits??0,d2:b?.doubles??0,d3:b?.triples??0,hr:b?.hr??0,rbi:b?.rbi??0,sb:b?.sb??0,bb:b?.bb??0,so:b?.so??0,gdp:b?.gdp??0,games:b?.games??0,avg:b?.ab?battingAverage(b):null,ops:b?.pa?ops(b):null,uzr:playerSeasonUZR(season,club,id)};});
  },[season,club,lineup.join()]);
  const pits=useMemo(()=>{
   const lines=new Map(Object.values(season.pitching).filter(p=>p.team===club).map(p=>[p.playerId,p]));
@@ -35,6 +35,7 @@ export function PawaStats({season,club,onPlayer,lineup=[],pitchers=[],view}:{sea
   {key:'sb',label:'盗塁',value:r=>r.sb,show:r=>String(r.sb)},
   {key:'bb',label:'四球',value:r=>r.bb,show:r=>String(r.bb)},
   {key:'so',label:'三振',value:r=>r.so,show:r=>String(r.so),low:true},
+  {key:'gdp',label:'併殺',value:r=>r.gdp,show:r=>String(r.gdp),low:true},
   {key:'games',label:'試合',value:r=>r.games,show:r=>String(r.games)},
   {key:'pa',label:'打席',value:r=>r.pa,show:r=>String(r.pa)},
   {key:'uzr',label:'UZR',value:r=>r.uzr,show:r=>formatUZR(r.uzr)},

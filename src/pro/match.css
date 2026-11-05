@@ -58,3 +58,11 @@
  .wt-root .wt-one .wt-call{min-height:38px;padding:3px 8px}
  .wt-root .wt-one .wt-call span{font-size:14px}
 }
+/* 11/5: 速さは1つのボタン(1→2→4→8→16→1)。今の速さを大きく、次の速さを小さく。 */
+.wt-root .wt-speed{grid-template-columns:1.05fr 6px 1.2fr 1.3fr}
+.wt-root .wt-speed .wt-speed-cycle{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;gap:1px}
+.wt-root .wt-speed .wt-speed-cycle b{font-size:17px;font-weight:900}
+.wt-root .wt-speed .wt-speed-cycle small{font-size:11px;font-weight:800;opacity:.75}
+.wt-root .wt-speed .wt-speed-cycle[data-speed="8"],.wt-root .wt-speed .wt-speed-cycle[data-speed="16"]{background:linear-gradient(#ffd0a6,#ff8a3d 55%,#d4560f);border-color:#ffb27a}
+/* 11/5: 帯とチーム名はチームのイメージカラー(--tc) */
+.wt-root .wt-duel.is-strip .wt-card[style*="--tc"]{border-top:5px solid var(--tc)}

@@ -5,6 +5,8 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {actorAt,ballAt,fenceAt,BAGS,PLATE,RUBBER,type ActorAt,type Choreo,type Pose,type V} from './field-sim';
 import {ATLAS,type FrameName} from './sprite-atlas';
+import {tintedAtlas} from './uniform-tint';
+import type {Uniform} from './team-colors';
 
 export type TeamColor='blue'|'red';
 export interface FieldScene {
@@ -13,6 +15,8 @@ export interface FieldScene {
  /** 動いている所(投球・打球)。start=performance.now() の始まり、speed=倍速。 */
  clip:{c:Choreo;start:number;speed:number}|null;
  defColor:TeamColor;batColor:TeamColor;
+ /** 11/5: チームのイメージカラーのユニフォーム(無ければ青と赤の絵)。 */
+ defUni?:Uniform;batUni?:Uniform;
  /** 投手が左投げ(投げる形を左右反転)。打者が左打ち。 */
  lefty:boolean;leftyBat:boolean;
 }
@@ -166,11 +170,12 @@ export function FieldCanvas({scene,className='',children,onSize}:{scene:FieldSce
    // 打者・投手の左右(絵は右打ち・右投げ)
    const flipBase=(a.role==='b'&&s.leftyBat&&['stance','stride','swing','miss','follow','bunt'].includes(a.pose))||(a.pos==='P'&&s.lefty&&['set','windup','kick','release','follow'].includes(a.pose));
    const fr=d.frame?ATLAS.frames[d.frame]:undefined;
-   const sheet=fr?img(`/assets/pro/watch/m/atlas_${color}.webp`,reload):null;
-   const useFrame=!!(fr&&sheet&&sheet.complete&&sheet.naturalWidth);
+   const uni=a.role==='f'?s.defUni:s.batUni,tinted=fr&&uni?tintedAtlas(uni,reload):null;
+   const sheet:HTMLImageElement|HTMLCanvasElement|null=tinted??(fr?img(`/assets/pro/watch/m/atlas_${color}.webp`,reload):null);
+   const useFrame=!!(fr&&sheet&&(sheet instanceof HTMLCanvasElement||(sheet.complete&&sheet.naturalWidth)));
    const im=useFrame?sheet!:img(`/assets/pro/watch/${BASE_IMG[d.base]}_${color}.webp`,reload);
-   if(!im.complete||!im.naturalWidth)continue;
-   const sw=useFrame?fr![2]:im.naturalWidth,sh=useFrame?fr![3]:im.naturalHeight,sx0=useFrame?fr![0]:0,sy0=useFrame?fr![1]:0;
+   if(im instanceof HTMLImageElement&&(!im.complete||!im.naturalWidth))continue;
+   const sw=useFrame?fr![2]:(im as HTMLImageElement).naturalWidth,sh=useFrame?fr![3]:(im as HTMLImageElement).naturalHeight,sx0=useFrame?fr![0]:0,sy0=useFrame?fr![1]:0;
    const hh=h*(useFrame?(fr![4]??1):1)*(useFrame?1:(d.sy??1)),ww=hh*sw/sh;
    g.save();g.globalAlpha=a.o;g.translate(x,y+(d.dy??0)*h/30);
    // 捕手の後ろ姿は左右を返さない(返すとミットと投げる手が入れ替わる)。

@@ -91,3 +91,87 @@
 .lu-posbig.is-no{border-color:#e8333c;background:#fff0f0}.lu-posbig.is-no .lu-pbm,.lu-posbig.is-no em{color:#b81d26}
 .lu-pit .lu-rest{align-self:center}
 @media (max-width:370px){.lu-root .lu-abs{gap:2px}.ab-tag{padding:2px 3px 3px}.ab-tag b{font-size:15px}.ab-tag.is-kmh b{font-size:13px}.lu-fits i{font-size:11px;padding:0 3px}.lu-posbig{grid-template-columns:auto 1fr 64px}}
+/* 11/5 昼: 1画面の表(ChatGPT の案 gpt_ui_1105/d9gpt1105_lineup_1・2)。野手9人と始めるボタンがスクロールなしで入る。
+   行の並び: 打順の四角 | 名前(右打・左打) | 守備位置の札 | 段4つ・打率・∨。見出しの1行に項目名、行には段の1文字だけ。字は 11px 以上。 */
+.lu-root .lu-head{padding:5px 8px;gap:8px;box-shadow:0 2px 0 rgba(0,0,0,.25);border-bottom:3px solid #ffd84a}
+.lu-root .lu-head h2{font-size:16px}
+.lu-root .lu-head p{font-size:12px;margin-top:1px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.lu-rival{display:inline-block;padding:0 6px;border-radius:6px;background:rgba(255,255,255,.22);font-weight:900;line-height:18px}
+.lu-root .lu-back{min-height:40px;padding:0 10px;font-size:13px}
+.lu-ctl{flex:none;padding:5px 8px 0;display:grid;gap:5px}
+.lu-root .lu-keep{margin:0;gap:5px}
+.lu-root .lu-keep button{min-height:32px;border-radius:10px;font-size:12px;border-width:2px}
+.lu-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.lu-tabs button{min-height:34px;border-radius:10px;border:2px solid #b7d4f7;background:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:4px}
+.lu-tabs button.is-on{background:#0b2a6f;color:#fff;border-color:#ffd84a;box-shadow:0 0 0 1px #e09a00 inset}
+.lu-tabs button small{font-size:11px;padding:0 4px;border-radius:5px;background:#ffd84a;color:#4a2f00}
+.lu-root .lu-scroll{padding:4px 8px 6px;display:flex;flex-direction:column}
+.lu-sec{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.lu-sec[hidden]{display:none}
+.lu-root .lu-band{margin:0 0 4px;padding:3px 8px;font-size:13px;border-radius:8px}
+.lu-root .lu-band small{font-size:11px}
+.lu-thead,.lu-row{display:grid;grid-template-columns:26px minmax(0,1fr) 34px auto;column-gap:4px;align-items:center}
+.lu-thead{padding:0 4px 2px;font-size:11px;font-weight:800;color:#3d5a8f;line-height:1.2;white-space:nowrap}
+.lu-thead span:nth-child(n+4){display:none}
+.lu-thead{grid-template-columns:26px minmax(0,1fr) 34px repeat(4,30px) 38px 12px}
+.lu-thead span:nth-child(n+4){display:block;text-align:center;letter-spacing:-.06em}
+.lu-thead span:nth-child(3){text-align:center}
+.lu-root .lu-order{display:flex;flex-direction:column;gap:3px;flex:1 1 auto}
+.lu-root .lu-row{flex:1 1 0;min-height:36px;max-height:58px;padding:2px 4px;border-radius:10px;border:2px solid #b7d4f7;background:#fff;gap:0 4px}
+.lu-root .lu-row.is-open,.lu-root .lu-row:has(.lu-posbar){max-height:none;flex:none}
+.lu-root .lu-row.is-sel{border-color:#e09a00;background:#fff6cf;box-shadow:0 0 0 2px rgba(255,183,3,.45)}
+.lu-root .lu-row.is-open{border-color:#f0b400;background:#fffbea}
+.lu-root .lu-no{width:26px;height:26px;border:0;border-radius:7px;background:linear-gradient(#2f7cf0,#1458c8);color:#fff;font-size:15px;font-weight:900;display:grid;place-items:center;padding:0;align-self:center}
+.lu-root .lu-row.is-sel .lu-no{background:linear-gradient(#ffd84a,#f0a800);color:#4a2f00}
+.lu-root .lu-name{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;justify-content:center;line-height:1.15;min-width:0;align-self:stretch}
+.lu-root .lu-name b{font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-root .lu-name small{font-size:11px;font-weight:700;color:#3d5a8f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-root .lu-name em{font-style:normal;margin-left:4px;padding:0 4px;border-radius:5px;font-size:11px;font-weight:900}
+.lu-root .lu-name em.is-hot{background:#ff5a3c;color:#fff}.lu-root .lu-name em.is-good{background:#ffd84a;color:#4a2f00}.lu-root .lu-name em.is-bad{background:#7d8aa6;color:#fff}
+.lu-root .lu-pos{min-width:0;min-height:0;width:34px;height:30px;padding:0;border-radius:8px;border-width:1px;flex-direction:row;gap:0;align-self:center;position:relative}
+.lu-root .lu-pos .pw-pos{min-width:24px;height:22px;font-size:13px}
+.lu-root .lu-pos .lu-posmark{position:absolute;right:-3px;top:-6px;font-size:11px;background:#fff;border-radius:6px;padding:0 1px;line-height:13px}
+.lu-root .lu-open{border:0;background:none;padding:0;display:grid;grid-template-columns:repeat(4,30px) 38px 12px;align-items:center;justify-items:center;min-height:30px;align-self:stretch}
+.lu-g{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;font-style:normal;font-size:15px;font-weight:900;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25);box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)}
+.lu-avg{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;color:#0b2a6f;justify-self:end}
+.lu-chev{font-size:11px;font-weight:900;color:#1766e8}
+.lu-root .lu-posbar{grid-column:1/-1;margin:3px 0 2px}
+.lu-detail{grid-column:1/-1;display:grid;gap:4px;padding:5px 2px 3px;border-top:1px dashed #f0c64a;margin-top:3px}
+.lu-detail[hidden]{display:none}
+.lu-dfit{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lu-dfit>small{font-size:11px;font-weight:900;color:#0b2a6f}
+.lu-dfit .lu-fits{max-width:none;justify-content:flex-start}
+.lu-dfit .lu-dnote{font-weight:700;color:#3d5a8f}
+.lu-detail .ab-guide{margin:0}
+.lu-root .lu-pitchers,.lu-root .lu-bench{gap:4px}
+.lu-root .lu-pit,.lu-root .lu-benchrow{width:100%;min-height:44px;display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:10px;border:2px solid #b7d4f7;background:#fff;text-align:left;position:relative}
+.lu-root .lu-pit.is-on{border-color:#e09a00;background:#fff6cf}
+.lu-pname{flex:1;display:flex;flex-direction:column;line-height:1.2;overflow:hidden;min-width:0}
+.lu-pname b{font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-pname small{font-size:11px;font-weight:700;color:#3d5a8f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu-pname em{font-style:normal;margin-left:4px;padding:0 4px;border-radius:5px;font-size:11px;font-weight:900}
+.lu-pname em.is-hot{background:#ff5a3c;color:#fff}.lu-pname em.is-good{background:#ffd84a;color:#4a2f00}.lu-pname em.is-bad{background:#7d8aa6;color:#fff}
+.lu-root .lu-foot{padding:4px 8px 6px}
+.lu-root .lu-note{margin:0 0 4px;font-size:11px;min-height:15px;line-height:1.35}
+.lu-root .lu-btns .pw-btn{min-height:44px}
+@media (min-height:760px){.lu-root .lu-head{padding:8px 10px}.lu-root .lu-head h2{font-size:18px}.lu-ctl{gap:7px;padding-top:8px}.lu-root .lu-keep button{min-height:38px;font-size:13px}.lu-tabs button{min-height:40px;font-size:15px}.lu-root .lu-band{margin-bottom:6px;padding:5px 10px;font-size:14px}.lu-root .lu-order{gap:5px}.lu-root .lu-no{width:28px;height:28px}.lu-g{width:26px;height:26px;font-size:16px}.lu-root .lu-name b{font-size:15px}.lu-root .lu-btns .pw-btn{min-height:50px;font-size:16px}}
+@media (max-width:370px){.lu-thead,.lu-root .lu-row{column-gap:3px}.lu-thead{grid-template-columns:26px minmax(0,1fr) 34px repeat(4,27px) 36px 10px}.lu-root .lu-open{grid-template-columns:repeat(4,27px) 36px 10px}.lu-g{width:23px;height:23px;font-size:14px}.lu-avg{font-size:12px}.lu-root .lu-name b{font-size:13px}}
+/* パワ風の見た目(html[data-look=pawa] .nv-app button{font:inherit;color:inherit})に負けないよう、ボタンの字は .lu-page まで重ねて指定する。 */
+.lu-root .lu-page .lu-no{font-size:15px;font-weight:900;color:#fff}
+.lu-root .lu-page .lu-row.is-sel .lu-no{color:#4a2f00}
+.lu-root .lu-page .lu-tabs button{font-size:14px;font-weight:900;color:#0b2a6f}
+.lu-root .lu-page .lu-tabs button.is-on{color:#fff}
+.lu-root .lu-page .lu-keep button{font-size:12px;font-weight:800;color:#0b2a6f}
+.lu-root .lu-page .lu-keep button.is-on{color:#4a2f00}
+.lu-root .lu-page .lu-back{font-size:13px;font-weight:900;color:#0b2a6f}
+/* 背の低い画面(360x640 など): 見出しの帯を隠し(文字は読み上げ用に残す)、行と上の切り替えを少し詰める。 */
+@media (max-height:700px){
+ .lu-root .lu-band{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;margin:0;padding:0}
+ .lu-root .lu-head{padding:3px 8px}.lu-root .lu-back{min-height:36px}
+ .lu-ctl{gap:4px;padding-top:4px}
+ .lu-root .lu-keep button{min-height:30px}
+ .lu-tabs button{min-height:32px}
+ .lu-root .lu-order{gap:2px}
+ .lu-root .lu-row{min-height:34px}
+ .lu-root .lu-btns .pw-btn{min-height:44px}
+}

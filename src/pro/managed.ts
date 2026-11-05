@@ -47,10 +47,14 @@ export const seriesKey=(state:GameState,id:string)=>`${state.club}|${state.seaso
 // ---- 止まるかどうか(2026-11-04 持ち主「CS とか日本シリーズとかも一気に進めれるように。というか、選べるようにして」) ----
 // noStop=設定の「大事な試合でも止まらない」(端末に覚える。最初は止まる)。skipSeries=このシリーズの残りを一気に進めると選んだシリーズ。
 export interface StopRules {noStop:boolean;skipSeries:string|null}
+/** skipSeries にこの値を渡すと、ポストシーズンの残りを全部一気に進める(持ち主「いちいち押すのめんどくさい」)。 */
+export const SKIP_ALL_POST='*all-post';
 export function stopAt(state:GameState,rules:StopRules):KeyGame|null{
  if(rules.noStop)return null;
  const k=keyGameAhead(state);
  if(!k||(k.series&&k.series===rules.skipSeries))return null;
+ // 11/5: 「シーズンの終わりまで一気に」= ポストシーズンの残り(CS・日本シリーズ・王座決定戦まで)はどこにも止まらない。
+ if(rules.skipSeries===SKIP_ALL_POST&&state.season.completed)return null;
  return k;
 }
 export const NO_STOP_KEY='diamond-nine-keygame-nostop';

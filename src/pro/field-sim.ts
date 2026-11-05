@@ -4,11 +4,13 @@
 // 結果が先に決まっている(試合の計算=engine.ts の LiveEvent)。ここでは、その結果に合わせて見た目を作るだけ。試合の乱数は使わない。
 //  - 打球の向き: 実況と同じ表(watch.ts の playWord)。安打・アウトの種類・進塁は LiveEvent のまま(打者と走者が最後に立つ塁は e.bases)。
 //  - アウトは、送球が走者より先に着く。セーフは、走者が先に着く(きわどい時は滑り込む)。
-//  - 試合の計算に併殺は無い(凡打は打者だけがアウトで、走者は進まない)ので、併殺の動きは出さない。
+//  - 11/5 昼: 試合の計算に併殺・野選・タッチアウト・タッチアップの送球・飛び出し・ファインプレー・好返球が入った(plays.ts)。
+//    打球の種類・捕る野手・誰がどの塁でアウトか(フォース/タッチ)は LiveEvent の play に入っているので、その通りに組み立てる(playOut)。
 // 座標はメートル: 本塁が (0,0)、x は一塁側が +、y はセンター方向が +。時間は秒(1倍の時の、画面に出る秒)。
 import type {LiveEvent,LiveKind} from './engine';
 import {playWord} from './watch';
 import {playerMap} from './data';
+import {NO_POS,type PlayDetail,type Fate} from './plays';
 
 export type V=[number,number];
 export const BASE_DIST=27.43;
@@ -52,7 +54,7 @@ export interface Actor {id:string;role:'f'|'b'|'r';pos?:Pos;keys:Key[];gone?:num
 /** ボールの動き。ground=転がる(だんだん遅く)、air=山なり(peak=いちばん高い所の m)、throw=送球(少しだけ山なり)、hidden=手やグラブの中。 */
 export interface BallSeg {t0:number;t1:number;a:V;b:V;peak:number;kind:'ground'|'air'|'throw'|'pitch'|'hidden';fade?:boolean}
 /** what=見た目の種類(試験で結果と合っているか確かめる)。 */
-export type Motion='pitch'|'ground-out'|'fly-out'|'tag-up'|'single'|'extra-base'|'home-run'|'error'|'bunt'|'bunt-pop'|'steal'|'caught-stealing'|'walk'|'strikeout'|'none';
+export type Motion='pitch'|'ground-out'|'fly-out'|'double-play'|'force-out'|'tag-out'|'liner-out'|'pop-out'|'fine-play'|'tag-up'|'single'|'extra-base'|'home-run'|'error'|'bunt'|'bunt-pop'|'steal'|'caught-stealing'|'walk'|'strikeout'|'none';
 export interface Choreo {kind:LiveKind|'PITCH';motion:Motion;word:string;len:number;actors:Actor[];ball:BallSeg[];banner?:{t:number;text:string}|null;fine?:boolean;chaser?:Pos|null;cover?:Partial<Record<number,Pos>>}
 export interface SimCtx {
  /** 守る側の位置 → 選手 id。 */
@@ -70,7 +72,7 @@ const lerp=(a:V,b:V,f:number):V=>[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
 const polar=(deg:number,d:number):V=>[Math.sin(deg*Math.PI/180)*d,Math.cos(deg*Math.PI/180)*d];
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 /** 打球の向き(度)。 */
-const ANGLE:Record<string,number>={レフト:-30,左中間:-16,センター:0,右中間:16,ライト:30,三遊間:-19,一二塁間:19,ショートゴロ:-12,セカンドゴロ:13,サードゴロ:-33,ファーストゴロ:34,ピッチャーゴロ:2,センターフライ:2,レフトフライ:-28,ライトフライ:28,ショート:-12,セカンド:13,サード:-33};
+const ANGLE:Record<string,number>={レフト前:-27,センター前:3,ライト前:27,レフト線:-41,ライト線:41,レフト:-30,左中間:-16,センター:0,右中間:16,ライト:30,三遊間:-19,一二塁間:19,ショートゴロ:-12,セカンドゴロ:13,サードゴロ:-33,ファーストゴロ:34,ピッチャーゴロ:2,センターフライ:2,レフトフライ:-28,ライトフライ:28,ショート:-12,セカンド:13,サード:-33};
 
 /** 組み立て。時間は「本物の秒」で作り、最後に縮める(野球の1プレーは長いので、テンポよく見せる)。 */
 class Plan {
@@ -113,6 +115,8 @@ class Plan {
 /** 走者の並び: 前の塁(before)と後の塁(e.bases)から、誰がどこからどこへ進んだか。to=3 は本塁(得点)、-1 はアウトで消える。 */
 function advances(e:LiveEvent,before:(string|null)[]):{id:string;from:number;to:number}[]{
  const out:{id:string;from:number;to:number}[]=[];
+ // 11/5: プレーの記録があれば、その通り(-1=アウト)。
+ if(e.play){for(const f of e.play.fates)if(f.from>=0)out.push({id:f.id,from:f.from,to:f.to});return out;}
  before.forEach((id,b)=>{if(!id)return;const to=e.bases.indexOf(id);out.push({id,from:b,to:to>=0?to:e.kind==='CS'?-1:3});});
  return out;
 }
@@ -183,12 +187,12 @@ export function pitchClip(ctx:SimCtx,e:{batter:string;pitcher:string},before:(st
 
 /** 1つの出来事(打席の結果・盗塁)の動き。before=その前の塁。 */
 export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Choreo{
- const word=playWord(e.kind,e.inning,e.slot),k=e.kind,hand=batSide(e.batter,e.pitcher),P=new Plan(ctx);
+ const word=e.play?.word??playWord(e.kind,e.inning,e.slot),k=e.kind,hand=batSide(e.batter,e.pitcher),P=new Plan(ctx);
  const bid='b:'+e.batter,base={kind:k,word,motion:'none' as Motion,banner:null as Choreo['banner'],fine:false,chaser:null as Pos|null,cover:{} as Partial<Record<number,Pos>>};
  const steal=k==='SB'||k==='CS';
  setup(P,e,before,hand);
  const adv=advances(e,before);
- const fine=(e.inning*5+e.slot*3)%7===0;// 好守の見せ場(見た目だけ。決まった打席で)
+ const fine=false;// 11/5: ファインプレーは試合の計算(play.fine)の時だけ
 
  if(['PINCH','RUNNER','FIELD','PITCHER','MOVE'].includes(k))return finish(P,{...base,motion:'none'},.1);
  if(k==='K'){
@@ -256,6 +260,7 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
    if(a.to===3)P.pose(rid,t+.5,'cheer');}
   return finish(P,{...base,motion:'bunt',chaser:fielder,cover:{0:'2B',1:'SS'}},tOut+.9,3.4,.6);
  }
+ if(e.play&&(k==='OUT'||k==='DP'||k==='FC'||k==='TP'||k==='SF'))return playOut(P,e,before,e.play,hand,base);
  if(k==='HR'){
   // 本塁打: 打球はスタンドへ。外野手は塀まで追って見上げる。打者と走者は回って本塁へ、還ったら喜ぶ。
   const deg=ANGLE[word]??0,fence=fenceAt(deg),land=polar(deg,fence+14),of:Pos=deg<-9?'LF':deg>9?'RF':'CF';
@@ -304,9 +309,23 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
   // 一塁を回ってから戻る(単打)
   if(bTo===0){P.go(bid,lerp(FIRST,SECOND,.14),bArrive,bv*.6,'ready');P.go(bid,FIRST,P.last(bid).t+.1,3,'ready','jog');}
   let lastT=bArrive;
-  for(const a of adv){const rid='r:'+a.id;if(a.to===a.from){P.go(rid,BAGS[a.from],.2,4,'ready','jog');continue;}
+  for(const a of adv){const rid='r:'+a.id;if(a.to===-1)continue;if(a.to===a.from){P.go(rid,BAGS[a.from],.2,4,'ready','jog');continue;}
    const t=runPath(P,rid,pathPts(a.from,a.to).map((p,i)=>i===0?leadOff(a.from):p),.15,P.rv(a.id),a.to===3);
    if(a.to===3)P.pose(rid,t+.45,'cheer');lastT=Math.max(lastT,t);}
+  // 11/5: 次の塁を狙った走者を外野の送球で刺す(タッチアウト。肩の強い外野手はレーザービーム)。送球が先に着き、走者は滑り込んで消える。
+  const outA=adv.find(a=>a.to===-1),outF=outA?e.play?.fates.find(f=>f.id===outA.id):undefined;
+  if(outA&&outF&&outF.at!==undefined){
+   const at=outF.at,recv:Pos=at===3?'C':at===2?'3B':other,rid='r:'+outA.id;
+   P.go('f:'+recv,add(BAGS[at],at===3?[0,.8]:[0,-.7]),.15,P.fv(recv),'cover');
+   const ta=P.throwTo(of,BAGS[at],pickT+.12,recv);
+   const pts=pathPts(outA.from,at).map((p,i)=>i===0?leadOff(outA.from):p);
+   runPath(P,rid,pts.slice(0,-1).concat([lerp(pts[pts.length-2],BAGS[at],.8)]),.15,P.rv(outA.id));
+   P.goBy(rid,BAGS[at],0,Math.max(ta+.2,P.last(rid).t+.3),'slide','slide');
+   P.pose('f:'+recv,ta+.12,'grounder');P.actors.get(rid)!.gone=Math.max(ta+.2,P.last(rid).t)+.35;P.pose('f:'+recv,ta+.9,'cheer');
+   lastT=Math.max(lastT,ta+.9);
+   backups(P,pickAt,.3,[of,recv,'1B']);
+   return finish(P,{...base,motion:k==='1B'?'single':'extra-base',chaser:of,cover:{[at]:recv}},Math.max(lastT,ta)+.6,k==='1B'?4:4.8,.6);
+  }
   // 返球は走者が着いた後(全員セーフの結果どおり)
   // 送球は、その塁に走者が着いた後に着く(全員セーフ)。flight=投げてから着くまで。
   const after=(bag:number,from:Pos,at:V,t:number)=>{let need=0;for(const a of adv)if(a.to===bag)need=Math.max(need,P.last('r:'+a.id).t);if(bTo===bag)need=Math.max(need,bArrive);
@@ -394,6 +413,122 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
  backups(P,spot2,.1,[f,recv,mid,'1B']);
  const banner=err?{t:tB+.1,text:'エラー!'}:dive?{t:tB,text:'ファインプレー!'}:null;
  return finish(P,{...base,motion:err?'error':'ground-out',chaser:f,fine:dive,cover:{0:recv},banner},Math.max(lastT,outT)+.5,3.2,.62);
+}
+
+// ---- 11/5: 試合の計算のプレー(plays.ts)どおりの動き。ゴロの併殺・野選(フォース/タッチ)、フライ・ライナー・内野フライ、タッチアップと本塁の送球、
+// 飛び出した走者の併殺、ファインプレー(飛びつく・滑り込む・フェンス際)。アウトは必ず送球(か野手)が先に塁に着き、セーフは走者が先。
+const posOfNo=(n:number)=>NO_POS[n] as Pos;
+/** 塁に入る位置(その塁の少し手前)。 */
+const bagSpot=(b:number,who:Pos):V=>b===3?add(PLATE,[0,.8]):b===0?add(FIRST,[who==='P'?-.5:.6,-.3]):add(BAGS[b],[who==='2B'||who==='1B'?.7:-.7,-.5]);
+function playOut(P:Plan,e:LiveEvent,before:(string|null)[],d:PlayDetail,hand:Hand,base:Omit<Choreo,'actors'|'ball'|'len'>):Choreo{
+ void before;
+ const bid='b:'+e.batter,f=posOfNo(d.fielder),word=d.word;
+ const deg=ANGLE[word]??ANGLE[word.replace(/ゴロ|フライ|ライナー/,'')]??(f==='1B'?34:f==='2B'?13:f==='SS'?-12:f==='3B'?-33:f==='LF'?-28:f==='RF'?28:2);
+ const fateOf=(id:string)=>d.fates.find(x=>x.id===id);
+ const runners=d.fates.filter(x=>x.from>=0);
+ const bv=P.rv(e.batter);
+ P.pose(bid,0,'follow');
+ let lastT=0;
+ const finishRun=(x:Fate,t0:number)=>{// セーフの走者: 結果の塁へ(本塁は喜ぶ)。動かない走者は塁へ戻る。
+  const rid='r:'+x.id;
+  if(x.to===x.from){P.go(rid,BAGS[x.from],t0,4,'ready','jog');return;}
+  const t=runPath(P,rid,pathPts(x.from,x.to).map((p,i)=>i===0?leadOff(x.from):p),t0,P.rv(x.id),x.to===3);
+  if(x.to===3)P.pose(rid,t+.4,'cheer');lastT=Math.max(lastT,t);
+ };
+ /** 走者(打者)がアウトになる塁へ、送球より後に着く。 */
+ const outRun=(x:Fate,ta:number,slide:boolean)=>{
+  const id=x.from<0?bid:'r:'+x.id,at=x.at??0;
+  const start:V=x.from<0?BOX_M[hand]:leadOff(x.from),pts=x.from<0?[start,FIRST]:pathPts(x.from,at).map((p,i)=>i===0?start:p);
+  const pre=lerp(pts[pts.length-2],pts[pts.length-1],.8);
+  runPath(P,id,[...pts.slice(0,-1),pre],x.from<0?.3:.15,x.from<0?bv:P.rv(x.id));
+  const arrive=Math.max(ta+.16,P.last(id).t+.25);
+  P.goBy(id,pts[pts.length-1],0,arrive,slide?'slide':'run',slide?'slide':'run');
+  if(x.from<0)P.go(id,add(FIRST,[3.5,2.5]),arrive,bv*.6,'sad');
+  P.actors.get(id)!.gone=arrive+.35;lastT=Math.max(lastT,arrive+.4);
+ };
+ if(d.bb==='gb'){
+  // ゴロ: 捕る → (塁へ送球 → 入った野手が踏んで → 一塁へ)。
+  const r0=READY[f],spot:V=f==='P'?[.6,15]:polar(deg,Math.max(18,len(r0)-1));
+  const dive=d.fine==='dive'||d.fine==='slide',spot2:V=dive?add(spot,[deg<0?-3.5:3.5,0]):spot;
+  const tB=P.b({t0:0,t1:f==='P'?.55:Math.max(.7,len(spot2)/31),a:[0,.6],b:spot2,peak:0,kind:'ground'});
+  if(dive){P.go('f:'+f,lerp(r0,spot2,.4),.08,P.fv(f),'run');P.go('f:'+f,spot2,tB-.25,8,d.fine==='slide'?'slide':'dive',d.fine==='slide'?'slide':'dive');P.pose('f:'+f,tB+.45,'ready');}
+  else{P.go('f:'+f,spot2,.08,P.fv(f)*.8,'grounder');P.pose('f:'+f,tB-.15,'grounder');}
+  let holder:Pos=f,hold=tB+(dive?.6:.2);
+  const outs=d.fates.filter(x=>x.to===-1).sort((a,b)=>b.from-a.from);
+  const covers:Pos[]=[];
+  for(const o of outs){
+   const at=o.at??0,by=(o.by??[d.fielder]).map(posOfNo),recv=by[by.length-1];
+   if(recv===holder){// 自分で塁を踏む(三塁ゴロで三塁、一塁ゴロで一塁)
+    const t=P.go('f:'+holder,bagSpot(at,holder),hold,P.fv(holder),'cover');
+    outRun(o,t,o.from>=0);hold=t+.15;continue;
+   }
+   if(!covers.includes(recv)){P.go('f:'+recv,bagSpot(at,recv),.12,P.fv(recv)*1.05,'cover');covers.push(recv);}
+   const ta=P.throwTo(holder,bagSpot(at,recv),hold,recv);
+   if(o.out==='tag')P.pose('f:'+recv,ta+.12,'grounder');
+   outRun(o,ta,o.from>=0);
+   holder=recv;hold=ta+(o.from>=0&&outs.length>1?.18:.3);// 二塁に入った野手は踏んですぐ一塁へ
+  }
+  // 打者がセーフ(野選): 一塁へ駆け抜ける
+  const bat=fateOf(e.batter);if(bat&&bat.to===0){const t=runPath(P,bid,[BOX_M[hand],FIRST],.3,bv);P.go(bid,lerp(FIRST,[D+4,D-1],.5),t,bv*.5,'ready');P.go(bid,FIRST,P.last(bid).t+.1,3,'ready','jog');lastT=Math.max(lastT,t);}
+  for(const x of runners)if(x.to!==-1)finishRun(x,.2);
+  if(!covers.includes('1B')&&f!=='1B')P.go('f:1B',bagSpot(0,'1B'),.12,P.fv('1B'),'cover');
+  backups(P,spot2,.1,[f,...covers,'1B']);
+  const n=outs.length,motion:Motion=d.fine?'fine-play':n>=2?'double-play':outs.some(o=>o.from>=0&&o.out==='tag')?'tag-out':outs.some(o=>o.from>=0)?'force-out':'ground-out';
+  return finish(P,{...base,motion,chaser:f,fine:!!d.fine,cover:{0:'1B'},banner:null},Math.max(lastT,hold)+.5,n>=2?4.2:3.4,.62);
+ }
+ // フライ・ライナー・内野フライ
+ const of=f==='LF'||f==='CF'||f==='RF';
+ const deep=d.fine==='wall'?Math.min(fenceAt(deg)-1.5,104):e.kind==='SF'||d.fates.some(x=>x.from===2&&x.to!==2)?84:of?72:0;
+ const land:V=of?polar(deg,deep):d.bb==='pop'?(f==='C'?[hand==='R'?2.5:-2.5,-2.5]:add(READY[f],[0,-3])):add(READY[f],[0,-1]);
+ const hang=d.bb==='ld'?(of?1.1:.45):d.bb==='pop'?2.8:d.fine==='wall'?3.8:3.3,peak=d.bb==='ld'?(of?3:1.4):d.bb==='pop'?24:28;
+ const tC=P.b({t0:0,t1:hang,a:[0,.8],b:land,peak,kind:'air'});
+ if(d.fine==='dive'){P.go('f:'+f,lerp(READY[f],land,.8),.2,P.fv(f)*.85,'run');P.go('f:'+f,land,tC-.32,8,'dive','dive');P.pose('f:'+f,tC+.7,'ready');}
+ else if(d.fine==='wall'){P.go('f:'+f,add(land,[0,-.4]),.1,P.fv(f),'run');P.pose('f:'+f,tC-.3,'fly');P.pose('f:'+f,tC+.5,'catch');}
+ else if(d.bb==='ld'&&!of){P.pose('f:'+f,tC-.12,'catch');P.pose('f:'+f,tC+.3,'ready');}
+ else{P.go('f:'+f,add(land,[0,.6]),.15,P.fv(f)*.85,'fly');P.pose('f:'+f,tC-.25,'catch');P.pose('f:'+f,tC+.2,'ready');}
+ // 打者: 一塁へ走り、捕られたら消える
+ P.go(bid,lerp(PLATE,FIRST,d.bb==='ld'?.35:.82),.3,bv*.85);P.pose(bid,tC,'sad');P.actors.get(bid)!.gone=tC+.4;
+ for(const x of runners){
+  const rid='r:'+x.id;
+  if(x.to===-1&&x.out==='doubled'){
+   // 飛び出し: 打った瞬間に走り出していて、捕られて戻るが、送球(か野手)が先に塁に着く
+   const at=x.at??x.from,by=(x.by??[d.fielder]).map(posOfNo),recv=by[by.length-1];
+   P.go(rid,lerp(BAGS[x.from],BAGS[Math.min(3,x.from+1)],.35),.05,P.rv(x.id),'run');
+   let ta:number;
+   if(recv===f)ta=P.go('f:'+f,bagSpot(at,f),tC+.05,P.fv(f),'cover');
+   else{P.go('f:'+recv,bagSpot(at,recv),.1,P.fv(recv),'cover');ta=P.throwTo(f,bagSpot(at,recv),tC+.2,recv);}
+   const back=Math.max(ta+.25,tC+.9);
+   P.goBy(rid,BAGS[x.from],tC+.05,back,'slide','run');P.actors.get(rid)!.gone=back+.35;lastT=Math.max(lastT,back+.4);continue;
+  }
+  if(x.to===-1&&x.out==='tag'){
+   // タッチアップで本塁へ → 外野から本塁へ送球(捕手が触球)。肩が強いとレーザービーム。
+   P.go(rid,BAGS[x.from],.1,4,'lead','jog');
+   P.go('f:C',add(PLATE,[0,.8]),.3,3,'cover');
+   const ta=P.throwTo(f,add(PLATE,[0,1]),tC+.3,'C');
+   runPath(P,rid,[BAGS[x.from],lerp(BAGS[x.from],PLATE,.82)],tC+.05,P.rv(x.id));
+   const arr=Math.max(ta+.18,P.last(rid).t+.2);
+   P.goBy(rid,PLATE,0,arr,'slide','slide');P.pose('f:C',ta+.1,'grounder');P.actors.get(rid)!.gone=arr+.35;
+   lastT=Math.max(lastT,arr+.4);continue;
+  }
+  if(x.to!==x.from){
+   // タッチアップ: 塁に戻って、捕った後に走る
+   P.go(rid,BAGS[x.from],.1,4,'lead','jog');
+   const t=runPath(P,rid,pathPts(x.from,x.to),tC+.05,P.rv(x.id),x.to===3);if(x.to===3)P.pose(rid,t+.45,'cheer');lastT=Math.max(lastT,t);continue;
+  }
+  // 塁に戻る(ライナー・内野フライは動かない)
+  if(d.bb==='fb'&&x.from===0){P.go(rid,lerp(FIRST,SECOND,.35),.2,5,'ready');P.go(rid,FIRST,tC+.05,6,'ready');}
+  else P.go(rid,BAGS[x.from],.1,4,'lead','jog');
+ }
+ const sf=runners.some(x=>x.from===2&&x.to===3);
+ if(of&&!runners.some(x=>x.out==='tag')){
+  const cutoff:Pos=deg<=0?'SS':'2B';
+  if(sf){P.go('f:C',add(PLATE,[0,.6]),.3,3,'cover');P.throwTo(f,add(PLATE,[0,1]),Math.max(tC+.35,lastT+.12-(.22+distM(land,PLATE)/P.arm(f))));}
+  else{P.go('f:'+cutoff,lerp(SECOND,land,.3),.4,P.fv(cutoff),'ready');P.throwTo(f,lerp(SECOND,land,.3),tC+.45,cutoff);}
+ }
+ P.go('f:1B',FIRST,.3,P.fv('1B'),'cover');
+ if(of)backups(P,land,.2,[f,'2B','SS','1B','C']);
+ const motion:Motion=d.fine?'fine-play':runners.some(x=>x.to===-1)?'double-play':sf?'tag-up':d.bb==='ld'?'liner-out':d.bb==='pop'?'pop-out':'fly-out';
+ return finish(P,{...base,motion,chaser:f,fine:!!d.fine,banner:null},Math.max(lastT,P.ball.at(-1)!.t1,tC)+.45,motion==='double-play'||sf?4.4:3.6,.62);
 }
 
 // ---- その時刻の姿 ----

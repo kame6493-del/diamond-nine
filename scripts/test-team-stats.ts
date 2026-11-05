@@ -38,7 +38,8 @@ export function registerTeamStatsTests(test:(name:string,run:()=>void)=>void){
   state.season.results.push(game);assert.equal(teamSeasonStats(state.season,'t').errors,1);assert.equal(teamSeasonStats(state.season,'g').errors,0);
  });
  test('runs after an error should have ended the inning are unearned, while a later walk still gets an RBI',()=>{
-  const state=initialState(),rolls=[.5,.5,.85,.85,.999999,.99,0,0,0,0];let i=0;
+  // 11/5: 凡打の後のプレー(plays.ts)が乱数を使うようになったので、最初の2人は三振(.4)にして同じ場面(2死から失策→押し出し)を作る。
+  const state=initialState(),rolls=[.5,.5,.4,.4,.999999,.99,0,0,0,0];let i=0;
   const game=playGame(state,'t','g',{next:()=>rolls[i++]??.85,state:1});
   assert.deepEqual(game.errors,[0,1]);assert.equal(game.awayRuns,2);
   assert.equal(game.box!.pitching.filter(p=>p.team==='t').reduce((n,p)=>n+p.er,0),0);

@@ -1,0 +1,17 @@
+FAIL MLB cards show both Ohtani ability sets and accessible player details without rarity labels
+FAIL achievement celebrations show the attained year and league controls remain compact and disabled during simulation
+FAIL career starts with 24 real players, valid positions, modest strength and zero currency
+FAIL compact deck preserves 21 roster slots and abilities, with bench selection available on demand
+FAIL complete reset removes acquired cards, duplicates, development, seasons and every reset snapshot of this club
+FAIL new clubs offer three distinct strong NPB cards without changing the weak initial roster
+FAIL pitch repertoire, secondary positions and contextual traits have bounded gameplay effects
+FAIL random starting rosters vary across every slot while remaining weak, complete and duplicate-free
+FAIL reset creates a fresh welcome event and restore keeps its already-claimed reward
+FAIL season end freezes real team abilities and archived victory images survive later training, reorder, rename and save reload
+FAIL shared player abilities include the whole saved order even without batting stats and do not expose mutable save objects
+FAIL starter completion equips the earned player, persists and never returns after opening day
+FAIL starter picks grant exactly one card once without spending points or advancing paid guarantees
+FAIL team UZR ranks sum actual fielders, allow ties and never rank missing or mismatched recording periods
+FAIL team reset starts over and provides a complete restorable copy without deleting any save
+FAIL valid starter roster and saved-state guards
+FAIL wins, draws and losses credit only the shared wallet; daily and batch rewards agree

@@ -1,0 +1,47 @@
+/* 試合のプレーの演出(11/5)。ChatGPT イメージの見本帳の形: 斜めの金の太い文字・濃い縁取り・光の筋・火花・紙吹雪・虹の弧。
+   1回だけ出て消える(点滅しない)。--d=全体の長さ。prefers-reduced-motion では文字だけ。 */
+.pfx{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:hidden;container-type:size;display:grid;place-items:center;animation:pfx-out var(--d) linear forwards}
+@keyframes pfx-out{0%,78%{opacity:1}100%{opacity:0}}
+.pfx-glow{position:absolute;left:50%;top:44%;width:120%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);border-radius:50%;
+ background:radial-gradient(circle,rgba(255,244,190,.85) 0,rgba(255,206,64,.55) 22%,rgba(255,160,30,.18) 45%,transparent 66%);animation:pfx-glow var(--d) ease-out forwards}
+@keyframes pfx-glow{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}14%{opacity:1}55%{opacity:.55}100%{transform:translate(-50%,-50%) scale(1.15);opacity:0}}
+.pfx-rays{position:absolute;left:50%;top:44%;width:170%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(0deg) scale(.5);
+ background:repeating-conic-gradient(from 0deg,rgba(255,226,120,.55) 0deg 5deg,transparent 5deg 15deg);
+ -webkit-mask:radial-gradient(circle,#000 0,#000 20%,transparent 62%);mask:radial-gradient(circle,#000 0,#000 20%,transparent 62%);
+ animation:pfx-rays var(--d) ease-out forwards}
+@keyframes pfx-rays{0%{transform:translate(-50%,-50%) rotate(0) scale(.4);opacity:0}15%{opacity:.95}100%{transform:translate(-50%,-50%) rotate(40deg) scale(1.1);opacity:0}}
+.pfx.is-small .pfx-rays{width:120%}
+.pfx-rainbow{position:absolute;left:50%;top:58%;width:150%;aspect-ratio:2/1;transform:translate(-50%,-50%) scale(.6);opacity:0;
+ background:radial-gradient(circle at 50% 100%,transparent 54%,#ff4d4d 55%,#ff9f1c 60%,#ffe74c 65%,#5ee07a 70%,#38bdf8 75%,#a78bfa 80%,transparent 81%);
+ animation:pfx-rainbow var(--d) ease-out forwards}
+@keyframes pfx-rainbow{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:.9}75%{opacity:.75}100%{opacity:0;transform:translate(-50%,-50%) scale(1.05)}}
+.pfx-title{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;transform:rotate(-7deg) skewX(-8deg);animation:pfx-pop var(--d) linear forwards}
+@keyframes pfx-pop{0%{transform:rotate(-7deg) skewX(-8deg) scale(2.3);opacity:0}9%{transform:rotate(-7deg) skewX(-8deg) scale(.9);opacity:1}15%{transform:rotate(-7deg) skewX(-8deg) scale(1.07);opacity:1}21%{transform:rotate(-7deg) skewX(-8deg) scale(1);opacity:1}82%{transform:rotate(-7deg) skewX(-8deg) scale(1.03);opacity:1}100%{transform:rotate(-7deg) skewX(-8deg) scale(1.1);opacity:0}}
+.pfx-title b{position:relative;display:block;font-family:"Dela Gothic One","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;font-weight:900;line-height:1;white-space:nowrap;letter-spacing:.01em;
+ font-size:min(var(--fs,46px),calc(86cqw / var(--n,5)));color:var(--fx-fill,#ffd84a);-webkit-text-stroke:2.5px var(--fx-line,#5a1400);paint-order:stroke fill;
+ text-shadow:0 1px 0 #fff6c8,0 4px 0 var(--fx-drop,#b3121f),0 6px 0 #4a0f00,0 0 18px var(--fx-glow,rgba(255,200,60,.85))}
+.pfx.is-mid .pfx-title b{--fs:60px}
+.pfx.is-big .pfx-title b{--fs:70px}
+.pfx-title em{font-style:normal;font-weight:900;font-size:16px;color:#fff;background:linear-gradient(#20356e,#0b1a45);border:2px solid #ffd23f;border-radius:999px;padding:2px 14px;letter-spacing:.08em;transform:skewX(8deg)}
+/* 種類ごとの色の差し: 三振=赤と白、レーザー=水色、ファインプレー=黄緑、大きい物=金と桃 */
+.pfx.k-k{--fx-fill:#fff1f1;--fx-line:#8a0d16;--fx-drop:#1b2a6b;--fx-glow:rgba(120,180,255,.8)}
+.pfx.k-laser{--fx-fill:#c9f6ff;--fx-line:#063a7a;--fx-drop:#0b5bd0;--fx-glow:rgba(80,220,255,.95)}
+.pfx.k-laser .pfx-rays{background:repeating-conic-gradient(from 0deg,rgba(140,240,255,.55) 0deg 4deg,transparent 4deg 14deg)}
+.pfx.k-fine{--fx-fill:#eaff7a;--fx-line:#1f4a00;--fx-drop:#0f7a2a;--fx-glow:rgba(190,255,90,.85)}
+.pfx.k-walkoff,.pfx.k-grand,.pfx.k-tp{--fx-fill:#ffe45c;--fx-drop:#e0245e}
+/* 火花: 真ん中から外へ飛ぶ小さなひし形(1回だけ) */
+.pfx-spark{position:absolute;left:50%;top:44%;width:9px;height:9px;background:#fff6c4;box-shadow:0 0 8px 2px rgba(255,210,70,.9);transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) rotate(45deg);opacity:0;animation:pfx-spark calc(var(--d)*.55) ease-out forwards}
+@keyframes pfx-spark{0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateY(0) rotate(45deg) scale(.6)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(var(--r)*-2.4)) rotate(45deg) scale(.3)}}
+.pfx.k-laser .pfx-spark{background:#e6fbff;box-shadow:0 0 8px 2px rgba(90,220,255,.9)}
+/* 紙吹雪: 上から落ちる(中・大) */
+.pfx-cf{position:absolute;top:-6%;width:7px;height:12px;border-radius:2px;opacity:0;animation:pfx-cf calc(var(--d)*.95) ease-in forwards}
+@keyframes pfx-cf{0%{opacity:0;transform:translate(0,0) rotate(0)}10%{opacity:1}100%{opacity:.9;transform:translate(var(--x),115%) rotate(540deg)}}
+.pfx-cf:nth-child(odd){animation-duration:calc(var(--d)*1.05)}
+/* 画面の揺れ(派手の中・大だけ。小さく3回、点滅はしない) */
+.fc-wrap.is-shake{animation:pfx-shake .42s ease-out 1}
+@keyframes pfx-shake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}}
+.pfx.lv-calm @media (prefers-reduced-motion:reduce){.pfx-rays,.pfx-spark,.pfx-cf,.pfx-rainbow,.pfx-glow{display:none}.pfx-title{animation:pfx-fade var(--d) linear forwards}.fc-wrap.is-shake{animation:none}}
+@keyframes pfx-fade{0%{opacity:0}10%,80%{opacity:1}100%{opacity:0}}
+/* ホームランの下の札(何番・何号・何ラン) */
+.pfx-hrsub{position:absolute;left:50%;bottom:16%;z-index:7;transform:translateX(-50%);margin:0;pointer-events:none;white-space:nowrap;font-size:14px;font-weight:900;color:#fff;
+ background:linear-gradient(#20356e,#0b1a45);border:2px solid #ffd23f;border-radius:999px;padding:3px 14px;animation:pfx-out 1.6s linear forwards}

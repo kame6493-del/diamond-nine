@@ -36,7 +36,8 @@ function events(n=18){
 }
 /** その人が、その場所に最初に着いた時刻(着かなければ Infinity)。 */
 function arrive(c:Choreo,id:string,at:V,m=.6){const a=c.actors.find(x=>x.id===id);if(!a)return Infinity;for(const k of a.keys)if(Math.hypot(k.p[0]-at[0],k.p[1]-at[1])<=m)return k.t;return Infinity;}
-const MOTION:Record<string,string[]>={OUT:['ground-out','fly-out'],SF:['tag-up'],'1B':['single'],'2B':['extra-base'],'3B':['extra-base'],HR:['home-run'],E:['error'],BUNT:['bunt'],BUNT_FAIL:['bunt-pop'],SB:['steal'],CS:['caught-stealing'],BB:['walk'],HBP:['walk'],IBB:['walk'],K:['strikeout']};
+// 11/5 昼: 凡打は plays.ts のプレーどおり(フォース・タッチ・ライナー・内野フライ・ファインプレー・飛び出しの併殺)。
+const MOTION:Record<string,string[]>={OUT:['ground-out','fly-out','force-out','tag-out','liner-out','pop-out','fine-play'],DP:['double-play'],TP:['double-play'],FC:['force-out','tag-out'],SF:['tag-up','double-play'],'1B':['single'],'2B':['extra-base'],'3B':['extra-base'],HR:['home-run'],E:['error'],BUNT:['bunt'],BUNT_FAIL:['bunt-pop'],SB:['steal'],CS:['caught-stealing'],BB:['walk'],HBP:['walk'],IBB:['walk'],K:['strikeout']};
 
 export function register1105Tests(test:(name:string,run:()=>void)=>void){
  test('field motion (11/5): every result gets the matching kind of play (ground/fly out, tag-up, single, extra-base relay, home run, error, bunt, steal, walk, strikeout)',()=>{
@@ -44,7 +45,7 @@ export function register1105Tests(test:(name:string,run:()=>void)=>void){
   for(const {e,before} of events()){
    const c=choreograph(e,before,ctx),want=MOTION[e.kind];assert.ok(want,`${e.kind}`);
    assert.ok(want.includes(c.motion),`${e.kind} → ${c.motion}`);seen.add(c.motion);
-   if(e.kind==='OUT')assert.equal(c.motion,playWord('OUT',e.inning,e.slot).endsWith('ゴロ')?'ground-out':'fly-out');
+   if(e.kind==='OUT'&&e.play&&!e.play.fine)assert.equal(c.motion,e.play.bb==='gb'?'ground-out':e.play.bb==='ld'?'liner-out':e.play.bb==='pop'?'pop-out':'fly-out');void playWord;
    assert.ok(c.len>0&&c.len<=4.7,`1倍で 4.7 秒以内 ${e.kind} ${c.len}`);
   }
   for(const m of ['ground-out','fly-out','tag-up','single','extra-base','home-run','steal','walk','strikeout'])assert.ok(seen.has(m),m);

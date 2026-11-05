@@ -18,7 +18,8 @@ export function registerManagerTests(test:(name:string,run:()=>void)=>void){
   for(const g of end.season.results){assert.equal(g.box!.batting.length,18);
    for(const [team,runs] of [[g.home,g.homeRuns],[g.away,g.awayRuns]] as [string,number][]){
     const b=g.box!.batting.filter(b=>b.team===team),p=g.box!.pitching.filter(p=>p.team!==team),highlights=g.box!.highlights.filter(h=>h.team===team);
-    const errorRuns=highlights.filter(h=>h.play==='失策で得点').reduce((n,h)=>n+h.runs,0);
+    // 11/5: 併殺の間の得点にも打点は付かない(規則どおり)。
+    const errorRuns=highlights.filter(h=>h.play==='失策で得点'||h.play==='併殺の間に得点').reduce((n,h)=>n+h.runs,0);
     assert.equal(b.reduce((n,b)=>n+b.runs,0),runs);assert.equal(b.reduce((n,b)=>n+b.rbi,0),runs-errorRuns);assert.ok(p.reduce((n,p)=>n+p.er,0)<=runs);assert.equal(highlights.reduce((n,h)=>n+h.runs,0),runs);
     if(g.errors![g.home===team?0:1]===0)assert.equal(p.reduce((n,p)=>n+p.er,0),runs);
     assert.equal(b.reduce((n,b)=>n+b.hits,0),p.reduce((n,p)=>n+p.hits,0));assert.equal(b.reduce((n,b)=>n+b.pa,0),p.reduce((n,p)=>n+p.bf,0));

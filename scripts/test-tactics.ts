@@ -11,7 +11,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {initialSandboxState,emptySeason,simulateDays,type GameResult,type GameState,type LiveSituation,type LiveEvent,type WatchOrder} from '../src/pro/engine';
 import {finishPostseason,simulatePostseason,newPostseason} from '../src/pro/postseason';
 import {type Circuit} from '../src/pro/leagues';
-import {keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,stopAt,keyReason,readNoStop,saveNoStop,NO_STOP_KEY,readManage,saveManage,type ManagedGame,type StopRules} from '../src/pro/managed';
+import {SKIP_ALL_POST,keyGameAhead,managedGame,advanceKeyDay,commitManaged,liveGame,finishLive,stopAt,keyReason,readNoStop,saveNoStop,NO_STOP_KEY,readManage,saveManage,type ManagedGame,type StopRules} from '../src/pro/managed';
 import {KeyGameCard} from '../src/pro/SimpleApp';
 import {tacticRates,pitchFit,batTacticFor,emptyTactics,BAT_TACTICS,PITCH_TACTICS,type BatTactic,type PitchTactic} from '../src/pro/tactics';
 import {choreograph,endOf,ballAt,BAGS,PLATE,type V} from '../src/pro/field-sim';
@@ -34,7 +34,7 @@ function runYear(state:GameState,choose:(g:ManagedGame)=>Choice,rules:Partial<St
  while(guard++<3000){
   if(stopAt(s,{noStop:!!rules.noStop,skipSeries:skip})){const g=managedGame(s)!;const c=choose(g);stops.push({g,choice:c});
    if(c==='auto')s=advanceKeyDay(s);
-   else if(c==='series'){skip=g.series??null;s=advanceKeyDay(s);}
+   else if(c==='series'){skip=SKIP_ALL_POST;s=advanceKeyDay(s);}// 11/5: ポストシーズンの残りを全部
    else{const d=drive(g,c==='watch'?()=>null:orders);s=commitManaged(s,g.control,d.inputs);}
    continue;}
   if(!s.season.completed){s=simulateDays(s,7);continue;}
@@ -53,7 +53,7 @@ function tally(g:ManagedGame,orders:()=>Orders,n:number){
  for(let i=0;i<n;i++){
   const d=drive({...g,rng:(g.rng+i*7919)>>>0},orders());
   for(const e of d.events){
-   if(!['BB','HBP','K','OUT','SF','E','1B','2B','3B','HR'].includes(e.kind))continue;
+   if(!['BB','HBP','K','OUT','DP','TP','FC','SF','E','1B','2B','3B','HR'].includes(e.kind))continue;// 11/5: 併殺・野選も打席
    const x=e.side===g.control?t.own:t.opp;x.pa++;
    if(e.kind==='BB')x.bb++;else if(e.kind==='K')x.k++;else if(e.kind==='HR')x.hr++;else if(e.kind==='2B'||e.kind==='3B')x.xbh++;else if(e.kind==='1B')x.single++;
   }
@@ -72,7 +72,7 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   // 11/5 持ち主「『監督して戦う』だけでいいです。作戦うんちゃらかんちゃらはいらない」「止まっている間は…こういう文言はいらない」
   for(const x of ['大事な試合でも止まらない','止まっている間','作戦・バント','次の大事な試合'])assert.ok(!open.includes(x),x);
   assert.ok(!open.includes('おまかせで観る'),'おまかせで観るは無い');
-  assert.ok(!open.includes('シリーズを一気に'),'開幕戦にシリーズの選択は無い');
+  assert.ok(!open.includes('シーズンの終わりまで一気に'),'開幕戦にシリーズの選択は無い');
   assert.ok(!open.includes('続きから'));
   assert.ok(cardHtml(state,g,true).includes('続きから監督する'));assert.ok(cardHtml(state,g,true).includes('やり直す'));
   assert.ok(!open.includes('wt-stop'),'全画面の選ぶ窓ではない');
@@ -81,7 +81,7 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
   let guard=0;while(!keyGameAhead(s)&&s.season.postseason?.stage!=='complete'&&guard++<200)s=simulatePostseason(s,1);
   const pg=managedGame(s);assert.ok(pg&&pg.kind==='post'&&pg.series,'短期決戦で止まる');
   const post=cardHtml(s,pg!);
-  for(const x of ['監督して戦う','一気に進める','シリーズを一気に','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
+  for(const x of ['監督して戦う','一気に進める','シーズンの終わりまで一気に','プレーオフ進出!',pg!.label])assert.ok(post.includes(x),x);
   assert.ok(!post.includes('止まっている間'));
   assert.ok(!post.includes('おまかせで観る'));
  });
@@ -105,9 +105,10 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
    void x;
    if(circuit!=='NPB')continue;
    const sk=runYear(state,g=>g.kind==='post'?'series':'auto');
-   assert.equal(JSON.stringify(sk.s),plain,`シリーズを一気に ${circuit}`);
-   const perSeries=new Map<string,number>();for(const y of sk.stops)if(y.g.series)perSeries.set(y.g.series,(perSeries.get(y.g.series)??0)+1);
-   assert.ok([...perSeries.values()].every(n=>n===1),'1つのシリーズで止まるのは最初の1回だけ');
+   assert.equal(JSON.stringify(sk.s),plain,`シーズンの終わりまで一気に ${circuit}`);
+   // 11/5 持ち主「CS とか一気に進むようにしてほしい。いちいち押すのめんどくさい」: 1回押したら、ポストシーズンの残りはどこにも止まらない。
+   assert.ok(sk.stops.filter(y=>y.g.kind==='post').length<=1,'ポストシーズンで止まるのは最初の1回だけ');
+   assert.equal(sk.s.season.postseason?.stage,'complete','最後まで進む');
    const ns=runYear(state,()=>'manage',{noStop:true});
    assert.equal(ns.stops.length,0,'止まらない');assert.equal(JSON.stringify(ns.s),plain);
    // 監督して何も指示しない試合も、1年進めると同じ(おまかせで観るの代わりの一致の試験)
@@ -214,12 +215,13 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
     const ctx={fielders:{P:e.pitcher,C:'c','1B':'a','2B':'b','3B':'d',SS:'e',LF:'f',CF:'g',RF:'h'},rate:()=>({speed:60,field:60,arm:60})};
     const p=choreograph(e,before,ctx);kinds.add(e.kind);checked++;
     // 実況の向きと打球の向きは同じ言葉
-    const word=playWord(e.kind,e.inning,e.slot);assert.equal(p.word,word);
-    if(word)assert.ok(callText(e.kind,'x',e.slot,e.runs,e.inning).includes(word),`実況に ${word}`);
+    // 11/5: 打球の向き・捕る野手は試合の計算(e.play)で決まる。無い打席(本塁打・失策など)は前の表。
+    const word=e.play?.word??playWord(e.kind,e.inning,e.slot);assert.equal(p.word,word);
+    if(word&&!(e.play&&(e.play.dp||e.play.fc||e.play.fine||e.play.laser||e.play.tp)))assert.ok(callText(e.kind,'x',e.slot,e.runs,e.inning,{word:e.play?.word}).includes(word),`実況に ${word}`);
     const hit=p.ball.find(b=>b.kind!=='throw'&&b.kind!=='pitch')??null,land=hit?.b??null;
     const near=(a:V,b:V,m=1.2)=>Math.hypot(a[0]-b[0],a[1]-b[1])<=m;
     if(e.kind==='HR'){assert.equal(p.motion,'home-run');assert.ok(land![1]>100,'ホームランは塀の向こうへ');assert.equal(ballAt(p,hit!.t1)?.o??0,0,'スタンドに消える');}
-    if(e.kind==='OUT'){if(word.endsWith('ゴロ')){assert.equal(p.motion,'ground-out');assert.equal(hit!.kind,'ground');assert.ok(land![1]<40,'ゴロは内野');}else{assert.equal(p.motion,'fly-out');assert.equal(hit!.kind,'air');assert.ok(land![1]>55,'フライは外野');}}
+    if(e.kind==='OUT'&&!e.play?.fine){if(word.endsWith('ゴロ')){assert.equal(p.motion,'ground-out');assert.equal(hit!.kind,'ground');assert.ok(land![1]<40,'ゴロは内野');}else{assert.ok(['fly-out','liner-out','pop-out'].includes(p.motion),p.motion);assert.equal(hit!.kind,'air');if((e.play?.fielder??8)>=7)assert.ok(land![1]>45,'外野の打球は外野');else assert.ok(land![1]<40,'内野フライ・ライナーは内野');}}
     if(['1B','2B','3B'].includes(e.kind)){assert.ok(['single','extra-base'].includes(p.motion));assert.ok(p.ball.some(b=>b.b[1]>50),'安打は外野へ抜ける');}
     if(['レフト','三遊間','左中間'].includes(word)&&land)assert.ok(land[0]<0,`${word} は左`);
     if(['ライト','一二塁間','右中間'].includes(word)&&land)assert.ok(land[0]>0,`${word} は右`);
@@ -230,6 +232,7 @@ export function registerTacticTests(test:(name:string,run:()=>void)=>void){
      if(a.role==='b'&&['SB','CS'].includes(e.kind))continue;
      if(a.role==='b'&&e.kind==='HR'){assert.ok(Math.hypot(end.p[0]-PLATE[0],end.p[1]-PLATE[1])<7,'本塁打の打者は一周して本塁へ');continue;}
      if(at>=0){assert.ok(near(end.p,BAGS[at]),`${e.kind} 走者の塁 ${JSON.stringify(end.p)}`);assert.equal(end.o,1);}
+     else if(e.play?.fates.some(f=>f.id===id&&f.to===-1))assert.equal(end.o,0,'アウトの走者は消える');
      else if(a.role==='r'&&e.kind!=='CS'&&before.includes(id))assert.ok(Math.hypot(end.p[0]-PLATE[0],end.p[1]-PLATE[1])<7,'得点は本塁へ');
      else assert.equal(end.o,0,`${e.kind} 塁にいない打者・走者は消える`);
     }

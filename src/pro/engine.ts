@@ -17,9 +17,10 @@ import {ownedRatings,ratingOverall,growthBonus,growOneYear,validCareerGrowth,typ
 import {recordAchievements,achievementNames,type Achievements} from './achievements';
 import {captureSeasonTeam,validSeasonTeam,type SeasonTeamSnapshot} from './season-team';
 import {createStarterScout,validStarterScout,type StarterScoutState} from './starter-scout';
+import {resolveOut,hitPlay,throwOutChance,POS_NO,type PlayDetail,type PlayCtx,type Fate} from './plays';
 import {emptyFielding,creditFieldingContact,validFieldingSeason,type FieldingSeason} from './fielding-stats';
 
-export interface BatStats { playerId:string;team:string;games:number;pa:number;ab:number;hits:number;doubles:number;triples:number;hr:number;rbi:number;runs:number;bb:number;so:number;sb:number;hbp:number;sf:number }
+export interface BatStats { playerId:string;team:string;games:number;pa:number;ab:number;hits:number;doubles:number;triples:number;hr:number;rbi:number;runs:number;bb:number;so:number;sb:number;hbp:number;sf:number;/** 併殺打(11/5 から。前のセーブには無い) */gdp?:number }
 export interface PitStats { playerId:string;team:string;games:number;starts:number;wins:number;losses:number;saves:number;outs:number;hits:number;er:number;bb:number;so:number;hr:number;hbp:number;bf:number }
 export interface Standing { team:string;w:number;l:number;d:number;rf:number;ra:number;form:string[] }
 export interface PlayHighlight { inning:number;team:string;batter:string;pitcher:string;play:string;runs:number;awayScore:number;homeScore:number;turningPoint:boolean }
@@ -162,12 +163,19 @@ export function nextMatchPreview(state:GameState){
 // 観戦モード(WatchScreen)は interactive=true で打席の前ごとに止め、監督の指示(WatchOrder)を受け取る。
 // 指示が無ければ記録と同じ試合になる。指示を出すと、そこから先は「もしも」の試合(シーズンの成績には入れない)。
 export type WatchOrder={kind:'bunt'}|{kind:'steal'}|{kind:'ibb'}|{kind:'pinch';slot:number;id:string}|{kind:'runner';base:number;id:string}|{kind:'field';slot:number;id:string;position?:string}|{kind:'pitcher';id:string}|{kind:'move';slot:number;position:string}|{kind:'tactic';scope:'team'|'batter'|'pitch'|'pitcher';id?:string;tactic:string|null};
-export type LiveKind='BB'|'HBP'|'K'|'OUT'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER'|'MOVE';
-export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string;tactic?:[BatTactic|null,PitchTactic|null]}
+export type LiveKind='BB'|'HBP'|'K'|'OUT'|'DP'|'TP'|'FC'|'SF'|'E'|'1B'|'2B'|'3B'|'HR'|'BUNT'|'BUNT_FAIL'|'IBB'|'SB'|'CS'|'PINCH'|'RUNNER'|'FIELD'|'PITCHER'|'MOVE';
+export interface LiveEvent {kind:LiveKind;inning:number;side:number;batter:string;slot:number;pitcher:string;runs:number;outs:number;bases:(string|null)[];score:[number,number];line:number[][];hits:[number,number];errors:[number,number];order?:WatchOrder;replaced?:string;tactic?:[BatTactic|null,PitchTactic|null];/** 打球の後のプレー(11/5): 打球の種類・捕った野手・併殺・フォース/タッチ・ファインプレー・好返球。 */play?:PlayDetail}
 export interface LiveSituation {inning:number;side:number;outs:number;bases:(string|null)[];batter:string;slot:number;pitcher:string;score:[number,number];line:number[][];hits:[number,number];errors:[number,number];lineups:string[][];defense:Record<string,string>[];pitchers:string[][];usedPitchers:string[][];removed:string[][];ibbLeft:number;batToday:Record<string,BatStats>;pitToday:Record<string,PitStats>;tactics:Tactics}
 export type LiveStep={type:'decide';s:LiveSituation}|{type:'event';e:LiveEvent};
 export interface GameOptions {interactive?:boolean;control?:number;tables?:{batting:Record<string,BatStats>;pitching:Record<string,PitStats>;fielding:FieldingSeason};tiebreak?:boolean}
-export const IBB_PER_INNING=2;
+/** 敬遠の回数の制限は 11/5 に無くした(持ち主「回数制限あるの意味不明」)。前の版との互換のために残す(大きな数)。 */
+export const IBB_PER_INNING=99;
+/** 11/5: 併殺が入って減った得点を戻すため、安打の時に次の塁を狙う割合を少し上げた(600試合で得点・打率・防御率が前とほぼ同じになる値)。 */
+export const EXTRA_BASE_1105=.10;
+/** 11/5: ファインプレー・届かない打球の効き方(リーグごと)。海外・宇宙は相手の守備がとても高いので、効きを小さくして、リーグ全体の打率が前と変わらないようにする。 */
+const SKILL_SPREAD:Record<string,number>={NPB:1,MLB:.35,SPACE:.5};
+/** 11/5: 次の塁を狙う割合の上げ幅(リーグごと)。海外・宇宙は走者が多く併殺の減り方が大きいので、少し多めに戻す。 */
+const EXTRA_BASE_BY:Record<string,number>={NPB:EXTRA_BASE_1105,MLB:.30,SPACE:.45};
 /** 交代で出せるか。出せない時は理由(画面でボタンを押せなくして一言出す)。 */
 export function substituteBlock(lineup:string[],removed:string[],id:string):string|null{
  return !playerMap[id]?'この選手はいない':lineup.includes(id)?'この選手はもう試合に出ている':removed.includes(id)?'この選手はもう出場した':!canBat(playerMap[id])?'この選手は打てない':null;
@@ -216,7 +224,9 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
  const latestPitcher=[start[0],start[1]];const enteringLead=new Map<string,number>();
  const getB=(side:number,id:string)=>{
   const key=batKey(ids[side],id);
-  return tables.batting[key]??=( {playerId:id,team:ids[side],games:0,pa:0,ab:0,hits:0,doubles:0,triples:0,hr:0,rbi:0,runs:0,bb:0,so:0,sb:0,hbp:0,sf:0} );
+  const row=tables.batting[key]??=( {playerId:id,team:ids[side],games:0,pa:0,ab:0,hits:0,doubles:0,triples:0,hr:0,rbi:0,runs:0,bb:0,so:0,sb:0,hbp:0,sf:0,gdp:0} );
+  if(row.gdp===undefined)row.gdp=0;// 11/5 より前のセーブの成績には併殺打が無い
+  return row;
  };
  const getP=(side:number,id:string)=>{
   const key=batKey(ids[side],id);
@@ -266,7 +276,21 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
    };
    const outFor=()=>{out++;ps.outs++;outsByPitcher.set(`${defense}|${pitcherId}`,(outsByPitcher.get(`${defense}|${pitcherId}`)??0)+1);};
    const lineNow=()=>[[...line[0],...(side===0?[runs]:[])],[...line[1],...(side===1?[runs]:[])]];
-   const ev=(kind:LiveKind,batter:string,slot:number,runsIn=0,order?:WatchOrder,replaced?:string,tactic?:[BatTactic|null,PitchTactic|null]):LiveStep=>({type:'event',e:{kind,inning:inning+1,side,batter,slot,pitcher:pitcherId,runs:runsIn,outs:out,bases:bases.map(b=>b?.id??null),score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],order,replaced,tactic}});
+   const ev=(kind:LiveKind,batter:string,slot:number,runsIn=0,order?:WatchOrder,replaced?:string,tactic?:[BatTactic|null,PitchTactic|null],play?:PlayDetail):LiveStep=>({type:'event',e:{kind,inning:inning+1,side,batter,slot,pitcher:pitcherId,runs:runsIn,outs:out,bases:bases.map(b=>b?.id??null),score:[scores[0],scores[1]],line:lineNow(),hits:[hits[0],hits[1]],errors:[errors[0],errors[1]],order,replaced,tactic,...(play?{play}:{})}});
+   // 打球の後のプレーを当てはめる(plays.ts の fates)。得点を先に、アウトを後に(自責点の数え方が、そのプレーの前のアウトで決まるので)。
+   // 3つ目のアウトがフォース(打者走者の一塁アウトを含む)や帰塁のアウトの時は、そのプレーの得点は入らない。打点は rbi の時だけ。
+   const applyPlay=(fates:Fate[],bs:BatStats,rbi:boolean)=>{
+    const outsAdded=fates.filter(f=>f.to===-1).length;
+    const cancel=out+outsAdded>=3&&fates.some(f=>f.to===-1&&(f.out==='force'||f.out==='doubled'));
+    const obj=(f:Fate):Runner=>f.from<0?{id:f.id,pitcher:pitcherId}:bases[f.from]!;
+    const next:(Runner|null)[]=[null,null,null];
+    for(const f of fates){if(f.to===3){if(!cancel)run(obj(f),bs,false,rbi);}else if(f.to>=0&&f.to<=2){if(next[f.to])throw new Error('two runners on one base');next[f.to]=obj(f);}}
+    for(let i=0;i<outsAdded;i++)if(out<3)outFor();
+    bases=next;
+   };
+   /** 守備位置の番号(1〜9)の野手の守備・肩。投手は 55・60。外野は打順の並びで 左・中・右(画面の決まりと同じ)。 */
+   const fielderAt=(no:number)=>{const d=defenses[defense];if(no===1)return {skill:55,arm:60};const m=['','','捕','一','二','三','遊'];const f=no<=6?d.fielders.find(x=>x.position===m[no]):d.outfield[no-7];return f?{skill:f.skill,arm:f.arm}:{skill:55,arm:60};};
+
    while(out<3){
     // ---- 監督の指示(観戦モードの打席の前)。指示が無い時・interactive でない時は何も変わらない。
     let order:WatchOrder|null|undefined=null;
@@ -323,12 +347,12 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
      if(random.next()<success){getB(side,who).sb++;bases[1]=bases[0];bases[0]=null;yield ev('SB',who,slot,0,order);}else{bases[0]=null;outFor();yield ev('CS',who,slot,0,order);if(out>=3)break;}
      order=null;
     }
-    const beforeRuns=scores[side],beforeLead=scores[side]-scores[defense];let play='';let kind:LiveKind='OUT';
+    const beforeRuns=scores[side],beforeLead=scores[side]-scores[defense];let play='';let kind:LiveKind='OUT';let detail:PlayDetail|undefined;
     const slot=battingOrder[side]%9;
     const id=rosters[side].lineup[slot];battingOrder[side]++;
     const pl=playerMap[id],bs=getB(side,id);bs.pa++;ps.bf++;
-    if(order&&order.kind==='ibb'&&defense===control&&walksOrdered<IBB_PER_INNING&&!(bases[0]&&bases[1]&&bases[2])){
-     // 敬遠: 乱数を使わず一塁へ(満塁ではできないので押し出しは起きない)。
+    if(order&&order.kind==='ibb'&&defense===control){
+     // 敬遠(申告敬遠): 乱数を使わず一塁へ。回数の制限なし(11/5)。満塁なら押し出しで1点(打点も付く、規則どおり)。球数は増やさない。
      walksOrdered++;bs.bb++;ps.bb++;kind='IBB';
      if(bases[0]){if(bases[1]){if(bases[2])run(bases[2],bs);bases[2]=bases[1];}bases[1]=bases[0];}bases[0]={id,pitcher:pitcherId};
     }else if(order&&order.kind==='bunt'&&side===control&&out<2&&(bases[0]||bases[1])){
@@ -336,8 +360,9 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
      const c=gameRatings(pl,bonusFor(side,id),stageFor(side,id)).contact;
      const ok=random.next()<clamp(.70+(c-55)*.005,.50,.90);
      outFor();
-     if(ok){kind='BUNT';const moved:(Runner|null)[]=[null,null,null];for(let b=2;b>=0;b--){const r=bases[b];if(!r)continue;if(b===2)run(r,bs,false,false);else moved[b+1]=r;}bases=moved;}
-     else kind='BUNT_FAIL';
+     // 11/5: スクイズの得点には打点を付ける(犠打なので打数には入れない)。失敗(小フライ)は犠打にならないので打数に入れる。
+     if(ok){kind='BUNT';const moved:(Runner|null)[]=[null,null,null];for(let b=2;b>=0;b--){const r=bases[b];if(!r)continue;if(b===2){if(out<3)run(r,bs,false,true);}else moved[b+1]=r;}bases=moved;}
+     else{kind='BUNT_FAIL';bs.ab++;}
     }else{
     const scoringPosition=!!(bases[1]||bases[2]);
     const cacheKey=side+'|'+id+'|'+pitcherId+'|'+Number(scoringPosition);
@@ -359,6 +384,10 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
      if(bases[0]){if(bases[1]){if(bases[2])run(bases[2],bs);bases[2]=bases[1];}bases[1]=bases[0];}bases[0]={id,pitcher:pitcherId};
     }else{
      bs.ab++;const outcome=(roll-walkRate-hbpRate)/(1-walkRate-hbpRate);
+     // 11/5: 打球の後のプレー(plays.ts)。打者・走者・捕る野手の能力を渡す。乱数は同じ列(random)を使う。
+     const spd=(rid:string)=>gameRatings(playerMap[rid],bonusFor(side,rid),stageFor(side,rid)).speed;
+     const bat=gameRatings(pl,bonusFor(side,id),stageFor(side,id));
+     const pctx:PlayCtx={rnd:()=>random.next(),speed:spd,power:bat.power,contact:bat.contact,skill:no=>51+(fielderAt(no).skill-51)*SKILL_SPREAD[circuitOf(season)],arm:no=>fielderAt(no).arm,teamField:defenses[defense].field,tactic:batT};
      if(outcome<hitRate){
       bs.hits++;ps.hits++;hits[side]++;
       const hitRoll=random.next();let amount=1;
@@ -369,23 +398,50 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
       if(amount===4){bs.hr++;ps.hr++;for(const runner of bases)if(runner)run(runner,bs,true);run({id,pitcher:pitcherId},bs,true);bases=[null,null,null];}
       else{
        recordContact();
+       // 打球の向きと、守備の高い野手のファインプレー(安打を捕ってアウトに)。
+       const hp=hitPlay(amount as 1|2|3,bases.map(b=>b?.id??null),out,id,pctx);
+       if(hp.fine){
+        bs.hits--;ps.hits--;hits[side]--;kind='OUT';play='';
+        detail=hp.fine;applyPlay(hp.fine.fates,bs,true);
+       }else{
        if(amount===3)bs.triples++;if(amount===2)bs.doubles++;
        const advanced:(Runner|null)[]=[null,null,null];
+       const fates:Fate[]=[];let laser=false,over=false;
+       // 送球する外野手(三遊間はレフト、一二塁間はライト)。
+       const thrower=hp.fielder===6?7:hp.fielder===4?9:hp.fielder;
        for(let base=2;base>=0;base--){
         const runner=bases[base];if(!runner)continue;
+        if(over){fates.push({id:runner.id,from:base,to:base});continue;}
         // First-to-third singles and first-to-home doubles used to be absent.
         // Keep occupied destinations protected and let speed/arms and two outs
         // determine the extra base rather than inflating hits to create runs.
+        // 2アウトの走者は打った瞬間にスタートする(+.20)。
         const canAdvance=amount===1&&(base===1||base===0&&!advanced[2])||amount===2&&base===0;
-        const advance=(arm:number)=>clamp(extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),arm,stageFor(side,runner.id))+(out===2?.20:0)-(base===0&&amount===1?.16:0),.08,.90);
-        const bonus=canAdvance&&random.next()<advance(defenses[defense].arm)?1:0;let target=base+amount+bonus;
+        const advance=(arm:number)=>clamp(extraBaseChance(playerMap[runner.id],bonusFor(side,runner.id),arm,stageFor(side,runner.id))+(out===2?.20:0)-(base===0&&amount===1?.16:0)+EXTRA_BASE_BY[circuitOf(season)],.08,.92);
+        let bonus=0,thrown=false;
+        if(canAdvance){
+         const x=random.next(),p=advance(defenses[defense].arm);
+         // 11/5: 次の塁を狙って、外野の肩で刺される(肩が強いほど多い)。刺されなければ前と同じ確率で進む。
+         if(x<p)bonus=1;else if(x<p+throwOutChance(fielderAt(thrower).arm,spd(runner.id)))thrown=true;
+        }
+        let target=base+amount+bonus;
         if(canAdvance){
          const d=defenses[defense],current=advance(d.arm),neutral=advance(61);
          const slope=Math.abs(d.arm-61)>1e-10?(neutral-current)/(d.arm-61):current>.08&&current<.90?.003:0;
          for(const f of d.outfield)f.row.armRuns+=(f.arm-61)/d.outfield.length*slope*.3;
         }
-        if(target>=3)run(runner,bs);else{while(advanced[target]&&target>0)target--;advanced[target]=runner;}}
-       advanced[amount-1]={id,pitcher:pitcherId};bases=advanced;
+        if(thrown){
+         const at=Math.min(3,base+amount+1);
+         fates.push({id:runner.id,from:base,to:-1,out:'tag',at,by:[thrower,at===3?2:at===2?5:4]});
+         if(fielderAt(thrower).arm>=75)laser=true;
+         outFor();if(out>=3)over=true;continue;
+        }
+        if(target>=3){run(runner,bs);fates.push({id:runner.id,from:base,to:3});}
+        else{while(advanced[target]&&target>0)target--;advanced[target]=runner;fates.push({id:runner.id,from:base,to:target});}}
+       advanced[amount-1]={id,pitcher:pitcherId};bases=advanced;fates.push({id,from:-1,to:amount-1});
+       detail={bb:'hit',fielder:hp.fielder,word:hp.word,fates,...(laser?{laser:true}:{})};
+       if(fates.some(f=>f.to===-1))detail.seq=`${thrower}-${fates.find(f=>f.to===-1)!.by![1]}`;
+       }
       }
      }else if(outcome>=Math.max(hitRate+kRate,1-fieldingErrorRate(defenses[defense].field))){
       // A misplayed ball advances each runner one base. It is an AB, not a hit;
@@ -394,23 +450,27 @@ export function* gameSteps(state:GameState,home:string,away:string,random:Return
       recordContact();
       if(bases[2])run({...bases[2],unearned:true},bs,false,false);
       bases=[{id,pitcher:pitcherId,unearned:true},bases[0],bases[1]];
-     }else{
-      outFor();
-      if(outcome<hitRate+kRate){bs.so++;ps.so++;kind='K';}
-      else {
-       recordContact();
-       // A fraction of balls put out in play are deep enough for a sacrifice
-       // fly. The out counts, the plate appearance counts, but the AB does not.
-       // Two-out advancement is already handled on hits, not on this third out.
-       if(out<3&&bases[2]&&random.next()<clamp(.30+(gameRatings(playerMap[bases[2].id],bonusFor(side,bases[2].id),stageFor(side,bases[2].id)).speed-55)*.002-(defenses[defense].arm-61)*.0015,.15,.45)){
-        bs.ab--;bs.sf++;play='犠牲フライ';kind='SF';run(bases[2],bs);bases[2]=null;
-       }
+     }else if(outcome<hitRate+kRate){outFor();bs.so++;ps.so++;kind='K';}
+     else{
+      recordContact();
+      // 11/5: アウトになる打球。ゴロ・フライ・ライナーと捕る野手、併殺・野選・タッチアップ・飛び出しを plays.ts で決める。
+      const res=resolveOut(bases.map(b=>b?.id??null),out,id,pctx);
+      detail=res;
+      if(res.kind==='1B'){
+       // 守備の低い野手が届かずに安打。
+       bs.hits++;ps.hits++;hits[side]++;kind='1B';play='タイムリーヒット';applyPlay(res.fates,bs,true);
+      }else{
+       kind=res.kind==='TP'?'TP':res.kind;
+       if(res.kind==='SF'){bs.ab--;bs.sf++;play='犠牲フライ';}
+       if((res.kind==='DP'||res.kind==='TP')&&res.bb==='gb'){bs.gdp=(bs.gdp??0)+1;}
+       applyPlay(res.fates,bs,res.kind!=='DP'&&res.kind!=='TP');
+       if(!play&&scores[side]>beforeRuns)play=res.kind==='DP'||res.kind==='TP'?'併殺の間に得点':res.kind==='FC'?'野選の間に得点':'内野ゴロの間に得点';
       }
      }
     }
     }
     if(scores[side]>beforeRuns)highlights.push({inning:inning+1,team:ids[side],batter:id,pitcher:pitcherId,play:play||(kind==='BUNT'?'スクイズ':kind==='IBB'?'押し出し四球':''),runs:scores[side]-beforeRuns,awayScore:scores[0],homeScore:scores[1],turningPoint:beforeLead<=0&&scores[side]>=scores[defense]});
-    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined,undefined,control>=0?[side===control?batTacticFor(tactics,id):null,defense===control?pitchTacticFor(tactics,pitcherId):null]:undefined);
+    if(interactive)yield ev(kind,id,slot,scores[side]-beforeRuns,order??undefined,undefined,control>=0?[side===control?batTacticFor(tactics,id):null,defense===control?pitchTacticFor(tactics,pitcherId):null]:undefined,detail);
     if(side===1&&inning>=8&&scores[1]>scores[0])break;
     if(bases[0]&&!bases[1]&&out<3&&!bases[0].stealConsidered){
      bases[0].stealConsidered=true;

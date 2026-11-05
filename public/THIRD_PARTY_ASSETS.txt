@@ -78,3 +78,13 @@ License: /audio/kenney/Confetti-LICENSE.txt
 
 Dependencies are pinned in package-lock.json and bundled locally.
 All animations respect prefers-reduced-motion. The sound toggle is saved.
+
+Match play effects (added 2026-11-05: double play, fine play, laser throw, home run, comeback, walk-off, triple play):
+No new sound files. The effects reuse sounds already listed above:
+ - 効果音ラボ (https://soundeffect-lab.info/) /audio/selab/reveal.mp3, gold.mp3, rainbow.mp3 and /audio/selab/watch/cheer.mp3
+   (small effects: reveal, medium: gold, large: rainbow + stadium cheer). License: /audio/selab/LICENSE.txt
+The effect visuals (gold lettering, light rays, sparks, confetti, rainbow arc) are CSS only, drawn after
+design mock-ups made with ChatGPT image generation. No external images. The effects respect
+prefers-reduced-motion and have a strength setting (派手 / ふつう / 控えめ). No strobing (each light appears once).
+Team-colour uniforms are recoloured from the existing match sprites (atlas_blue.webp) with a mask built
+from the existing blue/red sprite pair (scripts/build-uniform-mask.py). No new drawings.
