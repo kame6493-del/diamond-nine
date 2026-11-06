@@ -1,3 +1,4 @@
+import {shownKmh} from './velocity-display';
 // 宇宙リーグの相手(宇宙人)の見た目。2026-11-03 持ち主「見たこともない宇宙人ネームで、能力はほぼぶっ飛んでいる感じ」
 // 「バランスに沿った感じの相手に」「球速は人間ではありえなくても、人間がある程度打ち返せる強さくらいで」。
 //
@@ -100,13 +101,12 @@ export function buildAlienNames(roster:readonly {id:string;team:string}[]):Map<s
 }
 
 // ---- 能力の見た目 ----
-// 試合の強さは今の宇宙リーグのまま。見た目だけ、人ではありえない数字にする。
-// 能力(15〜99 の段): 1.5 倍(例: パワー 92 → 138、99 → 149)。ランクの札(S〜G)は元の数字のまま(本当の強さの目安)。
-// 球速(km/h): 145〜165 を 180〜220 に引きのばす(例: 150 → 190、158 → 206)。計算で使う球速は元のまま(約150km/h 相当)
-// なので、こちらの打者は今までどおり打ち返せる。
-export const alienStat=(value:number)=>Math.round(value*1.5);
-export const alienVelocity=(kmh:number)=>Math.round(190+(kmh-150)*2);
-export const alienOverall=(value:number)=>Math.round(value*1.5);
+// 2026-11-06 夜 持ち主「宇宙人のチームは、査定は宇宙基準じゃなく一般基準にして」: 宇宙の目盛り(能力 1.5 倍・球速 190〜220)は止め、
+// 地球の選手と同じ物差しで出す。名前・特徴・年齢の見た目は残す。試合の強さ(宇宙の補正)は変えない。
+// 球速は velocity-display の shownKmh(全員同じ物差し)で出す。ここの関数は前の呼び出しのために残す。
+export const alienStat=(value:number)=>Math.round(value);
+export const alienVelocity=(kmh:number)=>shownKmh(kmh);
+export const alienOverall=(value:number)=>Math.round(value);
 
 // 宇宙らしい特徴(見た目の説明だけ。試合の計算には入らない)。
 export const ALIEN_FEATURES:readonly {name:string;note:string}[]=[

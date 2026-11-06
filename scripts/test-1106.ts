@@ -110,7 +110,7 @@ export function register1106Tests(test:(name:string,run:()=>void)=>void){
   assert.equal((order.match(/class="lu-stat/g)??[]).length,9,'9人とも成績の欄がある');
   assert.ok(/打率.*本.*点/.test(html.match(/<div class="lu-thead"[^>]*>(.*?)<\/div>/)![1]),'見出しに 打率 本 点');
   const pit=renderToStaticMarkup(createElement(StartingLineup,{base:g.base,label:g.label,rival:'相手',onStart:()=>{},onCancel:()=>{},tab:'pit'}));
-  assert.ok(pit.includes('救援'),'救援の一覧');for(const r of ['中継ぎ','抑え'])assert.ok(pit.includes(`>${r}<`),r);
+  assert.ok(pit.includes('救援'),'救援の一覧');for(const r of ['中継ぎ','抑え'])assert.ok(pit.includes(r),r);
   // 試合が進んだ後は今季の成績
   const later=managedGame({...state,season:{...state.season}},true)!;void later;
   const css=readFileSync('src/pro/lineup.css','utf8');

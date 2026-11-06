@@ -1,4 +1,5 @@
 import {grade,teamById,type Player} from './data';
+import {shownKmh} from './velocity-display';
 import {ownedRatings,ratingOverall} from './development';
 import type {ScoutTier} from './scout-presentation';
 
@@ -22,7 +23,7 @@ export function xWeightedLength(text:string):number{
 export interface ScoutShareData {name:string;team:string;teamColor:string;role:string;overall:number;tier:ScoutTier;isNew:boolean;overseas:boolean;rookie:boolean;abilities:[string,number|string][]}
 export function scoutShareData(player:Player,owned:Record<string,number>,training:Record<string,number>,tier:ScoutTier,isNew:boolean,rookie=false):ScoutShareData{
  const r=ownedRatings(player,owned,training),team=teamById(player.team);
- const abilities:[string,number|string][]=player.role==='pitcher'?[['球速',`${r.velocity}km/h`],['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]]:[['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]];
+ const abilities:[string,number|string][]=player.role==='pitcher'?[['球速',`${shownKmh(r.velocity)}km/h`],['制球',r.control],['スタミナ',r.stamina],['変化',r.breaking]]:[['ミート',r.contact],['パワー',r.power],['走力',r.speed],['肩',r.arm],['守備',r.field]];
  return {name:player.name,team:team?.short??'',teamColor:team?.color??'#7551c9',role:player.role==='pitcher'?'投手':player.positions.join('・')||'DH',overall:ratingOverall(player,r),tier,isNew,overseas:!!player.mlb,rookie,abilities};
 }
 export function scoutPostText(d:ScoutShareData,url='',now:Date|null=new Date()):string{

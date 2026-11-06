@@ -5,6 +5,7 @@ import {playerMap,teams,teamById} from '../src/pro/data';
 import {mlbPlayers} from '../src/pro/mlb-players';
 import {mlbLeagueTeams,mlbOpponentPlayers,spaceAlienNames,isSpaceAlien} from '../src/pro/mlb-opponents';
 import {spaceTeams} from '../src/pro/display-names';
+import {shownKmh} from '../src/pro/velocity-display';
 import {AVOID_WORDS,looksReal,SPACE_TEAM_ROWS,alienNameFrom,alienStat,alienVelocity,buildAlienNames,setDisplayCircuit} from '../src/pro/space-aliens';
 import {initialState,emptySeason,simulateDays,type GameState} from '../src/pro/engine';
 import {leagueTeams} from '../src/pro/leagues';
@@ -62,10 +63,10 @@ export function registerSpaceAlienTests(test:(name:string,run:()=>void)=>void){
    const a=spaceState();setDisplayCircuit('SPACE');const withAliens=simulateDays(a,6);setDisplayCircuit('NPB');const without=simulateDays(spaceState(),6);
    assert.deepEqual(withAliens.season.results,without.season.results);assert.deepEqual(withAliens.season.standings,without.season.standings);
   }finally{setDisplayCircuit('NPB');}
-  // 見た目の数字: 球速は人ではありえない数、能力は 1.5 倍
+  // 11/6 夜 持ち主「査定は宇宙基準じゃなく一般基準にして」: 見た目の数字も地球の選手と同じ物差し(球速は全員 shownKmh)
   const velo=mlbOpponentPlayers.filter(p=>p.role==='pitcher').map(p=>alienVelocity(p.ratings.velocity));
-  assert.ok(Math.min(...velo)>=180&&Math.max(...velo)<=225,`${Math.min(...velo)}-${Math.max(...velo)}`);
-  assert.equal(alienVelocity(150),190);assert.equal(alienStat(92),138);assert.equal(alienStat(99),149);
+  assert.ok(Math.min(...velo)>=135&&Math.max(...velo)<=161,`${Math.min(...velo)}-${Math.max(...velo)}`);
+  assert.equal(alienVelocity(150),shownKmh(150));assert.equal(alienStat(92),92);assert.equal(alienStat(99),99);
  });
  test('alien player sheet shows the alien name, space club, cosmic numbers and features only in the space league',()=>{
   const state=spaceState(),pitcher=mlbOpponentPlayers.find(p=>p.role==='pitcher'&&p.ratings.velocity>=158)!;
@@ -73,9 +74,9 @@ export function registerSpaceAlienTests(test:(name:string,run:()=>void)=>void){
   try{
    setDisplayCircuit('SPACE');const html=render();
    assert.ok(html.includes(spaceAlienNames.get(pitcher.id)!));assert.ok(html.includes(spaceTeams[pitcher.team].short));assert.ok(html.includes(' · 宇宙'));
-   assert.ok(html.includes(`${alienVelocity(pitcher.ratings.velocity)}<em>km/h</em>`));assert.ok(html.includes('宇宙の目盛り'));assert.ok(html.includes('pw-trait-alien'));
+   assert.ok(html.includes(`${shownKmh(pitcher.ratings.velocity)}<em>km/h</em>`));assert.ok(!html.includes('宇宙の目盛り'));assert.ok(html.includes('pw-trait-alien'));
    setDisplayCircuit('MLB');const earth=render();
-   assert.ok(!earth.includes(spaceAlienNames.get(pitcher.id)!));assert.ok(earth.includes(`${pitcher.ratings.velocity}<em>km/h</em>`));assert.ok(!earth.includes('pw-trait-alien'));
+   assert.ok(!earth.includes(spaceAlienNames.get(pitcher.id)!));assert.ok(earth.includes(`${shownKmh(pitcher.ratings.velocity)}<em>km/h</em>`));assert.ok(!earth.includes('pw-trait-alien'));
   }finally{setDisplayCircuit('NPB');}
  });
 }

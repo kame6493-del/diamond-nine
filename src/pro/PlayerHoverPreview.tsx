@@ -1,4 +1,5 @@
 import {ownedRatings} from './development';
+import {shownKmh} from './velocity-display';
 import { useEffect,useId,useLayoutEffect,useRef,useState } from 'react';
 import { createPortal } from 'react-dom';
 import { grade,gradeColor,playerMap,teamById,uzrInfo } from './data';
@@ -70,7 +71,7 @@ export function PlayerHoverPreview({owned,training,growth}:{owned:Record<string,
  const isPitcher=player.role==='pitcher',abilities=player.mlb?.twoWay?[...pitchingAbilities,...battingAbilities]:isPitcher?pitchingAbilities:battingAbilities;
  return createPortal(<div ref={popup} id={tooltipId} role="tooltip" className={`player-hover-preview ${isPitcher?'pitcher':''}`} style={{left:preview.left,top:preview.top}}>
   <div className="player-hover-heading"><div><small>{teamById(player.team).short} · {player.dataYear}</small><strong>{player.name}</strong></div></div>
-  {isPitcher&&<div className="player-hover-velocity"><span>{velocityLabel(player)}</span><strong>{player.ratings.velocity}<small>km/h</small></strong></div>}
+  {isPitcher&&<div className="player-hover-velocity"><span>{velocityLabel(player)}</span><strong>{shownKmh(player.ratings.velocity)}<small>km/h</small></strong></div>}
   <div className="player-hover-abilities">{abilities.map(([key,label])=>{
    const value=ratings[key],color=gradeColor(value);
    return <div className="player-hover-ability" key={key}><span>{label}</span><div className="player-hover-bar"><i style={{width:`${value}%`,background:color}}/></div><b style={{color}}>{grade(value)}</b><strong>{value}</strong></div>;

@@ -1,18 +1,20 @@
 import {initialState,initialSandboxState,migrateState,saveKeyFor,type GameState} from './engine';
 import type {Profile} from './progression';
+import {encodeSave,parseSave} from './save-codec';
 
 type SaveStore=Pick<Storage,'getItem'|'setItem'>;
 type ResetStore=SaveStore&Pick<Storage,'removeItem'|'key'|'length'>;
 const backupPointer=(profile:Profile)=>`${saveKeyFor(profile)}-reset-backup`;
 export function readResetBackup(profile:Profile,store:SaveStore):GameState|null {
- try{const key=store.getItem(backupPointer(profile)),raw=key?store.getItem(key):null;const state=raw?migrateState(JSON.parse(raw)):null;return state&&(state.mode==='career')===(profile==='career')?state:null;}catch{return null;}
+ try{const key=store.getItem(backupPointer(profile)),raw=key?store.getItem(key):null;const state=raw?migrateState(parseSave(raw)):null;return state&&(state.mode==='career')===(profile==='career')?state:null;}catch{return null;}
 }
 function archive(state:GameState,profile:Profile,store:SaveStore){
  const key=`${saveKeyFor(profile)}-snapshot-${Date.now()}-${Math.random().toString(36).slice(2)}`;
- store.setItem(key,JSON.stringify(state));return key;
+ store.setItem(key,encodeSave(state));return key;
 }
 export function resetTeam(state:GameState,profile:Profile,store:SaveStore):GameState {
  const fresh=profile==='career'?initialState():initialSandboxState();fresh.name=state.name;fresh.club=state.club;
+ // 11/6: 控えは縮めて書く(素の JSON の 1/10 ほど)。前の控えは消さない(枠が足りない時だけ save-store が消す)。
  const backup=archive(state,profile,store);
  store.setItem(backupPointer(profile),backup);
  // Never change the active save until its recoverable snapshot exists.

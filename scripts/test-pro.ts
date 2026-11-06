@@ -28,6 +28,8 @@ import {register1104eTests} from './test-1104e';
 import {register1104fTests} from './test-1104f';
 import {register1104gTests} from './test-1104g';
 import {register1105Tests} from './test-1105';
+import {register1106cTests} from './test-1106c';
+import {shownKmh} from '../src/pro/velocity-display';
 import {register1105bTests} from './test-1105b';
 import {register1105cLineupTests} from './test-1105c-lineup';
 import {register1105cTests} from './test-1105c';
@@ -307,7 +309,7 @@ test('player form changes by period and year without mutating real abilities',()
 test('cards always render five numeric batting abilities or measured pitching speed',()=>{
  const batter=findPlayer('佐藤輝明'),pitcher=findPlayer('才木浩人'),markup=renderToStaticMarkup(createElement(CardAbilities,{player:batter,bonus:3}));
  for(const label of ['ミート','パワー','走力','肩','守備'])assert.ok(markup.includes(label));assert.equal((markup.match(/aria-label=/g)??[]).length,5);assert.ok(markup.includes(String(batter.ratings.field+3)));assert.ok(!markup.includes('UZR'));
- const pitchMarkup=renderToStaticMarkup(createElement(CardAbilities,{player:pitcher,bonus:8}));assert.ok(pitchMarkup.includes('158'));assert.ok(pitchMarkup.includes('球速'));assert.ok(!pitchMarkup.includes('166'));
+ const pitchMarkup=renderToStaticMarkup(createElement(CardAbilities,{player:pitcher,bonus:8}));assert.ok(pitchMarkup.includes(String(shownKmh(158))));assert.ok(pitchMarkup.includes('球速'));assert.ok(!pitchMarkup.includes('166'));
  const measured=players.filter(p=>p.velocityRecord);assert.ok(measured.length>=320);assert.ok(measured.every(p=>p.ratings.velocity===(p.wikiAssessment?.ratings.velocity??p.velocityRecord!.maximum)&&p.velocityRecord!.url.startsWith('https://npbdata.jp/players/')));assert.equal(findPlayer('村上頌樹').ratings.velocity,150);assert.equal(findPlayer('田中将大').ratings.velocity,149);
  const missing=players.find(p=>p.role==='pitcher'&&!p.velocityRecord&&!p.wikiAssessment)!;assert.ok(renderToStaticMarkup(createElement(CardAbilities,{player:missing})).includes('球速'));
 });
@@ -363,6 +365,7 @@ register1105cTests(test);
 register1105dTests(test);
 register1106Tests(test);
 register1106bTests(test);
+register1106cTests(test);
 let failures=0;
 for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);

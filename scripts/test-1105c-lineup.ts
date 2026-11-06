@@ -18,8 +18,9 @@ export function register1105cLineupTests(test:(name:string,run:()=>void)=>void){
   const order=html.slice(html.indexOf('<ol class="lu-order">'),html.indexOf('</ol>'));
   assert.equal((order.match(/<li class="lu-row/g)??[]).length,9,'9行');
   const head=html.match(/<div class="lu-thead"[^>]*>(.*?)<\/div>/)![1];
-  for(const x of ['打順','選手名','守','ミート','パワー','走力','守備','打率'])assert.ok(head.includes(x),x);
-  assert.equal((order.match(/class="lu-g"/g)??[]).length,36,'各行に段の1文字が4つ');
+  // 11/6 夜 持ち主「ミート・パワー・走力・肩・守備を、ちゃんと見られるように」: 見出しは略して ミ・パ・走・肩・守(凡例は下に1行)
+  for(const x of ['打','選手','守','ミ','パ','走','肩','打率'])assert.ok(head.includes(x),x);
+  assert.equal((order.match(/class="lu-g"/g)??[]).length,45,'各行に段の1文字が5つ(肩を足した)');
   for(const [i,id] of g.base.lineup.entries()){assert.ok(order.includes(`${i+1}番 ${playerMap[id].name}を選ぶ`),playerMap[id].name);}
   for(const t of ['野手','投手','控え'])assert.ok(html.includes(`role="tab"`)&&html.includes(`>${t}<`),t);
   // 詳しい能力と守れる位置は、行の下に閉じた形で入っている(押すと開く)

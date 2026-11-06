@@ -1,3 +1,4 @@
+import {writeSave} from './save-store';
 import { useEffect,useMemo,useRef,useState,type CSSProperties,type ReactNode } from 'react';
 import { ArrowDown,ArrowLeft,ArrowRight,ArrowUp,ArrowUpRight,BarChart3,BookOpen,Check,ChevronDown,ChevronRight,ChevronsRight,CircleHelp,Diamond,Download,Flame,Gift,Home,Layers3,Medal,Play,Plus,Search,Settings2,Shield,Shuffle,Sparkles,Star,Target,Trophy,Upload,Users,Volume2,VolumeX,X,Zap } from 'lucide-react';
 import { autoLineup,autoPitchers,canBat,fitsPosition,rosterInfo,rosterCoverage,matchesPlayerName,positionLabel,findPlayer,formatAvg,formatIP,grade,gradeColor,playerMap,players,rosterSlots,sourceInfo,teamById,teams,type Player,type Rarity } from './data';
@@ -62,7 +63,7 @@ export default function ProApp({profile='career',onProfileChange}:{profile?:Prof
  const sign=(id:string)=>{if(lock.current)return;const next=signContract(state,id);if(next===state)return;lock.current=true;setState(next);setOpeningId(id=>id+1);setShowPulls(true);};
  const equip=(id:string)=>{setState(s=>equipScoutedPlayer(s,id));setToast(`${playerMap[id].name}をオーダーに編成しました。次の試合から出場します。`);};
  const mine=state.season.standings.find(t=>t.team===state.club)!;const rank=rankings(state.season,teamById(state.club).league).findIndex(t=>t.team===state.club)+1;const power=Math.round([...state.lineup,...state.pitchers].reduce((a,id)=>a+effectiveOverall(playerMap[id],state.owned,state.training,state.careerGrowth),0)/(state.lineup.length+state.pitchers.length));const own=Object.keys(state.owned).map(id=>playerMap[id]);
- useEffect(()=>{try{localStorage.setItem(saveKeyFor(profile),JSON.stringify(state));setSaveError('');}catch{setSaveError('自動保存できません。設定からデータを書き出してください。');}},[state,profile]);
+ useEffect(()=>{setSaveError(writeSave(state,profile)?'':'自動保存できませんでした');},[state,profile]);
  useEffect(()=>{if(!toast)return;const timer=setTimeout(()=>setToast(''),5000);return()=>clearTimeout(timer);},[toast]);
  useEffect(()=>()=>{if(busyTimer.current)clearTimeout(busyTimer.current);},[]);
  const goto=(next:Page)=>{setPage(next);window.scrollTo({top:0,behavior:'smooth'});};

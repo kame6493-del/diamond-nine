@@ -2093,3 +2093,66 @@ html[data-look=pawa] .nv-app .pw-roleapt .pw-apt-none,html[data-look=pawa] .nv-a
  html[data-look=pawa] .nv-app .pw-last2>b{white-space:nowrap}
  html[data-look=pawa] .nv-app .pw-last2-form{flex-basis:100%;justify-content:flex-end}
 }
+
+/* ---- 2026-11-06 夜 スカウト: ページごと縦に流す(どこをなぞってもスクロール)・10連のカードを画面いっぱいに ----
+   持ち主「スカウト画面ですが、どこ押してもスクロール出来るようになってません」「10連ガチャで見える選手が小さい気がするので、もう少し大きくして。画面いっぱい使えるように」
+   引いている演出の間だけ .pw-fit(1画面に固定)。それ以外(.is-flow)は高さを固定せず、真ん中の場も内側でスクロールさせない。
+   引くボタンの列(.pw-sc-dock)だけ下に貼りつける。所持ポイント・広告・提供割合(.pw-sc-more)はその下に流す。 */
+html[data-look=pawa] .nv-app .pw-scout{--mx-h:calc(100dvh - var(--hdr) - var(--nav) - var(--bottom));--mx-w:min(calc((min(100vw,640px) - 20px - 16px - 12px) / 3),calc(((var(--mx-h) - 64px - 3 * 8px) / 4 - 22px) * .75))}
+html[data-look=pawa] .nv-app .pw-scout.is-flow{display:flex;flex-direction:column;gap:6px;height:auto}
+html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-sc-stage{flex:none;overflow:visible;min-height:0}
+html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-sc-idle,html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-sc-result,html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-mx-result{height:auto;min-height:0}
+html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-sc-dock{position:sticky;bottom:calc(var(--nav) + var(--bottom) + 4px);z-index:5;grid-template-columns:minmax(0,1fr)}
+html[data-look=pawa] .nv-app .pw-sc-more{display:grid;gap:6px;padding:6px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-adbtn .reward-ad-button{min-height:44px;flex-direction:row;gap:8px}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-dockinfo{display:flex;align-items:center;justify-content:space-between;gap:8px}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-dockinfo .pw-balance{display:flex;align-items:baseline;gap:6px;margin:0;font:800 13px/1.3 system-ui;color:var(--mu)}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-dockinfo .pw-balance br{display:none}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-dockinfo .pw-balance b{font:700 20px var(--num);color:var(--ink)}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-sc-dockacts{display:flex;gap:6px}
+html[data-look=pawa] .nv-app .pw-sc-more .pw-mini{min-height:44px}
+/* 10連の結果: 帯を隠して、10枚を3列(3・3・3・1)で縦横いっぱいに。いちばん良かった1枚はその下。引くボタンは貼りつけず一番下に。 */
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-sc-strip{display:none}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-sc-dock{position:static}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-result{padding:6px 8px 10px;gap:6px}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-rhead{flex-wrap:nowrap;min-height:28px}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-rhead h2{font-size:clamp(14px,4.2vw,18px);white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-sum{flex-wrap:nowrap}
+html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-sum span{white-space:nowrap;font-size:11px;padding:2px 6px}html[data-look=pawa] .nv-app .pw-scout.is-mx .pw-mx-sum b{font-size:15px}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list{grid-template-columns:repeat(3,var(--mx-w));justify-content:center;gap:8px 8px}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list li{width:var(--mx-w);container-type:inline-size}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list li:last-child:nth-child(3n+1){grid-column:2}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nv-card{width:100%}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-plate b{font-size:clamp(12px,14.5cqi,17px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-plate small{font-size:clamp(9px,10cqi,12px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-ovrtop b{font-size:clamp(16px,22cqi,30px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-ovrtop small{font-size:clamp(8px,8cqi,11px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-pos{display:none}
+html[data-look=pawa] .nv-app .pw-mx-under{display:flex;align-items:center;justify-content:center;gap:4px;height:22px;margin-top:2px;white-space:nowrap}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-list button>.pw-mx-tier{position:absolute;right:5%;top:4%;z-index:4;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+@container (max-width:112px){html[data-look=pawa] .nv-app .pw-scout .pw-mx-list .nc-plate small{display:none}html[data-look=pawa] .nv-app .pw-mx-under small{font-size:12px;padding:3px 4px}html[data-look=pawa] .nv-app .pw-mx-under .pw-mx-tag{font-size:11px;padding:1px 5px}}
+html[data-look=pawa] .nv-app .pw-mx-under .pw-mx-tag{margin:0;font-size:12px}
+html[data-look=pawa] .nv-app .pw-mx-under small{font:900 13px/1 system-ui;color:#fff;padding:3px 6px;border-radius:6px;background:rgba(255,255,255,.16)}
+html[data-look=pawa] .nv-app .pw-mx-tier{font:900 clamp(12px,13cqi,16px)/1 system-ui;font-style:normal;padding:4px 6px;border-radius:6px}
+html[data-look=pawa] .nv-app .pw-mx-tier.is-gold{background:linear-gradient(180deg,#fff2b3,#ffc928);color:#5a3300}
+html[data-look=pawa] .nv-app .pw-mx-tier.is-rainbow{background:linear-gradient(90deg,#ff4fa3,#ffb300,#22c55e,#1a8cff,#8b3dff);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+/* めくる演出: 裏の10枚も同じ3列の大きさで並べる。金・虹で1枚を見せる時は画面いっぱいに。 */
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-grid{grid-template-columns:repeat(3,var(--mx-w));justify-content:center;max-width:none;gap:8px 8px;top:44px;transform:none}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-grid .pw-mx-card:last-child:nth-child(3n+1){grid-column:2}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-card{width:var(--mx-w)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-card .nv-card .nc-plate b{font-size:clamp(11px,calc(var(--mx-w) * .13),16px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-big{width:min(calc(100vw - 40px),calc((var(--mx-h) - 190px) * .75),440px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-big .nc-l .nc-plate b{font-size:clamp(20px,6vw,30px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-big .nc-l .nc-plate small{font-size:clamp(13px,3.6vw,17px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-big .nc-l .nc-ovrtop b{font-size:clamp(40px,11vw,60px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-big .nc-l .nc-pos{font-size:clamp(16px,4.6vw,22px)}
+html[data-look=pawa] .nv-app .pw-scout .pw-mx-spotchips .pw-tierchip{font-size:18px;padding:4px 14px}
+/* 背の低い画面(360x640 など)は4列(4・4・2)の方が大きくなる */
+@media (max-width:899px) and (min-aspect-ratio:1/2){
+ html[data-look=pawa] .nv-app .pw-scout{--mx-w:min(calc((min(100vw,640px) - 20px - 16px - 24px) / 4),calc(((var(--mx-h) - 64px - 2 * 8px) / 3 - 22px) * .75))}
+ html[data-look=pawa] .nv-app .pw-scout .pw-mx-list,html[data-look=pawa] .nv-app .pw-scout .pw-mx-grid{grid-template-columns:repeat(4,var(--mx-w))}
+ html[data-look=pawa] .nv-app .pw-scout .pw-mx-list li:last-child:nth-child(3n+1),html[data-look=pawa] .nv-app .pw-scout .pw-mx-grid .pw-mx-card:last-child:nth-child(3n+1){grid-column:auto}
+ html[data-look=pawa] .nv-app .pw-scout .pw-mx-list li:nth-child(9):nth-last-child(2),html[data-look=pawa] .nv-app .pw-scout .pw-mx-grid .pw-mx-card:nth-child(9):nth-last-child(2){grid-column:2}
+}
+@container (max-width:84px){html[data-look=pawa] .nv-app .pw-mx-under{gap:2px}html[data-look=pawa] .nv-app .pw-mx-under small{font-size:11px;padding:3px 3px}html[data-look=pawa] .nv-app .pw-mx-under .pw-mx-tag{font-size:10px;padding:1px 4px}}
+@media (min-width:900px){html[data-look=pawa] .nv-app .pw-scout{--mx-h:calc(100dvh - 110px);--mx-w:min(150px,calc(((var(--mx-h) - 58px - 3 * 8px) / 4 - 22px) * .75))}html[data-look=pawa] .nv-app .pw-scout.is-flow .pw-sc-dock{bottom:8px}}

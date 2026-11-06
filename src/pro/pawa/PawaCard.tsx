@@ -1,4 +1,6 @@
 import type {CSSProperties} from 'react';
+import {shortPos} from '../positions-ja';
+import {shownKmh} from '../velocity-display';
 import {grade,teamById,type Player,type Ratings} from '../data';
 import {ownedRatings,ratingOverall} from '../development';
 import type {GameState} from '../engine';
@@ -7,12 +9,12 @@ import {pitchingRoleLabel} from '../wiki-players';
 import {isSpaceAlien} from '../mlb-opponents';
 import {alienOverall,alienVelocity} from '../space-aliens';
 /** 球速の見た目(宇宙リーグの相手は宇宙の目盛り。計算は元の km/h)。 */
-export const shownVelocity=(p:Player)=>isSpaceAlien(p)?alienVelocity(p.ratings.velocity):p.ratings.velocity;
+export const shownVelocity=(p:Player)=>shownKmh(p.ratings.velocity);
 
 export type Tier='standard'|'gold'|'rainbow';
 // Same thresholds as the scout reveal (scout-presentation.ts).
 export const tierFor=(player:Player,overall:number):Tier=>overall>=95?'rainbow':overall>=85||player.mlb?'gold':'standard';
-export const roleLabel=(p:Player)=>p.mlb?.twoWay?'投/DH':p.role==='pitcher'?pitchingRoleLabel(p):(p.positions[0]??'DH');
+export const roleLabel=(p:Player)=>p.mlb?.twoWay?'投/DH':p.role==='pitcher'?pitchingRoleLabel(p):shortPos(p.positions[0]??'DH');
 export const cardRatings=(p:Player,state:GameState,base=false):Ratings=>base?p.ratings:ownedRatings(p,state.owned,state.training,state.careerGrowth);
 const cap=(n:number)=>Math.min(99,n);
 /** 名前を「…」で切らずに入れるための文字の大きさ(スマホの狭い欄だけ CSS の var(--nm) で使う)。
@@ -29,9 +31,9 @@ export function Rank({value,label,showValue=false}:{value:number;label?:string;s
 }
 
 /** 守備位置のチップ(捕=青、内野=黄、外野=緑、DH=紫)と投手の役割のチップ(先・中・抑)。 */
-const posKind=(pos:string)=>pos==='捕'?'c':['一','二','三','遊','内'].includes(pos)?'if':pos==='外'?'of':pos==='DH'?'dh':'p';
-export function PosChip({pos,label}:{pos:string;label?:string}){
- return <i className={'pw-pos pw-pos-'+posKind(pos)} aria-label={label??pos}>{pos==='DH'?'指':pos}</i>;
+const posKind=(pos:string)=>pos==='捕'?'c':['一','二','三','遊','内'].includes(pos)?'if':['外','左','中','右'].includes(pos)?'of':pos==='DH'||pos==='指'?'dh':'p';
+export function PosChip({pos,label,text}:{pos:string;label?:string;text?:string}){
+ return <i className={'pw-pos pw-pos-'+posKind(pos)} aria-label={label??text??shortPos(pos)}>{text??shortPos(pos)}</i>;
 }
 export function RoleChip({role}:{role:'先'|'中'|'抑'}){
  return <i className={'pw-role pw-role-'+role} aria-label={role==='先'?'先発':role==='中'?'中継ぎ':'抑え'}>{role}</i>;
@@ -62,7 +64,7 @@ export function PawaCard({player,state,base=false,size='m',onClick,label}:{playe
  const ratings=cardRatings(player,state,base),overall=ratingOverall(player,ratings),tier=tierFor(player,overall);
  const alien=isSpaceAlien(player),team=teamById(player.team,alien?{circuit:'SPACE'}:undefined),pos=roleLabel(player),number=player.mlb?.number??player.roster?.number;
  const body=<>
-  <span className="nc-ovrtop"><small>総合</small><b>{alien?alienOverall(overall):overall}</b></span>
+  <span className="nc-ovrtop"><small>総合</small><b>{overall}</b></span>
   <span className="nc-pos">{pos.length>2?pos.slice(0,2):pos}</span>
   <span className="nc-art"><JerseyArt player={player}/></span>
   <span className="nc-plate"><b>{player.name}</b>{size!=='s'&&<small>{team.short}{alien?' · 宇宙':player.mlb?' · 海外':''}</small>}</span>

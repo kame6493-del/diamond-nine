@@ -2,6 +2,7 @@
 // 流れ: タブ(海外・宇宙・国内の最短優勝、宇宙リーグ制覇)→ 上位20(もっと見るで50まで)と自分の記録 → 行を押すと優勝した時のオーダー。
 // 2026-11-03 vc41 持ち主「最短で〇年で優勝した、みたいな年数を競う感じに」「オーダーも見れるような感じで」:
 // 各行の先頭に「◯年で優勝」(宇宙リーグ制覇は「◯年で制覇」)を大きく、そのあとに名前とチーム名、行の右に「オーダーを見る」。
+import {shownKmh} from './velocity-display';
 import {useEffect,useState} from 'react';
 import type {GameState} from './engine';
 import {HOF_LEAGUE,RANK_LEAGUES,bestYear,buildEntry,championSeason,championYearsLabel,rankLeague,saveTeamName,validTeamName,cleanTeamName,type RankLeague} from './rank-entry';
@@ -95,6 +96,6 @@ export function LineupView({row,league,hof=false,onBack}:{row:RankRow;league:str
    <tbody>{row.b.map((p,i)=><tr key={p.i}><td>{i+1}</td><td>{p.pos}</td><td className="d9r-name">{p.n}</td><td><b>{p.o}</b></td><td>{p.c}</td><td>{p.p}</td><td>{p.s}</td><td>{p.f}</td></tr>)}</tbody></table>
   <h4>先発投手</h4>
   <table><thead><tr><th></th><th>選手</th><th>総合</th><th>球速</th><th>制球</th><th>スタミナ</th><th>変化球</th></tr></thead>
-   <tbody>{row.sp.map((p,i)=><tr key={p.i}><td>{i+1}</td><td className="d9r-name">{p.n}</td><td><b>{p.o}</b></td><td>{p.v}</td><td>{p.ct}</td><td>{p.st}</td><td>{p.bk}</td></tr>)}</tbody></table>
+   <tbody>{row.sp.map((p,i)=><tr key={p.i}><td>{i+1}</td><td className="d9r-name">{p.n}</td><td><b>{p.o}</b></td><td>{p.v?shownKmh(p.v):p.v}</td><td>{p.ct}</td><td>{p.st}</td><td>{p.bk}</td></tr>)}</tbody></table>
  </div>;
 }

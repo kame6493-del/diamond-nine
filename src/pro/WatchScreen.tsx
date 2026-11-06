@@ -26,6 +26,8 @@
 // 捕った野手の守備位置・名前・肩・守備(その守備位置での値。position-defense の defenseAtPosition)を、実況の帯の上に重ねて小さく出す(FieldCard)。
 // グラウンドの中には出さない(ボール・走者・野手を隠さない)。打者の帯とも重ならない。押さなくても 1倍 1.4秒・2倍 1.1秒で消える。
 // 4倍以上と飛ばしでは出さない。ファインプレーの演出(PlayFx)が出る時は、演出が消えるまで一緒に出し、守備を光らせる。
+import {shownKmh} from './velocity-display';
+import {positionNames} from './positions-ja';
 import {useEffect,useLayoutEffect,useReducer,useRef,useState,type CSSProperties,type ReactNode} from 'react';
 import {substituteBlock,type BatStats,type GameResult,type GameState,type LiveEvent,type LiveSituation,type LiveStep,type PitStats,type WatchOrder} from './engine';
 import {liveGame,type ManagedGame} from './managed';
@@ -74,7 +76,7 @@ interface Live {
 interface FCard {id:string;side:number;pos:Pos;fine:boolean;n:number;ms:number;expect?:string}
 /** 結果を見せた打席の打者と投手(次の打席が始まるまで札に残す)。 */
 interface Hold {side:number;batter:string;slot:number;pitcher:string;pitchers?:string[][]}
-const POS:Record<string,string>={捕:'捕',一:'一',二:'二',三:'三',遊:'遊',外:'外',DH:'指'};
+const POS:Record<string,string>={捕:'捕',一:'一',二:'二',三:'三',遊:'遊',外:'外野',DH:'指'};
 const posLabel=(p?:string)=>p?POS[p]??p:'';
 const nameOf=(id:string)=>playerMap[id]?.name??id;
 /** 試合の計算のプレー(e.play.fielder: 1=投〜9=右)で打球を処理した野手。外野は打順の並びで左・中・右。 */
@@ -98,7 +100,7 @@ function Grade({v,label,wide=false}:{v:number;label:string;wide?:boolean}){
  return <div className={'wt-ab'+(wide?' is-wide':'')}><small>{label}</small><b className={gradeClass(v)}>{gradeOf(v)}</b><i><u className={gradeClass(v)} style={{width:`${Math.max(6,Math.min(100,v))}%`}}/></i></div>;
 }
 function Velocity({r,id,wide=false}:{r:Ratings;id:string;wide?:boolean}){
- const v=Math.round(r.velocity),shown=isSpaceAlien(playerMap[id])?alienVelocity(v):v,score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
+ const v=Math.round(r.velocity),shown=shownKmh(v),score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
  return <div className={'wt-ab'+(wide?' is-wide':'')}><small>球速</small><b className={'wt-kmh '+gradeClass(score)}>{shown}<em>km</em></b><i><u className={gradeClass(score)} style={{width:`${Math.max(6,Math.min(100,score))}%`}}/></i></div>;
 }
 /** 帯の小さな能力(11/4 夜おそく): 上に名前、下に段と短い棒。段の色と記号はシートの Grade と同じ。
@@ -109,7 +111,7 @@ export function Mini({v,label,left}:{v:number;label:string;left?:number}){
   <small>{label}</small><b className={gradeClass(v)}>{gradeOf(v)}</b><i><u className={gradeClass(v)} style={{width:`${w}%`}}/></i></div>;
 }
 function MiniVelocity({r,id}:{r:Ratings;id:string}){
- const v=Math.round(r.velocity),shown=isSpaceAlien(playerMap[id])?alienVelocity(v):v,score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
+ const v=Math.round(r.velocity),shown=shownKmh(v),score=Math.max(0,Math.min(110,(r.velocity-120)/45*99));
  return <div className="wt-mini is-kmh" aria-label={`球速 ${shown}km/h`}><small>球速</small><b className={gradeClass(score)}>{shown}<em>km</em></b><i><u className={gradeClass(score)} style={{width:`${Math.max(6,Math.min(100,score))}%`}}/></i></div>;
 }
 /** 変わった数字: 「.287→.290」の形で、良くなった(up)・悪くなった(down)の色で少し光らせる。n は光らせ直すための番号。 */
@@ -224,7 +226,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   if(step.done){l.result=step.value;l.nextSit=null;}
   if(!quiet)onSave?.(l.inputs,modeRef.current);
  };
- const remember=(l:Live,s:LiveSituation|null)=>{if(!s)return;s.lineups.forEach((ids,side)=>ids.forEach((id,i)=>{l.slotOf[`${side}|${id}`]=i;l.posOf[`${side}|${id}`]=s.defense[side][id];}));};
+ const remember=(l:Live,s:LiveSituation|null)=>{if(!s)return;s.lineups.forEach((ids,side)=>{const nm=positionNames(ids,s.defense[side]);ids.forEach((id,i)=>{l.slotOf[`${side}|${id}`]=i;l.posOf[`${side}|${id}`]=nm[id]??s.defense[side][id];});});};
  /** 並んだ出来事を見せる。quiet=飛ばし(演出なし)。show=成績の変わった所を光らせる(開いた時・試合終了までの飛ばしでは光らせない)。 */
  const reveal=(l:Live,quiet:boolean,show=!quiet)=>{
   let homeRun:LiveEvent|null=null,lastPA:LiveEvent|null=null,fxNew:Fx|null=null,fineE:LiveEvent|null=null;
@@ -609,7 +611,7 @@ function TacticSheet({sit,control,ratingsFor,onApply,onClose}:{sit:LiveSituation
   <div className="wt-choose wt-batters">{lineup.map((id,i)=><button key={id} className={(who===id?'is-on':'')+(t.batter[id]?' has-tactic':'')} onClick={()=>setWho(id)}>{i+1} {nameOf(id)}{t.batter[id]&&<small>{batTacticLabel[t.batter[id]]}</small>}</button>)}</div>
   <div className="wt-tcs">{opt(!t.batter[who],'チームに合わせる',`今は ${tacticShort(t.team)}`,()=>onApply({kind:'tactic',scope:'batter',id:who,tactic:null}))}{BAT_TACTICS.map(k=><span key={k}>{opt(t.batter[who]===k,batTacticLabel[k],batTacticNote[k],()=>onApply({kind:'tactic',scope:'batter',id:who,tactic:k}))}</span>)}</div>
   <h4 className="wt-band">守り: 投手への指示</h4>
-  {pr&&pitcher&&<p className="wt-note">いまの投手 {nameOf(pitcher)}: 球速 {Math.round(pr.velocity)}km・変化球 {gradeOf(pr.breaking)}</p>}
+  {pr&&pitcher&&<p className="wt-note">いまの投手 {nameOf(pitcher)}: 球速 {shownKmh(pr.velocity)}km・変化球 {gradeOf(pr.breaking)}</p>}
   <div className="wt-tcs">{opt(!t.pitch,'なし','ふだんどおり',()=>onApply({kind:'tactic',scope:'pitch',tactic:null}))}{PITCH_TACTICS.map(k=><span key={k}>{opt(t.pitch===k,pitchTacticLabel[k],pitchTacticNote[k],()=>onApply({kind:'tactic',scope:'pitch',tactic:k}),fitText(fit(k)))}</span>)}</div>
   <p className="wt-note">効き方は数%〜十数%です。作戦を出した試合の結果も、そのままシーズンに入ります。</p>
   <div className="wt-final-btns is-sticky"><button className="wt-gold" onClick={onClose}>決定</button></div>
@@ -621,13 +623,7 @@ function TacticSheet({sit,control,ratingsFor,onApply,onClose}:{sit:LiveSituation
 // 打順を付け、「1. 代える位置」→「2. 入れる選手」の順に選ぶ。控えには本職・守れる所と、その位置の守備の段(A〜G)を出し、本職でない時は一言。
 // 守っている選手どうしの位置の入れ替えもできる(代打・代走で入った選手を別の位置へ)。左・中・右は、グラウンドの絵と同じく打順の並びで決める。
 type SubTab='pinch'|'runner'|'field'|'pitcher';
-const OF_NAMES=['左','中','右'];
-/** 守備位置の呼び名(外野は打順の並びで 左・中・右。グラウンドの絵と同じ決まり)。 */
-export function positionNames(lineup:string[],defense:Record<string,string>):Record<string,string>{
- let of=0;const out:Record<string,string>={};
- for(const id of lineup){const p=defense[id];out[id]=p==='外'?OF_NAMES[of++%3]:p==='DH'?'指':p;}
- return out;
-}
+export {positionNames} from './positions-ja';
 const canPlay=(id:string)=>{const f=posFitLine(id);return f.length?f.map(x=>`${x.pos}${x.mark}`).join(' '):'—';};
 function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l:Live;sit:LiveSituation;ids:string[];club:string;ratingsFor:(side:number,id:string)=>Ratings;box:{bat:Record<string,BatStats>;pit:Record<string,PitStats>};batOf:(t:string,id:string)=>BatLine;pitOf:(t:string,id:string)=>PitLine;onApply:(o:WatchOrder)=>void;onClose:()=>void}){
  void club;
@@ -680,7 +676,7 @@ function SubSheet({l,sit,ids,club,ratingsFor,box,batOf,pitOf,onApply,onClose}:{l
    <h4 className="wt-band">1. 代える位置を選ぶ</h4>
    <div className="wt-posgrid">{fielderSlots.map(([id,i])=>{const g=posGrade(id,defense[id]);return <button key={id} className={slot===i?'is-on':''} aria-pressed={slot===i} onClick={()=>{setSlot(i);setPick(null);}}><b>{names[id]}</b><span><small>{i+1}番</small><i>{nameOf(id)}</i></span>{g&&<em className="wt-pg-def"><small>守備</small>{gradeBadge(g)}</em>}</button>;})}
     <button className="is-pitcher" onClick={()=>choose('pitcher')}><b>投</b><span><small>投手</small><i>{nameOf(sit.pitcher)}</i></span><em>交代へ</em></button></div>
-   {slot===null?<p className="wt-note">代える選手の位置を押してください。次に、入れる選手(控え)か、位置を入れ替える選手を選びます。</p>:<>
+   {slot===null?null:<>
     <h4 className="wt-band">2. {names[targetId]}({target+1}番 {nameOf(targetId)})に入れる選手</h4>
     <div className="wt-list">{bench.length?bench.map(benchRow):<p className="wt-note">ベンチに出せる選手がいません。</p>}</div>
     <h4 className="wt-band">守っている選手と位置を入れ替える</h4>

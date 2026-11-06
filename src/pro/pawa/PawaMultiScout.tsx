@@ -3,7 +3,8 @@ import {playerMap,type Player} from '../data';
 import type {GameState,Pull} from '../engine';
 import {scoutPresentation,type ScoutTier} from '../scout-presentation';
 import {multiChargeSounds,multiDealSounds,multiFlipSounds,stopGameAudio} from '../game-audio';
-import {PawaCard} from './PawaCard';
+import {PawaCard,roleLabel} from './PawaCard';
+import {aptitudeNames,shortPos} from '../positions-ja';
 
 // 2026-11-04 vc43 持ち主「まとめて引くんなら引くやつ付けて良いけど、ちゃんと演出付けてください。まとめて引く用の」。
 // 10回まとめて引く専用の演出: 10枚を裏のまま並べる → 金・虹はめくる前から光り方が違う → 1枚ずつ順にめくる
@@ -105,6 +106,15 @@ export function PawaMultiResult({state,onPlayer}:{state:GameState;onPlayer?:(p:P
   <header className="pw-mx-rhead"><h2>10回スカウトの結果</h2>
    <p className="pw-mx-sum"><span className="is-new">NEW <b>{sum.fresh}</b>人</span><span className="is-up">能力アップ <b>{sum.up}</b>人</span>{sum.points>0&&<span className="is-pts">ポイント <b>+{sum.points.toLocaleString('ja-JP')}</b></span>}</p>
   </header>
+  <ol className="pw-mx-list" aria-label="引いた10枚">{items.map(x=>{const t=multiTag(x.pull),isBest=x===best;
+   return <li key={x.index} className={'pw-mx-t-'+x.tier+(isBest?' is-best':'')}>
+    <button onClick={()=>onPlayer?.(x.player)} aria-label={`${x.index+1}枚目 ${x.player.name} 総合${x.overall} ${t.label}${isBest?' いちばん良かった1枚':''}`}>
+     {isBest&&<span className="pw-mx-crown" aria-hidden="true">★</span>}
+     <PawaCard player={x.player} state={state} size="m"/>
+     {x.tier!=='standard'&&<em className={'pw-mx-tier is-'+x.tier}>{x.tier==='rainbow'?'虹':'金'}</em>}
+    </button>
+    <span className="pw-mx-under"><i className={'pw-mx-tag is-'+t.kind}>{t.label}</i><small>{x.player.role==='pitcher'?roleLabel(x.player).replace('DH','指'):shortPos(x.player.positions[0]??'DH')}</small></span>
+   </li>;})}</ol>
   <div className={'pw-mx-best pw-tier-'+best.tier}>
    <p className="pw-mx-best-h">いちばん良かった1枚</p>
    <div className="pw-mx-best-body">
@@ -112,20 +122,10 @@ export function PawaMultiResult({state,onPlayer}:{state:GameState;onPlayer?:(p:P
     <div className="pw-mx-best-id">
      <p className="pw-sc-chips"><span className="pw-tierchip">{label(best.tier,!!best.player.mlb)}</span><span className={'pw-mx-tag is-'+bt.kind}>{bt.label}</span></p>
      <h3>{best.player.name}</h3>
-     <p className="pw-sc-meta">{best.player.role==='pitcher'?'投手':best.player.positions.join('・')||'DH'}{best.player.mlb?' · 海外':''}</p>
+     <p className="pw-sc-meta">{best.player.role==='pitcher'?'投手':aptitudeNames(best.player.positions).join('・')||'指'}{best.player.mlb?' · 海外':''}</p>
      <p className="pw-sc-ovr"><small>総合</small><b>{best.overall}</b></p>
     </div>
    </div>
   </div>
-  <ol className="pw-mx-list" aria-label="引いた10枚">{items.map(x=>{const t=multiTag(x.pull),isBest=x===best;
-   return <li key={x.index} className={'pw-mx-t-'+x.tier+(isBest?' is-best':'')}>
-    <button onClick={()=>onPlayer?.(x.player)} aria-label={`${x.index+1}枚目 ${x.player.name} 総合${x.overall} ${t.label}${isBest?' いちばん良かった1枚':''}`}>
-     {isBest&&<span className="pw-mx-crown" aria-hidden="true">★</span>}
-     <PawaCard player={x.player} state={state} size="s"/>
-    </button>
-    <i className={'pw-mx-tag is-'+t.kind}>{t.label}</i>
-   </li>;})}</ol>
-  <p className="pw-mx-legend"><span className="pw-mx-tag is-new">NEW</span>新しく入った選手 <span className="pw-mx-tag is-up">能力+1</span>同じ選手が出て能力が上がった</p>
-  <p className="pw-sc-note">引いた選手は控えに入りました。入れ替えはチーム画面でできます。</p>
  </section>;
 }

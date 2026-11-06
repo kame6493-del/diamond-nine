@@ -36,7 +36,7 @@ export function ScheduleSheet({state,busy,onClose,onRunTo}:{state:GameState;busy
    <header className="sc-top"><h2>日程表<small>{state.season.number}シーズン目 · {w}勝{l}敗</small></h2><button type="button" className="sc-x" aria-label="日程表を閉じる" onClick={onClose}><X size={20}/></button></header>
    <p className="sc-help">まだの試合を選ぶと、その試合の前まで一気に進めます(途中の大事な試合でも止まりません)。</p>
    <ol className="sc-list" ref={list}>{rows.map(row)}</ol>
-   <footer className="sc-foot">{picked?<button type="button" className="sc-go" disabled={busy} onClick={()=>onRunTo(picked.pos)}>この試合の前まで進める<small>{picked.section==='post'?picked.group+' ':''}{picked.label} vs {name(picked.opponent)}</small></button>:<p className="sc-hint">進めたい試合を選んでください</p>}</footer>
+   <footer className="sc-foot">{picked?<button type="button" className="sc-go" disabled={busy} onClick={()=>onRunTo(picked.pos)}>この試合の前まで進める<small>{picked.section==='post'?picked.group+' ':''}{picked.label} vs {name(picked.opponent)}</small></button>:null}</footer>
   </div>
  </div>;
 }

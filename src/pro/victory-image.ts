@@ -1,4 +1,5 @@
 import type {VictoryShareData} from './victory-share';
+import {shownKmh} from './velocity-display';
 import {grade} from './data';
 
 export const VICTORY_IMAGE_WIDTH=1080;
@@ -62,7 +63,7 @@ export async function renderVictoryImage(data:VictoryShareData,url=''):Promise<B
  data.pitcherAbilities.forEach((p,i)=>{
   const y=1774+i*42;if(i%2===0)box(52,y,976,42,'#f8f9fc',0);
   text(String(p.order),79,y+29,23,'#8b799d',700,'center');text(p.name,118,y+29,25,'#253552',700,'left',220);
-  text(p.position,374,y+29,23,'#596886',600,'center');text(String(p.overall),481,y+29,26,'#7050bb',900,'center');text(String(p.ratings.velocity),613,y+29,27,'#237f9a',800,'center');
+  text(p.position,374,y+29,23,'#596886',600,'center');text(String(p.overall),481,y+29,26,'#7050bb',900,'center');text(String(shownKmh(p.ratings.velocity)),613,y+29,27,'#237f9a',800,'center');
   [p.ratings.control,p.ratings.stamina,p.ratings.breaking].forEach((value,j)=>ability(value,pitColumns[j+5],y));
  });
  ctx.fillStyle='#e7e1f0';ctx.fillRect(52,2394,976,2);

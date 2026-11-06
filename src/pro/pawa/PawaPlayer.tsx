@@ -1,4 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
+import {aptitudeNames} from '../positions-ja';
+import {shownKmh} from '../velocity-display';
 import {Sparkles} from 'lucide-react';
 import {canTwoWay,formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from '../engine';
@@ -30,7 +32,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  const twoWay=canTwoWay(player),pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
  // 宇宙リーグの相手(宇宙人)は、名前・所属・数字を宇宙の見た目で出す。試合の計算は元の能力のまま。
- const alien=isSpaceAlien(player),num=(v:number)=>alien?alienStat(v):Math.min(99,v);
+ const alien=isSpaceAlien(player),num=(v:number)=>Math.min(99,v);
  const pitcher=player.role==='pitcher',team=teamById(player.team,alien?{circuit:'SPACE'}:undefined);
  const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['安打',b?.hits??0],['盗塁',b?.sb??0],['二塁打',b?.doubles??0],['三塁打',b?.triples??0],['四球',b?.bb??0],['三振',b?.so??0],['併殺打',b?.gdp??0],['試合',b?.games??0],['打席',b?.pa??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
  const pitStats=[['防御率',p?.outs?era(p).toFixed(2):'—'],['勝-敗',`${p?.wins??0}-${p?.losses??0}`],['セーブ',p?.saves??0],['奪三振',p?.so??0],['WHIP',p?.outs?((p.hits+p.bb)*3/p.outs).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['登板',p?.games??0],['先発',p?.starts??0],['四球',p?.bb??0],['被安打',p?.hits??0],['被本塁打',p?.hr??0]];
@@ -42,7 +44,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
   setResult({before:overall,after:effectiveOverall(player,updated.owned,updated.training,updated.careerGrowth),stage:updated.training[player.id],changes});
   onChange(updated);onAwaken();
  };
- const shown=alien?alienOverall(catalog?ratingOverall(player,player.ratings):overall):catalog?ratingOverall(player,player.ratings):overall;
+ const shown=catalog?ratingOverall(player,player.ratings):overall;
  const batRows=[['ミート',ratings.contact],['パワー',ratings.power],['走力',ratings.speed],['肩',ratings.arm],['守備',ratings.field]] as const;
  const pitRows=[['制球',ratings.control],['スタミナ',ratings.stamina],['変化',ratings.breaking]] as const;
  return <div className="pw-player">
@@ -53,14 +55,13 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
     <p className="pw-team-line"><span className="pw-mark" style={{color:team.color}}>{team.mark}</span>{team.short}{alien?' · 宇宙':player.mlb?' · 海外':''}</p>
     <h3>{player.name}</h3>
     <p className="pw-hand">{player.throws??'—'}投{player.bats}打</p>
-    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':player.positions.map(positionLabel).join('・')||'指名打者'}</dd></div><div><dt>年齢</dt><dd>{alien?`${alienAge(player.id)}歳`:growth.age!==null?`${growth.age}歳`:'—'}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}</dl>
+    <dl><div><dt>ポジション</dt><dd>{pitcher?'投手':aptitudeNames(player.positions).join('・')||'指'}</dd></div><div><dt>年齢</dt><dd>{alien?`${alienAge(player.id)}歳`:growth.age!==null?`${growth.age}歳`:'—'}</dd></div><div><dt>タイプ</dt><dd>{growth.label}</dd></div>{!catalog&&level>0&&<div><dt>覚醒</dt><dd>{level} / 5</dd></div>}</dl>
    </div>
   </div>
 
-  {alien&&<p className="pw-note pw-alien-note">宇宙人の数字は宇宙の目盛りです。ランクの札(S〜G)は地球の目盛りで、試合の強さは宇宙リーグの相手のままです。</p>}
   <section className="pw-sec"><h4>能力</h4>
    <div className="pw-ability"><OvrShield value={shown} size="l"/>
-    <div className="pw-ability-grid">{pitcher&&<div className="pw-cell"><small>球速</small><b className="pw-velo">{alien?alienVelocity(player.ratings.velocity):player.ratings.velocity}<em>km/h</em></b></div>}{(pitcher?pitRows:batRows).map(([l,v])=><div key={l} className="pw-cell"><small>{l}</small><Rank value={v} label={l}/><b>{num(v)}</b></div>)}</div>
+    <div className="pw-ability-grid">{pitcher&&<div className="pw-cell"><small>球速</small><b className="pw-velo">{shownKmh(player.ratings.velocity)}<em>km/h</em></b></div>}{(pitcher?pitRows:batRows).map(([l,v])=><div key={l} className="pw-cell"><small>{l}</small><Rank value={v} label={l}/><b>{num(v)}</b></div>)}</div>
    </div>
    {twoWay&&<div className="pw-ability-grid pw-ability-extra">{batRows.map(([l,v])=><div key={l} className="pw-cell"><small>{l}</small><Rank value={v} label={l}/><b>{num(v)}</b></div>)}</div>}
   </section>

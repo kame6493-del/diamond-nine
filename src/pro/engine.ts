@@ -1,3 +1,4 @@
+import {parseSave} from './save-codec';
 import {pitcherRolePenalty,pitcherSlotRole,pitchingRatingsForRole} from './pitcher-aptitude';
 import {spaceUnlocked,circuitOf,seasonGames,leagueTeams,leagueFor,mlbSchedule,leagueProgress,settleLeagueProgress,standingOrder,NPB_TITLES_TO_MLB,type Circuit,type LeagueProgress} from './leagues';
 import {mlbLeagueTeams,mlbOpponentPlayers} from './mlb-opponents';
@@ -118,7 +119,7 @@ export function migrateState(value:unknown):GameState|null{
 }
 export function loadState(profile:Profile='career'):{state:GameState;warning:string}{
  const fresh=profile==='career'?initialState:initialSandboxState;
- try {const raw=localStorage.getItem(saveKeyFor(profile));if(!raw)return {state:fresh(),warning:''};const data=migrateState(JSON.parse(raw));if(data&&(isCareer(data)===(profile==='career')))return {state:data,warning:''};return {state:fresh(),warning:'保存データを読み込めませんでした。新しいゲームを開始しました。'};}
+ try {const raw=localStorage.getItem(saveKeyFor(profile));if(!raw)return {state:fresh(),warning:''};const data=migrateState(parseSave(raw));if(data&&(isCareer(data)===(profile==='career')))return {state:data,warning:''};return {state:fresh(),warning:'保存データを読み込めませんでした。新しいゲームを開始しました。'};}
  catch{return {state:fresh(),warning:'保存機能が利用できないか、データが破損しています。設定からデータを書き出せます。'};}
 }
 export const battingAverage=(s:BatStats)=>s.ab?s.hits/s.ab:0;
