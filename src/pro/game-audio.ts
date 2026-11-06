@@ -19,14 +19,15 @@ const files={
  // 捕手のミット(パシッ)は効果音ラボ「ボールをミットでキャッチ1」(catch と同じ)。ほかは Freesound の CC0 の録音。出典は /audio/freesound/field-LICENSE.txt。
  // 鳴らす時刻は動き(field-sim.ts)の、球が手に届いた瞬間・投げた瞬間・塁に着いた瞬間に合わせる(play-sounds.ts)。
  mitt:'selab/watch/catch.mp3',glove:'freesound/field/glove.mp3',infield:'freesound/field/infield.mp3',throw:'freesound/field/throw.mp3',
- step:'freesound/field/step.mp3',slide:'freesound/field/slide.mp3',bounce:'freesound/field/bounce.mp3',sigh:'freesound/field/sigh.mp3',ooh:'freesound/field/ooh.mp3',
+ step:'freesound/field/step.mp3',slide:'freesound/field/slide.mp3',bounce:'freesound/field/bounce.mp3',
+ // 11/6 持ち主「うーんみたいな変な声」: 人の声のため息(sigh)・「おお」(ooh)は外した。人の声は球場の歓声・拍手(cheer・gameset)だけ。
 } as const;
-const watchSounds=['hitStrong','hitJammed','foul','catch','strikeout','cheer','gameset','mitt','glove','infield','throw','step','slide','bounce','sigh','ooh'] as const;
+const watchSounds=['hitStrong','hitJammed','foul','catch','strikeout','cheer','gameset','mitt','glove','infield','throw','step','slide','bounce'] as const;
 /** 鳴らす音の名前とファイル(試験で、打球音が新しい木製バットの録音を指しているかを確かめる)。 */
 export const soundFiles:Readonly<Record<string,string>>=files;
 export type Sound=keyof typeof files;
 // 音量のつり合い(耳に刺さらない程度にそろえる)。
-const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hitStrong:.55,hitJammed:.5,foul:.35,catch:.4,strikeout:.4,cheer:.3,gameset:.35,mitt:.42,glove:.4,infield:.36,throw:.16,step:.2,slide:.3,bounce:.26,sigh:.32,ooh:.26};
+const volumes:Partial<Record<Sound,number>>={deal:.55,flip:.6,roll:.32,cymbal:.32,reveal:.5,gold:.5,rainbow:.45,join:.4,awaken:.5,draw:.55,impact:.3,voice:.25,rainbowCheer:.34,hitStrong:.55,hitJammed:.5,foul:.35,catch:.4,strikeout:.4,cheer:.3,gameset:.35,mitt:.42,glove:.4,infield:.36,throw:.16,step:.2,slide:.3,bounce:.26};
 const buffers=new Map<string,AudioBuffer>(),loading=new Map<string,Promise<void>>();
 const active=new Set<{source:AudioBufferSourceNode;gain:GainNode;kind:Sound;at:number}>();
 let context:AudioContext|null=null,epoch=0;

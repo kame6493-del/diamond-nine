@@ -146,6 +146,10 @@ export const npbPlayers=displayPlayers.filter(p=>p.active);
 export const players=[...npbPlayers,...mlbPlayers];
 export const activeUzrCount=players.filter(p=>p.uzr!==null).length;
 export const canBat=(p:Player)=>p.role==='batter'||((p.batting?.pa??0)>0&&p.positions.some(pos=>pos!=='投'));
+/** 二刀流(11/6 持ち主「大谷翔平で二刀流で組もうとしたときにスタメンに進めない」): 投手で、打席にも立てる選手。
+ *  1枚で先発投手と打者(DH・野手)の両方に入れる。投手を降りても打順には残る(試合の計算は打順と投手を別に持つ)。
+ *  当てはまるのは 大谷(mlb.twoWay)・矢澤・北村(投手で野手の守備位置と打席の記録がある)。 */
+export const canTwoWay=(p:Player|undefined)=>!!p&&p.role==='pitcher'&&(!!p.mlb?.twoWay||canBat(p));
 // Old versions misclassified five pitchers with zero recorded outs as batters.
 export const wasLegacyBatter=(id:string)=>originalRoles.get(id)==='batter';
 export const fitsPosition=(p:Player,pos:string)=>pos==='DH'||p.positions.includes(pos)||(p.positions.includes('内')&&['一','二','三','遊'].includes(pos));

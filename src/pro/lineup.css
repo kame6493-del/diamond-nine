@@ -175,3 +175,15 @@
  .lu-root .lu-row{min-height:34px}
  .lu-root .lu-btns .pw-btn{min-height:44px}
 }
+
+/* 11/6: 打率・本塁打・打点(2段)。昨季の成績は灰色。 */
+.lu-thead{grid-template-columns:26px minmax(0,1fr) 34px repeat(4,30px) 54px 12px}
+.lu-root .lu-open{grid-template-columns:repeat(4,30px) 54px 12px}
+.lu-th-st{line-height:1.05;text-align:right!important}
+.lu-stat{display:flex;flex-direction:column;align-items:flex-end;justify-self:end;line-height:1.08;font-variant-numeric:tabular-nums;color:#0b2a6f;white-space:nowrap}
+.lu-stat b{font-size:13px;font-weight:900}
+.lu-stat small{font-size:11px;font-weight:800;letter-spacing:-.04em}
+.lu-stat.is-prev{color:#6b7a96}
+.lu-root .lu-pit.is-relief{border-style:dashed;cursor:default}
+.lu-rest.is-role{font-size:12px;color:#1f4bb0}
+@media (max-width:370px){.lu-thead{grid-template-columns:26px minmax(0,1fr) 34px repeat(4,27px) 52px 10px}.lu-root .lu-open{grid-template-columns:repeat(4,27px) 52px 10px}.lu-stat b{font-size:12px}}

@@ -140,7 +140,7 @@ export function register1105dTests(test:(name:string,run:()=>void)=>void){
   const one=thinCues([...many],1);assert.equal(one.filter(x=>x.kind==='infield').length,1,'同じ音が重なりすぎない');assert.equal(one.filter(x=>x.kind==='step').length,3,'足音は3つまで');
   // 新しい音のファイルがあり、出典が書いてある
   const credits=readFileSync('public/THIRD_PARTY_ASSETS.txt','utf8')+readFileSync('public/audio/freesound/field-LICENSE.txt','utf8');
-  for(const k of ['glove','infield','throw','step','slide','bounce','sigh','ooh']){const f=soundFiles[k];assert.ok(f&&readFileSync('public/audio/'+f).length>1000,k);assert.ok(credits.includes(f.split('/').pop()!),`出典 ${k}`);}
+  for(const k of ['glove','infield','throw','step','slide','bounce']){const f=soundFiles[k];assert.ok(f&&readFileSync('public/audio/'+f).length>1000,k);assert.ok(credits.includes(f.split('/').pop()!),`出典 ${k}`);}
  });
  test('goal (11/5): the home shows one big current goal with progress (国内リーグ 3年連続優勝, あと○年), then switches to the next goal by itself; the list shows now / next / later',()=>{
   const s=sandbox();s.leagueProgress={basis:'league',npbStreak:1,mlbUnlocked:false,lastSettledSeason:0};

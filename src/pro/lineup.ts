@@ -2,7 +2,7 @@
 // 「監督して戦う」を押したら、試合の前に打順・守備位置・先発投手・控えとの入れ替えを決められる(決めなくても「このまま始める」)。
 // 決めたスタメンは、その試合にだけ使う(「ふだんのオーダーにも使う」を入れた時だけ、チームのオーダーも同じにする)。
 // 先発投手はローテーション(投手の並びの1〜6番目)の中から。選んだ投手を今日の枠(season.day%6)と入れ替える。
-import {canBat,fitsPosition,playerMap} from './data';
+import {canBat,canTwoWay,fitsPosition,playerMap} from './data';
 import type {GameState} from './engine';
 import {seasonConditions} from './conditions';
 import {positionDefensePenalty} from './position-defense';
@@ -19,13 +19,13 @@ export const usesDH=(s:Pick<GameState,'lineup'|'defense'>)=>s.lineup.some(id=>s.
 /** 今日の先発の枠。 */
 export const starterSlot=(s:Pick<GameState,'season'>)=>s.season.day%6;
 export const starterOf=(o:StartOrder,s:Pick<GameState,'season'>)=>o.pitchers[starterSlot(s)];
-/** 控えの野手(持っている選手のうち、打順にも投手にもいない、打てる選手)。 */
-export function benchOf(s:Pick<GameState,'owned'>,o:StartOrder){return Object.keys(s.owned).filter(id=>playerMap[id]&&canBat(playerMap[id])&&!o.lineup.includes(id)&&!o.pitchers.includes(id));}
+/** 控えの野手(持っている選手のうち、打順にも投手にもいない、打てる選手。二刀流は投手の枠にいても控えに出す)。 */
+export function benchOf(s:Pick<GameState,'owned'>,o:StartOrder){return Object.keys(s.owned).filter(id=>playerMap[id]&&canBat(playerMap[id])&&!o.lineup.includes(id)&&(!o.pitchers.includes(id)||canTwoWay(playerMap[id])));}
 
 /** 始められない理由(始められる時は '')。守備位置が重なる・足りない・投手がいない・人数が足りない。 */
 export function orderBlock(s:Pick<GameState,'owned'|'lineup'|'defense'|'pitchers'|'season'>,o:StartOrder):string{
  if(o.lineup.length!==9||new Set(o.lineup).size!==9||o.lineup.some(id=>!id))return '打順は9人そろえてください';
- for(const id of o.lineup){const p=playerMap[id];if(!p||!s.owned[id])return 'チームにいない選手が入っています';if(!canBat(p))return `${p.name}は打てません`;if(o.pitchers.includes(id))return `${p.name}は投手の枠に入っています`;}
+ for(const id of o.lineup){const p=playerMap[id];if(!p||!s.owned[id])return 'チームにいない選手が入っています';if(!canBat(p))return `${p.name}は打てません`;if(o.pitchers.includes(id)&&!canTwoWay(p))return `${p.name}は投手の枠に入っています`;}
  const count:Record<string,number>={};for(const id of o.lineup){const p=o.defense[id];if(!p)return `${playerMap[id].name}の守備位置を決めてください`;count[p]=(count[p]??0)+1;}
  const dh=usesDH(s);
  for(const [p,n] of Object.entries(POSITION_NEED)){const have=count[p]??0;if(have>n)return p==='外'?`外野が${have}人います(3人まで)`:`${posName(p)}が${have}人います`;if(have<n)return p==='外'?`外野が${have}人です(3人必要)`:`${posName(p)}がいません`;}

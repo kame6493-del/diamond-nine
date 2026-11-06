@@ -3,6 +3,7 @@ import {battingAverage,ops,rankings,type GameState,type Season} from './engine';
 import {shareTags} from './share-kit';
 import {circuitLabel,circuitOf,leagueFor,seasonGames,titleFor,wonNpbLeague} from './leagues';
 import {captureSeasonTeam,type SeasonTeamSnapshot} from './season-team';
+import {iosEdition} from './platform-economy';
 
 export function victoryTitle(season:Season,club:string):string|null{
  if(!season.completed||season.day!==seasonGames(season))return null;
@@ -50,7 +51,8 @@ export function playShareUrl(campaign:ShareCampaign):string{
 }
 // imageUrl is printed on the card, postUrl goes into the post text.
 export function shareUrls(native:boolean,href:string,campaign:ShareCampaign):{imageUrl:string;postUrl:string}{
- if(native)return {imageUrl:'https://diamond-nine-baseball.com/',postUrl:playShareUrl(campaign)};
+ // iOS: never put a Google Play link in the post; share the game's own page instead.
+ if(native)return {imageUrl:'https://diamond-nine-baseball.com/',postUrl:iosEdition?'https://diamond-nine-baseball.com/':playShareUrl(campaign)};
  const url=publicGameUrl(href);return {imageUrl:url,postUrl:url};
 }
 // Do not put local-only addresses or saved query/hash data into a public post.

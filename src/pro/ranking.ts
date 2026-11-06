@@ -4,8 +4,8 @@
 // ルールは d9_ranking_1103/firestore.rules。並びは y(年数)の小さい順 → at(登録時刻)の早い順。
 import {HOF_LEAGUE,RANK_LEAGUES,autoDisplayName,cleanName,fromWire,toWire,validDisplayName,validEntry,type RankEntry,type RankLeague} from './rank-entry';
 
-const V='12.4.0';
-const FB=`https://www.gstatic.com/firebasejs/${V}/`;
+// 11/6: 外(gstatic)から Firebase の JS を読む所は外した。設定(firebaseConfig)が空のままで使われておらず、
+// アプリの中で外のコードを読むのは App Store の審査(2.5.2)でも問題になる。ランキングを始める時は SDK を npm で同梱する。
 import {firebaseConfig} from './ranking-config';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -53,16 +53,7 @@ export async function init():Promise<void>{
  if(db)return;
  const fake=injected();
  if(fake){F=fake.F;db=fake.db;user=fake.user;LS.set('d9r_uid',user.uid);return;}
- if(!firebaseConfig)throw Object.assign(new Error('ランキングは準備中です'),{code:'off'});
- await guard(async()=>{
-  const [a,au,fs]=await Promise.all([import(/* @vite-ignore */FB+'firebase-app.js'),import(/* @vite-ignore */FB+'firebase-auth.js'),import(/* @vite-ignore */FB+'firebase-firestore.js')]);
-  F={...a,...au,...fs};
-  // 同じ名前のアプリを2回作らない(画面を開き直した時)
-  const app=F.getApps().find((x:any)=>x.name==='d9rank')??F.initializeApp(firebaseConfig,'d9rank');
-  db=F.getFirestore(app);
-  user=(await F.signInAnonymously(F.getAuth(app))).user;
-  LS.set('d9r_uid',user.uid);
- },12000);
+ throw Object.assign(new Error('ランキングは準備中です'),{code:'off'});
 }
 /** ログイン前でも、前に使った uid で自分の行がわかるようにする */
 export const uid=()=>user?.uid??LS.get<string>('d9r_uid')??'';

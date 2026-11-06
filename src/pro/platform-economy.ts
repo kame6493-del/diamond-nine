@@ -3,6 +3,9 @@
 declare const __DIAMOND_ANDROID__: boolean;
 declare const __DIAMOND_APP__: boolean;
 export const androidEdition = typeof __DIAMOND_ANDROID__ !== 'undefined' && __DIAMOND_ANDROID__;
+// iOS app bundle only (scripts/build-mobile.mjs without --android). The iOS app links to no other store and no other app.
+declare const __DIAMOND_IOS__: boolean;
+export const iosEdition = typeof __DIAMOND_IOS__ !== 'undefined' && __DIAMOND_IOS__;
 // iOS and Android apps share one economy (ads + premium pass). Ordinary match pay
 // matches the browser; the premium pass doubles it.
 export const appEdition = androidEdition || (typeof __DIAMOND_APP__ !== 'undefined' && __DIAMOND_APP__);

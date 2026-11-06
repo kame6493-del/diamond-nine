@@ -1,4 +1,4 @@
-import {canBat,fitsPosition,playerMap,players,type Player} from './data';
+import {canBat,canTwoWay,fitsPosition,playerMap,players,type Player} from './data';
 import {rng,type GameState} from './engine';
 import {claimAllMilestones} from './franchise';
 import {claimSeasonGoals} from './ambitions';
@@ -89,7 +89,7 @@ export function replaceSimplePlayer(input:GameState,kind:'bat'|'pit',slot:number
 }
 
 export function equipTwoWayPlayer(input:GameState,id:string):GameState {
- if(!input.owned[id]||!playerMap[id]?.mlb?.twoWay)return input;
+ if(!input.owned[id]||!canTwoWay(playerMap[id]))return input;
  let state=input;
  const dh=state.lineup.findIndex(other=>state.defense[other]==='DH');
  if(!state.lineup.includes(id))state=replaceSimplePlayer(state,'bat',dh,id);

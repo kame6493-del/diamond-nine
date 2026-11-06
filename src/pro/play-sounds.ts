@@ -3,7 +3,8 @@
 // 時刻は動きの秒(1倍)。画面は速さで割って鳴らす。倍速の時の間引きは thinCues。
 import {BAGS,PLATE,distM,type Choreo,type V} from './field-sim';
 
-export type CueKind='mitt'|'strikeout'|'glove'|'infield'|'throw'|'step'|'slide'|'bounce'|'ooh'|'foul';
+// 11/6 持ち主「凡退した時かな。なんか変な音がする」: 大きなフライの「おお」(人の声 ooh)は外した。凡退はミット・グラブの捕球の音だけ。
+export type CueKind='mitt'|'strikeout'|'glove'|'infield'|'throw'|'step'|'slide'|'bounce'|'foul';
 export interface Cue {t:number;kind:CueKind}
 const CATCH_POSES=new Set(['catch','grounder','fly','dive']);
 const near=(a:V,b:V,m:number)=>distM(a,b)<=m;
@@ -39,7 +40,7 @@ export function soundCues(c:Choreo,opts:{lastK?:boolean}={}):Cue[]{
   if(s.kind==='air'){
    if(s.fade)return;// 本塁打・ファウルはスタンドへ
    if(next&&next.kind==='ground'){if(outfield(s.b))cues.push({t:s.t1,kind:'bounce'});return;}
-   if(caughtBy(c,s.t1,s.b)){if(s.peak>=20)cues.push({t:s.t0+(s.t1-s.t0)*.45,kind:'ooh'});cues.push({t:s.t1,kind:outfield(s.b)?'glove':'infield'});}
+   if(caughtBy(c,s.t1,s.b)){cues.push({t:s.t1,kind:outfield(s.b)?'glove':'infield'});}
    return;
   }
   if(s.kind==='ground'){
@@ -66,7 +67,7 @@ export function thinCues(cues:Cue[],speed:number):Cue[]{
  if(speed>=8)return [];
  let list=cues;
  if(speed>=4){const first=list.find(x=>CATCHES.has(x.kind)||x.kind==='foul');return first?[first]:[];}
- if(speed>=2)list=list.filter(x=>x.kind!=='step'&&x.kind!=='throw'&&x.kind!=='ooh');
+ if(speed>=2)list=list.filter(x=>x.kind!=='step'&&x.kind!=='throw');
  const out:Cue[]=[];let steps=0;
  for(const x of list){
   if(out.some(y=>y.kind===x.kind&&Math.abs(y.t-x.t)<.18))continue;

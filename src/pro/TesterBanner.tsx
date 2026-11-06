@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {Smartphone,X} from 'lucide-react';
 import './tester-banner.css';
+import {iosEdition} from './platform-economy';
 
 // Recruits Google Play closed testers from the web version only.
 const KEY='diamond-nine-tester-banner-closed';
@@ -10,7 +11,7 @@ const isNativeApp=()=>Boolean((window as {Capacitor?:{isNativePlatform?:()=>bool
 
 export function TesterBanner(){
  const [closed,setClosed]=useState(()=>{try{return localStorage.getItem(KEY)==='1';}catch{return false;}});
- if(closed||isNativeApp())return null;
+ if(closed||isNativeApp()||iosEdition)return null;// iOS: Play のテスター募集は出さない(フックの後で返す)
  const close=()=>{try{localStorage.setItem(KEY,'1');}catch{/* shows again next visit */}setClosed(true);};
  return <aside className="tester-banner" aria-label="Android版テスター募集">
   <Smartphone size={22} aria-hidden="true"/>

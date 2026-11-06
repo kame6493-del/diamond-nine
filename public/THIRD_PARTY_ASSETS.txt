@@ -24,8 +24,6 @@ Field sounds (from 2026-11-05, timed to the catch, throw, base step, slide and b
  - audio/freesound/field/step.mp3 <- "Footsteps_Dirt_Single_01.wav" by BenDrain, sound 487866 https://freesound.org/people/BenDrain/sounds/487866/
  - audio/freesound/field/slide.mp3 <- "Boots Gravel Feet Slide 1_5" by Joao_Janz, sound 504383 https://freesound.org/people/Joao_Janz/sounds/504383/
  - audio/freesound/field/bounce.mp3 <- "Tennis Bounce Ball on Grass" by jamesdrake89, sound 662258 https://freesound.org/people/jamesdrake89/sounds/662258/
- - audio/freesound/field/sigh.mp3 <- "CRWDReac_Crowd Sigh In Disappointment" by ShangusBurger (Shane Vincent, GSC24), sound 763997 https://freesound.org/people/ShangusBurger/sounds/763997/
- - audio/freesound/field/ooh.mp3 <- "Group Ooh Aah" by CHallSmith, sound 870652 https://freesound.org/people/CHallSmith/sounds/870652/
  The catcher's mitt pop reuses 効果音ラボ「ボールをミットでキャッチ1」(audio/selab/watch/catch.mp3). Trimmed, faded and peak-levelled only. Details: /audio/freesound/field-LICENSE.txt
 Pointer guide finger (from 2026-11-05): made with ChatGPT image generation for this game (assets/pro/guide/finger.webp)
 

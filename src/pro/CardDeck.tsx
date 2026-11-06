@@ -3,7 +3,7 @@ import {useEffect,useRef,useState,type CSSProperties,type DragEvent,type Pointer
 import {createPortal} from 'react-dom';
 import {ArrowDown,ArrowUp,BookOpen,Check,GripVertical,Layers3,RotateCcw,Search,ShieldAlert,Shuffle,Play,Users,X,Zap} from 'lucide-react';
 import confetti from 'canvas-confetti';
-import {fitsPosition,playerMap,teamById,type Player} from './data';
+import {canTwoWay,fitsPosition,playerMap,teamById,type Player} from './data';
 import {effectiveOverall,type GameState} from './engine';
 import {buildByStrategy} from './franchise';
 import {reorderSimplePlayer,replacementPool,replaceSimplePlayer,swapDefense} from './simple-game';
@@ -78,7 +78,7 @@ export function DeckTeam({state,onChange,onPlayer,onImpact,onReset,onRestore,onC
  useEffect(()=>()=>{cancelAnimationFrame(autoScroll.current);if(pointer.current)clearTimeout(pointer.current.timer);},[]);
  useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),3600);return()=>clearTimeout(timer);},[notice]);
  const roster=new Set([...state.lineup,...state.pitchers]);
- const bench=Object.keys(state.owned).map(id=>playerMap[id]).filter(p=>!roster.has(p.id)||(selected&&p.mlb?.twoWay&&!(selected.kind==='bat'?state.lineup:state.pitchers).includes(p.id)));
+ const bench=Object.keys(state.owned).map(id=>playerMap[id]).filter(p=>!roster.has(p.id)||(selected&&canTwoWay(p)&&!(selected.kind==='bat'?state.lineup:state.pitchers).includes(p.id)));
  const eligible=selected?new Set(replacementPool(state,selected.kind,selected.index).map(p=>p.id)):null;
  const visible=browseCards(bench.filter(p=>!eligible||eligible.has(p.id)),state,filters);
  const clear=()=>{setSelected(null);setOrder(null);setDefender(null);setHand(null);setBenchOpen(false);};

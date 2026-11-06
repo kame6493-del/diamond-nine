@@ -15,6 +15,8 @@ export function findTarget(sel:string):HTMLElement|null{
 
 export function GuideCoach({step,no,total,onNext,onSkip,label='チュートリアル'}:{step:GuideStep;no:number;total:number;onNext:()=>void;onSkip:()=>void;label?:string}){
  const [box,setBox]=useState<Box|null>(null),next=useRef(onNext);next.current=onNext;
+ // 11/6 持ち主「チュートリアルをスキップできる感じのモノを」: 「スキップ」は一言で確かめてから終える(アプリの中の小さな札。OS の窓は使わない)。
+ const [ask,setAsk]=useState(false);
  // 示す所を画面に入れる(最初だけ)
  useEffect(()=>{const el=findTarget(step.target);if(el){const r=el.getBoundingClientRect();if(r.top<60||r.bottom>window.innerHeight-150)el.scrollIntoView({block:'center',behavior:'auto'});}},[step.id]);
  // 位置を追う(画面が動いても枠がずれないように)
@@ -42,13 +44,15 @@ export function GuideCoach({step,no,total,onNext,onSkip,label='チュートリ�
   {ring&&<div className="gc-ring" style={ring} aria-hidden="true"/>}
   {finger&&<img className="gc-finger" src="/assets/pro/guide/finger.webp" alt="" width={fw} height={fw} style={finger}/>}
   <div className="gc-bubble" style={bubble} role="status"><span className="gc-step">{label} {no}/{total}</span><p>{step.text}</p></div>
-  <button type="button" className="gc-skip" onClick={onSkip}>飛ばす ≫</button>
+  {ask?<div className="gc-ask" role="alertdialog" aria-label="チュートリアルを終える"><p>チュートリアルを終えますか?<small>設定からもう一度見られます</small></p><div><button type="button" className="gc-ask-no" onClick={()=>setAsk(false)}>続ける</button><button type="button" className="gc-ask-yes" onClick={onSkip}>終える</button></div></div>
+  :<button type="button" className="gc-skip" onClick={()=>setAsk(true)}>スキップ ≫</button>}
  </div>;
 }
 
 /** 監督の試合をはじめてする時だけの案内(作戦・速さ・交代・飛ばす → 結果を見て「次へ」)。最後の段は試合が終わって「次へ」が出てから。 */
-export function MatchGuide({steps,onDone}:{steps:GuideStep[];onDone:()=>void}){
+export function MatchGuide({steps,onDone,onIndex}:{steps:GuideStep[];onDone:()=>void;onIndex?:(i:number)=>void}){
  const [i,setI]=useState(0),[ready,setReady]=useState(true);
+ useEffect(()=>{onIndex?.(i);},[i]);// eslint-disable-line react-hooks/exhaustive-deps
  const step=steps[i];
  // 最後の「次へ」は、ボタンが出るまで待つ(試合の途中は何も出さない)。
  useEffect(()=>{if(!step)return;if(i<steps.length-1){setReady(true);return;}

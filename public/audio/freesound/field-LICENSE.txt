@@ -7,7 +7,6 @@ https://creativecommons.org/publicdomain/zero/1.0/
  step.mp3    <- "Footsteps_Dirt_Single_01.wav" by BenDrain, sound 487866  https://freesound.org/people/BenDrain/sounds/487866/  (走者が塁を踏む音)
  slide.mp3   <- "Boots Gravel Feet Slide 1_5" by Joao_Janz, sound 504383  https://freesound.org/people/Joao_Janz/sounds/504383/  (滑り込み)
  bounce.mp3  <- "Tennis Bounce Ball on Grass" by jamesdrake89, sound 662258  https://freesound.org/people/jamesdrake89/sounds/662258/  (外野で球が弾む、1回分)
- sigh.mp3    <- "CRWDReac_Crowd Sigh In Disappointment" by ShangusBurger (Shane Vincent, GSC24), sound 763997  https://freesound.org/people/ShangusBurger/sounds/763997/  (相手の点のため息)
- ooh.mp3     <- "Group Ooh Aah" by CHallSmith, sound 870652  https://freesound.org/people/CHallSmith/sounds/870652/  (大きな外野フライの「おお」)
+2026-11-06: 人の声のため息(sigh.mp3)と「おお」(ooh.mp3)は外した(持ち主「うーんみたいな変な声は要らない」)。
 捕手のミット(パシッ)は効果音ラボの「ボールをミットでキャッチ1」(/audio/selab/watch/catch.mp3、/audio/selab/LICENSE.txt)。
 審判の声(ストライク・アウト・セーフ)は、自然な日本語の物が見つからなかったので入れていない。

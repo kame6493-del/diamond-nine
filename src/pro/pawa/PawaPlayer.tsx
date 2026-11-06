@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Sparkles} from 'lucide-react';
-import {formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
+import {canTwoWay,formatAvg,formatIP,positionLabel,teamById,type Player,type Ratings} from '../data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from '../engine';
 import {awakeningCosts,growthProfile,ownedRatings,ratingOverall,stageNames} from '../development';
 import {trainPlayer} from '../franchise';
@@ -27,7 +27,7 @@ export function PawaPlayer({player,state,onChange,onAwaken,catalog=false}:{playe
  const lines=seasonLines(state.season,state.club,player),b=lines.bat,p=lines.pit,career=careerLines(state,player.id);
  const cb=career.bat,cp=career.pit,careerBat=[['試合',cb.games],['打率',cb.ab?formatAvg(cb.hits/cb.ab):'—'],['本塁打',cb.hr],['打点',cb.rbi],['盗塁',cb.sb],['OPS',cb.pa?formatAvg(ops({...cb,playerId:'',team:'',runs:0,so:0})):'—']],careerPit=[['登板',cp.games],['勝-敗',`${cp.wins}-${cp.losses}`],['セーブ',cp.saves],['防御率',cp.outs?(cp.er*27/cp.outs).toFixed(2):'—'],['奪三振',cp.so],['投球回',formatIP(cp.outs)]];
  const traits=player.traits.filter(t=>!['暫定査定','基本能力型','実戦派'].includes(t));
- const twoWay=!!player.mlb?.twoWay,pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
+ const twoWay=canTwoWay(player),pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
  // 宇宙リーグの相手(宇宙人)は、名前・所属・数字を宇宙の見た目で出す。試合の計算は元の能力のまま。
  const alien=isSpaceAlien(player),num=(v:number)=>alien?alienStat(v):Math.min(99,v);

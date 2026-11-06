@@ -1,6 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {Sparkles} from 'lucide-react';
-import {formatAvg,formatIP,type Player} from './data';
+import {canTwoWay,formatAvg,formatIP,type Player} from './data';
 import {battingAverage,effectiveOverall,era,ops,type GameState} from './engine';
 import {awakeningCosts,growthProfile,stageNames} from './development';
 import {trainPlayer} from './franchise';
@@ -16,7 +16,7 @@ export function PlayerDetails({player,state,onChange,onAwaken,catalog=false}:{pl
  const b=state.season.batting[`${state.club}|${player.id}`],p=state.season.pitching[`${state.club}|${player.id}`],level=state.training[player.id]??0;
  const growth=growthProfile(player),cost=awakeningCosts[level];
  const traits=player.traits.filter(t=>!['暫定査定','基本能力型','実戦派'].includes(t));
- const twoWay=!!player.mlb?.twoWay,pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
+ const twoWay=canTwoWay(player),pitches=player.mlb?.pitches??player.wikiAssessment?.pitches??[];
  const bothEquipped=state.lineup.includes(player.id)&&state.defense[player.id]==='DH'&&state.pitchers.includes(player.id);
  const batStats=[['打率',b?.ab?formatAvg(battingAverage(b)):'—'],['本塁打',b?.hr??0],['打点',b?.rbi??0],['OPS',b?.pa?formatAvg(ops(b)):'—'],['盗塁',b?.sb??0],['UZR',formatUZR(playerSeasonUZR(state.season,state.club,player.id))]];
  const pitStats=[['奪三振',p?.so??0],['防御率',p?.outs?era(p).toFixed(2):'—'],['投球回',formatIP(p?.outs??0)],['セーブ',p?.saves??0]];

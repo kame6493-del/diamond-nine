@@ -48,7 +48,7 @@ export function register1105bTests(test:(name:string,run:()=>void)=>void){
   for(const id of base.pitchers.slice(0,8)){const r=roleFits(id);assert.deepEqual(r.map(x=>x.name),['先発','中継ぎ','抑え']);assert.ok(r.some(x=>x.mark==='◎'||x.mark==='○'),playerMap[id].name);}
   const html=renderToStaticMarkup(createElement(StartingLineup,{base,label:g.label,rival:'相手',onStart:()=>{},onCancel:()=>{}}));
   assert.ok((html.match(/class="lu-fits"/g)??[]).length>=9+benchOf(base,{lineup:base.lineup,defense:base.defense,pitchers:base.pitchers}).length-1,'打順と控えに守れる位置');
-  assert.ok((html.match(/class="lu-fits is-roles"/g)??[]).length===6,'先発の候補6人に役割の適性');
+  assert.ok((html.match(/class="lu-fits is-roles"/g)??[]).length===base.pitchers.length,'先発の候補6人と救援(11/6 から一覧に出す)に役割の適性');
   for(const x of ['先発','中継ぎ','抑え','◎','本職'])assert.ok(html.includes(x),x);
   assert.ok(/[右左]投 防御率/.test(html),'利き腕');
   // 守備位置を選ぶ所: 選んだ位置の適性を大きく出す部品がある

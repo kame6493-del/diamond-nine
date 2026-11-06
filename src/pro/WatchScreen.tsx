@@ -145,10 +145,14 @@ function Sheet({title,onClose,children,className=''}:{title:string;onClose:()=>v
 export interface WatchProps {state:GameState;game:ManagedGame;saved?:(WatchOrder|null)[]|null;sound:boolean;mode?:WatchMode;guide?:boolean;onGuideDone?:()=>void;onSave?:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onPause:(inputs:(WatchOrder|null)[],mode:WatchMode)=>void;onFinish:(inputs:(WatchOrder|null)[],result:GameResult)=>void}
 export function WatchScreen(props:WatchProps){
  // 監督の試合をはじめてする時だけ、作戦・速さ・交代・飛ばすボタンを指さしで案内する(11/5)。
- const view=<><WatchView {...props}/>{props.guide&&<MatchGuide steps={MATCH_GUIDE} onDone={()=>props.onGuideDone?.()}/>}</>;
+ // 11/6 持ち主「チュートリアルなのに勝手に試合が進む」: 案内の説明(作戦・速さ・交代・飛ばす)の間は試合を止める。
+ // 最後の段(結果を見て「次へ」)になったら、いつもどおり進む。案内を終えた・スキップした時も進む。
+ const [gi,setGi]=useState(0),hold=!!props.guide&&gi<MATCH_GUIDE.length-1;
+ const view=<><WatchView {...props} hold={hold}/>{props.guide&&<MatchGuide steps={MATCH_GUIDE} onIndex={setGi} onDone={()=>props.onGuideDone?.()}/>}</>;
  return typeof document==='undefined'?view:createPortal(view,document.body);
 }
-function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPause,onFinish}:WatchProps){
+function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPause,onFinish,hold=false}:WatchProps&{hold?:boolean}){
+ const holdRef=useRef(hold);holdRef.current=hold;
  const key=game.key;
  // おまかせで観る(watch): 監督の操作なし・最初は2倍(監督の時とは別に速さを覚える)。途中で「ここから監督する」に切り替えられる。
  void startMode;const mode:WatchMode='manage',modeRef=useRef(mode);// 「おまかせで観る」は外した(11/4 夜)。前に観ていた試合も監督の試合として続きから
@@ -225,10 +229,10 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
     tallyEnd(l.tally,`${1-e.side}|${e.pitcher}`,thrown);
     if(!quiet){
      // 本塁打は芯で捉えた木製バットの音(打球が飛ぶ所で鳴らしてある)と歓声。
-     if(e.kind==='HR'){if(!l.animated)play('hitStrong');play(crowd(e),.12);homeRun=e;}
-     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play(e.kind==='E'?'hitJammed':'hitStrong');if(e.runs)play(crowd(e));}
+     if(e.kind==='HR'){if(!l.animated)play('hitStrong');{const c=crowd(e);if(c)play(c,.12);}homeRun=e;}
+     else if(['1B','2B','3B','E'].includes(e.kind)){if(!l.animated)play(e.kind==='E'?'hitJammed':'hitStrong');if(e.runs){const c=crowd(e);if(c)play(c);}}
      // 捕った音・三振のミットの音は、動きの中で捕った瞬間に鳴らしてある(cue)。動きが無かった時だけここで鳴らす。
-     else if(e.kind==='K'){if(!l.animated)play('strikeout');}else{if(!l.animated)play('catch');if(e.runs)play(crowd(e));}
+     else if(e.kind==='K'){if(!l.animated)play('strikeout');}else{if(!l.animated)play('catch');if(e.runs){const c=crowd(e);if(c)play(c);}}
     }
    }
    l.last=e;
@@ -263,7 +267,8 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   }
  };
  /** 点が入った時の観客: 自分のチームの点は歓声、相手の点はため息(観るだけの試合は歓声)。 */
- const crowd=(e:LiveEvent)=>{const c=L.current?.control??-1;return c>=0&&e.side!==c?'sigh' as const:'cheer' as const;};
+ // 11/6 持ち主「うーんみたいな変な声があるので、それは要らない」: 相手の点のため息(人の声)は外した。相手の点は音なし、自分の点は球場の歓声。
+ const crowd=(e:LiveEvent)=>{const c=L.current?.control??-1;return c>=0&&e.side!==c?null:'cheer' as const;};
  /** 自分のチームの打者の今季何号か(レギュラーシーズンの試合だけ。記録の成績表から数える)。 */
  const homeRunNumber=(l:Live,e:LiveEvent)=>{
   const team=e.side===0?l.g.away:l.g.home;if(team!==club||l.g.kind==='post')return 0;
@@ -312,7 +317,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   later(ms+80,()=>{const c=L.current;if(c!==l||c.phase!=='pitch')return;c.play=null;c.clip=null;c.shownBases=st.e.bases;render();runStep(c);});
  };
  const wait=()=>{
-  const l=L.current;if(!l||l.finished||sheetRef.current)return;
+  const l=L.current;if(!l||l.finished||sheetRef.current||holdRef.current)return;
   const s=speedRef.current,fx=l.fx,extra=(fx?fx.ms*.7:0)+(l.moves&&(l.moves.bat||l.moves.pit)?400/s:0);// 演出の間と、成績が変わった時は少しだけ長く見せる
   if(fx){const n=l.fxN;window.setTimeout(()=>{if(L.current===l&&l.fxN===n){l.fx=null;render();}},fx.ms);}
   if(l.flash){const f=l.flash;window.setTimeout(()=>{if(L.current===l&&l.flash===f){l.flash=null;render();}},Math.max(900,1600/s));}
@@ -324,6 +329,9 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
  useEffect(()=>{open();render();if(L.current&&!L.current.finished&&!sheetRef.current)wait();return clear;// eslint-disable-next-line react-hooks/exhaustive-deps
  },[key]);
  useEffect(()=>{if(sound)void prepareWatchAudio();},[sound]);
+ // 案内が終わったら、止めていた試合を進める。
+ useEffect(()=>{if(!hold&&L.current&&!L.current.finished&&!sheetRef.current&&L.current.phase==='decide'){clear();wait();}// eslint-disable-next-line react-hooks/exhaustive-deps
+ },[hold]);
  useEffect(()=>{const o=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=o;clear();stopGameAudio();};},[]);
  // シートを開くと止まり、閉じると前の速さで続く。
  useEffect(()=>{if(sheet){settle();render();}else if(L.current&&!L.current.finished){clear();wait();}// eslint-disable-next-line react-hooks/exhaustive-deps
