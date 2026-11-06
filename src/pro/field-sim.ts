@@ -22,6 +22,9 @@ export const BAGS:V[]=[FIRST,SECOND,THIRD,PLATE];
 export const fenceAt=(deg:number)=>{const a=Math.min(1,Math.abs(deg)/45);return 122-22*a*a;};
 export type Pos='P'|'C'|'1B'|'2B'|'3B'|'SS'|'LF'|'CF'|'RF';
 export const POSITIONS:Pos[]=['P','C','1B','2B','3B','SS','LF','CF','RF'];
+/** 画面に出す守備位置の1字(11/6 夜 捕った野手の札)と、試合のデータの守備位置(外野は「外」)。 */
+export const POS_LABEL:Record<Pos,string>={P:'投',C:'捕','1B':'一','2B':'二','3B':'三',SS:'遊',LF:'左',CF:'中',RF:'右'};
+export const POS_DATA:Record<Pos,string>={P:'投',C:'捕','1B':'一','2B':'二','3B':'三',SS:'遊',LF:'外',CF:'外',RF:'外'};
 /** 守る位置(ふだんの所)。 */
 export const READY:Record<Pos,V>={P:[0,18.3],C:[0,-3.3],'1B':[17.5,24.5],'2B':[9.5,35.5],'SS':[-10,35.5],'3B':[-17.5,23.5],LF:[-40,73],CF:[0,84],RF:[40,73]};
 /** 打席(右打者は三塁側=x が負、左打者は一塁側)。 */
@@ -55,7 +58,8 @@ export interface Actor {id:string;role:'f'|'b'|'r';pos?:Pos;keys:Key[];gone?:num
 export interface BallSeg {t0:number;t1:number;a:V;b:V;peak:number;kind:'ground'|'air'|'throw'|'pitch'|'hidden';fade?:boolean}
 /** what=見た目の種類(試験で結果と合っているか確かめる)。 */
 export type Motion='pitch'|'ground-out'|'fly-out'|'double-play'|'force-out'|'tag-out'|'liner-out'|'pop-out'|'fine-play'|'tag-up'|'single'|'extra-base'|'home-run'|'error'|'bunt'|'bunt-pop'|'steal'|'caught-stealing'|'walk'|'strikeout'|'none';
-export interface Choreo {kind:LiveKind|'PITCH';motion:Motion;word:string;len:number;actors:Actor[];ball:BallSeg[];banner?:{t:number;text:string}|null;fine?:boolean;chaser?:Pos|null;cover?:Partial<Record<number,Pos>>}
+/** catchAt(11/6 夜): 打球を捕った瞬間(画面の秒)と捕った野手。ゴロ・フライ・ライナー・内野フライ・バント(併殺・ファインプレーも)。安打・失策・本塁打は無し。 */
+export interface Choreo {kind:LiveKind|'PITCH';motion:Motion;word:string;len:number;actors:Actor[];ball:BallSeg[];banner?:{t:number;text:string}|null;fine?:boolean;chaser?:Pos|null;cover?:Partial<Record<number,Pos>>;catchAt?:{t:number;pos:Pos}|null}
 export interface SimCtx {
  /** 守る側の位置 → 選手 id。 */
  fielders:Partial<Record<Pos,string>>;
@@ -147,7 +151,7 @@ function finish(P:Plan,base:Omit<Choreo,'actors'|'ball'|'len'>,realLen:number,ca
  const f=Math.min(k,cap/Math.max(.1,realLen));
  const actors=[...P.actors.values()].map(a=>({...a,keys:a.keys.map(x=>({...x,t:x.t*f})),gone:a.gone!==undefined?a.gone*f:undefined}));
  const ball=P.ball.map(s=>({...s,t0:s.t0*f,t1:s.t1*f}));
- return {...base,actors,ball,len:realLen*f,banner:base.banner?{...base.banner,t:base.banner.t*f}:null};
+ return {...base,actors,ball,len:realLen*f,banner:base.banner?{...base.banner,t:base.banner.t*f}:null,catchAt:base.catchAt?{...base.catchAt,t:base.catchAt.t*f}:null};
 }
 
 const toward=(a:V,b:V,m:number):V=>{const d=distM(a,b);return d<=m?b:lerp(a,b,m/d);};
@@ -245,7 +249,7 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
    P.b({t0:0,t1:1.3,a:[0,.5],b:spot,peak:6,kind:'air'});P.go('f:C',spot,.15,P.fv('C'),'fly');P.pose('f:C',1.25,'catch');
    P.go(bid,lerp(PLATE,FIRST,.25),.25,5,'sad');P.actors.get(bid)!.gone=1.7;
    for(const a of adv)P.go('r:'+a.id,BAGS[a.from],.2,4,'ready','jog');
-   return finish(P,{...base,motion:'bunt-pop',chaser:'C'},2.2,2.2,.8);
+   return finish(P,{...base,motion:'bunt-pop',chaser:'C',catchAt:{t:1.3,pos:'C'}},2.2,2.2,.8);
   }
   const fielder:Pos=left?'3B':'P',ballT=P.b({t0:0,t1:1.25,a:[0,.6],b:spot,peak:0,kind:'ground'});
   P.go('f:'+fielder,add(spot,[0,.5]),.08,P.fv(fielder),'grounder');P.pose('f:'+fielder,ballT,'grounder');
@@ -258,7 +262,7 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
    if(a.to===a.from){P.go(rid,BAGS[a.from],.2,4,'ready','jog');continue;}
    const t=runPath(P,rid,pathPts(a.from,a.to).map((p,i)=>i===0?leadOff(a.from):p),a.to===3?0:.35,P.rv(a.id),a.to===3);
    if(a.to===3)P.pose(rid,t+.5,'cheer');}
-  return finish(P,{...base,motion:'bunt',chaser:fielder,cover:{0:'2B',1:'SS'}},tOut+.9,3.4,.6);
+  return finish(P,{...base,motion:'bunt',chaser:fielder,cover:{0:'2B',1:'SS'},catchAt:{t:ballT,pos:fielder}},tOut+.9,3.4,.6);
  }
  if(e.play&&(k==='OUT'||k==='DP'||k==='FC'||k==='TP'||k==='SF'))return playOut(P,e,before,e.play,hand,base);
  if(k==='HR'){
@@ -371,7 +375,7 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
   P.go('f:1B',FIRST,.3,P.fv('1B'),'cover');
   backups(P,land,.2,[of,cutoff,'2B','SS','1B','C']);
   const end=Math.max(lastT,P.ball.at(-1)!.t1)+.4;
-  return finish(P,{...base,motion:k==='SF'?'tag-up':'fly-out',chaser:of,fine:dive,banner:dive?{t:tC,text:'ファインプレー!'}:null},end,k==='SF'?4.4:3.6,.62);
+  return finish(P,{...base,motion:k==='SF'?'tag-up':'fly-out',chaser:of,fine:dive,banner:dive?{t:tC,text:'ファインプレー!'}:null,catchAt:{t:tC,pos:of}},end,k==='SF'?4.4:3.6,.62);
  }
  // ゴロ(凡打・失策)
  const err=k==='E',deg=ANGLE[word]??0;
@@ -412,7 +416,7 @@ export function choreograph(e:LiveEvent,before:(string|null)[],ctx:SimCtx):Chore
  const mid:Pos=f==='SS'||f==='3B'?'2B':'SS';P.go('f:'+mid,SECOND,.15,P.fv(mid),'cover');
  backups(P,spot2,.1,[f,recv,mid,'1B']);
  const banner=err?{t:tB+.1,text:'エラー!'}:dive?{t:tB,text:'ファインプレー!'}:null;
- return finish(P,{...base,motion:err?'error':'ground-out',chaser:f,fine:dive,cover:{0:recv},banner},Math.max(lastT,outT)+.5,3.2,.62);
+ return finish(P,{...base,motion:err?'error':'ground-out',chaser:f,fine:dive,cover:{0:recv},banner,catchAt:err?null:{t:tB,pos:f}},Math.max(lastT,outT)+.5,3.2,.62);
 }
 
 // ---- 11/5: 試合の計算のプレー(plays.ts)どおりの動き。ゴロの併殺・野選(フォース/タッチ)、フライ・ライナー・内野フライ、タッチアップと本塁の送球、
@@ -474,7 +478,7 @@ function playOut(P:Plan,e:LiveEvent,before:(string|null)[],d:PlayDetail,hand:Han
   if(!covers.includes('1B')&&f!=='1B')P.go('f:1B',bagSpot(0,'1B'),.12,P.fv('1B'),'cover');
   backups(P,spot2,.1,[f,...covers,'1B']);
   const n=outs.length,motion:Motion=d.fine?'fine-play':n>=2?'double-play':outs.some(o=>o.from>=0&&o.out==='tag')?'tag-out':outs.some(o=>o.from>=0)?'force-out':'ground-out';
-  return finish(P,{...base,motion,chaser:f,fine:!!d.fine,cover:{0:'1B'},banner:null},Math.max(lastT,hold)+.5,n>=2?4.2:3.4,.62);
+  return finish(P,{...base,motion,chaser:f,fine:!!d.fine,cover:{0:'1B'},banner:null,catchAt:{t:tB,pos:f}},Math.max(lastT,hold)+.5,n>=2?4.2:3.4,.62);
  }
  // フライ・ライナー・内野フライ
  const of=f==='LF'||f==='CF'||f==='RF';
@@ -528,7 +532,7 @@ function playOut(P:Plan,e:LiveEvent,before:(string|null)[],d:PlayDetail,hand:Han
  P.go('f:1B',FIRST,.3,P.fv('1B'),'cover');
  if(of)backups(P,land,.2,[f,'2B','SS','1B','C']);
  const motion:Motion=d.fine?'fine-play':runners.some(x=>x.to===-1)?'double-play':sf?'tag-up':d.bb==='ld'?'liner-out':d.bb==='pop'?'pop-out':'fly-out';
- return finish(P,{...base,motion,chaser:f,fine:!!d.fine,banner:null},Math.max(lastT,P.ball.at(-1)!.t1,tC)+.45,motion==='double-play'||sf?4.4:3.6,.62);
+ return finish(P,{...base,motion,chaser:f,fine:!!d.fine,banner:null,catchAt:{t:tC,pos:f}},Math.max(lastT,P.ball.at(-1)!.t1,tC)+.45,motion==='double-play'||sf?4.4:3.6,.62);
 }
 
 // ---- その時刻の姿 ----

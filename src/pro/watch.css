@@ -448,3 +448,22 @@ html .simple-app .kg-toast{position:fixed;left:50%;top:calc(70px + var(--safe-ar
 /* 11/5 朝: 位置の札の段に「守備」と項目名を付ける */
 .wt-root .wt-posgrid button>em.wt-pg-def{grid-area:gr;display:flex;align-items:center;gap:2px;font-style:normal}
 .wt-root .wt-posgrid button>em.wt-pg-def small{font-size:11px;font-weight:800;color:var(--wt-muted)}
+
+/* ---- 捕った野手の札(2026-11-06 夜 持ち主「守備でボールを取った時に、名前と肩・守の能力が出るようにしてください」) ----
+   実況の帯の上に重ねる(グラウンドの中には出さないので、ボール・走者・野手を隠さない。下の打者の帯とも重ならない)。
+   見た目は打者の帯の札と同じ(白い札・上の線はチームの色・段と短い棒は .wt-mini)。押さなくても --fc-ms で消える。 */
+.wt-root .wt-callbox{position:relative;flex:none;display:flex;flex-direction:column}
+.wt-root .wt-fcard{position:absolute;inset:0;z-index:5;display:flex;align-items:center;gap:8px;padding:2px 8px;background:#fff;color:var(--wt-ink);border:1.5px solid #d5dcec;border-top:4px solid var(--tc,#2f63d6);border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,.4);pointer-events:none;
+ animation:wt-fcard var(--fc-ms,1400ms) linear both}
+@keyframes wt-fcard{0%{opacity:0;transform:translateY(6px)}12%{opacity:1;transform:none}82%{opacity:1}100%{opacity:0}}
+.wt-root .wt-fcard-who{margin:0;display:flex;align-items:center;gap:5px;min-width:0;flex:1 1 auto}
+.wt-root .wt-fcard-who em{flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(#ffe28a,#d4a12a);color:var(--wt-ink);font-style:normal;font-weight:900;font-size:14px;line-height:1}
+.wt-root .wt-fcard-who b{font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.wt-root .wt-fcard-who small{flex:none;font-size:11px;font-weight:900;color:#0f5a22;background:#eaff7a;border:1px solid #1f4a00;border-radius:999px;padding:0 6px;line-height:16px}
+.wt-root .wt-fcard .wt-minis{flex:0 0 auto;width:min(190px,48%);grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+/* ファインプレー: 動きの中の札から演出の札へ出し直す時に、下の実況が透けないよう、最初から見えている(終わりだけ消える) */
+.wt-root .wt-fcard.is-fine{animation-name:wt-fcard-fine}
+@keyframes wt-fcard-fine{0%,85%{opacity:1}100%{opacity:0}}
+.wt-root .wt-fcard.is-fine{border-color:#9bd12a;border-top-color:#9bd12a;box-shadow:0 0 0 2px rgba(190,255,90,.55),0 3px 10px rgba(0,0,0,.4)}
+.wt-root .wt-fcard.is-fine .wt-mini:nth-child(2){background:#f3ffd0;box-shadow:inset 0 0 0 1.5px #9bd12a}
+@media (prefers-reduced-motion:reduce){.wt-root .wt-fcard{animation:wt-fcard-calm var(--fc-ms,1400ms) steps(1) both}@keyframes wt-fcard-calm{0%{opacity:1}100%{opacity:0}}}
