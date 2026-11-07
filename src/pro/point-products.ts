@@ -1,5 +1,6 @@
 // 2026-09-25 の案(Play Console には未登録・販売したことは無い)。ID は別の中身で使い回さないため残すだけ。
 // Price proposals for Play Console; never use these values to initiate a payment.
+import {firstPackWindowNow} from './offer-moments';
 export const pointProducts = [
  {id:'points_3000',points:3000,proposedPriceYen:120},
  {id:'points_13000',points:13000,proposedPriceYen:480},
@@ -38,8 +39,10 @@ export const isOncePack = (id:string) => id===firstPack.id;
 export const pointPackIds = allPointPacks.map(p=>p.id);
 export const packById = (id:string) => allPointPacks.find(p=>p.id===id);
 const ONCE_KEY='diamond-nine-once-packs';
-export const readOncePacks = ():string[] => {try{const v=JSON.parse(localStorage.getItem(ONCE_KEY)??'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'):[];}catch{return [];}};
-export const markOncePack = (id:string) => {try{const v=readOncePacks();if(!v.includes(id))localStorage.setItem(ONCE_KEY,JSON.stringify([...v,id]));}catch{/* 次の起動で getPurchases から拾い直す */}};
+/** 買えなくなった1回だけのパック: 買った物(markOncePack)と、2026-11-07 から はじめて見せて72時間を過ぎた物(offer-moments.ts)。 */
+export const boughtOncePacks = ():string[] => {try{const v=JSON.parse(localStorage.getItem(ONCE_KEY)??'[]');return Array.isArray(v)?v.filter(x=>typeof x==='string'):[];}catch{return [];}};
+export const readOncePacks = (now=Date.now()):string[] => {const v=boughtOncePacks();return !firstPackWindowNow(now).open&&!v.includes(firstPack.id)?[...v,firstPack.id]:v;};
+export const markOncePack = (id:string) => {try{const v=boughtOncePacks();if(!v.includes(id))localStorage.setItem(ONCE_KEY,JSON.stringify([...v,id]));}catch{/* 次の起動で getPurchases から拾い直す */}};
 const SCOUT = 3000;
 export const packDraws = (p:PointPack) => p.points/SCOUT;
 // 1回(3,000pt)あたりの円。いちばん小さいパックとの比べで「おトク」を出す。

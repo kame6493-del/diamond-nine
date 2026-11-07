@@ -18,7 +18,11 @@ import {collectionProgress} from '../player-browser';
 import {PawaCard,Rank,cardRatings,fitName} from './PawaCard';
 import {useMonetize} from '../monetization';
 import {aptitudeNames,positionNames} from '../positions-ja';
-import {PackShop} from '../PackShop';
+import {PackShop,useFirstPackLeft} from '../PackShop';
+import {PawaOffer} from './PawaOffer';
+import {firstPack,packDraws,pointPacks,readOncePacks} from '../point-products';
+const FIRST_X=firstPack.points/(pointPacks.find(p=>p.priceYen===firstPack.priceYen)?.points??firstPack.points);
+import type {OfferMoment} from '../offer-moments';
 
 const count=(n:number)=>n.toLocaleString('ja-JP');
 const packOf=(tier:ScoutTier)=>`/assets/pro/pawa/pack-${tier==='standard'?'normal':tier}.webp`;
@@ -59,12 +63,18 @@ export function PawaScout({state,onDraw,onDrawMulti,onEquip,drawing,hasDrawn,onS
  const [kept,setKept]=useState(-1),[odds,setOdds]=useState(false),[shop,setShop]=useState(false);
  // 2026-10-30 持ち主「課金圧が強すぎる」: 待ち受けの大きなパックの帯とプレミアムパスの案内をやめた。購入は下の「ポイント購入」とメニューから。
  const money=useMonetize();
+ // 2026-11-07 夜 持ち主「速く売りたい」: ポイントが足りない時は引くボタンを押せるままにし、押すと購入の案内(PawaOffer)を出す。
+ // 自動では出さない(押した時だけ)。ブラウザ版・ストアの値段が取れない間は前と同じ(押せない)。
+ const [offer,setOffer]=useState<OfferMoment|null>(null);
+ const storeReady=!!money?.packs&&Object.keys(money.packs.prices).length>0;
  const posName=positionNames(state.lineup,state.defense);
  // 2026-11-04 vc43: 10回まとめて引いた後は lastPulls が10枚。その時は1枚の結果ではなく、まとめて引く用の演出と一覧を出す。
  const multi=hasDrawn&&state.lastPulls.length>1,canMulti=state.gems>=MULTI_SCOUT_COST;
  const pull=hasDrawn&&!multi?state.lastPulls[0]:null,player=pull?playerMap[pull.playerId]:null;
  const upgrade=player?bestUpgrade(state,player.id):null,canDraw=state.gems>=SIMPLE_SCOUT_COST;
  const {tier,overall}=scoutPresentation(player,state.owned,state.training);
+ const refill=!canDraw&&storeReady&&!drawing,firstPriced=storeReady&&!!money?.packs?.prices[firstPack.id]&&!readOncePacks().includes(firstPack.id),first72=useFirstPackLeft(refill&&firstPriced),firstOpen=firstPriced&&first72.open;
+ const openOffer=()=>setOffer(tier==='gold'||tier==='rainbow'?'hit':'short');
  // 提供割合は抽選と同じ計算(scoutOdds)から
  const rates=scoutOdds(state),pct=(x:number)=>`${+(x*100).toFixed(3)}%`,pct4=(x:number)=>`${(x*100).toFixed(4)}%`;
  const equipped=player&&[...state.lineup,...state.pitchers].includes(player.id);
@@ -133,10 +143,12 @@ export function PawaScout({state,onDraw,onDrawMulti,onEquip,drawing,hasDrawn,onS
    {/* 2026-11-01 入れ替えのボタンは下の欄に固定(上の場をスクロールしなくても押せる) */}
    {showResult&&old&&<div className="pw-cmp-acts pw-sc-swapbar" role="group" aria-label={`${player!.name}と今の${cmp?.label??'選手'}の入れ替え`}><button className="pw-btn pw-white" onClick={()=>setKept(state.pulls)}>控えに置く</button><button className="pw-btn pw-yellow" onClick={()=>onEquip(player!.id)}>この選手と入れ替える</button></div>}
    <div className="pw-sc-draws">
-    <button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>
+    {refill?<button className="pw-btn pw-yellow pw-draw-btn dn-refill" onClick={openOffer}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em>ポイントを補充</em></span></button>
+    :<button className="pw-btn pw-yellow pw-draw-btn" disabled={!canDraw||drawing} onClick={onDraw}><span className="pw-ball" aria-hidden="true"/><span><b>{hasDrawn?'もう1枚':'1枚引く'}</b><em><i className="pw-p">P</i>{count(SIMPLE_SCOUT_COST)} pt</em></span></button>}
     {onDrawMulti&&<button className="pw-btn pw-draw-btn pw-multi-btn" disabled={!canMulti||drawing} onClick={onDrawMulti} aria-label={`10回まとめて引く ${count(MULTI_SCOUT_COST)} pt`}><span><b><span className="pw-multi-n">10回</span>まとめて引く</b><em><i className="pw-p">P</i>{count(MULTI_SCOUT_COST)} pt</em></span></button>}
    </div>
    {onDrawMulti&&!canMulti&&!drawing&&<p className="pw-multi-short" role="note">10回まとめて引くには あと{count(MULTI_SCOUT_COST-state.gems)}pt</p>}
+   {refill&&firstOpen&&<button type="button" className="dn-offer-strip" onClick={openOffer}><span><b>はじめての購入だけ：スカウト{count(packDraws(firstPack))}回分</b><small>同じ値段のいつものパックの{FIRST_X}倍・あと {first72.left}</small></span><em>{money!.packs!.prices[firstPack.id]}</em></button>}
   </section>
   {!drawing&&<section className="pw-sc-more">
    {money?adSlot&&<div className="pw-sc-adbtn">{adSlot}</div>:<div className="pw-sc-adbtn"><div className="reward-ad"><button type="button" className="s-button reward-ad-button" disabled>広告を見て1回引く<small>アプリ版で使えます</small></button></div></div>}
@@ -148,6 +160,7 @@ export function PawaScout({state,onDraw,onDrawMulti,onEquip,drawing,hasDrawn,onS
    <PackShop/>
    <button type="button" className="pw-btn pw-white pw-sheet-close" onClick={()=>setShop(false)}>閉じる</button>
   </div></div>}
+  {offer&&<PawaOffer moment={offer} state={state} onClose={()=>setOffer(null)}/>}
   {odds&&<div className="pw-modal pw-sheet-modal" onClick={()=>setOdds(false)}><div className="pw-sheet" role="dialog" aria-modal="true" aria-label="提供割合" onClick={e=>e.stopPropagation()}>
    <header className="pw-sheet-head"><h2>提供割合</h2><button className="pw-close" onClick={()=>setOdds(false)} aria-label="閉じる"><X size={22}/></button></header>
    <section className="pw-panel pw-odds"><ul>{rates.bands.map(b=><li key={b.id} className={b.id.startsWith('mlb')?'is-world':b.id==='domStandard'?'':'is-hot'}><span><b>{b.label}</b><small>{b.detail} · {b.count}人 · 1人 {pct4(b.each)}</small></span><em>{pct(b.rate)}</em></li>)}</ul>

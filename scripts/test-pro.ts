@@ -28,6 +28,7 @@ import {register1104eTests} from './test-1104e';
 import {register1104fTests} from './test-1104f';
 import {register1104gTests} from './test-1104g';
 import {register1105Tests} from './test-1105';
+import {registerOfferTests} from './test-offer';
 import {register1106cTests} from './test-1106c';
 import {shownKmh} from '../src/pro/velocity-display';
 import {register1105bTests} from './test-1105b';
@@ -368,6 +369,7 @@ register1106Tests(test);
 register1106bTests(test);
 register1107Tests(test);
 register1106cTests(test);
+registerOfferTests(test);
 let failures=0;
 for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}
 console.log(`${tests.length-failures}/${tests.length} checks passed; NPB 858 / MLB 2430 league games per complete season.`);

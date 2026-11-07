@@ -1,6 +1,7 @@
 // ブラウザ版で「広告を見て1回引く」の流れを確かめるための見本(テスト表示)。
 // URL に ?addemo=1 を付けたときだけ入る(タブを閉じるまで有効)。本物の広告は出さず、広告SDKも読み込まない。
 // アプリ版は mobile/monetize.ts の本物の AdMob ブリッジが window.diamondMonetize に入るので、ここは何もしない。
+import {allPointPacks} from './point-products';
 import {REWARD_AD_DAILY_LIMIT,REWARD_AD_POINTS,dailyLeft,interstitialDue,localDay,parseDaily,spendDaily,type MonetizeBridge,type MonetizeSnapshot,type RewardOutcome} from './monetization';
 
 const KEY='diamond-nine-reward-ads-demo',FLAG='diamond-nine-addemo',SECONDS=5,PACE='diamond-nine-interstitial-demo';
@@ -8,13 +9,18 @@ const launchedAt=Date.now();
 const read=(k:string)=>{try{return localStorage.getItem(k);}catch{return null;}};
 const write=(k:string,v:string)=>{try{localStorage.setItem(k,v);}catch{/* this session only */}};
 
+// 2026-11-07: ?shopdemo=1 で、ポイント購入の流れ(購入の案内・パック一覧)もブラウザで確かめられる(テスト表示)。
+// 値段の文字は日本の Play Console に登録した税込価格から作った見本。購入はせず「テスト表示」の知らせを出すだけ。
+const SHOP_FLAG='diamond-nine-shopdemo';
 export function installAdDemo(){
  if(typeof window==='undefined'||window.diamondMonetize)return;
- let on=false;
- try{on=new URLSearchParams(location.search).get('addemo')==='1'||sessionStorage.getItem(FLAG)==='1';if(on)sessionStorage.setItem(FLAG,'1');}catch{/* storage blocked */}
+ let on=false,shop=false;
+ try{const q=new URLSearchParams(location.search);shop=q.get('shopdemo')==='1'||sessionStorage.getItem(SHOP_FLAG)==='1';if(shop)sessionStorage.setItem(SHOP_FLAG,'1');on=shop||q.get('addemo')==='1'||sessionStorage.getItem(FLAG)==='1';if(on)sessionStorage.setItem(FLAG,'1');}catch{/* storage blocked */}
  if(!on)return;
+ const prices:Record<string,string>={};if(shop)for(const p of allPointPacks)prices[p.id]=`¥${p.priceYen.toLocaleString('ja-JP')}`;
+ let packMessage='';
  const listeners=new Set<()=>void>();let busy=false;
- const build=():MonetizeSnapshot=>({privacyOptions:false,premium:{status:'unavailable',owned:false,verified:false,price:null,busy:false,message:''},reward:{available:true,busy,left:dailyLeft(parseDaily(read(KEY)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS}});
+ const build=():MonetizeSnapshot=>({privacyOptions:false,premium:{status:'unavailable',owned:false,verified:false,price:null,busy:false,message:''},reward:{available:true,busy,left:dailyLeft(parseDaily(read(KEY)),localDay(),REWARD_AD_DAILY_LIMIT),limit:REWARD_AD_DAILY_LIMIT,points:REWARD_AD_POINTS},...(shop?{packs:{status:'ready' as const,prices,busy:false,message:packMessage}}:{})});
  let snap=build();const emit=()=>{snap=build();for(const l of listeners)l();};
  const showRewardAd=(onReward:(points:number)=>void)=>new Promise<RewardOutcome>(resolve=>{
   if(busy){resolve('busy');return;}
@@ -44,6 +50,7 @@ export function installAdDemo(){
  const bridge:MonetizeBridge={
   snapshot:()=>snap,subscribe:l=>{listeners.add(l);return()=>{listeners.delete(l);};},
   buyPremium:async()=>{},restorePremium:async()=>{},showRewardAd,noteScout:()=>{},showInterstitial,claimPremiumDaily:()=>0,showPrivacyOptions:async()=>{},
+  ...(shop?{buyPack:async(id:string)=>{packMessage=`テスト表示: アプリ版ではここで Google Play の購入画面が開きます（${id}）。`;emit();},setPointSink:()=>{},refreshStore:()=>{}}:{}),
  };
  window.diamondMonetize=bridge;
 }
