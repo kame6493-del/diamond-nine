@@ -83,7 +83,7 @@ export function PawaSeasonResult({card,state,onScout,onClose,adSlot}:{card:Seaso
 
   {miss&&<section className="pw-panel pw-rs-miss"><header><h3>{miss.lostFinal?'リーグ優勝、日本一まであと一歩':`優勝まで あと ${miss.behind} ゲーム`}</h3></header>
    <p className="pw-note">補強したい所: {miss.weak.map(w=>`${playerMap[w.id]?.name}（総合${w.o}）`).join('・')}。</p>
-   {app&&firstOpen&&<p className="pw-note">はじめての購入だけ ¥{count(firstPack.priceYen)} で {count(firstPack.points)} pt（スカウト{count(firstPack.points/SIMPLE_SCOUT_COST)}回分。いつもの ¥480 の{firstPack.points/(pointPacks.find(p=>p.priceYen===firstPack.priceYen)?.points??firstPack.points)}倍）。</p>}
+   {app&&firstOpen&&<p className="pw-note">はじめての購入だけ、同じ値段のいつものパックの{firstPack.points/(pointPacks.find(p=>p.priceYen===firstPack.priceYen)?.points??firstPack.points)}倍の {count(firstPack.points)} pt（スカウト{count(firstPack.points/SIMPLE_SCOUT_COST)}回分）。</p>}
    {app&&<button type="button" className="pw-btn pw-white pw-wide" aria-expanded={shop} onClick={()=>setShop(v=>!v)}>{shop?'補強の道を閉じる':noPass?'プレミアムパスとポイント購入を見る':'ポイント購入を見る'}</button>}
    {app&&shop&&noPass&&<PremiumPassCard/>}
    {app&&shop&&<PackShop/>}
