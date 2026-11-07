@@ -23,23 +23,28 @@ export interface FieldScene {
 /** カメラ(捕手の後ろの高い所から)。ふだんは内野と外野の手前を大きく、打球が外野へ飛ぶと、球と追う野手が入るまで引いて追いかける。
  *  x0〜x1・y0〜y1(m)が画面に入るように、大きさ S(px/m)と真ん中を決める。 */
 const TILT=.8;
+/** 11/7 試合の画面を大きく: 画面の形に合わせて奥行きの見え方(T)を変える。縦長(左右の幅で大きさが決まる)は奥行きを伸ばして縦を使い、
+ *  人形も少し大きく。横長(高さで決まる)は少し寝かせて大きく映す。ふだんの縦横比の時は前と同じ .8。 */
+const TILT_MIN=.68,TILT_MAX=1.15;
 export interface Cam {x0:number;x1:number;y0:number;y1:number}
 export const HOME_CAM:Cam={x0:-40,x1:40,y0:-6,y1:89};
-export interface Projection {S:number;W:number;H:number;cx:number;bottom:number;camX:number;camY:number}
+export interface Projection {S:number;W:number;H:number;cx:number;bottom:number;camX:number;camY:number;T:number}
 const depth=(y:number)=>1-y/420;
 /** 背の低いグラウンド(360x640 など)では、下の端にカウントの札の分(padB)をあけて、本塁・打者・捕手が札に隠れないようにする。 */
-export const padBottom=(H:number)=>H<320?42:0;
+/** 11/7: 縦長の大きなグラウンド(試合の画面)も、下の端に左下の札の分をあけ、打者・捕手が札に隠れないようにする。 */
+export const padBottom=(H:number,W=0)=>H<320?42:W>0&&H>W*1.3?54:0;
 export function projection(W:number,H:number,c:Cam=HOME_CAM):Projection{
- const pb=padBottom(H),h=H-pb,kMid=depth((c.y0+c.y1)/2),S=Math.min(h/((c.y1-c.y0)*TILT),W/((c.x1-c.x0)*kMid));
- const spare=Math.max(0,h-(c.y1-c.y0)*TILT*S);
- return {S,W,H,cx:W/2,bottom:H-pb-spare*.35,camX:(c.x0+c.x1)/2,camY:c.y0};
+ const pb=padBottom(H,W),h=H-pb,kMid=depth((c.y0+c.y1)/2),dy=c.y1-c.y0,Sw=W/((c.x1-c.x0)*kMid);
+ const T=Math.max(TILT_MIN,Math.min(TILT_MAX,h/(dy*Math.max(.01,Sw)))),S=Math.min(h/(dy*T),Sw);
+ const spare=Math.max(0,h-dy*T*S);
+ return {S,W,H,cx:W/2,bottom:H-pb-spare*.35,camX:(c.x0+c.x1)/2,camY:c.y0,T};
 }
 /** メートル → 画面の点。 */
 export function toScreen(pr:Projection,p:V,h=0):[number,number]{
- const k=depth(p[1]);return [pr.cx+(p[0]-pr.camX*k)*pr.S*k,pr.bottom-(p[1]-pr.camY)*pr.S*TILT-h*pr.S*.9];
+ const k=depth(p[1]);return [pr.cx+(p[0]-pr.camX*k)*pr.S*k,pr.bottom-(p[1]-pr.camY)*pr.S*pr.T-h*pr.S*.9];
 }
 /** 人形の高さ(px)。奥ほど少し小さい。 */
-export const figH=(pr:Projection,y:number)=>Math.max(18,Math.min(44,pr.S*7.4))*(1-Math.max(0,y)/330);
+export const figH=(pr:Projection,y:number)=>{const f=Math.sqrt(Math.max(1,pr.T/TILT));return Math.max(18,Math.min(44*f,pr.S*7.4*f))*(1-Math.max(0,y)/330);};
 /** その時刻に映したい範囲: ふだんの範囲 + これから球が行く所 + 追う野手。 */
 function wantCam(c:Choreo,t:number):Cam{
  const box={...HOME_CAM};
@@ -98,7 +103,8 @@ function paintField(g:CanvasRenderingContext2D,pr:Projection){
  // スタンドの影(塀の外)
  const fence:V[]=[];for(let d=-45;d<=45;d+=3)fence.push([Math.sin(d*Math.PI/180)*fenceAt(d),Math.cos(d*Math.PI/180)*fenceAt(d)]);
  // 芝(しま模様)。フェアの外(ファウルの所)も芝で、少し暗い。
- for(let i=0;i<18;i++){const y0=i*8-10;const a=P([-140,y0]),b=P([140,y0+8]);g.fillStyle=i%2?'#27753a':'#236d35';g.fillRect(0,b[1],pr.W,a[1]-b[1]+1);}
+ // 11/7: 本塁より手前(下の札の所)も芝で埋める(i<0)
+ for(let i=-4;i<18;i++){const y0=i*8-10;const a=P([-140,y0]),b=P([140,y0+8]);g.fillStyle=(i+8)%2?'#27753a':'#236d35';g.fillRect(0,b[1],pr.W,a[1]-b[1]+1);}
  g.save();g.beginPath();let [x,y]=P(PLATE);g.moveTo(x,y);for(const f of fence){[x,y]=P(f);g.lineTo(x,y);}g.closePath();g.clip();
  for(let i=0;i<18;i++){const y0=i*8-10;const a=P([-140,y0]),b=P([140,y0+8]);g.fillStyle=i%2?'#2f8a45':'#2a7f3f';g.fillRect(0,b[1],pr.W,a[1]-b[1]+1);}
  // 内野の土(マウンドの前から 29m の円の内側)
@@ -114,7 +120,7 @@ function paintField(g:CanvasRenderingContext2D,pr:Projection){
  g.strokeStyle='#0f3d22';g.lineWidth=Math.max(2,pr.S*1.1);g.beginPath();fence.forEach((f,i)=>{[x,y]=P(f);i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();
  g.strokeStyle='#e9d36a';g.lineWidth=1;g.stroke();
  // マウンドと本塁の円
- const ell=(c:V,r:number,fill:string)=>{const [cx,cy]=P(c),k=depth(c[1]);g.fillStyle=fill;g.beginPath();g.ellipse(cx,cy,r*pr.S*k,r*pr.S*TILT,0,0,Math.PI*2);g.fill();};
+ const ell=(c:V,r:number,fill:string)=>{const [cx,cy]=P(c),k=depth(c[1]);g.fillStyle=fill;g.beginPath();g.ellipse(cx,cy,r*pr.S*k,r*pr.S*pr.T,0,0,Math.PI*2);g.fill();};
  ell(RUBBER,2.9,'#c38d58');ell(PLATE,4,'#b9824e');
  // ファウルライン
  g.strokeStyle='rgba(255,255,255,.9)';g.lineWidth=Math.max(1,pr.S*.35);

@@ -151,12 +151,12 @@ export function register1105dTests(test:(name:string,run:()=>void)=>void){
   for(const x of [g,m])assert.ok(!OLD.test(x.title+x.sub));
   const src=readFileSync('src/pro/HomeGoal.tsx','utf8');assert.ok(src.includes('2400'),'達成の帯は約2.4秒で自然に消える(タップ待ちにしない)');assert.ok(!/onClick=\{[^}]*setFlash\(null\)/.test(src));
  });
- test('guide (11/5): the pointer guide goes scout → team → おまかせ編成 → 試合・成績 → 1年進める → 監督して戦う, the match guide shows 作戦 → 速さ → 交代 → 飛ばす → 次へ; skipping and replaying from the settings work, and players who finished the old tutorial are not interrupted',()=>{
+ test('guide (11/5): the pointer guide goes scout → team → おまかせ編成 → 試合・成績 → 1年進める → 監督して戦う, the match guide shows タイム(作戦・交代・スコア) → 速さ → 飛ばす → 次へ; skipping and replaying from the settings work, and players who finished the old tutorial are not interrupted',()=>{
   assert.deepEqual(MAIN_GUIDE.map(x=>x.id),['starter','team-tab','order','season-tab','year','manage']);
-  assert.deepEqual(MATCH_GUIDE.map(x=>x.id),['tactic','speed','sub','skip','next']);
+  assert.deepEqual(MATCH_GUIDE.map(x=>x.id),['time','speed','skip','next']);
   let id:string|null='starter';const seen:string[]=[];while(id){seen.push(id);id=nextGuide(id);}assert.equal(seen.length,MAIN_GUIDE.length);
   assert.ok([...MAIN_GUIDE,...MATCH_GUIDE].every(x=>x.text.length<=40&&!/。.+。/.test(x.text)),'各段は1文で短く');
-  assert.ok(MATCH_GUIDE.slice(0,4).every(x=>!x.pass),'試合中の説明は、押しても作戦の窓などを開かない');
+  assert.ok(MATCH_GUIDE.slice(0,3).every(x=>!x.pass),'試合中の説明は、押しても作戦の窓などを開かない');
   const mem=memory();
   assert.equal(readGuide('career',true,mem),'starter');assert.equal(readGuide('career',false,mem),'team-tab');
   saveGuide('career','year',mem);assert.equal(readGuide('career',false,mem),'year');saveGuide('career',null,mem);assert.equal(readGuide('career',false,mem),null);

@@ -36,6 +36,7 @@ import {register1105cTests} from './test-1105c';
 import {register1105dTests} from './test-1105d';
 import {register1106Tests} from './test-1106';
 import {register1106bTests} from './test-1106b';
+import {register1107Tests} from './test-1107';
 import {gameReward,seasonReward,postseasonReward} from '../src/pro/progression';
 import {awakeningCosts} from '../src/pro/development';
 import {registerBalanceTests} from './test-balance';
@@ -365,6 +366,7 @@ register1105cTests(test);
 register1105dTests(test);
 register1106Tests(test);
 register1106bTests(test);
+register1107Tests(test);
 register1106cTests(test);
 let failures=0;
 for(const t of tests){try{await t.run();console.log(`PASS ${t.name}`);}catch(error){failures++;console.error(`FAIL ${t.name}`,error);}}

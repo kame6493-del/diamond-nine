@@ -1,0 +1,77 @@
+/* 試合の画面を大きく(2026-11-07 vc47)。持ち主「試合画面もっと大きくしてください。上の方に色々スコアボードとか情報ありますけど、これなくして。
+   タイムボタンからこういうのは見れるようにしてください」。
+   上の帯(中断・試合名・相手チーム・成績表)・回ごとのスコアの表・打者と投手の帯・作戦の欄は常には出さず、「タイム」の窓に移した。
+   グラウンドは画面の幅いっぱい・残りの高さを全部使う。常に出すのは、グラウンドの左下(ファウルの所)の小さな半透明の札
+   (点・回・ボール/ストライク/アウト・走者)と、その下の実況の一文、いちばん下の1列(タイム・速さ・飛ばす3つ)だけ。
+   横向きの画面は、グラウンドを左に高さいっぱい、実況とボタンを右の細い列に置く。文字は 11px 以上、押す所は高さ 44px 以上。 */
+.wt-root .wt-wrap.wt-big{max-width:none;height:100%;min-height:0;padding:0 0 4px;gap:4px}
+.wt-root .wt-big .wt-field.mt-field{flex:1 1 0;min-height:200px;border-radius:0;border-left:0;border-right:0;border-top:0;box-shadow:none}
+.wt-root .wt-big .wt-field.mt-field.is-loaded{box-shadow:inset 0 0 0 2px #ffd970}
+.wt-root .wt-big .wt-callbox{margin:0 6px}
+.wt-root .wt-big .wt-call{min-height:40px;padding:3px 10px}
+.wt-root .wt-big .wt-call span{font-size:15px;line-height:1.28}
+.wt-root .wt-big .wt-dock{padding:0 6px;gap:4px}
+.wt-root .wt-big .wt-final.is-compact{margin:0 6px;flex:1 1 auto}
+
+/* いちばん下の1列: タイム・速さ・次の打席へ・次のイニングへ・試合終了まで */
+.wt-root .wt-big .wt-speed{grid-template-columns:1.05fr 1.05fr 3px 1fr 1fr 1fr;gap:4px}
+.wt-root .wt-time-btn{min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.05;border-radius:14px;border:2px solid #ffd970;background:linear-gradient(#2a56b8,#10285e);color:#fff;padding:2px 3px;box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.wt-root .wt-time-btn b{font-size:16px;font-weight:900;letter-spacing:.04em;color:#ffe48a}
+.wt-root .wt-time-btn small{font-size:11px;font-weight:800;opacity:.85;white-space:nowrap}
+.wt-root .wt-time-btn.is-pending{box-shadow:0 0 0 2px #ffd970,0 0 10px rgba(255,217,112,.7)}
+
+/* グラウンドの左下の札(点・回・カウント・走者)。半透明・小さく。選手の絵とは重ならない所(ファウルの所) */
+.wt-root .wt-big .wt-count.is-overlay{left:6px;bottom:6px;gap:7px;padding:3px 7px;background:rgba(6,16,42,.66);border:1px solid rgba(255,214,102,.55);border-radius:9px;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);pointer-events:none}
+.wt-root .wt-big .mt-mini-score{display:grid;gap:1px;padding-right:6px;border-right:1px solid rgba(255,255,255,.25)}
+.wt-root .wt-big .mt-mini-score p{margin:0;display:flex;justify-content:space-between;gap:6px;font-size:12px;font-weight:800;line-height:14px}
+.wt-root .wt-big .mt-mini-score p span{max-width:4.5em;overflow:hidden;white-space:nowrap}
+.wt-root .wt-big .mt-mini-score b{font-size:14px;color:#ffd970;font-variant-numeric:tabular-nums}
+.wt-root .wt-big .wt-count.is-overlay .wt-inn{display:flex;flex-direction:column;align-items:center;gap:2px}
+.wt-root .wt-big .wt-count.is-overlay .wt-inn b{font-size:13px;white-space:nowrap}
+/* 走者: 小さな菱形(一・二・三塁)。走者のいる塁は金色 */
+.wt-root .wt-bases{position:relative;display:block;width:30px;height:20px}
+.wt-root .wt-bases i{position:absolute;width:9px;height:9px;transform:rotate(45deg);border:1.5px solid rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+.wt-root .wt-bases i.is-on{background:#ffd970;border-color:#ffd970;box-shadow:0 0 6px rgba(255,217,112,.9)}
+.wt-root .wt-bases i:nth-child(1){right:2px;top:9px}
+.wt-root .wt-bases i:nth-child(2){left:10px;top:1px}
+.wt-root .wt-bases i:nth-child(3){left:2px;top:9px}
+
+/* ---- タイムの窓 ---- */
+.wt-root .wt-timeout header h2{display:flex;align-items:baseline;gap:8px}
+.wt-root .wt-timeout header h2 small{font-size:12px;font-weight:700;color:#bcd0ff}
+.wt-root .wt-to-title{margin:2px 0 6px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:13px;font-weight:800;color:#dbe6ff}
+.wt-root .wt-to-title b{color:#ffd970;font-size:15px}
+.wt-root .wt-timeout .wt-score{width:100%;border-collapse:collapse;table-layout:fixed;text-align:center;background:rgba(6,16,42,.92);color:#eef3ff;border:1.5px solid rgba(255,214,102,.7);border-radius:10px;overflow:hidden;font-size:13px;font-variant-numeric:tabular-nums}
+.wt-root .wt-timeout .wt-score th{background:#10275e;color:#b9c9ee;font-size:11px;padding:2px 0}
+.wt-root .wt-timeout .wt-score td{padding:4px 0;font-weight:800;border-left:1px solid rgba(255,255,255,.08)}
+.wt-root .wt-timeout .wt-score tbody tr+tr td{border-top:1px solid rgba(255,255,255,.08)}
+.wt-root .wt-timeout .wt-score .wt-tm{width:4.6em;text-align:left;padding-left:5px;white-space:nowrap;overflow:hidden}
+.wt-root .wt-timeout .wt-score .r{background:rgba(255,214,102,.18);color:#ffd970}
+.wt-root .wt-timeout .wt-score th.r{background:#d9a52e;color:#0b1a3c}
+.wt-root .wt-to-sit{margin:6px 0;display:flex;flex-wrap:wrap;gap:6px}
+.wt-root .wt-to-sit span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:800}
+.wt-root .wt-to-sit span b{color:#ffd970}
+.wt-root .wt-timeout .wt-duel.is-strip{margin:4px 0 8px;cursor:default}
+.wt-root .wt-timeout .wt-manager.is-compact{margin:4px 0 6px}
+.wt-root .wt-timeout .wt-hint{margin:2px 0 0;font-size:12px;color:var(--wt-gold2);text-align:center;font-weight:700}
+.wt-root .wt-timeout .wt-to-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0 4px}
+.wt-root .wt-timeout .wt-to-btns button{min-height:44px;border-radius:12px;border:1.5px solid var(--wt-gold);background:linear-gradient(#18397f,#0b1d47);color:#fff;font-weight:800;font-size:14px}
+.wt-root .wt-timeout .wt-final-btns.is-sticky{grid-template-columns:2fr 1fr}
+
+/* ---- 横向きの画面: グラウンドを左に高さいっぱい、実況とボタンは右の細い列 ---- */
+@media (orientation:landscape) and (max-height:560px){
+ .wt-root .wt-wrap.wt-big{display:grid;grid-template-columns:minmax(0,1fr) clamp(190px,27vw,250px);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"field call" "field dock";gap:6px;
+  padding:4px calc(6px + var(--safe-area-inset-right,env(safe-area-inset-right,0px))) 4px calc(6px + var(--safe-area-inset-left,env(safe-area-inset-left,0px)))}
+ .wt-root .wt-big .wt-field.mt-field{grid-area:field;min-height:0;height:100%;border:1.5px solid rgba(120,160,255,.45);border-radius:12px}
+ .wt-root .wt-big .wt-final.is-compact{grid-area:field;margin:0}
+ .wt-root .wt-big .wt-callbox{grid-area:call;margin:0;min-height:0}
+ .wt-root .wt-big .wt-call{height:100%;align-items:flex-start;padding:6px 8px;flex-direction:column;gap:4px}
+ .wt-root .wt-big .wt-call span{font-size:14px}
+ .wt-root .wt-big .wt-fcard{inset:auto 0 0 0;flex-wrap:wrap;gap:3px 6px;padding:4px 6px}
+ .wt-root .wt-big .wt-fcard .wt-minis{width:100%}
+ .wt-root .wt-big .wt-dock{grid-area:dock;padding:0}
+ .wt-root .wt-big .wt-speed{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto}
+ .wt-root .wt-big .wt-speed>i{display:none}
+ .wt-root .wt-big .wt-speed .wt-skip:last-child{grid-column:1 / -1}
+ .wt-root .wt-sheet.wt-timeout{max-width:640px;max-height:96dvh}
+}
