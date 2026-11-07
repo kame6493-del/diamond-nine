@@ -58,20 +58,61 @@
 .wt-root .wt-timeout .wt-to-btns button{min-height:44px;border-radius:12px;border:1.5px solid var(--wt-gold);background:linear-gradient(#18397f,#0b1d47);color:#fff;font-weight:800;font-size:14px}
 .wt-root .wt-timeout .wt-final-btns.is-sticky{grid-template-columns:2fr 1fr}
 
-/* ---- 横向きの画面: グラウンドを左に高さいっぱい、実況とボタンは右の細い列 ---- */
+/* ---- 11/7 午後: 打者と投手の帯(薄く3段)と作戦・指示の2列を常に出す ----
+   持ち主「選手の能力とか成績くらいは出るようにして。あと指示も出せるようにくらいは」「良い感じのバランスに」。
+   1段目 打順・名前・打ち方、2段目 能力の段(短い棒つき、1行)、3段目 成績(打率・本塁打・打点・今日/防御率・球数・奪三振)。前の帯の約6割の高さ。 */
+.wt-root .wt-big .wt-duel.is-strip{margin:0 6px;gap:5px}
+.wt-root .wt-big .wt-duel.is-strip .wt-card{display:grid;grid-template-columns:auto minmax(0,1fr);align-content:start;column-gap:6px;row-gap:2px;padding:2px 6px 3px;border-radius:9px}
+.wt-root .wt-big .wt-duel.is-strip .wt-card[style*="--tc"]{border-top-width:3px}
+.wt-root .wt-big .wt-duel.is-strip h3{grid-column:1 / -1;font-size:13px;line-height:16px}
+.wt-root .wt-big .wt-duel.is-strip .wt-minis{grid-column:1 / -1;margin:0;gap:3px}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini{grid-template-columns:auto auto minmax(6px,1fr);grid-template-rows:auto;column-gap:3px;padding:1px 3px;border-radius:4px}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini small{grid-column:auto;font-size:11px;line-height:14px}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini b{font-size:13px;line-height:14px}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini i{height:4px}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini.is-kmh{grid-template-columns:auto auto;grid-template-rows:auto}
+.wt-root .wt-big .wt-duel.is-strip .wt-mini.is-kmh i{display:none}
+.wt-root .wt-big .wt-duel.is-strip .wt-strip-line{font-size:12px;line-height:15px;gap:3px}
+.wt-root .wt-big .wt-duel.is-strip .wt-strip-line b{font-size:12.5px}
+.wt-root .wt-big .wt-duel.is-strip .wt-strip-line .wt-today{margin-left:3px}
+/* 投手の札は字が多いので、球速の km と制球の棒を省く(スタミナの棒=今日の残りは残す) */
+.wt-root .wt-big .wt-duel.is-strip .wt-mini.is-kmh b em{display:none}
+.wt-root .wt-big .wt-duel.is-strip .wt-card:last-child .wt-minis{grid-template-columns:auto auto minmax(0,1fr)}
+.wt-root .wt-big .wt-duel.is-strip .wt-card:last-child .wt-mini:nth-child(2){grid-template-columns:auto auto}
+.wt-root .wt-big .wt-duel.is-strip .wt-card:last-child .wt-mini:nth-child(2) i{display:none}
+/* 投手の奪三振は今日の数だけ(今季はタイムの「打者・投手」に) */
+.wt-root .wt-big .wt-duel.is-strip .wt-so small:nth-of-type(2),.wt-root .wt-big .wt-duel.is-strip .wt-so small:nth-of-type(2)~*{display:none}
+/* 作戦・指示の2列 */
+.wt-root .wt-big .wt-dock .wt-manager.is-compact{gap:4px}
+.wt-root .wt-big .wt-quick{grid-template-columns:54px repeat(4,1fr)}
+.wt-root .wt-big .wt-qt,.wt-root .wt-big .wt-mgs.is-row .wt-mg{min-height:42px}
+.wt-root .wt-big .wt-mgs.is-row .wt-mg{font-size:13px}
+.wt-root .wt-big .wt-hint{margin:0;font-size:12px;color:var(--wt-gold2);text-align:center;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-height:700px) and (orientation:portrait){
+ .wt-root .wt-big .wt-call{min-height:34px;padding:2px 8px}
+ .wt-root .wt-big .wt-call span{font-size:14px}
+ .wt-root .wt-big .wt-qt,.wt-root .wt-big .wt-mgs.is-row .wt-mg,.wt-root .wt-big .wt-speed button,.wt-root .wt-time-btn{min-height:40px}
+}
+
+/* ---- 横向きの画面: グラウンドを左に高さいっぱい、右の列に実況・打者と投手・作戦・ボタン ---- */
 @media (orientation:landscape) and (max-height:560px){
- .wt-root .wt-wrap.wt-big{display:grid;grid-template-columns:minmax(0,1fr) clamp(190px,27vw,250px);grid-template-rows:minmax(0,1fr) auto;grid-template-areas:"field call" "field dock";gap:6px;
+ .wt-root .wt-wrap.wt-big{display:grid;grid-template-columns:minmax(0,1fr) clamp(300px,50vw,440px);grid-template-rows:minmax(0,1fr) auto auto;grid-template-areas:"field call" "field duel" "field dock";gap:5px;
   padding:4px calc(6px + var(--safe-area-inset-right,env(safe-area-inset-right,0px))) 4px calc(6px + var(--safe-area-inset-left,env(safe-area-inset-left,0px)))}
  .wt-root .wt-big .wt-field.mt-field{grid-area:field;min-height:0;height:100%;border:1.5px solid rgba(120,160,255,.45);border-radius:12px}
- .wt-root .wt-big .wt-final.is-compact{grid-area:field;margin:0}
+ .wt-root .wt-big .wt-final.is-compact{grid-area:field;margin:0;min-height:0}
  .wt-root .wt-big .wt-callbox{grid-area:call;margin:0;min-height:0}
- .wt-root .wt-big .wt-call{height:100%;align-items:flex-start;padding:6px 8px;flex-direction:column;gap:4px}
- .wt-root .wt-big .wt-call span{font-size:14px}
- .wt-root .wt-big .wt-fcard{inset:auto 0 0 0;flex-wrap:wrap;gap:3px 6px;padding:4px 6px}
- .wt-root .wt-big .wt-fcard .wt-minis{width:100%}
+ .wt-root .wt-big .wt-call{height:100%;min-height:34px;padding:3px 8px}
+ .wt-root .wt-big .wt-call span{font-size:13.5px}
+ .wt-root .wt-big .wt-duel.is-strip{grid-area:duel;margin:0}
  .wt-root .wt-big .wt-dock{grid-area:dock;padding:0}
- .wt-root .wt-big .wt-speed{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto}
- .wt-root .wt-big .wt-speed>i{display:none}
- .wt-root .wt-big .wt-speed .wt-skip:last-child{grid-column:1 / -1}
+ .wt-root .wt-big .wt-qt,.wt-root .wt-big .wt-mgs.is-row .wt-mg,.wt-root .wt-big .wt-speed button,.wt-root .wt-time-btn{min-height:40px}
  .wt-root .wt-sheet.wt-timeout{max-width:640px;max-height:96dvh}
+}
+@media (orientation:landscape) and (max-height:560px) and (max-width:760px){
+ /* 右の列が細い時: 帯は能力の棒(スタミナ以外)と奪三振・今日を省いて、字を切らない */
+ .wt-root .wt-big .wt-duel.is-strip .wt-mini:not(.is-stamina) i,.wt-root .wt-big .wt-duel.is-strip .wt-so,.wt-root .wt-big .wt-duel.is-strip .wt-strip-line .wt-today:not([data-pitches]){display:none}
+ .wt-root .wt-big .wt-duel.is-strip .wt-minis{grid-template-columns:auto auto minmax(0,1fr)!important}
+ .wt-root .wt-big .wt-duel.is-strip .wt-mini{grid-template-columns:auto auto minmax(0,1fr)}
+ .wt-root .wt-big .wt-speed{grid-template-columns:repeat(3,1fr)}
+ .wt-root .wt-big .wt-speed>i{display:none}
 }

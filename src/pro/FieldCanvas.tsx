@@ -26,15 +26,17 @@ const TILT=.8;
 /** 11/7 試合の画面を大きく: 画面の形に合わせて奥行きの見え方(T)を変える。縦長(左右の幅で大きさが決まる)は奥行きを伸ばして縦を使い、
  *  人形も少し大きく。横長(高さで決まる)は少し寝かせて大きく映す。ふだんの縦横比の時は前と同じ .8。 */
 const TILT_MIN=.68,TILT_MAX=1.15;
+/** いちばん奥(中堅手)の頭が上の端で切れないように、奥に少し(m)余白を足して映す。 */
+const HEAD=4;
 export interface Cam {x0:number;x1:number;y0:number;y1:number}
 export const HOME_CAM:Cam={x0:-40,x1:40,y0:-6,y1:89};
 export interface Projection {S:number;W:number;H:number;cx:number;bottom:number;camX:number;camY:number;T:number}
 const depth=(y:number)=>1-y/420;
 /** 背の低いグラウンド(360x640 など)では、下の端にカウントの札の分(padB)をあけて、本塁・打者・捕手が札に隠れないようにする。 */
-/** 11/7: 縦長の大きなグラウンド(試合の画面)も、下の端に左下の札の分をあけ、打者・捕手が札に隠れないようにする。 */
-export const padBottom=(H:number,W=0)=>H<320?42:W>0&&H>W*1.3?54:0;
+/** 11/7: 縦長〜正方形に近いグラウンド(試合の画面。横向きの左の枠も)は、下の端に左下の札(点・回・カウント)の分をあけ、打者・捕手が札に隠れないようにする。 */
+export const padBottom=(H:number,W=0)=>W>0&&H>W*.7?54:H<320?42:0;
 export function projection(W:number,H:number,c:Cam=HOME_CAM):Projection{
- const pb=padBottom(H,W),h=H-pb,kMid=depth((c.y0+c.y1)/2),dy=c.y1-c.y0,Sw=W/((c.x1-c.x0)*kMid);
+ const pb=padBottom(H,W),h=H-pb,kMid=depth((c.y0+c.y1)/2),dy=c.y1-c.y0+HEAD,Sw=W/((c.x1-c.x0)*kMid);
  const T=Math.max(TILT_MIN,Math.min(TILT_MAX,h/(dy*Math.max(.01,Sw)))),S=Math.min(h/(dy*T),Sw);
  const spare=Math.max(0,h-dy*T*S);
  return {S,W,H,cx:W/2,bottom:H-pb-spare*.35,camX:(c.x0+c.x1)/2,camY:c.y0,T};

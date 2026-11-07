@@ -30,6 +30,8 @@
 // 上の帯(中断・試合名・相手チーム・成績表)・回ごとのスコア・打者と投手の帯・作戦の欄を常には出さず、「タイム」の窓(timeSheet)にまとめた。
 // タイムを開くと試合は止まり(シートと同じ)、閉じるとすぐ続く。窓から開いた成績表・相手チーム・対決・作戦・交代を閉じるとタイムに戻る。
 // 常に出すのは、グラウンドの左下の小さな半透明の札(点・回・B/S/O・走者の菱形)、実況の一文、下の1列(タイム・速さ・飛ばす3つ)だけ(timeout.css)。
+// 11/7 午後(持ち主「ここまで情報をなくせとは言っていない。選手の能力とか成績くらいは出るようにして。あと指示も出せるようにくらいは」「良い感じのバランスに」):
+// 打者と投手の帯(薄く3段: 名前/能力の段/成績)と、作戦・指示の2列を常に出す形に戻した。回ごとのスコア・試合名・相手チーム・成績表・中断はタイムのまま。
 import {shownKmh} from './velocity-display';
 import {positionNames} from './positions-ja';
 import {useEffect,useLayoutEffect,useReducer,useRef,useState,type CSSProperties,type ReactNode} from 'react';
@@ -506,7 +508,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const br=ratingsFor(s.side,s.batter,s.pitchers),pr=ratingsFor(1-s.side,s.pitcher,s.pitchers);
   const pitches=l.pitchCount[`${1-s.side}|${s.pitcher}`]??0,starter=longArm(s.pitcher,(sit??shownSit)?.usedPitchers[1-s.side],(sit??shownSit)?.pitchers[1-s.side]);
   const left=staminaLeft(pr.stamina,pitches,starter),soToday=p?.so??0,soFrom=pm?.so?soToday-(pm.to.so-pm.from.so):soToday;
-  return <div className="wt-duel is-strip is-abil" aria-label="打者と投手">
+  return <div className="wt-duel is-strip is-abil" {...(keep?{role:'button',tabIndex:0,onClick:()=>openSheet('duel'),onKeyDown:(e:{key:string})=>{if(e.key==='Enter')openSheet('duel');}}:{})} aria-label={keep?'打者と投手(押すと詳しい能力)':'打者と投手'}>
    <div className={'wt-card '+(bt===club?'is-mine':'is-rival')} style={{'--tc':tc(bt).main} as CSSProperties}><h3><em>{s.slot+1}番</em><span>{nameOf(s.batter)}</span><i className="wt-hand">{bats}</i></h3>
     <div className="wt-minis"><Mini v={br.contact} label="ミート"/><Mini v={br.power} label="パワー"/><Mini v={br.speed} label="走力"/></div>
     <p className="wt-strip-line"><small>打率</small><Moved from={bm?avgText(bm.from):''} to={avgText(bl)} move={bm?.avg} n={n}/><Moved from={bm?String(bm.from.hr):''} to={String(bl.hr)} move={bm?.hr} arrow={false} n={n} unit="本"/></p>
@@ -609,8 +611,9 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    {(!fin||l.fx)&&field()}
    <div className="wt-callbox"><div className={'wt-call'+(l.log[0]?.gold?' is-gold':'')} aria-live="polite"><em aria-hidden="true">実況</em><span>{l.log[0]?.note&&<b className={'wt-note-tag is-'+(l.log[0].note.good?'good':'bad')}>{l.log[0].note.text}</b>}{l.log[0]?.text??'プレイボール!'}</span></div>
     {l.fcard&&fieldCard(l.fcard)}</div>
+   {!fin&&duelCards()}
    {!l.fx&&finalPanel()}
-   {!fin&&<div className="wt-dock">{speedBar()}</div>}
+   {!fin&&<div className="wt-dock">{control>=0&&managerPanel()}{speedBar()}</div>}
   </div>
   {/* 演出は field() の中(グラウンドの枠の中)に出す(PlayFx) */}
   {l.flash&&<div className="wt-flash" aria-live="assertive">{l.flash}</div>}

@@ -1,4 +1,4 @@
-// 11/7(vc47 / 1.5.4)の試験。持ち主「試合画面もっと大きくしてください。上の方に色々スコアボードとか情報ありますけど、これなくして。
+// 11/7(vc47 / 1.5.4、午後の直し vc48 / 1.5.5)の試験。持ち主「試合画面もっと大きくしてください。上の方に色々スコアボードとか情報ありますけど、これなくして。
 // タイムボタンからこういうのは見れるようにしてください。試合画面を大きくして、試合画面を良い感じに見れるようにしてください」。
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -10,8 +10,9 @@ export function register1107Tests(test:(name:string,run:()=>void)=>void){
  test('big match screen (11/7): the scoreboard, header, batter/pitcher strip and tactics leave the screen; the field, a small corner badge, the commentary line and one row of buttons stay',()=>{
   const w=readFileSync('src/pro/WatchScreen.tsx','utf8'),main=w.slice(w.indexOf('<div className="wt-wrap wt-one wt-big">'),w.indexOf('{l.flash&&'));
   assert.ok(main.length>100,'試合の画面の本体');
-  for(const x of ['scoreboard()','duelCards(','managerPanel()','wt-head','FitTitle'])assert.ok(!main.includes(x),`常には出さない: ${x}`);
-  for(const x of ['field()','<div className="wt-callbox">','speedBar()'])assert.ok(main.includes(x),`残す: ${x}`);
+  for(const x of ['scoreboard()','wt-head','FitTitle'])assert.ok(!main.includes(x),`常には出さない: ${x}`);
+  // 11/7 午後(持ち主「選手の能力とか成績くらいは出るようにして。あと指示も出せるようにくらいは」): 打者と投手の帯と作戦・指示は常に出す
+  for(const x of ['field()','<div className="wt-callbox">','speedBar()','{!fin&&duelCards()}','{control>=0&&managerPanel()}'])assert.ok(main.includes(x),`出す: ${x}`);
   const bar=w.slice(w.indexOf('const speedBar='),w.indexOf('const mine='));assert.ok(bar.includes('{timeBtn()}'),'下の1列にタイム');
   // 隅の札: 点・回・B/S/O・走者
   const cp=w.slice(w.indexOf('const countPanel='),w.indexOf('const fieldCard='));
@@ -30,15 +31,16 @@ export function register1107Tests(test:(name:string,run:()=>void)=>void){
   assert.ok(w.includes("fromTime.current=sheetRef.current==='time'&&s!=='time'"));
   assert.ok(/useEffect\(\(\)=>\{if\(sheet\)\{settle\(\);render\(\);\}else if/.test(w),'シート(タイムも)を開くと試合は止まる');
   assert.ok(!/onClose=\{\(\)=>setSheet\(null\)\}/.test(w),'どのシートも closeSheet で閉じる');
-  assert.equal(MATCH_GUIDE[0].target,'.wt-root .wt-time-btn','案内はタイムを指す');
-  assert.ok(!MATCH_GUIDE.some(x=>/wt-quick|data-guide="sub"/.test(x.target)),'画面に無い所は指さない');
+  assert.ok(MATCH_GUIDE.some(x=>x.target==='.wt-root .wt-time-btn'),'案内はタイムも指す');
+  assert.ok(w.includes("const duelCards=(keep=true)")&&w.includes("onClick:()=>openSheet('duel')"),'帯を押すと詳しい能力');
+  const css=readFileSync('src/pro/timeout.css','utf8');assert.ok(/\.wt-big \.wt-duel\.is-strip \.wt-mini\{[^}]*grid-template-rows:auto/.test(css),'帯の能力は1行(薄く)');
  });
  test('field camera (11/7): a tall phone uses its height (deeper view, figures a little bigger), a wide screen is laid a little flatter and larger; the plate, bases and every fielder stay inside',()=>{
   const old=(W:number,H:number)=>Math.min((H-padBottom(H))/(95*.8),W/(80*(1-41.5/420)));
   for(const [W,H] of [[390,640],[390,560],[620,370],[560,330],[344,222]]){
    const pr=projection(W,H,HOME_CAM);
    for(const p of [PLATE,...BAGS,...Object.values(READY)]){const [x,y]=toScreen(pr,p);assert.ok(x>=0&&x<=W&&y>=0&&y<=H,`${W}x${H} ${p} → ${Math.round(x)},${Math.round(y)}`);}
-   const [,yh]=toScreen(pr,PLATE),[,y2]=toScreen(pr,BAGS[1]);assert.ok(yh-y2>=BAGS[1][1]*old(W,H)*.8-1e-6,`${W}x${H} 内野は前より小さくしない`);
+   const [,yh]=toScreen(pr,PLATE),[,y2]=toScreen(pr,BAGS[1]);assert.ok(yh-y2>=BAGS[1][1]*old(W,H)*.8*.95,`${W}x${H} 内野は前より小さくしない`);
    assert.ok(pr.T>=.68&&pr.T<=1.15);
   }
   const tall=projection(390,640,HOME_CAM);assert.ok(tall.T>1&&figH(tall,0)>figH({...tall,T:.8},0),'縦長は奥行きを伸ばし、人形も少し大きい');

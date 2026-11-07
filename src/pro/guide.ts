@@ -12,9 +12,11 @@ export const MAIN_GUIDE:GuideStep[]=[
 ];
 /** 監督の試合をはじめてする時だけ: 作戦・速さ・交代・飛ばすボタン → 結果を見て「次へ」。 */
 export const MATCH_GUIDE:GuideStep[]=[
- // 11/7: 作戦・交代・スコアは「タイム」の窓にまとめた(試合の画面を大きく)
- {id:'time',text:'「タイム」で試合を止めて、作戦・交代・スコアを見られます',target:'.wt-root .wt-time-btn',pass:false},
+ {id:'tactic',text:'作戦はここ。長打狙い・直球中心などを1タップで出せます',target:'.wt-root .wt-quick',pass:false},
  {id:'speed',text:'速さを変えられます(押すたびに 1→2→4→8→16倍)',target:'.wt-root .wt-speed-cycle',pass:false},
+ {id:'sub',text:'代打・代走や守備・投手の交代はここ',target:'.wt-root [data-guide="sub"]',pass:false},
+ // 11/7: 回ごとのスコア・成績表・相手チーム・中断は「タイム」の窓に
+ {id:'time',text:'「タイム」で試合を止めて、スコア表・成績表・相手チームを見られます',target:'.wt-root .wt-time-btn',pass:false},
  {id:'skip',text:'次の打席・次のイニング・試合終了まで飛ばせます',target:'.wt-root [data-guide="inning"]',pass:false},
  {id:'next',text:'結果を見たら「次へ」。この試合の結果がシーズンに入ります',target:'.wt-root .wt-final .wt-gold',pass:true},
 ];
