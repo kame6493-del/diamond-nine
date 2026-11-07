@@ -2,7 +2,7 @@
 // タイムボタンからこういうのは見れるようにしてください。試合画面を大きくして、試合画面を良い感じに見れるようにしてください」。
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {projection,toScreen,figH,padBottom,HOME_CAM} from '../src/pro/FieldCanvas';
+import {projection,toScreen,figH,padBottom,followSpot,HOME_CAM} from '../src/pro/FieldCanvas';
 import {MATCH_GUIDE} from '../src/pro/guide';
 import {PLATE,BAGS,READY} from '../src/pro/field-sim';
 
@@ -46,5 +46,14 @@ export function register1107Tests(test:(name:string,run:()=>void)=>void){
   const tall=projection(390,640,HOME_CAM);assert.ok(tall.T>1&&figH(tall,0)>figH({...tall,T:.8},0),'縦長は奥行きを伸ばし、人形も少し大きい');
   const wide=projection(620,370,HOME_CAM);assert.ok(wide.S>old(620,370)*1.1&&wide.T<.8,'横長は大きく映す');
   const usual=projection(392,300,HOME_CAM);assert.ok(usual.T<=.8+1e-9);
+ });
+ test('fielder tag (11/7 夕): the tag sits just above the fielder, inside the picture, and never over the corner badge',()=>{
+  const W=390,H=486,tw=150,th=24;
+  let [l,t]=followSpot(200,300,40,tw,th,W,H);assert.ok(t+th<=300-40&&l>=4&&l+tw<=W-4,'頭の上');
+  [l,t]=followSpot(380,300,40,tw,th,W,H);assert.ok(l+tw<=W-4,'右の端で切れない');
+  [l,t]=followSpot(5,300,40,tw,th,W,H);assert.ok(l>=4,'左の端で切れない');
+  [l,t]=followSpot(200,30,40,tw,th,W,H);assert.ok(t>=30&&t+th<=H,'上が切れる時は足の下');
+  [l,t]=followSpot(120,H-10,40,tw,th,W,H);assert.ok(t+th<=H-62,'左下の札の所には出さない');
+  const css=readFileSync('src/pro/timeout.css','utf8');assert.ok(/\.fc-follow\{[^}]*pointer-events:none/.test(css),'押せない');
  });
 }

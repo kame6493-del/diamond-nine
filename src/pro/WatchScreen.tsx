@@ -465,7 +465,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   const scene:FieldScene={still,clip:l.clip,defColor:color(1-s.side),batColor:color(s.side),defUni:unis[1-s.side],batUni:unis[s.side],lefty:throwHand(s.pitcher)==='L',leftyBat:batSide(s.batter,s.pitcher)==='L'};
   const banner=pl?.d.banner;
   const fxNow=l.fx,lv=readFxLevel(),shake=!!fxNow&&fxNow.tier!=='small'&&lv==='flashy';
-  return <FieldCanvas scene={scene} className={'wt-field mt-field'+(shown.every(Boolean)?' is-loaded':'')+(shake?' is-shake':'')} onSize={setProj}>
+  return <FieldCanvas scene={scene} className={'wt-field mt-field'+(shown.every(Boolean)?' is-loaded':'')+(shake?' is-shake':'')} onSize={setProj} follow={l.fcard?{pos:l.fcard.pos,n:l.fcard.n,node:fieldCard(l.fcard)}:null}>
    <span className="wt-sr" aria-live="off" data-motion={pl?.d.motion??(l.clip?'pitch':'still')} data-batter-hand={batSide(s.batter,s.pitcher)} data-pitcher-hand={throwHand(s.pitcher)} data-bats={playerMap[s.batter]?.bats??''}>グラウンド</span>
    {!pl&&!l.clip&&proj&&shown.map((id,b)=>{if(!id)return null;const [x,y]=toScreen(proj,leadOff(b)),r=ratingsFor(s.side,id);return <button key={'r'+b} className="wt-tag mt-tag" style={{left:x,top:y-proj.S*8.2}} onClick={()=>openSheet({runner:b})} aria-label={`${['一','二','三'][b]}塁走者 ${nameOf(id)} 走力${gradeOf(r.speed)}`}>走力<b className={gradeClass(r.speed)}>{gradeOf(r.speed)}</b></button>;})}
    {pl&&pl.d.word&&<span className="wt-play-word" aria-hidden="true">{pl.d.word}</span>}
@@ -486,13 +486,15 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
    <div className="wt-lamps"><p><small>B</small>{lamp(c.b,3,'is-b')}</p><p><small>S</small>{lamp(c.s,2,'is-s')}</p><p><small>O</small>{lamp(Math.min(2,outs),2,'is-o')}</p></div>
   </div>;
  };
- /** 捕った野手の札(11/6 夜): 守備位置・名前、肩・守備の段と短い棒(打者の帯の Mini と同じ)。値はその守備位置での値(本職でない所は下がる)。 */
+ /** 捕った野手の札(11/6 夜): 守備位置・名前、肩・守備の段。値はその守備位置での値(本職でない所は下がる)。
+  *  11/7 夕(持ち主「選手のところに肩・守備の能力が出るように」): 実況の帯の上ではなく、球場の絵の中の捕った野手の頭の上に小さく出す
+  *  (FieldCanvas の follow。「遊 田〇 肩B 守A」の形、段の色は能力の段と同じ)。送球を受けた野手には出さない(続けて出るとうるさいので、最初に捕った野手だけ)。 */
  const fieldCard=(c:FCard)=>{
   const p=playerMap[c.id],raw=ratingsFor(c.side,c.id),label=POS_LABEL[c.pos],dv=p&&c.pos!=='P'?defenseAtPosition(p,POS_DATA[c.pos],raw):{arm:raw.arm,field:raw.field};
   const team=ids[c.side],expect=c.expect??'';
-  return <div key={c.n} className={'wt-fcard'+(c.fine?' is-fine':'')+(team===club?' is-mine':' is-rival')} style={{'--tc':tc(team).main,'--fc-ms':`${c.ms}ms`} as CSSProperties} data-id={c.id} data-pos={c.pos} data-expect={expect} aria-label={`${label} ${nameOf(c.id)} 肩${gradeOf(dv.arm)} 守備${gradeOf(dv.field)}`}>
-   <p className="wt-fcard-who"><em>{label}</em><b>{nameOf(c.id)}</b>{c.fine&&<small>好守</small>}</p>
-   <div className="wt-minis"><Mini v={dv.arm} label="肩"/><Mini v={dv.field} label="守備"/></div>
+  return <div key={c.n} className={'wt-fcard is-tag'+(c.fine?' is-fine':'')+(team===club?' is-mine':' is-rival')} style={{'--tc':tc(team).main,'--fc-ms':`${c.ms}ms`} as CSSProperties} data-id={c.id} data-pos={c.pos} data-expect={expect} aria-label={`${label} ${nameOf(c.id)} 肩${gradeOf(dv.arm)} 守備${gradeOf(dv.field)}`}>
+   <em>{label}</em><b className="wt-ft-name">{nameOf(c.id).split(' ')[0]}</b>{c.fine&&<small>好守</small>}
+   <span className="wt-ft-ab">肩<b className={gradeClass(dv.arm)}>{gradeOf(dv.arm)}</b></span><span className="wt-ft-ab">守<b className={gradeClass(dv.field)}>{gradeOf(dv.field)}</b></span>
   </div>;
  };
  /** 打者と投手の帯(11/4 夜おそく): 能力の段と短い棒を常に出す(打者=ミート・パワー・走力、投手=球速・制球・スタミナ)。
@@ -610,7 +612,7 @@ function WatchView({state,game,saved,sound,mode:startMode='manage',onSave,onPaus
   <div className="wt-wrap wt-one wt-big">
    {(!fin||l.fx)&&field()}
    <div className="wt-callbox"><div className={'wt-call'+(l.log[0]?.gold?' is-gold':'')} aria-live="polite"><em aria-hidden="true">実況</em><span>{l.log[0]?.note&&<b className={'wt-note-tag is-'+(l.log[0].note.good?'good':'bad')}>{l.log[0].note.text}</b>}{l.log[0]?.text??'プレイボール!'}</span></div>
-    {l.fcard&&fieldCard(l.fcard)}</div>
+</div>
    {!fin&&duelCards()}
    {!l.fx&&finalPanel()}
    {!fin&&<div className="wt-dock">{control>=0&&managerPanel()}{speedBar()}</div>}

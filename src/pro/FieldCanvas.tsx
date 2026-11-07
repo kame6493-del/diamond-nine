@@ -3,7 +3,7 @@
 // 解像度は表示の最大3倍(端末の倍率まで)で持つ。人形は ChatGPT で今の絵柄に合わせて描いたコマ(sprite-atlas.ts)、無いコマは今の絵を回す・ずらすで補う。
 // 11/5 朝: 打者と捕手は、捕手の後ろから見た向き(背中が見える)に描き直した。右打者は左の打席で一塁側を向き、左打者は左右を返す。
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {actorAt,ballAt,fenceAt,BAGS,PLATE,RUBBER,type ActorAt,type Choreo,type Pose,type V} from './field-sim';
+import {actorAt,ballAt,fenceAt,BAGS,PLATE,RUBBER,type ActorAt,type Choreo,type Pos,type Pose,type V} from './field-sim';
 import {ATLAS,type FrameName} from './sprite-atlas';
 import {tintedAtlas} from './uniform-tint';
 import type {Uniform} from './team-colors';
@@ -141,9 +141,24 @@ function faceOf(a:ActorAt,c:Choreo,t:number){
  return a.face;
 }
 
-export function FieldCanvas({scene,className='',children,onSize}:{scene:FieldScene;className?:string;children?:React.ReactNode;onSize?:(pr:Projection)=>void}){
- const wrap=useRef<HTMLDivElement|null>(null),cv=useRef<HTMLCanvasElement|null>(null);
+/** 11/7 夕(持ち主「ボールを取った時ですが、選手のところに肩・守備の能力が出るようにしてくれませんかね」):
+ *  follow=球場の絵の中で、守備位置 pos の野手のすぐ上に付いていく小さな札(node)。n が変わると出し直す。
+ *  動きの間は毎コマその野手の頭の上(上が切れる時は足の下)に置き、端・左下の札(点・回・カウント)の所には出さない。動きが終わったら最後の場所に残す。 */
+export interface Follow {pos:Pos;n:number;node:React.ReactNode}
+const FOLLOW_GAP=4,BADGE_W=190,BADGE_H=62;
+/** 札の左上(px)。x,y=野手の足元、h=人形の高さ、tw,th=札の大きさ、W,H=絵の大きさ。 */
+export function followSpot(x:number,y:number,h:number,tw:number,th:number,W:number,H:number):[number,number]{
+ let left=Math.max(FOLLOW_GAP,Math.min(W-tw-FOLLOW_GAP,x-tw/2)),top=y-h-th-2;
+ if(top<FOLLOW_GAP)top=y+4;// 上が切れる時は足の下
+ top=Math.max(FOLLOW_GAP,Math.min(H-th-FOLLOW_GAP,top));
+ // 左下の札(点・回・カウント)とは重ねない: 札の上へよける
+ if(left<BADGE_W&&top+th>H-BADGE_H)top=Math.max(FOLLOW_GAP,H-BADGE_H-th-2);
+ return [left,top];
+}
+export function FieldCanvas({scene,className='',children,onSize,follow=null}:{scene:FieldScene;className?:string;children?:React.ReactNode;onSize?:(pr:Projection)=>void;follow?:Follow|null}){
+ const wrap=useRef<HTMLDivElement|null>(null),cv=useRef<HTMLCanvasElement|null>(null),tag=useRef<HTMLDivElement|null>(null);
  const sc=useRef(scene);sc.current=scene;
+ const fw=useRef(follow);fw.current=follow;
  const [size,setSize]=useState<{w:number;h:number}>({w:0,h:0});
  const [,setLoaded]=useState(0);
  useLayoutEffect(()=>{const el=wrap.current;if(!el)return;const measure=()=>{const r=el.getBoundingClientRect();setSize(s=>Math.abs(s.w-r.width)<1&&Math.abs(s.h-r.height)<1?s:{w:r.width,h:r.height});};
@@ -168,6 +183,9 @@ export function FieldCanvas({scene,className='',children,onSize}:{scene:FieldSce
   const s=sc.current,clip=s.clip,ch=clip?.c??s.still,t=clip?Math.max(0,(now-clip.start)/1000*clip.speed):0;
   const list=ch.actors.map(a=>actorAt(a,t)).filter(a=>a.o>0).sort((a,b)=>b.p[1]-a.p[1]);
   const reload=()=>setLoaded(n=>n+1);
+  // 捕った野手の札を、その野手の頭の上へ(動きの間だけ動かす。終わったら最後の場所)
+  {const el=tag.current,f=fw.current;if(el&&f&&(clip||!el.classList.contains('is-on'))){const a=list.find(x=>x.role==='f'&&x.pos===f.pos);
+   if(a){const [x,y]=toScreen(pr,a.p),[l,tp]=followSpot(x,y,figH(pr,a.p[1]),el.offsetWidth,el.offsetHeight,size.w,size.h);el.style.left=`${Math.round(l)}px`;el.style.top=`${Math.round(tp)}px`;el.classList.add('is-on');}}}
   // 影
   g.fillStyle='rgba(0,0,0,.22)';
   for(const a of list){const [x,y]=toScreen(pr,a.p),h=figH(pr,a.p[1]);g.globalAlpha=a.o;g.beginPath();g.ellipse(x,y,h*.32,h*.09,0,0,Math.PI*2);g.fill();}
@@ -204,5 +222,5 @@ export function FieldCanvas({scene,className='',children,onSize}:{scene:FieldSce
  };
  // 動いている間だけ毎コマ描く
  useEffect(()=>{if(!size.w)return;let raf=0,alive=true;const tick=(now:number)=>{if(!alive)return;const more=draw(now);if(more)raf=requestAnimationFrame(tick);};raf=requestAnimationFrame(tick);return()=>{alive=false;cancelAnimationFrame(raf);};});
- return <div ref={wrap} className={'fc-wrap '+className}><canvas ref={cv} className="fc-canvas" style={{width:size.w,height:size.h}} aria-hidden="true"/>{children}</div>;
+ return <div ref={wrap} className={'fc-wrap '+className}><canvas ref={cv} className="fc-canvas" style={{width:size.w,height:size.h}} aria-hidden="true"/>{children}{follow&&<div key={follow.n} ref={tag} className="fc-follow">{follow.node}</div>}</div>;
 }

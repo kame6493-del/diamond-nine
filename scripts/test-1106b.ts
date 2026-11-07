@@ -41,10 +41,11 @@ export function register1106bTests(test:(name:string,run:()=>void)=>void){
   for(const p of POSITIONS){assert.ok(POS_LABEL[p]&&POS_LABEL[p].length===1);assert.ok(POS_DATA[p]);}
   assert.equal(POS_DATA.LF,'外');assert.equal(POS_DATA.SS,'遊');
  });
- test('fielder card (11/6 night): shown over the commentary strip (not on the field), name + 肩 + 守備 with the same grade tiles as the batter, auto-hides, none at 4x+ or when skipping, stays with the fine-play effect',()=>{
+ test('fielder card (11/6 night, on the fielder 11/7): shown next to the fielder who caught the ball, position + name + 肩 + 守備 grades in the grade colors, auto-hides, none at 4x+ or when skipping, stays with the fine-play effect',()=>{
   const w=readFileSync('src/pro/WatchScreen.tsx','utf8'),css=readFileSync('src/pro/watch.css','utf8');
-  assert.ok(w.includes('<div className="wt-callbox">')&&w.includes('{l.fcard&&fieldCard(l.fcard)}</div>'),'実況の帯に重ねる');
-  assert.ok(/<Mini v=\{dv\.arm\} label="肩"\/><Mini v=\{dv\.field\} label="守備"\/>/.test(w),'肩・守備は打者と同じ Mini');
+  // 11/7 夕(持ち主「選手のところに肩・守備の能力が出るように」): 実況の帯ではなく、球場の絵の中の捕った野手の上に付いていく(FieldCanvas の follow)
+  assert.ok(w.includes('follow={l.fcard?{pos:l.fcard.pos,n:l.fcard.n,node:fieldCard(l.fcard)}:null}')&&!w.includes('{l.fcard&&fieldCard(l.fcard)}'),'捕った野手の所に出す');
+  assert.ok(w.includes('肩<b className={gradeClass(dv.arm)}>{gradeOf(dv.arm)}</b>')&&w.includes('守<b className={gradeClass(dv.field)}>{gradeOf(dv.field)}</b>'),'肩・守備の段は能力の段の色');
   assert.ok(w.includes('defenseAtPosition(p,POS_DATA[c.pos],raw)'),'その守備位置での値');
   assert.ok(w.includes('sp<=2)showCard('),'4倍以上は出さない');
   assert.ok(w.includes('d.fine?Math.max(1400/sp,(d.len-ca.t)*1000/sp+400)'),'ファインプレーは動きの終わりまで出して演出につなぐ');
