@@ -42,6 +42,17 @@ for(const page of ['app-support.html','app-privacy.html'])await rm(resolve(out,p
 await cp('mobile/privacy.html',resolve(out,'privacy.html'));
 // iOS links to no other app (App Store 2.3.10 / 4.3): drop the other app's icon from the iOS www.
 if(!android)await rm(resolve(out,'assets/pro/more'),{recursive:true,force:true});
+// iOS: the in-app legal and privacy pages name only the App Store (App Store 2.3.10).
+if(!android){
+ const swaps={'privacy.html':[['広告ID（Androidの広告ID。iOSではトラッキング許可を求めないため IDFA は取得されません）','広告ID（トラッキング許可を求めないため IDFA は取得されません）'],['Androidは「設定 › プライバシー › 広告」で広告IDを削除またはリセット、iOSは','iPhoneは'],['App Store（Apple）または Google Play（Google）の決済','App Store（Apple）の決済'],['支払い情報はApple／Googleが処理し','支払い情報はAppleが処理し'],['App Store／Google Play の決済','App Store の決済']],
+  'legal.html':[['購入画面（Google Play／App Store）','購入画面（App Store）'],['Google Play または App Store で利用できる支払方法','App Store で利用できる支払方法'],['Google Play または App Store の定め','App Store の定め'],['返金は Google Play の返金ポリシー（App Store で購入した場合は Apple の定め）に従います','返金は Apple の定めに従います'],['Android 7.0 以上、iOS 15 以上','iOS 15 以上']]};
+ for(const [page,list] of Object.entries(swaps)){
+  const path=resolve(out,page);let html=await readFile(path,'utf8');
+  for(const [from,to] of list){if(!html.includes(from))throw new Error(`${page}: iOS text not found: ${from}`);html=html.split(from).join(to);}
+  if(/Google Play|Android/.test(html))throw new Error(`${page}: Google Play / Android still named in the iOS build`);
+  await writeFile(path,html);
+ }
+}
 // Only runtime files may ship. Fail the build if developer material slips into www/.
 const shipped=(await readdir(out,{recursive:true,withFileTypes:true})).filter(e=>e.isFile()).map(e=>relative(out,resolve(e.parentPath??e.path,e.name)).split(sep).join('/'));
 const licenseText=p=>p==='THIRD_PARTY_ASSETS.txt'||/^audio\/[^/]+\/[^/]*(license|credits)[^/]*\.txt$/i.test(p);
